@@ -1,4 +1,5 @@
 #include "GuiRenderer.h"
+#include "GuiRendererGlyphRanges.h"
 #include "Window/ApplicationHost.h"
 #include "System/ComfyData.h"
 #include "ImGui/Implementation/ComfyWin32.h"
@@ -11,22 +12,21 @@ namespace ImGui
 {
 	LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-	GuiRenderer::GuiRenderer(ApplicationHost& host)
-		: host(host), iconFontGlyphRange { ICON_MIN_FA, ICON_MAX_FA, 0 }
+	GuiRenderer::GuiRenderer(ApplicationHost& host) : host(host)
 	{
 	}
 
 	bool GuiRenderer::Initialize()
 	{
-		if (!InitializeCreateContext())
+		if (!CreateImGuiContext())
 			return false;
 
-		if (!InitializeSetStartupIoState())
+		if (!SetStartupIOState())
 			return false;
 
-		InitializeLoadFontData();
+		LoadInitializeFontFiles();
 
-		if (!InitializeSetStyle())
+		if (!SetComfyStyle())
 			return false;
 
 		if (!InitializeBackend())
@@ -68,7 +68,7 @@ namespace ImGui
 		return ImGui_ImplWin32_IsAnyViewportFocused();
 	}
 
-	bool GuiRenderer::InitializeCreateContext()
+	bool GuiRenderer::CreateImGuiContext()
 	{
 		if (CreateContext() == nullptr)
 			return false;
@@ -76,7 +76,7 @@ namespace ImGui
 		return true;
 	}
 
-	bool GuiRenderer::InitializeSetStartupIoState()
+	bool GuiRenderer::SetStartupIOState()
 	{
 		auto& io = GetIO();
 		io.IniFilename = configFileName;
@@ -125,44 +125,51 @@ namespace ImGui
 		return true;
 	}
 
-	bool GuiRenderer::InitializeLoadFontData()
+	bool GuiRenderer::LoadInitializeFontFiles()
 	{
 		const auto fontDirectory = System::Data.FindDirectory(fontDirectoryName);
 		if (fontDirectory == nullptr)
 			return false;
 
-		const auto& io = GetIO();
-		if (const auto textFontEntry = System::Data.FindFileInDirectory(*fontDirectory, fontFileName); textFontEntry != nullptr)
-		{
-			void* fileContent = IM_ALLOC(textFontEntry->Size);
-			System::Data.ReadFileIntoBuffer(textFontEntry, fileContent);
+		const auto textFontEntry = System::Data.FindFileInDirectory(*fontDirectory, textFontFileName);
+		const auto iconFontEntry = System::Data.FindFileInDirectory(*fontDirectory, FONT_ICON_FILE_NAME_FAS);
 
-			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(textFontEntry->Size), fontSize, nullptr, GetFontGlyphRange()) == nullptr)
-				return false;
-		}
-		else
+		if (textFontEntry == nullptr || iconFontEntry == nullptr)
+			return false;
+
+		void* textFontFileContent = IM_ALLOC(textFontEntry->Size);
+		void* iconFontFileContent = IM_ALLOC(iconFontEntry->Size);
+
+		if (!System::Data.ReadFileIntoBuffer(textFontEntry, textFontFileContent) || !System::Data.ReadFileIntoBuffer(iconFontEntry, iconFontFileContent))
 		{
+			IM_FREE(textFontFileContent);
+			IM_FREE(iconFontFileContent);
 			return false;
 		}
 
-		if (const auto iconFontEntry = System::Data.FindFileInDirectory(*fontDirectory, FONT_ICON_FILE_NAME_FAS); iconFontEntry != nullptr)
-		{
-			void* fileContent = IM_ALLOC(iconFontEntry->Size);
-			System::Data.ReadFileIntoBuffer(iconFontEntry, fileContent);
+		auto& ioFonts = *GetIO().Fonts;
+		ioFonts.Flags |= ImFontAtlasFlags_NoMouseCursors;
 
-			const ImFontConfig config = GetIconFontConfig();
-			if (io.Fonts->AddFontFromMemoryTTF(fileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &config, GetIconGlyphRange()) == nullptr)
-				return false;
-		}
-		else
-		{
+		ImFontConfig textFontConfig = {};
+		textFontConfig.FontDataOwnedByAtlas = true;
+		memcpy(textFontConfig.Name, textFontName.data(), textFontName.size());
+
+		ImFontConfig iconFontConfig = {};
+		iconFontConfig.FontDataOwnedByAtlas = true;
+		iconFontConfig.GlyphMinAdvanceX = iconMinAdvanceX;
+		iconFontConfig.MergeMode = true;
+		memcpy(iconFontConfig.Name, iconFontName.data(), iconFontName.size());
+
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSize, &textFontConfig, GetTextGlyphRange()) == nullptr)
 			return false;
-		}
+
+		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
+			return false;
 
 		return true;
 	}
 
-	bool GuiRenderer::InitializeSetStyle()
+	bool GuiRenderer::SetComfyStyle()
 	{
 		StyleComfy();
 		return true;
@@ -176,32 +183,30 @@ namespace ImGui
 		//if (!ImGui_ImplDX11_Init())
 		//	return false;
 
-		//if (!ComfyWin32::Initialize(host.GetWindow()))
+		//if (!ComfyWin32::Initialize(host.GetWindowHandle()))
 		//	return false;
 
 		if (!ComfyD3D11::Initialize())
 			return false;
 
 		host.RegisterWindowProcCallback(ImGui_ImplWin32_WndProcHandler);
-
 		return true;
 	}
 
-	const ImWchar* GuiRenderer::GetFontGlyphRange() const
+	const ImWchar* GuiRenderer::GetTextGlyphRange() const
 	{
-		return GetIO().Fonts->GetGlyphRangesJapanese();
+#if COMFY_DEBUG && 1 // NOTE: Greatly improve debug build startup times
+		return GetIO().Fonts->GetGlyphRangesDefault();
+		// return GetIO().Fonts->GetGlyphRangesJapanese();
+#endif /* COMFY_DEBUG */
+
+		// TODO: Eventually replace with dynamic runtime glyph building or even loading a prerendered (BC7 compressed) font texture
+		return TextFontGlyphRanges;
 	}
 
 	const ImWchar* GuiRenderer::GetIconGlyphRange() const
 	{
-		return iconFontGlyphRange.data();
-	}
-
-	ImFontConfig GuiRenderer::GetIconFontConfig() const
-	{
-		ImFontConfig config = {};
-		config.GlyphMinAdvanceX = iconMinAdvanceX;
-		config.MergeMode = true;
-		return config;
+		static constexpr ImWchar iconFontGlyphRange[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		return iconFontGlyphRange;
 	}
 }

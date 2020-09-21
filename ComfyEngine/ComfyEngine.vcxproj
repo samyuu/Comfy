@@ -180,6 +180,7 @@
     <ClInclude Include="src\ImGui\Extensions\Theme.h" />
     <ClInclude Include="src\ImGui\Gui.h" />
     <ClInclude Include="src\ImGui\GuiRenderer.h" />
+    <ClInclude Include="src\ImGui\GuiRendererGlyphRanges.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyD3D11.h" />
     <ClInclude Include="src\ImGui\Implementation\ComfyWin32.h" />
     <ClInclude Include="src\ImGui\Widgets\ComfyWidgets.h" />

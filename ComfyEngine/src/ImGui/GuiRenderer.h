@@ -1,4 +1,6 @@
 #pragma once
+#include "Types.h"
+#include "CoreTypes.h"
 #include "Gui.h"
 #include "Window/ApplicationHost.h"
 
@@ -23,20 +25,17 @@ namespace ImGui
 		bool IsAnyViewportFocused() const;
 
 	private:
-		bool InitializeCreateContext();
-		bool InitializeSetStartupIoState();
-		bool InitializeLoadFontData();
-		bool InitializeSetStyle();
+		bool CreateImGuiContext();
+		bool SetStartupIOState();
+		bool LoadInitializeFontFiles();
+		bool SetComfyStyle();
 		bool InitializeBackend();
 
-		const ImWchar* GetFontGlyphRange() const;
+		const ImWchar* GetTextGlyphRange() const;
 		const ImWchar* GetIconGlyphRange() const;
-
-		ImFontConfig GetIconFontConfig() const;
 
 	private:
 		Comfy::ApplicationHost& host;
-		const std::array<ImWchar, 3> iconFontGlyphRange;
 		
 	private:
 		static constexpr bool preLoadImGuiConfig = false;
@@ -44,11 +43,13 @@ namespace ImGui
 
 		static constexpr const char* configFileName = "imgui.ini";
 		static constexpr const char* logFileName = "imgui_log.txt";
-		static constexpr const char* fontDirectoryName = "font";
-		static constexpr const char* fontFileName = "noto_sans_cjk_jp-regular.otf";
+		static constexpr std::string_view fontDirectoryName = "font";
+		static constexpr std::string_view textFontName = "Noto Sans CJK JP";
+		static constexpr std::string_view textFontFileName = "noto_sans_cjk_jp-regular.otf";
+		static constexpr std::string_view iconFontName = "Font Awesome 5";
 
-		static constexpr float fontSize = 16.0f;
-		static constexpr float iconFontSize = fontSize - 2.0f;
+		static constexpr float textFontSize = 16.0f;
+		static constexpr float iconFontSize = textFontSize - 2.0f;
 
 		static constexpr float iconMinAdvanceX = 13.0f;
 	};
