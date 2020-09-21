@@ -1382,13 +1382,14 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)
 	{
 		const auto existingTargetIndex = workingChart->Targets.FindIndex(tick, type);
+		const bool targetExists = (existingTargetIndex > -1);
 
 		// NOTE: Double hit sound if a target gets placed in front of the cursor position.
 		//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
 		if (!buttonSoundOnSuccessfulPlacementOnly)
 			buttonSoundController.PlayButtonSound();
 
-		if (existingTargetIndex > -1)
+		if (targetExists)
 		{
 			if (!GetIsPlayback())
 			{
@@ -1401,7 +1402,8 @@ namespace Comfy::Studio::Editor
 		}
 		else
 		{
-			if (buttonSoundOnSuccessfulPlacementOnly)
+			const bool isPartOfExistingSyncPair = (workingChart->Targets.FindIndex(tick) > -1);
+			if (buttonSoundOnSuccessfulPlacementOnly && !isPartOfExistingSyncPair)
 				buttonSoundController.PlayButtonSound();
 
 			undoManager.Execute<AddTarget>(*workingChart, TimelineTarget(tick, type));

@@ -97,6 +97,7 @@ namespace Comfy::Studio::Editor
 		void Remove(TimelineTarget target);
 		void RemoveAt(i32 index);
 
+		i32 FindIndex(TimelineTick tick) const;
 		i32 FindIndex(TimelineTick tick, ButtonType type) const;
 		void Clear();
 

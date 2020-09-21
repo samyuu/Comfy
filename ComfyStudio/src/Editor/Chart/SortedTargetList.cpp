@@ -63,6 +63,13 @@ namespace Comfy::Studio::Editor
 		UpdateTargetSyncFlagsAround(index);
 	}
 
+	i32 SortedTargetList::FindIndex(TimelineTick tick) const
+	{
+		// TODO: Binary search
+		const auto foundIndex = FindIndexOf(targets, [&](const auto& target) { return (target.Tick == tick); });
+		return InBounds(foundIndex, targets) ? static_cast<i32>(foundIndex) : -1;
+	}
+
 	i32 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type) const
 	{
 		// TODO: Binary search
