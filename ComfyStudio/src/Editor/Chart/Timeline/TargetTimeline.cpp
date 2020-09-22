@@ -1403,7 +1403,7 @@ namespace Comfy::Studio::Editor
 		else
 		{
 			const bool isPartOfExistingSyncPair = (workingChart->Targets.FindIndex(tick) > -1);
-			if (buttonSoundOnSuccessfulPlacementOnly && !isPartOfExistingSyncPair)
+			if (buttonSoundOnSuccessfulPlacementOnly && (!GetIsPlayback() || !isPartOfExistingSyncPair))
 				buttonSoundController.PlayButtonSound();
 
 			undoManager.Execute<AddTarget>(*workingChart, TimelineTarget(tick, type));
