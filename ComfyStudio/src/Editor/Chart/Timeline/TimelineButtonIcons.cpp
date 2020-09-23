@@ -38,7 +38,7 @@ namespace Comfy::Studio::Editor
 	{
 		auto resultIndex = static_cast<size_t>(target.Type);
 
-		if (target.Flags.IsChain && (target.Type == ButtonType::SlideL || target.Type == ButtonType::SlideR))
+		if ((target.Flags.IsChain && !target.Flags.IsChainStart) && (IsSlideButtonType(target.Type)))
 			resultIndex += 2;
 
 		if (target.Flags.IsSync)
