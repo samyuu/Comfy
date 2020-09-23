@@ -21,6 +21,7 @@ namespace Comfy::Render
 	using AetObjMaskCallback = std::function<bool(const Graphics::Aet::Util::Obj& maskObj, const Graphics::Aet::Util::Obj& obj, const Graphics::Transform2D& transform)>;
 
 	TexSprView SprSetNameStringSprGetter(const Graphics::Aet::VideoSource& source, const Graphics::SprSet* sprSetToSearch);
+	TexSprView SprSetNameStringSprGetterExact(const Graphics::Aet::VideoSource& source, const Graphics::SprSet* sprSetToSearch);
 
 	TexSprView NullSprGetter(const Graphics::Aet::VideoSource& source);
 
@@ -51,7 +52,7 @@ namespace Comfy::Render
 		void SetSprGetter(SprGetter value);
 		void SetObjCallback(AetObjCallback value);
 		void SetObjMaskCallback(AetObjMaskCallback value);
-		
+
 		bool GetRenderNullVideos() const;
 		void SetRenderNullVideos(bool value);
 

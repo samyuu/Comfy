@@ -7,22 +7,43 @@ namespace Comfy::Render
 	using namespace Graphics::Aet;
 	namespace AetUtil = Graphics::Aet::Util;
 
+	namespace
+	{
+		template <bool Exact>
+		TexSprView SprSetNameStringSprGetterBase(const VideoSource& source, const Graphics::SprSet* sprSetToSearch)
+		{
+			if (sprSetToSearch == nullptr)
+				return { nullptr, nullptr };
+
+			if (source.SprCache != nullptr && source.SprSetCache == sprSetToSearch)
+				return { sprSetToSearch->TexSet.Textures[source.SprCache->TextureIndex].get(), source.SprCache };
+
+			// TEMP: Temporary solution, check for IDs in the future
+			const auto matchingSpr = FindIfOrNull(sprSetToSearch->Sprites, [&](const auto& spr)
+			{
+				if constexpr (Exact)
+					return (source.Name == spr.Name);
+				else
+					return ::Comfy::Util::EndsWith(source.Name, spr.Name);
+			});
+
+			if (matchingSpr == nullptr)
+				return { nullptr, nullptr };
+
+			source.SprCache = &(*matchingSpr);
+			source.SprSetCache = sprSetToSearch;
+			return { sprSetToSearch->TexSet.Textures[source.SprCache->TextureIndex].get(), source.SprCache };
+		}
+	}
+
 	TexSprView SprSetNameStringSprGetter(const VideoSource& source, const Graphics::SprSet* sprSetToSearch)
 	{
-		if (sprSetToSearch == nullptr)
-			return { nullptr, nullptr };
+		return SprSetNameStringSprGetterBase<false>(source, sprSetToSearch);
+	}
 
-		if (source.SprCache != nullptr && source.SprSetCache == sprSetToSearch)
-			return { sprSetToSearch->TexSet.Textures[source.SprCache->TextureIndex].get(), source.SprCache };
-
-		// TEMP: Temporary solution, check for IDs in the future
-		const auto matchingSpr = FindIfOrNull(sprSetToSearch->Sprites, [&](const auto& spr) { return ::Comfy::Util::EndsWith(source.Name, spr.Name); });
-		if (matchingSpr == nullptr)
-			return { nullptr, nullptr };
-
-		source.SprCache = &(*matchingSpr);
-		source.SprSetCache = sprSetToSearch;
-		return { sprSetToSearch->TexSet.Textures[source.SprCache->TextureIndex].get(), source.SprCache };
+	TexSprView SprSetNameStringSprGetterExact(const VideoSource& source, const Graphics::SprSet* sprSetToSearch)
+	{
+		return SprSetNameStringSprGetterBase<true>(source, sprSetToSearch);
 	}
 
 	TexSprView NullSprGetter(const VideoSource& source)
