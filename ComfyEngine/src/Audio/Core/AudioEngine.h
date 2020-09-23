@@ -60,6 +60,9 @@ namespace Comfy::Audio
 
 		std::string_view GetName() const;
 
+		void ResetVolumeMap();
+		void SetVolumeMap(TimeSpan startTime, TimeSpan endTime, f32 startVolume, f32 endVolume);
+
 	private:
 		bool GetInternalFlag(u16 flag) const;
 		void SetInternalFlag(u16 flag, bool value);
@@ -85,7 +88,7 @@ namespace Comfy::Audio
 
 	public:
 		static constexpr f32 MinVolume = 0.0f, MaxVolume = 1.0f;
-		static constexpr size_t MaxSimultaneousVoices = 64;
+		static constexpr size_t MaxSimultaneousVoices = 80;
 
 		static constexpr u32 OutputChannelCount = 2;
 		static constexpr u32 OutputSampleRate = 44100;

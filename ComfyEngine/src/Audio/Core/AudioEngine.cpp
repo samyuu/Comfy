@@ -53,9 +53,10 @@ namespace Comfy::Audio
 
 	// TODO: Strong i64 typedefs for Frame and Sample units
 
-	struct FrameRange
+	struct AtomicVoiceVolumeMap
 	{
-		i64 Start, End;
+		std::atomic<i64> StartFrame, EndFrame;
+		std::atomic<f32> StartVolume, EndVolume;
 	};
 
 	// NOTE: Reusable voice instance internal data
@@ -70,10 +71,9 @@ namespace Comfy::Audio
 		std::array<char, 64> Name;
 
 		// TODO: Loop between
-		// FrameRange LoopFrames;
-		// TODO: Automatically interpolate volume towards / from 0.0
-		// FrameRange FadeInFrames;
-		// FrameRange FadeOutFrames;
+		// std::atomic<i64> LoopStartFrame, LoopEndFrame;
+
+		AtomicVoiceVolumeMap VolumeMap;
 	};
 
 	struct AudioEngine::Impl
@@ -189,6 +189,20 @@ namespace Comfy::Audio
 			std::fill(outputBuffer, outputBuffer + sampleCount, 0);
 		}
 
+		f32 GetInterpolatedVolumeAt(const i64 startFrame, const i64 endFrame, const f32 startVolume, const f32 endVolume, const i64 frame)
+		{
+			if (frame <= startFrame)
+				return startVolume;
+
+			if (frame >= endFrame)
+				return endVolume;
+
+			const f64 delta = static_cast<f64>(frame - startFrame) / static_cast<f64>(endFrame - startFrame);
+			const f32 lerpVolume = (startVolume + (endVolume - startVolume) * static_cast<f32>(delta));
+
+			return lerpVolume;
+		}
+
 		void CallbackProcessVoices(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferSampleCount)
 		{
 			const auto lock = std::scoped_lock(CallbackMutex);
@@ -239,8 +253,16 @@ namespace Comfy::Audio
 				if (hasReachedEnd && !playPastEnd)
 					voiceData.FramePosition = (voiceData.Flags & VoiceFlags_Looping) ? 0 : sampleProvider->GetFrameCount();
 
+				f32 finalVoiceVolume = voiceData.Volume;
+
+				const f32 startVolume = voiceData.VolumeMap.StartVolume;
+				const f32 endVolume = voiceData.VolumeMap.EndVolume;
+
+				if (startVolume != endVolume)
+					finalVoiceVolume *= GetInterpolatedVolumeAt(voiceData.VolumeMap.StartFrame, voiceData.VolumeMap.EndFrame, startVolume, endVolume, voiceData.FramePosition);
+
 				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
-					outputBuffer[i] = MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceData.Volume));
+					outputBuffer[i] = MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * finalVoiceVolume));
 			}
 		}
 
@@ -496,6 +518,10 @@ namespace Comfy::Audio
 
 			return static_cast<VoiceHandle>(i);
 		}
+
+#if COMFY_DEBUG // DEBUG: Consider increasing MaxSimultaneousVoices...
+		assert(false);
+#endif
 
 		return VoiceHandle::Invalid;
 	}
@@ -838,6 +864,33 @@ namespace Comfy::Audio
 		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
 			return voice->Name.data();
 		return "VoiceHandle::Invalid";
+	}
+
+	void Voice::ResetVolumeMap()
+	{
+		if (auto voice = EngineInstance->impl->GetVoiceData(Handle); voice != nullptr)
+		{
+			voice->VolumeMap.StartFrame = 0;
+			voice->VolumeMap.EndFrame = 0;
+			voice->VolumeMap.StartVolume = 0.0f;
+			voice->VolumeMap.EndVolume = 0.0f;
+		}
+	}
+
+	void Voice::SetVolumeMap(TimeSpan startTime, TimeSpan endTime, f32 startVolume, f32 endVolume)
+	{
+		auto& impl = EngineInstance->impl;
+
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
+		{
+			const auto source = impl->GetSource(voice->Source);
+			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
+
+			voice->VolumeMap.StartFrame = TimeSpanToFrames(startTime, sampleRate);
+			voice->VolumeMap.EndFrame = TimeSpanToFrames(endTime, sampleRate);
+			voice->VolumeMap.StartVolume = startVolume;
+			voice->VolumeMap.EndVolume = endVolume;
+		}
 	}
 
 	bool Voice::GetInternalFlag(u16 flag) const
