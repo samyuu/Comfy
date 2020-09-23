@@ -53,6 +53,7 @@ namespace Comfy::Studio::Editor
 				layers.FrameBottomT = findLayer(*aetGameCommon, "frame_bottom_t");
 				layers.FrameBottomF = findLayer(*aetGameCommon, "frame_bottom_f");
 				layers.LifeGauge = findLayer(*aetGameCommon, "life_gauge");
+				layers.LifeGaugeInsurance = findLayer(*aetGameCommon, "life_gauge_insurance");
 				layers.SongEnergyBase = findLayer(*aetGameCommon, "song_energy_base_t");
 				layers.SongEnergyNormal = findLayer(*aetGameCommon, "song_energy_normal");
 				layers.SongIconLoop = findLayer(*aetGameCommon, "song_icon_loop");
@@ -74,6 +75,8 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::Circle, "target_maru", layers.Targets);
 				registerTypeLayer(ButtonType::SlideL, "target_slide18_l", layers.Targets);
 				registerTypeLayer(ButtonType::SlideR, "target_slide18_r", layers.Targets);
+				registerTypeLayer(ButtonType::SlideL, "target_slide18b_l", layers.TargetsHit);
+				registerTypeLayer(ButtonType::SlideR, "target_slide18b_r", layers.TargetsHit);
 				registerTypeLayer(ButtonType::SlideL, "target_slide26_l", layers.TargetsFrag);
 				registerTypeLayer(ButtonType::SlideR, "target_slide26_r", layers.TargetsFrag);
 				registerTypeLayer(ButtonType::SlideL, "target_slide26b_l", layers.TargetsFragHit);
@@ -148,10 +151,19 @@ namespace Comfy::Studio::Editor
 				renderer.UploadToGPUFreeCPUMemory(*sprGameCommon);
 				sprites.ButtonTrail = findSprite(*sprGameCommon, "KISEKI");
 				sprites.ButtonSyncLine = findSprite(*sprGameCommon, "KISEKI_SYNC");
+
+				for (auto& spr : sprGameCommon->Sprites)
+					spr.Name = "GAM_CMN_" + spr.Name;
 			}
 
 			if (GetFutureIfReady(aetGameFuture, aetGame) && aetGame != nullptr)
 			{
+				layers.PracticeLevelInfoEasy = findLayer(*aetGame, "level_info_easy_prc");
+				layers.PracticeLevelInfoNormal = findLayer(*aetGame, "level_info_normal_prc");
+				layers.PracticeLevelInfoHard = findLayer(*aetGame, "level_info_hard_prc");
+				layers.PracticeLevelInfoExtreme = findLayer(*aetGame, "level_info_extreme_prc");
+				layers.PracticeLevelInfoExExtreme = findLayer(*aetGame, "level_info_extreme_extra_prc");
+				layers.PracticeBackground = findLayer(*aetGame, "prc_bg");
 				layers.PracticeGaugeBase = findLayer(*aetGame, "prc_gauge_base");
 				layers.PracticeGaugeTime = findLayer(*aetGame, "prc_gauge_time");
 				layers.PracticeGaugeBorderPlay = findLayer(*aetGame, "prc_gauge_border_play");
@@ -169,6 +181,9 @@ namespace Comfy::Studio::Editor
 			{
 				renderer.UploadToGPUFreeCPUMemory(*sprGame);
 				sprites.PracticeNumbers = findSprite(*sprGame, "PRC_NUM24X36");
+
+				for (auto& spr : sprGame->Sprites)
+					spr.Name = "PS4_GAME_" + spr.Name;
 			}
 
 			if (GetFutureIfReady(sprFont36Future, sprFont36) && sprFont36 != nullptr)
@@ -203,14 +218,22 @@ namespace Comfy::Studio::Editor
 			// TODO: Find a better solution for this, maybe store tex shared_ptr + spr as mutable VideoSource member (?)
 			renderer.Aet().SetSprGetter([this](const Aet::VideoSource& source) -> Render::TexSprView
 			{
-				if (auto result = Render::SprSetNameStringSprGetter(source, sprGameCommon.get()); result)
+				if (auto result = Render::SprSetNameStringSprGetterExact(source, sprGameCommon.get()); result)
 					return result;
 
-				if (auto result = Render::SprSetNameStringSprGetter(source, sprGame.get()); result)
+				if (auto result = Render::SprSetNameStringSprGetterExact(source, sprGame.get()); result)
 					return result;
 
 				return Render::NullSprGetter(source);
 			});
+		}
+
+		void DrawBackground(Render::Renderer2D& renderer)
+		{
+			if (aetGame == nullptr || sprGame == nullptr)
+				return;
+
+			TryDrawLayer(renderer, layers.PracticeBackground, 0.0f);
 		}
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const
@@ -222,9 +245,9 @@ namespace Comfy::Studio::Editor
 			TryDrawLayerLooped(renderer, layers.FrameUpT, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.FrameBottomT, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.LifeGauge, playbackFrame);
+			TryDrawLayerLooped(renderer, layers.LifeGaugeInsurance, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.SongIconLoop, playbackFrame);
-			TryDrawLayerLooped(renderer, layers.LevelInfoHard, playbackFrame);
-
+			TryDrawLayerLooped(renderer, layers.PracticeLevelInfoHard, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.PracticeGaugeBase, playbackFrame);
 			DrawHUDPracitceTime(renderer, hud.PlaybackTime);
 
@@ -319,8 +342,11 @@ namespace Comfy::Studio::Editor
 		{
 			auto getLayerArray = [this](const TargetData& data) -> auto&
 			{
+				if (data.FragmentHit)
+					return data.Fragment ? layers.TargetsFragHit : layers.TargetsHit;
+
 				if (data.Fragment)
-					return data.FragmentHit ? layers.TargetsFragHit : data.Sync ? layers.TargetsFragSync : layers.TargetsFrag;
+					return data.Sync ? layers.TargetsFragSync : layers.TargetsFrag;
 
 				if (data.Sync)
 					return data.HoldText ? layers.TargetsSyncHold : layers.TargetsSync;
@@ -666,6 +692,7 @@ namespace Comfy::Studio::Editor
 				FrameBottomT,
 				FrameBottomF,
 				LifeGauge,
+				LifeGaugeInsurance,
 				SongEnergyBase,
 				SongEnergyNormal,
 				SongIconLoop,
@@ -678,6 +705,7 @@ namespace Comfy::Studio::Editor
 
 			std::array<std::shared_ptr<Aet::Layer>, EnumCount<ButtonType>()>
 				Targets,
+				TargetsHit,
 				TargetsFrag,
 				TargetsFragHit,
 				TargetsSync,
@@ -696,6 +724,12 @@ namespace Comfy::Studio::Editor
 			std::shared_ptr<Aet::Video> TargetHandVideo;
 
 			std::shared_ptr<Aet::Layer>
+				PracticeLevelInfoEasy,
+				PracticeLevelInfoNormal,
+				PracticeLevelInfoHard,
+				PracticeLevelInfoExtreme,
+				PracticeLevelInfoExExtreme,
+				PracticeBackground,
 				PracticeGaugeBase,
 				PracticeGaugeBaseNumPointMin,
 				PracticeGaugeBaseNumPointSec,
@@ -730,6 +764,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::SetAetSprGetter(Render::Renderer2D& renderer)
 	{
 		impl->SetAetSprGetter(renderer);
+	}
+
+	void TargetRenderHelper::DrawBackground(Render::Renderer2D& renderer) const
+	{
+		impl->DrawBackground(renderer);
 	}
 
 	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const

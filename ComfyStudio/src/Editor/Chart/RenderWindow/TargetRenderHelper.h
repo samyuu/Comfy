@@ -28,6 +28,8 @@ namespace Comfy::Studio::Editor
 			TimeSpan Duration;
 		};
 
+		void DrawBackground(Render::Renderer2D& renderer) const;
+
 		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const;
 
 		struct TargetData
