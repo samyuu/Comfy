@@ -155,6 +155,9 @@ namespace Comfy::Studio::Editor
 			if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair > 0)
 				continue;
 
+			if (target.Flags.IsChain && !target.Flags.IsChainStart && !target.Flags.IsChainEnd)
+				continue;
+
 			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(target.Tick);
 			const auto offsetButtonTime = buttonTime - buttonSoundFutureOffset;
 
@@ -165,10 +168,33 @@ namespace Comfy::Studio::Editor
 
 				// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
 				//		 or playback was started on top of an existing target
-				if (startTime >= TimeSpan::Zero())
-					buttonSoundController.PlayButtonSound(TimeSpan::Zero(), externalClock);
+				const auto clampedStartTime = (startTime >= TimeSpan::Zero()) ? TimeSpan::Zero() : startTime;
+
+				if (target.Flags.IsChain)
+				{
+					const auto chainSoundSlot = (target.Type == ButtonType::SlideL) ? ChainSoundSlot::Left : ChainSoundSlot::Right;
+					if (target.Flags.IsChainStart)
+					{
+						buttonSoundController.PlayChainSoundStart(chainSoundSlot, clampedStartTime, externalClock);
+					}
+					if (target.Flags.IsChainEnd)
+					{
+						if (constexpr bool success = true; success)
+							buttonSoundController.PlayChainSoundSuccess(chainSoundSlot, clampedStartTime, externalClock);
+						else
+							buttonSoundController.PlayChainSoundFailure(chainSoundSlot, clampedStartTime, externalClock);
+
+						buttonSoundController.FadeOutLastChainSound(chainSoundSlot);
+					}
+				}
+				else if (IsSlideButtonType(target.Type))
+				{
+					buttonSoundController.PlaySlideSound(clampedStartTime, externalClock);
+				}
 				else
-					buttonSoundController.PlayButtonSound(startTime, externalClock);
+				{
+					buttonSoundController.PlayButtonSound(clampedStartTime, externalClock);
+				}
 			}
 		}
 	}
@@ -1387,14 +1413,14 @@ namespace Comfy::Studio::Editor
 		// NOTE: Double hit sound if a target gets placed in front of the cursor position.
 		//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
 		if (!buttonSoundOnSuccessfulPlacementOnly)
-			buttonSoundController.PlayButtonSound();
+			PlayTargetButtonTypeSound(type);
 
 		if (targetExists)
 		{
 			if (!GetIsPlayback())
 			{
 				if (buttonSoundOnSuccessfulPlacementOnly)
-					buttonSoundController.PlayButtonSound();
+					PlayTargetButtonTypeSound(type);
 
 				const auto existingTarget = workingChart->Targets[existingTargetIndex];
 				undoManager.Execute<RemoveTarget>(*workingChart, existingTarget);
@@ -1404,7 +1430,7 @@ namespace Comfy::Studio::Editor
 		{
 			const bool isPartOfExistingSyncPair = (workingChart->Targets.FindIndex(tick) > -1);
 			if (buttonSoundOnSuccessfulPlacementOnly && (!GetIsPlayback() || !isPartOfExistingSyncPair))
-				buttonSoundController.PlayButtonSound();
+				PlayTargetButtonTypeSound(type);
 
 			undoManager.Execute<AddTarget>(*workingChart, TimelineTarget(tick, type));
 		}
@@ -1433,6 +1459,14 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<RemoveTargetList>(*workingChart, std::move(targetsToRemove));
 	}
 
+	void TargetTimeline::PlayTargetButtonTypeSound(ButtonType type)
+	{
+		if (IsSlideButtonType(type))
+			buttonSoundController.PlaySlideSound();
+		else
+			buttonSoundController.PlayButtonSound();
+	}
+
 	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick)
 	{
 		for (const auto& target : workingChart->Targets)
@@ -1446,7 +1480,7 @@ namespace Comfy::Studio::Editor
 	{
 		// NOTE: During playback the sound will be handled automatically already
 		if (!GetIsPlayback())
-			buttonSoundController.PlayButtonSound();
+			PlayTargetButtonTypeSound(target.Type);
 
 		const auto buttonIndex = static_cast<size_t>(target.Type);
 		buttonAnimations[buttonIndex].Tick = buttonTick.value_or(target.Tick);
@@ -1591,6 +1625,7 @@ namespace Comfy::Studio::Editor
 	{
 		lastFrameButtonSoundCursorTime = thisFrameButtonSoundCursorTime = (newCursorTime - buttonSoundFutureOffset);
 		buttonSoundController.PauseAllNegativeVoices();
+		buttonSoundController.PauseAllChainSounds();
 	}
 
 	f32 TargetTimeline::GetTimelineSize() const

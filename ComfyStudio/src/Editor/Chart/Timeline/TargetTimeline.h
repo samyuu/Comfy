@@ -131,6 +131,8 @@ namespace Comfy::Studio::Editor
 		void RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount = {});
 
 	private:
+		void PlayTargetButtonTypeSound(ButtonType type);
+
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
 		void PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target, std::optional<TimelineTick> buttonTick = {});
 
