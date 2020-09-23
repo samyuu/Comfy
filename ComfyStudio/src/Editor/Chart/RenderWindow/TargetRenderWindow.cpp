@@ -52,7 +52,9 @@ namespace Comfy::Studio::Editor
 			if (!target.IsSelected)
 				continue;
 
-			const auto position = target.Flags.HasProperties ? target.Properties.Position : Rules::PresetTargetPosition(target.Type, target.Tick, target.Flags);
+			const auto position = target.Flags.HasProperties ? target.Properties.Position : target.Flags.IsChain ?
+				Rules::PresetTargetChainPosition(target.Type, target.Tick, target.Flags) :
+				Rules::PresetTargetPosition(target.Type, target.Tick, target.Flags);
 
 			const auto tl = glm::round(TargetAreaToScreenSpace(position - targetHitboxSize));
 			const auto br = glm::round(TargetAreaToScreenSpace(position + targetHitboxSize));

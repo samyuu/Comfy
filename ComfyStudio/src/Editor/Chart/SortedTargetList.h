@@ -40,6 +40,8 @@ namespace Comfy::Studio::Editor
 		TargetPropertyFlags_Distance = 1 << TargetPropertyType_Distance,
 	};
 
+	constexpr bool IsSlideButtonType(ButtonType type) { return type == ButtonType::SlideL || type == ButtonType::SlideR; }
+
 	struct TargetProperties
 	{
 		vec2 Position;

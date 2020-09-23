@@ -39,6 +39,9 @@ namespace Comfy::Studio::Editor
 		constexpr f32 PlacementDistancePerBeat = 192.0f;
 		constexpr f32 PlacementDistancePerBeatStair = 186.59046f;
 
+		// NOTE: Assumes chain fragments at a 32nd bar division
+		constexpr f32 PlacementDistancePerBeatChain = 288.0f;
+
 		constexpr f32 TickToDistance(const TimelineTick tick)
 		{
 			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);
@@ -55,13 +58,23 @@ namespace Comfy::Studio::Editor
 			return TimelineTick::FromTicks(static_cast<i32>(ticks));
 		}
 
-		constexpr f32 TickToStairDistance(const TimelineTick tick)
+		constexpr f32 TickToDistanceStair(const TimelineTick tick)
 		{
 			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);
 			const auto beatDistanceRatio = static_cast<f32>(PlacementDistancePerBeatStair);
 
 			return static_cast<f32>(beats * beatDistanceRatio);
 		}
+
+		constexpr f32 TickToDistanceChain(const TimelineTick tick)
+		{
+			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);
+			const auto beatDistanceRatio = static_cast<f32>(PlacementDistancePerBeatChain);
+
+			return static_cast<f32>(beats * beatDistanceRatio);
+		}
+
+		constexpr f32 ChainFragmentPlacementDistance = TickToDistanceChain(TimelineTick::FromBars(1) / 32);
 
 		constexpr vec2 RecommendedPlacementAreaMin =
 		{
@@ -141,45 +154,46 @@ namespace Comfy::Studio::Editor
 			return vec2(baselineX + x, baselineY + y);
 		}
 
+		constexpr vec2 PresetTargetChainPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
+		{
+			const bool isLeft = (type == ButtonType::SlideL);
+			const bool evenBar = (tick % TimelineTick::FromBars(2)) < TimelineTick::FromBars(1);
+
+			constexpr auto baselineXOdd = TickToDistance(TimelineTick::FromBeats(1) / 2);
+			constexpr auto baselineXEven = TickToDistance(TimelineTick::FromBars(1) - TimelineTick::FromBars(1) / 8);
+
+			constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
+
+			const auto x = (evenBar ? baselineXEven : baselineXOdd) + (TickToDistanceChain(tick % TimelineTick::FromBars(1)));
+			const auto y = (VerticalSyncPairPlacementDistance * (evenBar ? -2.0f : -1.0f));
+
+			return vec2(isLeft ? (PlacementAreaSize.x - x) : x, baselineY + y);
+		}
+
 		constexpr TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags, bool syncAnglesSteep = false)
 		{
-			if (flags.IsSync)
+			if (flags.IsChain)
+				return { PresetTargetChainPosition(type, tick, flags), 0.0f, (type == ButtonType::SlideL) ? +2.0f : -2.0f, 500.0f, 1200.0f, };
+
+			if (!flags.IsSync)
+				return { PresetTargetPosition(type, tick, flags), 0.0f, -2.0f, 500.0f, 1200.0f, };
+
+			const auto pairCount = flags.SyncPairCount;
+			const auto pairIndex = flags.IndexWithinSyncPair;
+
+			bool upperHalfOfPair = pairIndex < (pairCount / 2);
+			if (pairCount == 3)
 			{
-				const auto pairCount = flags.SyncPairCount;
-				const auto pairIndex = flags.IndexWithinSyncPair;
-
-				bool upperHalfOfPair = pairIndex < (pairCount / 2);
-				if (pairCount == 3)
-				{
-					if (type == ButtonType::Square && pairIndex == 1)
-						upperHalfOfPair = true;
-					if (type == ButtonType::Cross)
-						upperHalfOfPair = false;
-				}
-
-				const auto& anglesArray = syncAnglesSteep ? VerticalSyncPairAnglesSteep : VerticalSyncPairAngles;
-				const auto angle = anglesArray[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
-
-				return
-				{
-					PresetTargetPosition(type, tick, flags),
-					angle,
-					0.0f,
-					500.0f,
-					880.0f,
-				};
+				if (type == ButtonType::Square && pairIndex == 1)
+					upperHalfOfPair = true;
+				if (type == ButtonType::Cross)
+					upperHalfOfPair = false;
 			}
-			else
-			{
-				return
-				{
-					PresetTargetPosition(type, tick, flags),
-					0.0f,
-					-2.0f,
-					500.0f,
-					1200.0f,
-				};
-			}
+
+			const auto& anglesArray = syncAnglesSteep ? VerticalSyncPairAnglesSteep : VerticalSyncPairAngles;
+			const auto angle = anglesArray[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
+
+			return { PresetTargetPosition(type, tick, flags), angle, 0.0f, 500.0f, 880.0f, };
 		}
 	}
 }
