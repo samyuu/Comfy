@@ -145,14 +145,14 @@ namespace Comfy::Studio::Editor
 		if (elapsedTime >= elapsedThresholdAtWhichPlayingSoundsMakesNoSense)
 			return;
 
-		// TODO: Implement metronome the same way, refactor ButtonSoundController to support any user controlled voices generically and rename to SoundVoicePool (?)
+		// TODO: Implement bar / beat metronome in a similar way
 
 		// NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
 		for (const auto& target : workingChart->Targets)
 		{
-			// DEBUG: Stacked button sounds should be handled by the button sound controller automatically but it seems there might be a bug here somewhere... (?)
-			//		  Doing an additional sync check here has the advantage of offloading audio engine work though special care needs to be taken for slide and normal buttons
-			if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair > 0)
+			// NOTE: Stacked button sounds should be handled by the button sound controller automatically 
+			//		 but doing an additional sync check here has the advantage of offloading audio engine work
+			if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair > 0 && !IsSlideButtonType(target.Type))
 				continue;
 
 			if (target.Flags.IsChain && !target.Flags.IsChainStart && !target.Flags.IsChainEnd)

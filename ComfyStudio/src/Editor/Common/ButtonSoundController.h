@@ -54,7 +54,7 @@ namespace Comfy::Studio::Editor
 
 		void PlayChainSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock);
 
-		f32 GetLastButtonSoundTimeVolumeFactor() const;
+		f32 GetLastButtonSoundTimeVolumeFactor(ButtonSoundType type) const;
 
 	private:
 		struct AsyncSoundSource
@@ -71,7 +71,9 @@ namespace Comfy::Studio::Editor
 
 		float masterSoundVolume = 1.0f;
 
-		TimeSpan buttonSoundTime = {}, lastButtonSoundTime = {}, timeSinceLastButtonSound = {};
+		struct SoundTypeTimeData { TimeSpan This, Last, SinceLast; };
+		SoundTypeTimeData buttonSoundTime = {}, slideSoundTime = {};
+
 		TimeSpan chainFadeOutDuration = TimeSpan::FromMilliseconds(200.0);
 
 		size_t buttonPoolRingIndex = 0;

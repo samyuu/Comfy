@@ -162,14 +162,17 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		lastButtonSoundTime = buttonSoundTime = timeSinceLastButtonSound = {};
+		buttonSoundTime = {};
+		slideSoundTime = {};
 	}
 
 	void ButtonSoundController::PlayButtonSoundType(ButtonSoundType type, TimeSpan startTime, std::optional<TimeSpan> externalClock)
 	{
-		lastButtonSoundTime = buttonSoundTime;
-		buttonSoundTime = externalClock.value_or(TimeSpan::GetTimeNow());
-		timeSinceLastButtonSound = (buttonSoundTime - lastButtonSoundTime);
+		auto& timeData = (type == ButtonSoundType::Button) ? buttonSoundTime : slideSoundTime;
+
+		timeData.Last = timeData.This;
+		timeData.This = externalClock.value_or(TimeSpan::GetTimeNow());
+		timeData.SinceLast = (timeData.This - timeData.Last);
 
 		auto& voice = buttonVoicePool[buttonPoolRingIndex];
 		buttonPoolRingIndex = IncrementRingIndex<ButtonVoicePoolSize>(buttonPoolRingIndex);
@@ -183,7 +186,7 @@ namespace Comfy::Studio::Editor
 
 		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
 		voice.SetSource(source.Get());
-		voice.SetVolume(masterSoundVolume * source.Volume * GetLastButtonSoundTimeVolumeFactor());
+		voice.SetVolume(masterSoundVolume * source.Volume * GetLastButtonSoundTimeVolumeFactor(type));
 		voice.SetPosition(startTime);
 		voice.SetIsPlaying(true);
 	}
@@ -218,16 +221,18 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	f32 ButtonSoundController::GetLastButtonSoundTimeVolumeFactor() const
+	f32 ButtonSoundController::GetLastButtonSoundTimeVolumeFactor(ButtonSoundType type) const
 	{
-		constexpr auto threshold = 35.0;
-		const auto timeSinceSound = timeSinceLastButtonSound.TotalMilliseconds();
+		const auto& timeData = (type == ButtonSoundType::Button) ? buttonSoundTime : slideSoundTime;
 
-		if (timeSinceSound >= threshold)
+		constexpr auto thresholdMS = 35.0;
+		const auto timeSinceMS = timeData.SinceLast.TotalMilliseconds();
+
+		if (timeSinceMS >= thresholdMS)
 			return 1.0f;
 
 		// NOTE: All of this is far from perfect
-		const auto delta = static_cast<f32>(timeSinceSound / threshold);
+		const auto delta = static_cast<f32>(timeSinceMS / thresholdMS);
 		const auto factor = std::clamp((delta * delta), 0.0f, 1.0f);
 
 		return factor;
