@@ -138,6 +138,10 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::AddVisibleTargetsToDrawBuffers()
 	{
+		// TODO: Move... somewhere else (?)
+		constexpr auto fragDisplayOffsetX = 32.0f;
+		constexpr auto chainHitTickThreshold = (TimelineTick::FromBars(1) / 16);
+
 		auto tryGetProperties = [](const TimelineTarget& target)
 		{
 			return target.Flags.HasProperties ? target.Properties : Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags);
@@ -169,7 +173,10 @@ namespace Comfy::Studio::Editor
 				const auto progressUnbound = static_cast<f32>(ConvertRange(targetTime.TotalSeconds(), buttonTime.TotalSeconds(), 0.0, 1.0, cursorTime.TotalSeconds()));
 				const auto progress = glm::clamp(progressUnbound, 0.0f, 1.0f);
 
-				const auto properties = tryGetProperties(target);
+				auto properties = tryGetProperties(target);
+
+				if (target.Flags.IsChain && !target.Flags.IsChainStart)
+					properties.Position.x += fragDisplayOffsetX * (target.Type == ButtonType::SlideL ? -1.0f : +1.0f);
 
 				auto& targetData = drawBuffers.Targets.emplace_back();
 				targetData.Type = target.Type;
@@ -179,7 +186,7 @@ namespace Comfy::Studio::Editor
 				targetData.Sync = target.Flags.IsSync;
 				targetData.HoldText = target.Flags.IsHold;
 				targetData.Fragment = (target.Flags.IsChain && !target.Flags.IsChainStart);
-				targetData.FragmentHit = (targetData.Fragment && targetData.NoHand);
+				targetData.FragmentHit = (target.Flags.IsChain && ((buttonTick - cursorTick) <= chainHitTickThreshold));
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
 
@@ -189,7 +196,7 @@ namespace Comfy::Studio::Editor
 					buttonData.Type = targetData.Type;
 					buttonData.Sync = targetData.Sync;
 					buttonData.Fragment = targetData.Fragment;
-					buttonData.Shadow = (isPlayback || true) ? TargetRenderHelper::ButtonShadowType::Black : TargetRenderHelper::ButtonShadowType::None;
+					buttonData.Shadow = TargetRenderHelper::ButtonShadowType::Black;
 					buttonData.Position = GetButtonPathSinePoint(progress, properties);
 					buttonData.Progress = progress;
 
@@ -232,26 +239,23 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::FlushRenderTargetsDrawBuffers()
 	{
+		auto isChainStart = [](const TargetRenderHelper::TargetData& data) { return IsSlideButtonType(data.Type) && !data.Fragment; };
+
 		for (const auto& data : drawBuffers.Trails)
 			renderHelper->DrawButtonTrail(renderer, data);
 
 		for (const auto& data : drawBuffers.Buttons)
-		{
-			if (data.Shadow != TargetRenderHelper::ButtonShadowType::None)
-				renderHelper->DrawButtonShadow(renderer, data);
-		}
+			if (data.Shadow != TargetRenderHelper::ButtonShadowType::None) { renderHelper->DrawButtonShadow(renderer, data); }
+
+		// NOTE: Draw chain start on top of child fragments to avoid target hand clipping
+		for (const auto& data : drawBuffers.Targets)
+			if (!data.FragmentHit && !isChainStart(data)) { renderHelper->DrawTarget(renderer, data); }
 
 		for (const auto& data : drawBuffers.Targets)
-		{
-			if (!data.FragmentHit)
-				renderHelper->DrawTarget(renderer, data);
-		}
+			if (!data.FragmentHit && isChainStart(data)) { renderHelper->DrawTarget(renderer, data); }
 
 		for (const auto& data : drawBuffers.Targets)
-		{
-			if (data.FragmentHit)
-				renderHelper->DrawTarget(renderer, data);
-		}
+			if (data.FragmentHit) { renderHelper->DrawTarget(renderer, data); }
 
 		for (const auto& data : drawBuffers.SyncLines)
 			renderHelper->DrawButtonPairSyncLines(renderer, data);
