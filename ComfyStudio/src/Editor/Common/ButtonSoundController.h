@@ -49,14 +49,15 @@ namespace Comfy::Studio::Editor
 		void PauseAllNegativeVoices();
 
 	private:
-		void PlayButtonSoundType(ButtonSoundType type, TimeSpan startTime, std::optional<TimeSpan> externalClock);
-		void PlayButtonSoundTypeUsingVoice(Audio::Voice voice, ButtonSoundType type, TimeSpan startTime);
+		void InitializeVoicePools();
+		void UnloadVoicePools();
+		void InitializeSoundSources();
 
-		void PlayChainSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock);
-
-		f32 GetLastButtonSoundTimeVolumeFactor(ButtonSoundType type) const;
+		void PlayButtonSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock);
 
 	private:
+		float masterSoundVolume = 1.0f;
+
 		struct AsyncSoundSource
 		{
 			Audio::SourceHandle Handle;
@@ -66,15 +67,18 @@ namespace Comfy::Studio::Editor
 			AsyncSoundSource(std::string_view filePath, f32 volume = 1.0f);
 			Audio::SourceHandle Get();
 		};
-
 		std::array<std::vector<AsyncSoundSource>, EnumCount<ButtonSoundType>()> loadedSources;
 
-		float masterSoundVolume = 1.0f;
+		struct SoundTypeTimeData
+		{
+			TimeSpan This, Last, SinceLast;
 
-		struct SoundTypeTimeData { TimeSpan This, Last, SinceLast; };
-		SoundTypeTimeData buttonSoundTime = {}, slideSoundTime = {};
+			void Update(std::optional<TimeSpan> externalClock);
+			f32 GetVolumeFactor() const;
+		};
+		std::array<SoundTypeTimeData, EnumCount<ButtonSoundType>()> soundTimings = {};
 
-		TimeSpan chainFadeOutDuration = TimeSpan::FromMilliseconds(200.0);
+		const TimeSpan chainFadeOutDuration = TimeSpan::FromMilliseconds(200.0);
 
 		size_t buttonPoolRingIndex = 0;
 		std::array<size_t, EnumCount<ChainSoundSlot>()> chainStartPoolRingIndices = {};

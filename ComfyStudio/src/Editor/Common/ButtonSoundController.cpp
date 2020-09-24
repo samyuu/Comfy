@@ -21,6 +21,74 @@ namespace Comfy::Studio::Editor
 
 	ButtonSoundController::ButtonSoundController()
 	{
+		InitializeVoicePools();
+		InitializeSoundSources();
+	}
+
+	ButtonSoundController::~ButtonSoundController()
+	{
+		UnloadVoicePools();
+	}
+
+	void ButtonSoundController::PlayButtonSound(TimeSpan startTime, std::optional<TimeSpan> externalClock)
+	{
+		PlayButtonSoundType(ButtonSoundType::Button, {}, startTime, externalClock);
+	}
+
+	void ButtonSoundController::PlaySlideSound(TimeSpan startTime, std::optional<TimeSpan> externalClock)
+	{
+		PlayButtonSoundType(ButtonSoundType::Slide, {}, startTime, externalClock);
+	}
+
+	void ButtonSoundController::PlayChainSoundStart(ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
+	{
+		PlayButtonSoundType(ButtonSoundType::ChainSlideFirst, slot, startTime, externalClock);
+	}
+
+	void ButtonSoundController::PlayChainSoundSuccess(ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
+	{
+		PlayButtonSoundType(ButtonSoundType::ChainSlideSuccess, slot, startTime, externalClock);
+	}
+
+	void ButtonSoundController::PlayChainSoundFailure(ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
+	{
+		PlayButtonSoundType(ButtonSoundType::ChainSlideFailure, slot, startTime, externalClock);
+	}
+
+	void ButtonSoundController::FadeOutLastChainSound(ChainSoundSlot slot)
+	{
+		const auto slotIndex = static_cast<u8>(slot);
+		auto& voice = chainStartVoicePools[slotIndex][DecrementRingIndex<PerSlotChainVoicePoolSize>(chainStartPoolRingIndices[slotIndex])];
+
+		const auto voicePosition = voice.GetPosition();
+		voice.SetVolumeMap(voicePosition, voicePosition + chainFadeOutDuration, 1.0f, 0.0f);
+	}
+
+	void ButtonSoundController::PauseAllChainSounds()
+	{
+		for (auto& voicePool : chainStartVoicePools)
+		{
+			for (auto& voice : voicePool)
+				voice.SetIsPlaying(false);
+		}
+	}
+
+	void ButtonSoundController::PauseAllNegativeVoices()
+	{
+		for (auto& voice : buttonVoicePool)
+		{
+			if (voice.GetIsPlaying() && voice.GetPosition() < TimeSpan::Zero())
+			{
+				voice.SetIsPlaying(false);
+				voice.SetPosition(voice.GetDuration());
+			}
+		}
+
+		soundTimings = {};
+	}
+
+	void ButtonSoundController::InitializeVoicePools()
+	{
 		auto& audioEngine = Audio::AudioEngine::GetInstance();
 		char nameBuffer[64];
 
@@ -54,7 +122,36 @@ namespace Comfy::Studio::Editor
 				slotVoicePool[i].SetPauseOnEnd(true);
 			}
 		}
+	}
 
+	void ButtonSoundController::UnloadVoicePools()
+	{
+		auto& audioEngine = Audio::AudioEngine::GetInstance();
+
+		for (auto& voice : buttonVoicePool)
+			audioEngine.RemoveVoice(voice);
+
+		for (auto& voices : chainStartVoicePools)
+		{
+			for (auto& voice : voices)
+				audioEngine.RemoveVoice(voice);
+		}
+
+		for (auto& voices : chainEndVoicePools)
+		{
+			for (auto& voice : voices)
+				audioEngine.RemoveVoice(voice);
+		}
+
+		for (auto& sources : loadedSources)
+		{
+			for (auto& source : sources)
+				audioEngine.UnloadSource(source.Get());
+		}
+	}
+
+	void ButtonSoundController::InitializeSoundSources()
+	{
 		// NOTE: Only load the default sounds for now
 
 		auto& buttonSources = loadedSources[static_cast<u8>(ButtonSoundType::Button)];
@@ -82,160 +179,43 @@ namespace Comfy::Studio::Editor
 		chainFailureSources.emplace_back("dev_rom/sound/slide_long/slide_ng03.wav", 0.44f);
 	}
 
-	ButtonSoundController::~ButtonSoundController()
+	void ButtonSoundController::PlayButtonSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
 	{
-		auto& audioEngine = Audio::AudioEngine::GetInstance();
-
-		for (auto& voice : buttonVoicePool)
-			audioEngine.RemoveVoice(voice);
-
-		for (auto& voices : chainStartVoicePools)
-		{
-			for (auto& voice : voices)
-				audioEngine.RemoveVoice(voice);
-		}
-
-		for (auto& voices : chainEndVoicePools)
-		{
-			for (auto& voice : voices)
-				audioEngine.RemoveVoice(voice);
-		}
-
-		for (auto& sources : loadedSources)
-		{
-			for (auto& source : sources)
-				audioEngine.UnloadSource(source.Get());
-		}
-	}
-
-	void ButtonSoundController::PlayButtonSound(TimeSpan startTime, std::optional<TimeSpan> externalClock)
-	{
-		PlayButtonSoundType(ButtonSoundType::Button, startTime, externalClock);
-	}
-
-	void ButtonSoundController::PlaySlideSound(TimeSpan startTime, std::optional<TimeSpan> externalClock)
-	{
-		PlayButtonSoundType(ButtonSoundType::Slide, startTime, externalClock);
-	}
-
-	void ButtonSoundController::PlayChainSoundStart(ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
-	{
-		PlayChainSoundType(ButtonSoundType::ChainSlideFirst, slot, startTime, externalClock);
-	}
-
-	void ButtonSoundController::PlayChainSoundSuccess(ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
-	{
-		PlayChainSoundType(ButtonSoundType::ChainSlideSuccess, slot, startTime, externalClock);
-	}
-
-	void ButtonSoundController::PlayChainSoundFailure(ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
-	{
-		PlayChainSoundType(ButtonSoundType::ChainSlideFailure, slot, startTime, externalClock);
-	}
-
-	void ButtonSoundController::FadeOutLastChainSound(ChainSoundSlot slot)
-	{
-		const auto slotIndex = static_cast<u8>(slot);
-		auto& voice = chainStartVoicePools[slotIndex][DecrementRingIndex<PerSlotChainVoicePoolSize>(chainStartPoolRingIndices[slotIndex])];
-
-		const auto voicePosition = voice.GetPosition();
-		voice.SetVolumeMap(voicePosition, voicePosition + chainFadeOutDuration, 1.0f, 0.0f);
-	}
-
-	void ButtonSoundController::PauseAllChainSounds()
-	{
-		for (auto& voicePool : chainStartVoicePools)
-		{
-			for (auto& voice : voicePool)
-				voice.SetIsPlaying(false);
-		}
-	}
-
-	void ButtonSoundController::PauseAllNegativeVoices()
-	{
-		for (auto& voice : buttonVoicePool)
-		{
-			if (voice.GetIsPlaying() && voice.GetPosition() < TimeSpan::Zero())
-			{
-				voice.SetIsPlaying(false);
-				voice.SetPosition(voice.GetDuration());
-			}
-		}
-
-		buttonSoundTime = {};
-		slideSoundTime = {};
-	}
-
-	void ButtonSoundController::PlayButtonSoundType(ButtonSoundType type, TimeSpan startTime, std::optional<TimeSpan> externalClock)
-	{
-		auto& timeData = (type == ButtonSoundType::Button) ? buttonSoundTime : slideSoundTime;
-
-		timeData.Last = timeData.This;
-		timeData.This = externalClock.value_or(TimeSpan::GetTimeNow());
-		timeData.SinceLast = (timeData.This - timeData.Last);
-
-		auto& voice = buttonVoicePool[buttonPoolRingIndex];
-		buttonPoolRingIndex = IncrementRingIndex<ButtonVoicePoolSize>(buttonPoolRingIndex);
-
-		PlayButtonSoundTypeUsingVoice(voice, type, startTime);
-	}
-
-	void ButtonSoundController::PlayButtonSoundTypeUsingVoice(Audio::Voice voice, ButtonSoundType type, TimeSpan startTime)
-	{
-		auto& source = loadedSources[static_cast<u8>(type)][0];
-
-		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
-		voice.SetSource(source.Get());
-		voice.SetVolume(masterSoundVolume * source.Volume * GetLastButtonSoundTimeVolumeFactor(type));
-		voice.SetPosition(startTime);
-		voice.SetIsPlaying(true);
-	}
-
-	void ButtonSoundController::PlayChainSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
-	{
+		const auto typeIndex = static_cast<u8>(type);
 		const auto slotIndex = static_cast<u8>(slot);
 
-		auto& source = loadedSources[static_cast<u8>(type)][0];
-		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+		soundTimings[typeIndex].Update(externalClock);
+		auto& source = loadedSources[typeIndex][0];
 
-		if (type == ButtonSoundType::ChainSlideFirst)
+		Audio::Voice* voice = nullptr;
+		if (type == ButtonSoundType::Button || type == ButtonSoundType::Slide)
 		{
-			auto& voice = chainStartVoicePools[slotIndex][chainStartPoolRingIndices[slotIndex]];
+			voice = &buttonVoicePool[buttonPoolRingIndex];
+			buttonPoolRingIndex = IncrementRingIndex<ButtonVoicePoolSize>(buttonPoolRingIndex);
+		}
+		else if (type == ButtonSoundType::ChainSlideFirst)
+		{
+			voice = &chainStartVoicePools[slotIndex][chainStartPoolRingIndices[slotIndex]];
 			chainStartPoolRingIndices[slotIndex] = IncrementRingIndex<PerSlotChainVoicePoolSize>(chainStartPoolRingIndices[slotIndex]);
 
-			voice.SetSource(source.Get());
-			voice.SetVolume(masterSoundVolume * source.Volume);
-			voice.SetPosition(startTime);
-			voice.SetIsPlaying(true);
-			voice.ResetVolumeMap();
+			voice->ResetVolumeMap();
+		}
+		else if (type == ButtonSoundType::ChainSlideSuccess || type == ButtonSoundType::ChainSlideFailure)
+		{
+			voice = &chainEndVoicePools[slotIndex][chainEndPoolRingIndices[slotIndex]];
+			chainEndPoolRingIndices[slotIndex] = IncrementRingIndex<PerSlotChainVoicePoolSize>(chainEndPoolRingIndices[slotIndex]);
 		}
 		else
 		{
-			auto& voice = chainEndVoicePools[slotIndex][chainEndPoolRingIndices[slotIndex]];
-			chainEndPoolRingIndices[slotIndex] = IncrementRingIndex<PerSlotChainVoicePoolSize>(chainEndPoolRingIndices[slotIndex]);
-
-			voice.SetSource(source.Get());
-			voice.SetVolume(masterSoundVolume * source.Volume);
-			voice.SetPosition(startTime);
-			voice.SetIsPlaying(true);
+			assert(false);
+			return;
 		}
-	}
 
-	f32 ButtonSoundController::GetLastButtonSoundTimeVolumeFactor(ButtonSoundType type) const
-	{
-		const auto& timeData = (type == ButtonSoundType::Button) ? buttonSoundTime : slideSoundTime;
-
-		constexpr auto thresholdMS = 35.0;
-		const auto timeSinceMS = timeData.SinceLast.TotalMilliseconds();
-
-		if (timeSinceMS >= thresholdMS)
-			return 1.0f;
-
-		// NOTE: All of this is far from perfect
-		const auto delta = static_cast<f32>(timeSinceMS / thresholdMS);
-		const auto factor = std::clamp((delta * delta), 0.0f, 1.0f);
-
-		return factor;
+		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+		voice->SetSource(source.Get());
+		voice->SetVolume(masterSoundVolume * source.Volume * soundTimings[typeIndex].GetVolumeFactor());
+		voice->SetPosition(startTime);
+		voice->SetIsPlaying(true);
 	}
 
 	ButtonSoundController::AsyncSoundSource::AsyncSoundSource(std::string_view filePath, f32 volume) :
@@ -249,5 +229,27 @@ namespace Comfy::Studio::Editor
 			Handle = FutureHandle.get();
 
 		return Handle;
+	}
+
+	void ButtonSoundController::SoundTypeTimeData::Update(std::optional<TimeSpan> externalClock)
+	{
+		Last = This;
+		This = externalClock.value_or(TimeSpan::GetTimeNow());
+		SinceLast = (This - Last);
+	}
+
+	f32 ButtonSoundController::SoundTypeTimeData::GetVolumeFactor() const
+	{
+		constexpr auto thresholdMS = 35.0;
+		const auto timeSinceMS = SinceLast.TotalMilliseconds();
+
+		if (timeSinceMS >= thresholdMS)
+			return 1.0f;
+
+		// NOTE: All of this is far from perfect
+		const auto delta = static_cast<f32>(timeSinceMS / thresholdMS);
+		const auto factor = std::clamp((delta * delta), 0.0f, 1.0f);
+
+		return factor;
 	}
 }
