@@ -8,6 +8,12 @@
 
 namespace Comfy
 {
+	enum class ApplicationHostCloseResponse
+	{
+		Exit,
+		SupressExit,
+	};
+
 	// NOTE: Manage window and general IO platform agnostically
 	class ApplicationHost
 	{
@@ -82,9 +88,10 @@ namespace Comfy
 		void* GetWindowHandle() const;
 
 	public:
-		void RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc);
-		void RegisterWindowResizeCallback(const std::function<void(ivec2 size)> onWindowResize);
-		void RegisterWindowClosingCallback(const std::function<void()> onClosing);
+		void RegisterWindowProcCallback(std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc);
+		void RegisterWindowResizeCallback(std::function<void(ivec2 size)> onWindowResize);
+		void RegisterWindowClosingCallback(std::function<ApplicationHostCloseResponse()> onClosing);
+		void RegisterWindowDestoyCallback(std::function<void()> onDestroy);
 
 	public:
 		bool GetDispatchFileDrop();

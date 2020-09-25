@@ -63,7 +63,8 @@ namespace Comfy
 		{
 			std::function<bool(HWND, UINT, WPARAM, LPARAM)> WindowProc = {};
 			std::function<void(ivec2 size)> WindowResize = {};
-			std::function<void()> WindowClosing = {};
+			std::function<ApplicationHostCloseResponse()> WindowClosing = {};
+			std::function<void()> WindowDestroy = {};
 			std::function<void()> UpdateFunction = {};
 		} Callback;
 
@@ -357,10 +358,17 @@ namespace Comfy
 			Window.Focused = focused;
 		}
 
-		void InternalWindowClosingCallback()
+		ApplicationHostCloseResponse InternalWindowClosingCallback()
 		{
-			if (Callback.WindowClosing)
-				Callback.WindowClosing();
+			return (Callback.WindowClosing) ? Callback.WindowClosing() : ApplicationHostCloseResponse::Exit;
+		}
+
+		void InternalWindowDestroyCallback()
+		{
+			if (Callback.WindowDestroy)
+				Callback.WindowDestroy();
+
+			Exit();
 		}
 
 		bool CheckConnectedDevices()
@@ -619,13 +627,15 @@ namespace Comfy
 
 			case WM_CLOSE:
 			{
-				InternalWindowClosingCallback();
+				const auto response = InternalWindowClosingCallback();
+				if (response == ApplicationHostCloseResponse::SupressExit)
+					return 0;
 				break;
 			}
 
 			case WM_DESTROY:
 			{
-				Exit();
+				InternalWindowDestroyCallback();
 				return 0;
 			}
 
@@ -824,19 +834,24 @@ namespace Comfy
 		return impl->Window.Handle;
 	}
 
-	void ApplicationHost::RegisterWindowProcCallback(const std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc)
+	void ApplicationHost::RegisterWindowProcCallback(std::function<bool(HWND, UINT, WPARAM, LPARAM)> onWindowProc)
 	{
-		impl->Callback.WindowProc = onWindowProc;
+		impl->Callback.WindowProc = std::move(onWindowProc);
 	}
 
-	void ApplicationHost::RegisterWindowResizeCallback(const std::function<void(ivec2 size)> onWindowResize)
+	void ApplicationHost::RegisterWindowResizeCallback(std::function<void(ivec2 size)> onWindowResize)
 	{
-		impl->Callback.WindowResize = onWindowResize;
+		impl->Callback.WindowResize = std::move(onWindowResize);
 	}
 
-	void ApplicationHost::RegisterWindowClosingCallback(const std::function<void()> onClosing)
+	void ApplicationHost::RegisterWindowClosingCallback(std::function<ApplicationHostCloseResponse()> onClosing)
 	{
-		impl->Callback.WindowClosing = onClosing;
+		impl->Callback.WindowClosing = std::move(onClosing);
+	}
+
+	void ApplicationHost::RegisterWindowDestoyCallback(std::function<void()> onDestroy)
+	{
+		impl->Callback.WindowDestroy = std::move(onDestroy);
 	}
 
 	bool ApplicationHost::GetDispatchFileDrop()
