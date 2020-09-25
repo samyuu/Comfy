@@ -451,7 +451,9 @@ namespace Comfy::Studio::Editor
 		applicationExitRequested = false;
 		CheckOpenSaveConfirmationPopupThenCall([this]
 		{
-			chartSaveFileFuture.get();
+			if (chartSaveFileFuture.valid())
+				chartSaveFileFuture.get();
+
 			parentApplication.Exit();
 		});
 	}
