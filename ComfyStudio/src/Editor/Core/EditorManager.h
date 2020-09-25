@@ -17,6 +17,8 @@ namespace Comfy::Studio::Editor
 		void GuiWorkSpaceMenu();
 		void GuiWindows();
 
+		ApplicationHostCloseResponse OnApplicationClosing();
+
 	private:
 		Application& parent;
 

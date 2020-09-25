@@ -60,6 +60,7 @@ namespace Comfy::Studio::Editor
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
 
+		UpdateApplicationClosingRequest();
 		UpdateGlobalControlInput();
 		UpdateApplicationWindowTitle();
 		UpdateAsyncSongSourceLoading();
@@ -113,13 +114,13 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Import...", nullptr, false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportChartFileDialog(); });
 
-			if (Gui::MenuItem("Export...", nullptr, false, true))
+			if (Gui::MenuItem("Export As...", nullptr, false, true))
 				OpenSaveExportChartFileDialog();
 
 			Gui::Separator();
 
 			if (Gui::MenuItem("Exit", "Alt + F4"))
-				CheckOpenSaveConfirmationPopupThenCall([this] { parentApplication.Exit(); });
+				applicationExitRequested = true;
 
 			Gui::EndMenu();
 		}
@@ -142,6 +143,19 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::OnEditorComponentMadeActive()
 	{
 		lastSetWindowTitle.clear();
+	}
+
+	ApplicationHostCloseResponse ChartEditor::OnApplicationClosing()
+	{
+		if (undoManager.GetHasPendingChanged())
+		{
+			applicationExitRequested = true;
+			return ApplicationHostCloseResponse::SupressExit;
+		}
+		else
+		{
+			return ApplicationHostCloseResponse::Exit;
+		}
 	}
 
 	bool ChartEditor::IsAudioFile(std::string_view filePath)
@@ -429,8 +443,23 @@ namespace Comfy::Studio::Editor
 		return playbackTimeOnPlaybackStart;
 	}
 
+	void ChartEditor::UpdateApplicationClosingRequest()
+	{
+		if (!applicationExitRequested)
+			return;
+
+		applicationExitRequested = false;
+		CheckOpenSaveConfirmationPopupThenCall([this]
+		{
+			chartSaveFileFuture.get();
+			parentApplication.Exit();
+		});
+	}
+
 	void ChartEditor::UpdateGlobalControlInput()
 	{
+		// TODO: Undo / redo controls for all child windows
+
 		// HACK: Works for now I guess...
 		if (!parentApplication.GetHost().IsWindowFocused())
 			return;
@@ -574,7 +603,7 @@ namespace Comfy::Studio::Editor
 			Gui::Text("  Save changes to the current file?\n\n\n");
 			Gui::Separator();
 
-			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize);
+			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Enter));
 			Gui::SameLine();
 
 			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   Discard Changes", buttonSize);

@@ -136,6 +136,12 @@ namespace Comfy::Studio::Editor
 		DrawGui();
 	}
 
+	ApplicationHostCloseResponse EditorManager::OnApplicationClosing()
+	{
+		auto activeComponent = TryGetActiveComponent(false);
+		return (activeComponent != nullptr) ? activeComponent->OnApplicationClosing() : ApplicationHostCloseResponse::Exit;
+	}
+
 	template<typename T>
 	void EditorManager::RegisterEditorComponent(std::string_view name)
 	{

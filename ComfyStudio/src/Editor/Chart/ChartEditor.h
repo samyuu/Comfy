@@ -26,6 +26,7 @@ namespace Comfy::Studio::Editor
 		void Gui() override;
 		void GuiMenu() override;
 		void OnEditorComponentMadeActive() override;
+		ApplicationHostCloseResponse OnApplicationClosing() override;
 
 	public:
 		bool IsAudioFile(std::string_view filePath);
@@ -46,7 +47,7 @@ namespace Comfy::Studio::Editor
 
 		void ImportChartFileSync(std::string_view filePath);
 		void ExportChartFileSync(std::string_view filePath);
-		
+
 		bool OpenReadImportChartFileDialog();
 		bool OpenSaveExportChartFileDialog();
 
@@ -69,6 +70,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 	private:
+		void UpdateApplicationClosingRequest();
 		void UpdateGlobalControlInput();
 		void UpdateApplicationWindowTitle();
 		void UpdateAsyncSongSourceLoading();
@@ -77,6 +79,7 @@ namespace Comfy::Studio::Editor
 		void GuiSaveConfirmationPopup();
 
 	private:
+		bool applicationExitRequested = false;
 		std::string windowTitle, lastSetWindowTitle;
 
 		std::unique_ptr<Chart> chart = nullptr;

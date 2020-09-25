@@ -94,11 +94,16 @@ namespace Comfy::Studio
 
 	bool Application::BaseInitialize()
 	{
-		host->RegisterWindowResizeCallback([&](ivec2 size)
+		host->RegisterWindowResizeCallback([this](ivec2 size)
 		{
 		});
 
-		host->RegisterWindowClosingCallback([&]()
+		host->RegisterWindowClosingCallback([this]()
+		{
+			return (editorManager != nullptr) ? editorManager->OnApplicationClosing() : ApplicationHostCloseResponse::Exit;
+		});
+
+		host->RegisterWindowDestoyCallback([this]()
 		{
 			DisposeSaveConfig();
 		});
