@@ -8,7 +8,7 @@
 namespace ImGui::PropertyEditor::Widgets
 {
 	// TODO: template <typename ValueType>
-	bool InputF32Ex(std::string_view label, f32& inOutValue, f32& outIncrement, bool hideValue, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {})
+	bool InputF32Ex(std::string_view label, f32& inOutValue, f32& outIncrement, const char* customDisplayText = nullptr, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {})
 	{
 		RAII::ID id(label);
 		return PropertyFuncValueFunc([&]
@@ -25,12 +25,22 @@ namespace ImGui::PropertyEditor::Widgets
 		{
 			RAII::ItemWidth width(-1.0f);
 
-			if (hideValue) { PushStyleColor(ImGuiCol_Text, vec4(0.0f)); PushStyleColor(ImGuiCol_TextSelectedBg, vec4(0.0f)); }
+			if (customDisplayText != nullptr)
+			{
+				PushStyleColor(ImGuiCol_Text, vec4(0.0f));
+				PushStyleColor(ImGuiCol_TextSelectedBg, vec4(0.0f));
+			}
+
+			const auto inputScaleScreenPos = Gui::GetCursorScreenPos();
 
 			using Lookup = Detail::TypeLookup::DataType<f32>;
 			const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, ImGuiDataType_Float, &inOutValue, nullptr, nullptr, Lookup::Format);
 
-			if (hideValue) { PopStyleColor(2); }
+			if (customDisplayText != nullptr)
+			{
+				PopStyleColor(2);
+				GetWindowDrawList()->AddText(inputScaleScreenPos + GetStyle().FramePadding, GetColorU32(ImGuiCol_TextDisabled), customDisplayText);
+			}
 
 			if (valueChanged && dragRange.has_value())
 				inOutValue = std::clamp(inOutValue, dragRange->x, dragRange->y);
@@ -42,25 +52,16 @@ namespace ImGui::PropertyEditor::Widgets
 
 namespace Comfy::Studio::Editor
 {
-	namespace
-	{
-		constexpr TargetProperties TryGetPropertes(const TimelineTarget& target)
-		{
-			return target.Flags.HasProperties ? target.Properties : Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags);
-		}
-	}
-
 	TargetInspector::TargetInspector(Undo::UndoManager& undoManager) : undoManager(undoManager)
 	{
 	}
 
 	void TargetInspector::Gui(Chart& chart)
 	{
-		// TODO: Pre calculate preset positions (store in second vector?) as they will be used multipled times in later loops (?)
 		for (auto& target : chart.Targets)
 		{
 			if (target.IsSelected)
-				selectedTargets.push_back(&target);
+				selectedTargets.push_back({ &target, target.Flags.HasProperties ? target.Properties : Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags) });
 		}
 
 		GuiPropertyRAII::PropertyValueColumns columns;
@@ -100,12 +101,12 @@ namespace Comfy::Studio::Editor
 	{
 		GuiProperty::TreeNode("Selected Targets", FormatSelectedTargetsValueBuffer(chart), ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			frontSelectedTarget = !selectedTargets.empty() ? selectedTargets.front() : nullptr;
+			frontSelectedTarget = !selectedTargets.empty() ? selectedTargets.front().Target : nullptr;
+			frontSelectedProperties = !selectedTargets.empty() ? selectedTargets.front().PropertiesOrPreset : TargetProperties {};
 			frontSelectedHasProperties = (frontSelectedTarget != nullptr) ? frontSelectedTarget->Flags.HasProperties : false;
-			frontSelectedProperties = (frontSelectedTarget != nullptr) ? TryGetPropertes(*frontSelectedTarget) : TargetProperties {};
 
 			// NOTE: Invert "has properties" to "use preset" to make it more user friendly. HasProperties used internally to allow for "0 is initialization"
-			const bool sameHasProperties = std::all_of(selectedTargets.begin(), selectedTargets.end(), [&](auto* t) { return t->Flags.HasProperties == frontSelectedHasProperties; });
+			const bool sameHasProperties = std::all_of(selectedTargets.begin(), selectedTargets.end(), [&](const auto& t) { return t->Flags.HasProperties == frontSelectedHasProperties; });
 			auto commonUsePreset = (sameHasProperties && !selectedTargets.empty()) ? static_cast<GuiProperty::Boolean>(!frontSelectedHasProperties) : GuiProperty::Boolean::Count;
 			const auto previousCommonUsePreset = commonUsePreset;
 
@@ -117,8 +118,8 @@ namespace Comfy::Studio::Editor
 				std::vector<ChangeTargetListHasProperties::Data> targetData;
 				targetData.reserve(selectedTargets.size());
 
-				for (const auto* target : selectedTargets)
-					targetData.emplace_back().TargetIndex = GetSelectedTargetIndex(chart, target);
+				for (const auto& targetView : selectedTargets)
+					targetData.emplace_back().TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
 
 				undoManager.Execute<ChangeTargetListHasProperties>(chart, std::move(targetData), !static_cast<bool>(commonUsePreset));
 			}
@@ -140,31 +141,43 @@ namespace Comfy::Studio::Editor
 		// TODO: Cast input / output to i32 in case of TargetPropertyType_Frequency (?)
 		auto commonValue = frontSelectedProperties[property];
 
-		const bool allAreSame = std::all_of(selectedTargets.begin(), selectedTargets.end(), [&](auto* t) { return TryGetPropertes(*t)[property] == commonValue; });
-		const bool hideValue = !allAreSame || selectedTargets.empty();
+		auto valueGetter = [property](const auto& t) { return t.PropertiesOrPreset[property]; };
+		auto comparison = [&](const auto& a, const auto& b) { return valueGetter(a) < valueGetter(b); };
+
+		const auto minValue = selectedTargets.empty() ? 0.0f : valueGetter(*std::min_element(selectedTargets.begin(), selectedTargets.end(), comparison));
+		const auto maxValue = selectedTargets.empty() ? 0.0f : valueGetter(*std::max_element(selectedTargets.begin(), selectedTargets.end(), comparison));
+
+		char displayTextBuffer[64];
+		const char* customDisplayText = selectedTargets.empty() ? "" : nullptr;
+
+		if (minValue != maxValue)
+		{
+			sprintf_s(displayTextBuffer, "(%.2f ... %.2f)", minValue, maxValue);
+			customDisplayText = displayTextBuffer;
+		}
 
 		f32 outIncrement = 0.0f;
-		if (GuiProperty::InputF32Ex(label, commonValue, outIncrement, hideValue))
+		if (GuiProperty::InputF32Ex(label, commonValue, outIncrement, customDisplayText))
 		{
 			std::vector<ChangeTargetListProperties::Data> targetData;
 			targetData.reserve(selectedTargets.size());
 
 			if (outIncrement == 0.0f)
 			{
-				for (const auto* target : selectedTargets)
+				for (const auto& targetView : selectedTargets)
 				{
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = GetSelectedTargetIndex(chart, target);
+					data.TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
 					data.NewValue[property] = commonValue;
 				}
 			}
 			else
 			{
-				for (const auto* target : selectedTargets)
+				for (const auto& targetView : selectedTargets)
 				{
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = GetSelectedTargetIndex(chart, target);
-					data.NewValue[property] = (TryGetPropertes(*target)[property] + outIncrement);
+					data.TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
+					data.NewValue[property] = (valueGetter(targetView) + outIncrement);
 				}
 			}
 

@@ -28,11 +28,20 @@ namespace Comfy::Studio::Editor
 
 		std::array<char, 64> selectedTargetsValueBuffer;
 
+		struct TargetViewProperties
+		{
+			TimelineTarget* Target;
+			TargetProperties PropertiesOrPreset;
+
+			TimelineTarget* operator->() { return Target; }
+			const TimelineTarget* operator->() const { return Target; }
+		};
+
 		// NOTE: All of these are only valid between the begin and end of Gui()
-		std::vector<TimelineTarget*> selectedTargets;
+		std::vector<TargetViewProperties> selectedTargets;
 
 		TimelineTarget* frontSelectedTarget;
-		bool frontSelectedHasProperties;
 		TargetProperties frontSelectedProperties;
+		bool frontSelectedHasProperties;
 	};
 }
