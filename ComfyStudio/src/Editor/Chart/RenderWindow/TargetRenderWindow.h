@@ -61,13 +61,16 @@ namespace Comfy::Studio::Editor
 
 		bool drawButtons = true;
 		bool drawTargets = true;
+		bool drawTargetHands = true;
 
 		bool drawCheckerboard = true;
 		bool drawPracticeBackground = false;
 
 		TargetRenderHelper::BackgroundData practiceBackgroundData = {};
+		TimelineTick targetPostHitLingerDuration = TimelineTick::FromBeats(1);
 
 		const f32 targetHitboxSize = 64.0f;
+		const f32 selectionCenterMarkerSize = 9.0f;
 
 		Render::Camera2D camera;
 		std::unique_ptr<TargetRenderHelper> renderHelper = nullptr;
@@ -79,6 +82,7 @@ namespace Comfy::Studio::Editor
 			std::vector<TargetRenderHelper::ButtonData> Buttons;
 			std::vector<TargetRenderHelper::ButtonTrailData> Trails;
 			std::vector<TargetRenderHelper::ButtonSyncLineData> SyncLines;
+			std::vector<std::pair<vec2, u32>> CenterMarkers;
 		} drawBuffers;
 	};
 }

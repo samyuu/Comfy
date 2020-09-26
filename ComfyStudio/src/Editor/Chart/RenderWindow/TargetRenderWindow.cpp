@@ -6,6 +6,26 @@
 
 namespace Comfy::Studio::Editor
 {
+namespace Comfy::Studio::Editor
+{
+	namespace
+	{
+		constexpr std::array<u32, EnumCount<ButtonType>()> ButtonTypeColors =
+		{
+			0xFFCCFE62,
+			0xFFD542FF,
+			0xFFFEFF62,
+			0xFF6412FE,
+			0xFF2BD7FF,
+			0xFF2BD7FF,
+		};
+
+		constexpr u32 GetButtonTypeColorU32(ButtonType type)
+		{
+			return ButtonTypeColors[static_cast<u8>(type)];
+		}
+	}
+
 	using namespace Graphics;
 
 	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager, Render::Renderer2D& renderer)
@@ -68,7 +88,17 @@ namespace Comfy::Studio::Editor
 
 			drawList->AddRectFilled(tl, br, GetColor(EditorColor_TimelineSelection));
 			drawList->AddRect(tl, br, GetColor(EditorColor_TimelineSelectionBorder));
+
+			drawBuffers.CenterMarkers.push_back({ TargetAreaToScreenSpace(position), GetButtonTypeColorU32(target.Type) });
 		}
+
+		const auto markerScreenSize = (camera.Zoom * selectionCenterMarkerSize);
+		for (const auto[center, color] : drawBuffers.CenterMarkers)
+		{
+			drawList->AddLine(center + vec2(-markerScreenSize, -markerScreenSize), center + vec2(+markerScreenSize, +markerScreenSize), color);
+			drawList->AddLine(center + vec2(-markerScreenSize, +markerScreenSize), center + vec2(+markerScreenSize, -markerScreenSize), color);
+		}
+		drawBuffers.CenterMarkers.clear();
 	}
 
 	void TargetRenderWindow::OnResize(ivec2 newSize)
@@ -172,13 +202,11 @@ namespace Comfy::Studio::Editor
 			const auto buttonTick = target.Tick;
 			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(buttonTick);
 
-			const auto endTick = buttonTick + TimelineTick::FromBeats(1);
+			const auto endTick = buttonTick + targetPostHitLingerDuration;
 			const auto endTime = workingChart->TimelineMap.GetTimeAt(endTick);
 
 			const auto targetTick = target.Tick - TimelineTick::FromBars(1);
 			const auto targetTime = workingChart->TimelineMap.GetTimeAt(targetTick);
-
-			const auto flyDuration = (buttonTime - targetTime);
 
 			if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))
 			{
@@ -190,10 +218,13 @@ namespace Comfy::Studio::Editor
 				if (target.Flags.IsChain && !target.Flags.IsChainStart)
 					properties.Position.x += fragDisplayOffsetX * (target.Type == ButtonType::SlideL ? -1.0f : +1.0f);
 
+				const bool inCursorBarRange = (cursorTick >= targetTick && cursorTick <= buttonTick);
+
 				auto& targetData = drawBuffers.Targets.emplace_back();
 				targetData.Type = target.Type;
-				targetData.NoHand = (cursorTick > buttonTick || cursorTick < targetTick);
-				targetData.Transparent = targetData.NoHand;
+				targetData.NoHand = (!drawTargetHands || !inCursorBarRange);
+				// NOTE: Transparent to make the background grid visible and make pre-, post- and cursor bar targets look more uniform
+				targetData.Transparent = (target.IsSelected || !inCursorBarRange);
 				targetData.NoScale = !isPlayback;
 				targetData.Sync = target.Flags.IsSync;
 				targetData.HoldText = target.Flags.IsHold;
@@ -203,7 +234,7 @@ namespace Comfy::Studio::Editor
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
 
-				if (!targetData.NoHand)
+				if (inCursorBarRange)
 				{
 					auto& buttonData = drawBuffers.Buttons.emplace_back();
 					buttonData.Type = targetData.Type;
@@ -216,6 +247,8 @@ namespace Comfy::Studio::Editor
 
 					if (!buttonData.Sync)
 					{
+						const auto flyDuration = (buttonTime - targetTime);
+
 						auto& trailData = drawBuffers.Trails.emplace_back();
 						constexpr f32 trailFactor = 2.55f;
 						const f32 pixelLength = (properties.Distance / 1000.0f) * (240.0f / static_cast<f32>(flyDuration.TotalSeconds()) * trailFactor);
