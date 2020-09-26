@@ -48,9 +48,9 @@ namespace ImGui
 		static constexpr std::string_view textFontFileName = "noto_sans_cjk_jp-regular.otf";
 		static constexpr std::string_view iconFontName = "Font Awesome 5";
 
-		static constexpr float textFontSize = 16.0f;
-		static constexpr float iconFontSize = textFontSize - 2.0f;
+		static constexpr std::array<f32, 3> textFontSizes = { 16.0f, (16.0f * 2.0f), (16.0f * 1.25f) };
+		static constexpr f32 iconFontSize = (textFontSizes[0] - 2.0f);
 
-		static constexpr float iconMinAdvanceX = 13.0f;
+		static constexpr f32 iconMinAdvanceX = 13.0f;
 	};
 }

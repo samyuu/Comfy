@@ -160,10 +160,18 @@ namespace ImGui
 		iconFontConfig.MergeMode = true;
 		memcpy(iconFontConfig.Name, iconFontName.data(), iconFontName.size());
 
-		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSize, &textFontConfig, GetTextGlyphRange()) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSizes[0], &textFontConfig, GetTextGlyphRange()) == nullptr)
+			return false;
+		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
 			return false;
 
-		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
+		ImFontConfig boldFontConfig = {};
+		boldFontConfig.FontDataOwnedByAtlas = false;
+		memcpy(boldFontConfig.Name, textFontName.data(), textFontName.size());
+
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSizes[1], &boldFontConfig) == nullptr)
+			return false;
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSizes[2], &boldFontConfig) == nullptr)
 			return false;
 
 		return true;
