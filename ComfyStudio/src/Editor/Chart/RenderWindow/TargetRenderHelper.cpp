@@ -38,6 +38,15 @@ namespace Comfy::Studio::Editor
 				return InBounds(sceneIndex, aetSet.GetScenes()) ? aetSet.GetScenes()[sceneIndex]->FindLayer(layerName) : nullptr;
 			};
 
+			auto findVideo = [](AetSet& aetSet, std::string_view videoName, size_t sceneIndex = 0)
+			{
+				auto found = !InBounds(sceneIndex, aetSet.GetScenes()) ? nullptr : FindIfOrNull(aetSet.GetScenes()[sceneIndex]->Videos, [&](const auto& video)
+				{
+					return (video->Sources.size() == 1) && (video->Sources.front().Name == videoName);
+				});
+				return (found != nullptr) ? *found : nullptr;
+			};
+
 			auto findSprite = [](SprSet& sprSet, std::string_view spriteName)
 			{
 				const auto found = FindIfOrNull(sprSet.Sprites, [&](const auto& spr) {return spr.Name == spriteName; });
@@ -136,14 +145,7 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::SlideL, "white_slide_s25_l", layers.ButtonShadowsWhiteFrag);
 				registerTypeLayer(ButtonType::SlideR, "white_slide_s25_r", layers.ButtonShadowsWhiteFrag);
 
-				if (!aetGameCommon->GetScenes().empty())
-				{
-					for (auto& video : aetGameCommon->GetScenes().front()->Videos)
-					{
-						if (video->Sources.size() == 1 && video->Sources.front().Name == "GAM_CMN_TARGET_HAND")
-							layers.TargetHandVideo = video;
-					}
-				}
+				videos.TargetHand = findVideo(*aetGameCommon, "GAM_CMN_TARGET_HAND");
 			}
 
 			if (GetFutureIfReady(sprGameCommonFuture, sprGameCommon) && sprGameCommon != nullptr)
@@ -175,6 +177,13 @@ namespace Comfy::Studio::Editor
 					layers.PracticeGaugeBaseNumPointSec = layers.PracticeGaugeBase->GetCompItem()->FindLayer("p_prc_num_sec_rt");
 					layers.PracticeGaugeBaseNumPointMS = layers.PracticeGaugeBase->GetCompItem()->FindLayer("p_prc_num_frm_rt");
 				}
+
+				videos.PracticeBackgroundCommon = findVideo(*aetGame, "PS4_GAME_PRC_BG_CMN");
+				videos.PracticeColorBlack = findVideo(*aetGame, "PS4_GAME_COL_BLACK");
+				videos.PracticeLogoDummy = findVideo(*aetGame, "PS4_GAME_SONG_LOGO_DUMMY");
+				videos.PracticeCoverDummy = findVideo(*aetGame, "PS4_GAME_SONG_JK_DUMMY");
+				videos.PracticeCoverShadow = findVideo(*aetGame, "PS4_GAME_SONG_JK_SDW");
+				videos.PracticeBackgroundDummy = findVideo(*aetGame, "PS4_GAME_SONG_BG_DUMMY");
 			}
 
 			if (GetFutureIfReady(sprGameFuture, sprGame) && sprGame != nullptr)
@@ -228,12 +237,35 @@ namespace Comfy::Studio::Editor
 			});
 		}
 
-		void DrawBackground(Render::Renderer2D& renderer)
+		void DrawBackground(Render::Renderer2D& renderer, const BackgroundData& background) const
 		{
 			if (aetGame == nullptr || sprGame == nullptr)
 				return;
 
-			TryDrawLayer(renderer, layers.PracticeBackground, 0.0f);
+			if (layers.PracticeBackground == nullptr)
+				return;
+
+			// HACK: Same point as the other target layer manipulation hacks
+			if (const auto& compItem = layers.PracticeBackground->GetCompItem(); compItem != nullptr)
+			{
+				for (auto& layer : compItem->GetLayers())
+				{
+					const auto* videoItem = layer->GetVideoItem().get();
+					if (videoItem == videos.PracticeBackgroundCommon.get())
+						layer->SetIsVisible(background.DrawGrid);
+					else if (videoItem == videos.PracticeColorBlack.get())
+						layer->SetIsVisible(background.DrawDim);
+					else if (videoItem == videos.PracticeLogoDummy.get())
+						layer->SetIsVisible(background.DrawLogo);
+					else if (videoItem == videos.PracticeCoverDummy.get() || videoItem == videos.PracticeCoverShadow.get())
+						layer->SetIsVisible(background.DrawCover);
+					else if (videoItem == videos.PracticeBackgroundDummy.get())
+						layer->SetIsVisible(background.DrawBackground);
+				}
+			}
+
+			const auto playbackFrame = background.PlaybackTime.ToFrames();
+			TryDrawLayerLooped(renderer, layers.PracticeBackground, playbackFrame);
 		}
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const
@@ -303,7 +335,7 @@ namespace Comfy::Studio::Editor
 		{
 			auto push = [&](Aet::Layer& layer)
 			{
-				if (layer.GetVideoItem().get() == layers.TargetHandVideo.get())
+				if (layer.GetVideoItem().get() == videos.TargetHand.get())
 				{
 					tempLayerVisibleBackupStack.push(layer.Flags.VideoActive);
 					layer.Flags.VideoActive = false;
@@ -322,7 +354,7 @@ namespace Comfy::Studio::Editor
 		{
 			auto pop = [&](Aet::Layer& layer)
 			{
-				if (layer.GetVideoItem().get() == layers.TargetHandVideo.get())
+				if (layer.GetVideoItem().get() == videos.TargetHand.get())
 				{
 					layer.Flags.VideoActive = tempLayerVisibleBackupStack.top();
 					tempLayerVisibleBackupStack.pop();
@@ -722,8 +754,6 @@ namespace Comfy::Studio::Editor
 				ButtonShadowsWhite,
 				ButtonShadowsWhiteFrag;
 
-			std::shared_ptr<Aet::Video> TargetHandVideo;
-
 			std::shared_ptr<Aet::Layer>
 				PracticeLevelInfoEasy,
 				PracticeLevelInfoNormal,
@@ -739,6 +769,21 @@ namespace Comfy::Studio::Editor
 				PracticeGaugeBorderPlay,
 				PracticeGaugeBorderRestart;
 		} layers = {};
+
+		struct VideoCache
+		{
+			std::shared_ptr<Aet::Video>
+				TargetHand;
+
+			std::shared_ptr<Aet::Video>
+				PracticeBackgroundCommon,
+				PracticeColorBlack,
+				PracticeLogoDummy,
+				PracticeCoverDummy,
+				PracticeCoverShadow,
+				PracticeBackgroundDummy;
+
+		} videos;
 
 		struct SpriteCache
 		{
@@ -767,9 +812,9 @@ namespace Comfy::Studio::Editor
 		impl->SetAetSprGetter(renderer);
 	}
 
-	void TargetRenderHelper::DrawBackground(Render::Renderer2D& renderer) const
+	void TargetRenderHelper::DrawBackground(Render::Renderer2D& renderer, const BackgroundData& background) const
 	{
-		impl->DrawBackground(renderer);
+		impl->DrawBackground(renderer, background);
 	}
 
 	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const

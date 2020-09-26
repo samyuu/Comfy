@@ -18,6 +18,18 @@ namespace Comfy::Studio::Editor
 		void UpdateAsyncLoading(Render::Renderer2D& renderer);
 		void SetAetSprGetter(Render::Renderer2D& renderer);
 
+		struct BackgroundData
+		{
+			bool DrawGrid;
+			bool DrawDim;
+			bool DrawLogo;
+			bool DrawCover;
+			bool DrawBackground;
+			TimeSpan PlaybackTime;
+		};
+
+		void DrawBackground(Render::Renderer2D& renderer, const BackgroundData& background) const;
+
 		struct HUDData
 		{
 			std::string_view SongTitle;
@@ -27,8 +39,6 @@ namespace Comfy::Studio::Editor
 			TimeSpan PlaybackTimeOnStart;
 			TimeSpan Duration;
 		};
-
-		void DrawBackground(Render::Renderer2D& renderer) const;
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const;
 
