@@ -322,8 +322,6 @@ namespace Comfy::Studio::Editor
 		if (!fileDialog.OpenSave())
 			return false;
 
-		SaveChartFileAsync(fileDialog.OutFilePath);
-
 		if (copySongFile && songFileIsAbsolute)
 		{
 			const auto songFileName = IO::Path::GetFileName(chart->SongFileName);
@@ -338,6 +336,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
+		SaveChartFileAsync(fileDialog.OutFilePath);
 		return true;
 	}
 
