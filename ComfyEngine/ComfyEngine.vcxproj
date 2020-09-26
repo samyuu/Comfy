@@ -168,6 +168,7 @@
     <ClInclude Include="src\ImGui\Core\imconfig.h" />
     <ClInclude Include="src\ImGui\Core\imgui.h" />
     <ClInclude Include="src\ImGui\Core\imgui_internal.h" />
+    <ClInclude Include="src\ImGui\Core\imgui_markdown.h" />
     <ClInclude Include="src\ImGui\Core\imgui_user.h" />
     <ClInclude Include="src\ImGui\Core\imstb_rectpack.h" />
     <ClInclude Include="src\ImGui\Core\imstb_textedit.h" />

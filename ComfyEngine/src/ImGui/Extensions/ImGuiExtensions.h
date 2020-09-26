@@ -2,6 +2,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "ImGui/Core/imgui.h"
 #include "ImGui/Core/imgui_internal.h"
+#include "ImGui/Core/imgui_markdown.h"
 #include "ImGui/Extensions/Theme.h"
 #include <functional>
 
