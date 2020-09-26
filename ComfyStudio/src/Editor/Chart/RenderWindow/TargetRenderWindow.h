@@ -36,6 +36,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void RenderBackground();
+		void RenderBackgroundGrid();
 		void RenderHUDBackground();
 		void RenderAllVisibleTargets();
 		void AddVisibleTargetsToDrawBuffers();
@@ -56,15 +57,21 @@ namespace Comfy::Studio::Editor
 
 	private:
 		CheckerboardGrid backgroundCheckerboard;
-		f32 backgroundDim = 0.25f;
+		f32 backgroundDim = 0.35f;
 
 		bool drawButtons = true;
 		bool drawTargets = true;
-		f32 targetHitboxSize = 64.0f;
+
+		bool drawCheckerboard = true;
+		bool drawPracticeBackground = false;
+
+		TargetRenderHelper::BackgroundData practiceBackgroundData = {};
+
+		const f32 targetHitboxSize = 64.0f;
 
 		Render::Camera2D camera;
-
 		std::unique_ptr<TargetRenderHelper> renderHelper = nullptr;
+		std::unique_ptr<Render::RenderTarget2D> renderTarget = nullptr;
 
 		struct DrawBufferData
 		{
@@ -73,7 +80,5 @@ namespace Comfy::Studio::Editor
 			std::vector<TargetRenderHelper::ButtonTrailData> Trails;
 			std::vector<TargetRenderHelper::ButtonSyncLineData> SyncLines;
 		} drawBuffers;
-
-		std::unique_ptr<Render::RenderTarget2D> renderTarget = nullptr;
 	};
 }

@@ -16,6 +16,13 @@ namespace Comfy::Studio::Editor
 		SetKeepAspectRatio(true);
 		SetTargetAspectRatio(Rules::PlacementAreaSize.x / Rules::PlacementAreaSize.y);
 
+		practiceBackgroundData.DrawGrid = false;
+		practiceBackgroundData.DrawDim = true;
+		practiceBackgroundData.DrawLogo = true;
+		practiceBackgroundData.DrawCover = true;
+		practiceBackgroundData.DrawBackground = true;
+
+		backgroundCheckerboard.Size = Rules::PlacementAreaSize;
 		backgroundCheckerboard.Color = vec4(0.20f, 0.20f, 0.20f, 1.0f);
 		backgroundCheckerboard.ColorAlt = vec4(0.26f, 0.26f, 0.26f, 1.0f);
 
@@ -83,6 +90,7 @@ namespace Comfy::Studio::Editor
 		renderer.Begin(camera, *renderTarget);
 		{
 			RenderBackground();
+			RenderBackgroundGrid();
 			RenderHUDBackground();
 			RenderAllVisibleTargets();
 		}
@@ -106,16 +114,20 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::RenderBackground()
 	{
-		backgroundCheckerboard.Size = Rules::PlacementAreaSize;
-		backgroundCheckerboard.Render(renderer);
+		if (drawCheckerboard)
+			backgroundCheckerboard.Render(renderer);
+
+		if (drawPracticeBackground)
+		{
+			practiceBackgroundData.PlaybackTime = timeline.GetCursorTime();;
+			renderHelper->DrawBackground(renderer, practiceBackgroundData);
+		}
 
 		renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, backgroundDim)));
+	}
 
-#if COMFY_DEBUG && 0 // DEBUG:
-		const auto rect = ImRect { Rules::RecommendedPlacementAreaMin, Rules::RecommendedPlacementAreaMax };
-		// renderer.Draw(Render::RenderCommand2D(rect.GetTL(), rect.GetSize(), vec4(0.0f, 0.0f, 0.0f, 0.25f)));
-		// renderer.DrawRect(rect.GetTL(), rect.GetTR(), rect.GetBL(), rect.GetBR(), vec4(0.0f, 0.0f, 0.0f, 0.5f), 2.0f);
-#endif
+	void TargetRenderWindow::RenderBackgroundGrid()
+	{
 	}
 
 	void TargetRenderWindow::RenderHUDBackground()
