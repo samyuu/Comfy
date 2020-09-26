@@ -9,18 +9,7 @@ namespace Comfy::Studio::Editor
 
 	bool UndoHistoryWindow::Gui()
 	{
-		switch (activeDisplayType)
-		{
-		case DisplayType::SingleColumn:
-			return SingleColumnGui();
-
-		case DisplayType::SideBySideColumn:
-			return SideBySideColumnGui();
-
-		default:
-			assert(false);
-			return false;
-		}
+		return SingleColumnGui();
 	}
 
 	bool UndoHistoryWindow::SingleColumnGui()
@@ -35,85 +24,55 @@ namespace Comfy::Studio::Editor
 		Gui::NextColumn();
 		Gui::Columns(1);
 
-		SingleColumnListBoxGui("##HistoryWindow::UndoRedoListBox");
+		if (Gui::ListBoxHeader("##HistoryWindow::UndoRedoListBox", Gui::GetContentRegionAvail()))
+		{
+			SingleColumnListBoxGui();
+			Gui::ListBoxFooter();
+		}
+
 		return false;
 	}
 
-	void UndoHistoryWindow::SingleColumnListBoxGui(const char* headerName)
+	void UndoHistoryWindow::SingleColumnListBoxGui()
 	{
-		if (Gui::ListBoxHeader(headerName, Gui::GetContentRegionAvail()))
+		const auto& undoStack = undoManager.GetUndoStackView();
+		const auto& redoStack = undoManager.GetRedoStackView();
+
+		if (CommandSelectableGui("Initial State", undoStack.empty()))
+			undoManager.Undo(undoStack.size());
+
+		int undoClickedIndex = -1, redoClickedIndex = -1;
+
+		auto undoClipper = ImGuiListClipper(static_cast<int>(undoStack.size()));
+		while (undoClipper.Step())
 		{
-			const auto& undoStack = undoManager.GetUndoStackView();
-			const auto& redoStack = undoManager.GetRedoStackView();
-
-			if (CommandSelectableGui("Initial State", undoStack.empty()))
-				undoManager.Undo(undoStack.size());
-
-			int undoClickedIndex = -1, redoClickedIndex = -1;
-
-			for (int i = 0; i < static_cast<int>(undoStack.size()); i++)
+			for (int i = undoClipper.DisplayStart; i < undoClipper.DisplayEnd; i++)
 			{
 				const auto selected = ((i + 1) == undoStack.size());
-
 				if (CommandSelectableGui(*undoStack[i], selected))
 					undoClickedIndex = i;
 			}
-
-			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-			for (int i = static_cast<int>(redoStack.size()) - 1; i >= 0; i--)
-			{
-				if (CommandSelectableGui(*redoStack[i]))
-					redoClickedIndex = i;
-			}
-			Gui::PopStyleColor();
-
-			if (InBounds(undoClickedIndex, undoStack))
-				undoManager.Undo(undoStack.size() - undoClickedIndex - 1);
-			else if (InBounds(redoClickedIndex, redoStack))
-				undoManager.Redo(redoStack.size() - redoClickedIndex);
-
-			UpdateAutoScroll(undoStack.size());
-			Gui::ListBoxFooter();
 		}
-	}
 
-	bool UndoHistoryWindow::SideBySideColumnGui()
-	{
-		Gui::Columns(2, nullptr, false);
-
-		if (Gui::MenuItem("UndoManager::Undo()", nullptr, nullptr, undoManager.CanUndo()))
-			undoManager.Undo();
-		Gui::NextColumn();
-
-		if (Gui::MenuItem("UndoManager::Redo()", nullptr, nullptr, undoManager.CanRedo()))
-			undoManager.Redo();
-		Gui::NextColumn();
-
-		CommandStackListBoxGui("##HistoryWindow::UndoListBox", undoManager.GetUndoStackView());
-		Gui::NextColumn();
-
-		CommandStackListBoxGui("##HistoryWindow::RedoListBox", undoManager.GetRedoStackView());
-		Gui::NextColumn();
-
-		Gui::Columns(1);
-		return false;
-	}
-
-	void UndoHistoryWindow::CommandStackListBoxGui(const char* headerName, const std::vector<std::unique_ptr<Undo::Command>>& stackView)
-	{
-		if (Gui::ListBoxHeader(headerName, Gui::GetContentRegionAvail()))
+		Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+		auto redoClipper = ImGuiListClipper(static_cast<int>(redoStack.size()));
+		while (redoClipper.Step())
 		{
-			if (stackView.empty())
+			for (int i = redoClipper.DisplayStart; i < redoClipper.DisplayEnd; i++)
 			{
-				CommandSelectableGui("Empty", false, ImGuiSelectableFlags_Disabled);
+				const auto redoIndex = ((static_cast<int>(redoStack.size()) - 1) - i);
+				if (CommandSelectableGui(*redoStack[redoIndex]))
+					redoClickedIndex = redoIndex;
 			}
-			else
-			{
-				for (const auto& command : stackView)
-					CommandSelectableGui(*command);
-			}
-			Gui::ListBoxFooter();
 		}
+		Gui::PopStyleColor();
+
+		if (InBounds(undoClickedIndex, undoStack))
+			undoManager.Undo(undoStack.size() - undoClickedIndex - 1);
+		else if (InBounds(redoClickedIndex, redoStack))
+			undoManager.Redo(redoStack.size() - redoClickedIndex);
+
+		UpdateAutoScroll(undoStack.size());
 	}
 
 	bool UndoHistoryWindow::CommandSelectableGui(const Undo::Command& command, bool selected) const
@@ -147,13 +106,19 @@ namespace Comfy::Studio::Editor
 
 	void UndoHistoryWindow::UpdateAutoScroll(size_t undoStackSize)
 	{
+		constexpr auto autoScrollThreshold = 64.0f;
+
 		lastFrameIsAtBottom = thisFrameIsAtBottom;
-		thisFrameIsAtBottom = (Gui::GetScrollY() >= Gui::GetScrollMaxY());
+		thisFrameIsAtBottom = (Gui::GetScrollY() >= (Gui::GetScrollMaxY() - autoScrollThreshold));
 
 		lastFrameUndoCount = thisFrameUndoCount;
 		thisFrameUndoCount = undoStackSize;
 
 		if ((thisFrameIsAtBottom && lastFrameIsAtBottom) && (thisFrameUndoCount != lastFrameUndoCount))
-			Gui::SetScrollHereY(1.0f);
+		{
+			// BUG: Minor issue with item spacing for the last selectable, the window scroll height seems to be a few pixels too large when using list clippers
+			// Gui::SetScrollHereY(1.0f);
+			Gui::SetScrollY(Gui::GetScrollMaxY() + autoScrollThreshold);
+		}
 	}
 }

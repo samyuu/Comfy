@@ -8,13 +8,6 @@ namespace Comfy::Studio::Editor
 	class UndoHistoryWindow
 	{
 	public:
-		enum class DisplayType
-		{
-			SingleColumn,
-			SideBySideColumn,
-			Count
-		};
-
 		UndoHistoryWindow(Undo::UndoManager& undoManager);
 		~UndoHistoryWindow() = default;
 
@@ -23,11 +16,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		bool SingleColumnGui();
-		void SingleColumnListBoxGui(const char* headerName);
-
-	private:
-		bool SideBySideColumnGui();
-		void CommandStackListBoxGui(const char* headerName, const std::vector<std::unique_ptr<Undo::Command>>& stackView);
+		void SingleColumnListBoxGui();
 
 	private:
 		bool CommandSelectableGui(const Undo::Command& command, bool selected = false) const;
@@ -37,7 +26,6 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Undo::UndoManager& undoManager;
-		DisplayType activeDisplayType = DisplayType::SingleColumn;
 
 		bool thisFrameIsAtBottom = false, lastFrameIsAtBottom = false;
 		size_t thisFrameUndoCount = 0, lastFrameUndoCount = 0;
