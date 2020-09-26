@@ -342,10 +342,10 @@ namespace Comfy::Studio::Editor
 		{
 			auto getLayerArray = [this](const TargetData& data) -> auto&
 			{
-				if (data.FragmentHit)
-					return data.Fragment ? layers.TargetsFragHit : layers.TargetsHit;
+				if (data.ChainHit)
+					return !data.ChainStart ? layers.TargetsFragHit : layers.TargetsHit;
 
-				if (data.Fragment)
+				if (data.Chain && !data.ChainStart)
 					return data.Sync ? layers.TargetsFragSync : layers.TargetsFrag;
 
 				if (data.Sync)
@@ -379,7 +379,7 @@ namespace Comfy::Studio::Editor
 		{
 			auto getLayerArray = [this](const ButtonData& data) -> auto&
 			{
-				if (data.Fragment)
+				if (data.Chain && !data.ChainStart)
 					return data.Sync ? layers.ButtonsFragSync : layers.ButtonsFrag;
 
 				return data.Sync ? layers.ButtonsSync : layers.Buttons;
@@ -395,9 +395,10 @@ namespace Comfy::Studio::Editor
 
 		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonData& data) const
 		{
+			const bool fragment = (data.Chain && !data.ChainStart);
 			const auto* layer =
-				(data.Shadow == ButtonShadowType::Black) ? (data.Fragment ? layers.ButtonShadowsBlackFrag : layers.ButtonShadowsBlack)[static_cast<size_t>(data.Type)].get() :
-				(data.Shadow == ButtonShadowType::White) ? (data.Fragment ? layers.ButtonShadowsWhiteFrag : layers.ButtonShadowsWhite)[static_cast<size_t>(data.Type)].get() : nullptr;
+				(data.Shadow == ButtonShadowType::Black) ? (fragment ? layers.ButtonShadowsBlackFrag : layers.ButtonShadowsBlack)[static_cast<size_t>(data.Type)].get() :
+				(data.Shadow == ButtonShadowType::White) ? (fragment ? layers.ButtonShadowsWhiteFrag : layers.ButtonShadowsWhite)[static_cast<size_t>(data.Type)].get() : nullptr;
 
 			if (layer == nullptr)
 				return;

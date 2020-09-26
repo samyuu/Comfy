@@ -185,8 +185,9 @@ namespace Comfy::Studio::Editor
 				targetData.NoScale = !isPlayback;
 				targetData.Sync = target.Flags.IsSync;
 				targetData.HoldText = target.Flags.IsHold;
-				targetData.Fragment = (target.Flags.IsChain && !target.Flags.IsChainStart);
-				targetData.FragmentHit = (target.Flags.IsChain && ((buttonTick - cursorTick) <= chainHitTickThreshold));
+				targetData.Chain = target.Flags.IsChain;
+				targetData.ChainStart = target.Flags.IsChainStart;
+				targetData.ChainHit = (target.Flags.IsChain && ((buttonTick - cursorTick) <= chainHitTickThreshold));
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
 
@@ -195,7 +196,8 @@ namespace Comfy::Studio::Editor
 					auto& buttonData = drawBuffers.Buttons.emplace_back();
 					buttonData.Type = targetData.Type;
 					buttonData.Sync = targetData.Sync;
-					buttonData.Fragment = targetData.Fragment;
+					buttonData.Chain = targetData.Chain;
+					buttonData.ChainStart = targetData.ChainStart;
 					buttonData.Shadow = TargetRenderHelper::ButtonShadowType::Black;
 					buttonData.Position = GetButtonPathSinePoint(progress, properties);
 					buttonData.Progress = progress;
@@ -239,29 +241,36 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::FlushRenderTargetsDrawBuffers()
 	{
-		auto isChainStart = [](const TargetRenderHelper::TargetData& data) { return IsSlideButtonType(data.Type) && !data.Fragment; };
+		if (drawButtons)
+		{
+			for (const auto& data : drawBuffers.Trails)
+				renderHelper->DrawButtonTrail(renderer, data);
 
-		for (const auto& data : drawBuffers.Trails)
-			renderHelper->DrawButtonTrail(renderer, data);
+			for (const auto& data : drawBuffers.Buttons)
+				if (data.Shadow != TargetRenderHelper::ButtonShadowType::None) { renderHelper->DrawButtonShadow(renderer, data); }
+		}
 
-		for (const auto& data : drawBuffers.Buttons)
-			if (data.Shadow != TargetRenderHelper::ButtonShadowType::None) { renderHelper->DrawButtonShadow(renderer, data); }
+		if (drawTargets)
+		{
+			// NOTE: Draw chain starts on top of child fragments to make sure the target hand is always fully visible
+			for (const auto& data : drawBuffers.Targets)
+				if (!data.ChainHit && !data.ChainStart) { renderHelper->DrawTarget(renderer, data); }
 
-		// NOTE: Draw chain start on top of child fragments to avoid target hand clipping
-		for (const auto& data : drawBuffers.Targets)
-			if (!data.FragmentHit && !isChainStart(data)) { renderHelper->DrawTarget(renderer, data); }
+			for (const auto& data : drawBuffers.Targets)
+				if (!data.ChainHit && data.ChainStart) { renderHelper->DrawTarget(renderer, data); }
 
-		for (const auto& data : drawBuffers.Targets)
-			if (!data.FragmentHit && isChainStart(data)) { renderHelper->DrawTarget(renderer, data); }
+			for (const auto& data : drawBuffers.Targets)
+				if (data.ChainHit) { renderHelper->DrawTarget(renderer, data); }
+		}
 
-		for (const auto& data : drawBuffers.Targets)
-			if (data.FragmentHit) { renderHelper->DrawTarget(renderer, data); }
+		if (drawButtons)
+		{
+			for (const auto& data : drawBuffers.SyncLines)
+				renderHelper->DrawButtonPairSyncLines(renderer, data);
 
-		for (const auto& data : drawBuffers.SyncLines)
-			renderHelper->DrawButtonPairSyncLines(renderer, data);
-
-		for (const auto& data : drawBuffers.Buttons)
-			renderHelper->DrawButton(renderer, data);
+			for (const auto& data : drawBuffers.Buttons)
+				renderHelper->DrawButton(renderer, data);
+		}
 
 		drawBuffers.Targets.clear();
 		drawBuffers.Buttons.clear();

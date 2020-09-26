@@ -40,8 +40,9 @@ namespace Comfy::Studio::Editor
 			bool NoScale;
 			bool Sync;
 			bool HoldText;
-			bool Fragment;
-			bool FragmentHit;
+			bool Chain;
+			bool ChainStart;
+			bool ChainHit;
 			vec2 Position;
 			f32 Progress;
 		};
@@ -55,7 +56,8 @@ namespace Comfy::Studio::Editor
 			ButtonType Type;
 			ButtonShadowType Shadow;
 			bool Sync;
-			bool Fragment;
+			bool Chain;
+			bool ChainStart;
 			vec2 Position;
 			f32 Progress;
 		};
