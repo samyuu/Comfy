@@ -36,7 +36,6 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void RenderBackground();
-		void RenderBackgroundGrid();
 		void RenderHUDBackground();
 		void RenderAllVisibleTargets();
 		void AddVisibleTargetsToDrawBuffers();
@@ -65,6 +64,7 @@ namespace Comfy::Studio::Editor
 
 		bool drawCheckerboard = true;
 		bool drawPracticeBackground = false;
+		bool drawTargetGrid = true;
 
 		TargetRenderHelper::BackgroundData practiceBackgroundData = {};
 		TimelineTick targetPostHitLingerDuration = TimelineTick::FromBeats(1);
