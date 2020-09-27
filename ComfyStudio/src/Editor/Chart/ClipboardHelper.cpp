@@ -115,7 +115,8 @@ namespace Comfy::Studio::Editor
 
 	std::string_view ClipboardHelper::GetClipboardText()
 	{
-		return Gui::GetClipboardText();
+		const auto clipboard = Gui::GetClipboardText();
+		return (clipboard != nullptr) ? std::string_view(clipboard) : "";
 	}
 
 	void ClipboardHelper::SetClipboardText(const std::string& text)
