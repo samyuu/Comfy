@@ -58,15 +58,22 @@ namespace Comfy::Studio::Editor
 		CheckerboardGrid backgroundCheckerboard;
 		f32 backgroundDim = 0.35f;
 
-		bool drawButtons = true;
-		bool drawTargets = true;
-		bool drawTargetHands = true;
+		struct LayerData
+		{
+			bool DrawButtons = true;
+			bool DrawTargets = true;
+			bool DrawTargetHands = true;
+		} layers;
 
 		bool drawCheckerboard = true;
-		bool drawPracticeBackground = false;
 		bool drawTargetGrid = true;
 
-		TargetRenderHelper::BackgroundData practiceBackgroundData = {};
+		struct PracticeBackgroundData
+		{
+			bool Enabled = false;
+			TargetRenderHelper::BackgroundData Data = {};
+		} practiceBackground;
+
 		TimelineTick targetPostHitLingerDuration = TimelineTick::FromBeats(1);
 
 		const f32 targetHitboxSize = 64.0f;

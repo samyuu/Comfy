@@ -94,11 +94,11 @@ namespace Comfy::Studio::Editor
 		SetKeepAspectRatio(true);
 		SetTargetAspectRatio(Rules::PlacementAreaSize.x / Rules::PlacementAreaSize.y);
 
-		practiceBackgroundData.DrawGrid = false;
-		practiceBackgroundData.DrawDim = true;
-		practiceBackgroundData.DrawLogo = true;
-		practiceBackgroundData.DrawCover = true;
-		practiceBackgroundData.DrawBackground = true;
+		practiceBackground.Data.DrawGrid = false;
+		practiceBackground.Data.DrawDim = true;
+		practiceBackground.Data.DrawLogo = true;
+		practiceBackground.Data.DrawCover = true;
+		practiceBackground.Data.DrawBackground = true;
 
 		backgroundCheckerboard.Size = Rules::PlacementAreaSize;
 		backgroundCheckerboard.Color = vec4(0.20f, 0.20f, 0.20f, 1.0f);
@@ -186,6 +186,49 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::UpdateAllInput()
 	{
+		// TODO: Context menu tools selection
+
+		// DEBUG: For now at least...
+		Gui::WindowContextMenu("TargetRenderWindowContextMenu", [&]
+		{
+			if (Gui::WideBeginMenu("Layers", true))
+			{
+				Gui::Checkbox("Draw Buttons", &layers.DrawButtons);
+				Gui::Checkbox("Draw Targets", &layers.DrawTargets);
+				Gui::PushItemDisabledAndTextColorIf(!layers.DrawTargets);
+				Gui::Checkbox("Draw Target Hands", &layers.DrawTargetHands);
+				Gui::PopItemDisabledAndTextColorIf(!layers.DrawTargets);
+				Gui::EndMenu();
+			}
+
+			if (Gui::WideBeginMenu("Settings", true))
+			{
+				Gui::Checkbox("Checkerboard", &drawCheckerboard);
+				Gui::Checkbox("Target Grid", &drawTargetGrid);
+
+				Gui::SliderFloat("Background Dim", &backgroundDim, 0.0f, 1.0f);
+
+				if (auto t = targetPostHitLingerDuration.Ticks(); Gui::SliderInt("Post Hit Linger Duration", &t, 0, TimelineTick::TicksPerBeat * 8, "%d Ticks"))
+					targetPostHitLingerDuration = TimelineTick::FromTicks(t);
+
+				Gui::EndMenu();
+			}
+
+			if (Gui::WideBeginMenu("Practice Background", true))
+			{
+				Gui::Checkbox("Enabled", &practiceBackground.Enabled);
+				Gui::PushItemDisabledAndTextColorIf(!practiceBackground.Enabled);
+				Gui::Checkbox("Grid", &practiceBackground.Data.DrawGrid);
+				Gui::Checkbox("Dim", &practiceBackground.Data.DrawDim);
+				Gui::Checkbox("Logo", &practiceBackground.Data.DrawLogo);
+				Gui::Checkbox("Cover", &practiceBackground.Data.DrawCover);
+				Gui::Checkbox("Background", &practiceBackground.Data.DrawBackground);
+				Gui::PopItemDisabledAndTextColorIf(!practiceBackground.Enabled);
+				Gui::EndMenu();
+			}
+			Gui::Separator();
+		});
+
 		if (!Gui::IsWindowFocused())
 			return;
 
@@ -204,10 +247,10 @@ namespace Comfy::Studio::Editor
 		if (drawCheckerboard)
 			backgroundCheckerboard.Render(renderer);
 
-		if (drawPracticeBackground)
+		if (practiceBackground.Enabled)
 		{
-			practiceBackgroundData.PlaybackTime = timeline.GetCursorTime();;
-			renderHelper->DrawBackground(renderer, practiceBackgroundData);
+			practiceBackground.Data.PlaybackTime = timeline.GetCursorTime();;
+			renderHelper->DrawBackground(renderer, practiceBackground.Data);
 		}
 
 		renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, backgroundDim)));
@@ -282,7 +325,7 @@ namespace Comfy::Studio::Editor
 
 				auto& targetData = drawBuffers.Targets.emplace_back();
 				targetData.Type = target.Type;
-				targetData.NoHand = (!drawTargetHands || !inCursorBarRange);
+				targetData.NoHand = (!layers.DrawTargetHands || !inCursorBarRange);
 				// NOTE: Transparent to make the background grid visible and make pre-, post- and cursor bar targets look more uniform
 				targetData.Transparent = (target.IsSelected || !inCursorBarRange);
 				targetData.NoScale = !isPlayback;
@@ -346,7 +389,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::FlushRenderTargetsDrawBuffers()
 	{
-		if (drawButtons)
+		if (layers.DrawButtons)
 		{
 			for (const auto& data : drawBuffers.Trails)
 				renderHelper->DrawButtonTrail(renderer, data);
@@ -355,7 +398,7 @@ namespace Comfy::Studio::Editor
 				if (data.Shadow != TargetRenderHelper::ButtonShadowType::None) { renderHelper->DrawButtonShadow(renderer, data); }
 		}
 
-		if (drawTargets)
+		if (layers.DrawTargets)
 		{
 			// NOTE: Draw chain starts on top of child fragments to make sure the target hand is always fully visible
 			for (const auto& data : drawBuffers.Targets)
@@ -368,7 +411,7 @@ namespace Comfy::Studio::Editor
 				if (data.ChainHit) { renderHelper->DrawTarget(renderer, data); }
 		}
 
-		if (drawButtons)
+		if (layers.DrawButtons)
 		{
 			for (const auto& data : drawBuffers.SyncLines)
 				renderHelper->DrawButtonPairSyncLines(renderer, data);
