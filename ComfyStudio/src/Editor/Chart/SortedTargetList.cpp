@@ -35,7 +35,7 @@ namespace Comfy::Studio::Editor
 			const auto insertionIndex = FindSortedInsertionIndex(newTarget.Tick, newTarget.Type);
 			targets.emplace(targets.begin() + insertionIndex, newTarget);
 
-			UpdateTargetSyncFlagsAround(static_cast<i32>(insertionIndex));
+			UpdateTargetInternalFlagsAround(static_cast<i32>(insertionIndex));
 		}
 #else // NOTE: However a post emplace sort is useful for error checking
 		{
@@ -60,7 +60,7 @@ namespace Comfy::Studio::Editor
 			return;
 
 		targets.erase(begin() + index);
-		UpdateTargetSyncFlagsAround(index);
+		UpdateTargetInternalFlagsAround(index);
 	}
 
 	i32 SortedTargetList::FindIndex(TimelineTick tick) const
@@ -87,7 +87,7 @@ namespace Comfy::Studio::Editor
 		targets = std::move(newTargets);
 
 		std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
-		UpdateTargetSyncFlags();
+		UpdateTargetInternalFlagsAroundRange();
 	}
 
 	size_t SortedTargetList::FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const
@@ -104,16 +104,16 @@ namespace Comfy::Studio::Editor
 		return insertionIndex;
 	}
 
-	void SortedTargetList::UpdateTargetSyncFlagsAround(i32 index)
+	void SortedTargetList::UpdateTargetInternalFlagsAround(i32 index)
 	{
 		constexpr auto surroundingTargetsToCheck = static_cast<i32>(EnumCount<ButtonType>());
 
-		UpdateTargetSyncFlags(
+		UpdateTargetInternalFlagsAroundRange(
 			index - surroundingTargetsToCheck,
 			index + surroundingTargetsToCheck);
 	}
 
-	void SortedTargetList::UpdateTargetSyncFlags(i32 start, i32 end)
+	void SortedTargetList::UpdateTargetInternalFlagsAroundRange(i32 start, i32 end)
 	{
 		if (start < 0)
 			start = 0;
@@ -132,7 +132,9 @@ namespace Comfy::Studio::Editor
 			target.Flags.IsSync = (prevTarget != nullptr && prevTarget->Tick == target.Tick) || (nextTarget != nullptr && nextTarget->Tick == target.Tick);
 		}
 
+		// TODO: Only update in the start and end index range
 		UpdateSyncPairIndexFlags();
+		UpdateChainFlags();
 	}
 
 	size_t SortedTargetList::GetSyncPairCountAt(size_t targetStartIndex) const
@@ -163,5 +165,63 @@ namespace Comfy::Studio::Editor
 				target.Flags.SyncPairCount = pairCount;
 			}
 		}
+	}
+
+	void SortedTargetList::UpdateChainFlags()
+	{
+		UpdateChainFlagsForDirection(ButtonType::SlideL);
+		UpdateChainFlagsForDirection(ButtonType::SlideR);
+	}
+
+	void SortedTargetList::UpdateChainFlagsForDirection(ButtonType slideDirection)
+	{
+		assert(IsSlideButtonType(slideDirection));
+
+		for (auto& target : targets)
+		{
+			if (target.Type == slideDirection)
+			{
+				target.Flags.IsChainStart = false;
+				target.Flags.IsChainEnd = false;
+				slideTargetBuffer.push_back(&target);
+			}
+		}
+
+		if (slideTargetBuffer.empty())
+			return;
+
+		for (i32 i = 0; i < static_cast<i32>(slideTargetBuffer.size()); i++)
+		{
+			auto& target = *slideTargetBuffer[i];
+			auto* nextTarget = (i + 1 < slideTargetBuffer.size()) ? slideTargetBuffer[i + 1] : nullptr;
+			auto* prevTarget = (i - 1 >= 0) ? slideTargetBuffer[i - 1] : nullptr;
+
+			if (prevTarget == nullptr)
+			{
+				if (target.Flags.IsChain)
+					target.Flags.IsChainStart = true;
+			}
+			else
+			{
+				// HACK: Not sure if there exists a better solution. If the threshold is determined by time instead
+				//		 then each target will need to store a cached time tick field that has to be kept in sync with the tempo map
+				constexpr auto chainFragThreshold = (TimelineTick::FromBars(1) / 12);
+				const auto tickDistToLast = (target.Tick - prevTarget->Tick);
+
+				if ((tickDistToLast > chainFragThreshold) || (prevTarget->Flags.IsChain != target.Flags.IsChain))
+				{
+					if (prevTarget->Flags.IsChain)
+						prevTarget->Flags.IsChainEnd = true;
+
+					if (target.Flags.IsChain)
+						target.Flags.IsChainStart = true;
+				}
+			}
+		}
+
+		if (auto& back = *slideTargetBuffer.back(); back.Flags.IsChain)
+			back.Flags.IsChainEnd = true;
+
+		slideTargetBuffer.clear();
 	}
 }

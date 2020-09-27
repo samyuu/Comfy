@@ -125,13 +125,17 @@ namespace Comfy::Studio::Editor
 
 	private:
 		std::vector<TimelineTarget> targets;
+		std::vector<TimelineTarget*> slideTargetBuffer;
 
 		size_t FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const;
 
-		void UpdateTargetSyncFlagsAround(i32 index);
-		void UpdateTargetSyncFlags(i32 start = -1, i32 end = -1);
+		void UpdateTargetInternalFlagsAround(i32 index);
+		void UpdateTargetInternalFlagsAroundRange(i32 start = -1, i32 end = -1);
 
 		size_t GetSyncPairCountAt(size_t targetStartIndex) const;
 		void UpdateSyncPairIndexFlags();
+
+		void UpdateChainFlags();
+		void UpdateChainFlagsForDirection(ButtonType slideDirection);
 	};
 }
