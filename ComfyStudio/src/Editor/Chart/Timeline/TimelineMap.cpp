@@ -3,11 +3,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	TimelineMap::TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo)
-		: tickTimes(times), firstTempo(firstTempo), lastTempo(lastTempo)
-	{
-	}
-
 	TimeSpan TimelineMap::GetTimeAt(TimelineTick tick) const
 	{
 		const i32 tickTimeCount = static_cast<i32>(tickTimes.size());

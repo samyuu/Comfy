@@ -8,12 +8,12 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		TimelineMap() = default;
-		TimelineMap(std::vector<TimeSpan>& times, Tempo firstTempo, Tempo lastTempo);
+		~TimelineMap() = default;
 
 	public:
 		TimeSpan GetTimeAt(TimelineTick tick) const;
 		TimeSpan GetLastCalculatedTime() const;
-		
+
 		TimelineTick GetTickAt(TimeSpan time) const;
 		TimelineTick GetTickAtFixedTempo(TimeSpan time, Tempo tempo) const;
 
