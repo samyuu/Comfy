@@ -405,13 +405,12 @@ namespace Comfy::Studio::Editor
 		const auto scrollX = GetScrollX();
 
 		constexpr auto beatSpacingThreshold = 10.0f;
-		constexpr auto barSpacingThreshold = 74.0f;
+		constexpr auto barSpacingThreshold = 64.0f;
 
 		auto lastBeatTimelineX = -beatSpacingThreshold;
 		for (i32 tick = 0, divisions = 0; tick < songDurationTicks; tick += gridTickStep, divisions++)
 		{
 			const auto timelineX = GetTimelinePosition(TimelineTick(tick));
-
 			if (const auto lastDrawnDistance = (timelineX - lastBeatTimelineX); lastDrawnDistance < beatSpacingThreshold)
 				continue;
 			lastBeatTimelineX = timelineX;
@@ -429,32 +428,29 @@ namespace Comfy::Studio::Editor
 			baseDrawList->AddLine(start, end, (divisions % 2 == 0 ? gridColor : gridAltColor));
 		}
 
-		// TODO: Implement more efficiently for multiple tempo changes by looping over the tempo changes instead (?)
 		auto lastBarTimelineX = -barSpacingThreshold;
-		for (i32 ticks = 0, barIndex = 0; ticks < songDurationTicks; ticks += TimelineTick::TicksPerBeat * workingChart->TempoMap.FindTempoChangeAtTick(TimelineTick(ticks)).Signature.Numerator, barIndex++)
+		workingChart->TempoMap.ForEachBar([&](const TimelineTick barTick, const size_t barIndex)
 		{
-			const auto timelineX = GetTimelinePosition(TimelineTick(ticks));
-
+			const auto timelineX = GetTimelinePosition(barTick);
 			if (const auto lastDrawnDistance = (timelineX - lastBarTimelineX); lastDrawnDistance < barSpacingThreshold)
-				continue;
+				return false;
 			lastBarTimelineX = timelineX;
 
 			const auto screenX = glm::round(timelineX - scrollX);
 			const auto visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
-				continue;
+				return false;
 			if (visiblity == TimelineVisibility::Right)
-				break;
+				return true;
 
 			char buffer[16];
-			sprintf_s(buffer, sizeof(buffer), "%d", barIndex);
-
 			const auto start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.85f));
 			const auto end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
 			baseDrawList->AddLine(start, end, barColor);
-			baseDrawList->AddText(start + vec2(3.0f, -1.0f), barColor, buffer);
-		}
+			baseDrawList->AddText(start + vec2(3.0f, -1.0f), barColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
+			return false;
+		});
 	}
 
 	void TargetTimeline::OnDrawTimlineBackground()
