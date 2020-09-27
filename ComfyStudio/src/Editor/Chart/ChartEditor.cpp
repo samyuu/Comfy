@@ -544,6 +544,12 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiSubWindows()
 	{
+		if (Gui::Begin(ICON_FA_QUESTION_CIRCLE "  Chart Editor Manual", nullptr, ImGuiWindowFlags_None))
+		{
+			chartEditorManual.Gui();
+		}
+		Gui::End();
+
 		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			timeline->DrawTimelineGui();
