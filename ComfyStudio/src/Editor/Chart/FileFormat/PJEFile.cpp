@@ -1,21 +1,26 @@
 #include "PJEFile.h"
+#include "Editor/Chart/TargetPropertyRules.h"
 #include "IO/Path.h"
 #include "IO/Shell.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
+#include "IO/Stream/Manipulator/StreamWriter.h"
 
 namespace Comfy::Studio::Editor
 {
 	namespace Legacy
 	{
+		PJEFile::PJEFile(const Chart& sourceChart)
+		{
+			FromChart(sourceChart);
+		}
+
 		std::unique_ptr<Chart> PJEFile::ToChart() const
 		{
 			auto chart = std::make_unique<Chart>();
 
-			constexpr auto startOffsetAdjustment = TimeSpan::FromMilliseconds(20.0);
 			chart->Properties.Song.Title = songTitle.data();
-			chart->StartOffset = (songOffset == TimeSpan::Zero()) ? TimeSpan::Zero() : (songOffset + startOffsetAdjustment);
+			chart->StartOffset = songOffset;
 
-			// TODO: songEnd;
 			chart->Duration = TimeSpan::Zero();
 
 			std::vector<TempoChange> newTempoChanges;
@@ -63,13 +68,16 @@ namespace Comfy::Studio::Editor
 				newTarget.Flags.IsChance = targetTypeData.IsChance;
 				newTarget.Properties.Position = pjeTarget.Position;
 				newTarget.Properties.Angle = pjeTarget.Angle;
-				newTarget.Properties.Frequency = static_cast<decltype(TargetProperties::Frequency)>(pjeTarget.Frequency);
+				newTarget.Properties.Frequency = pjeTarget.Frequency;
 				newTarget.Properties.Amplitude = pjeTarget.Amplitude;
 				newTarget.Properties.Distance = pjeTarget.Distance;
 			}
 
 			chart->TempoMap = std::move(newTempoChanges);
 			chart->Targets = std::move(newTargets);
+
+			chart->UpdateMapTimes();
+			chart->Duration = chart->TimelineMap.GetTimeAt(TimelineTick(songEnd));
 
 			return chart;
 		}
@@ -78,7 +86,7 @@ namespace Comfy::Studio::Editor
 		{
 			const auto chartDirectory = IO::Path::GetDirectoryName(chartFilePath);
 			const auto filePathNoExtension = IO::Path::Combine(chartDirectory, IO::Path::GetFileName(songTitle.data(), false));
-			
+
 			std::string combinedPath;
 			combinedPath.reserve(filePathNoExtension.size() + (5 + 4));
 
@@ -243,6 +251,128 @@ namespace Comfy::Studio::Editor
 			return IO::StreamResult::Success;
 		}
 
+		IO::StreamResult PJEFile::Write(IO::StreamWriter& writer)
+		{
+			writer.SetEndianness(IO::Endianness::Little);
+			writer.WriteU32_BE('PJAE');
+			writer.WriteU32(version = 0x4);
+			writer.WriteU32_BE('NOP\0');
+			writer.WriteU32(beatsPerBar);
+			writer.WritePadding(32, 0x00);
+
+			writer.WriteI16(buttonSound);
+			writer.WriteI16(slideSound);
+			writer.WriteI16(chainSound);
+			writer.WriteI16(touchSound);
+			writer.WriteI32(pvID);
+			writer.WriteU8(difficulty);
+			writer.WriteU8(pvLevel);
+			writer.WriteU8(0x00);
+			writer.WriteU8(0x00);
+
+			writer.WriteU32_BE('SNG\0');
+			writer.WriteF32(static_cast<f32>(songOffset.TotalMilliseconds()));
+			writer.WriteF32(static_cast<f32>(videoOffset.TotalMilliseconds()));
+			writer.WriteI32(songEnd.Bar);
+			writer.WriteI32(songEnd.Beat);
+			writer.WriteBuffer(songTitle.data(), songTitle.size());
+			writer.WriteU32_BE('END\0');
+
+			writer.WriteU32_BE('BPM\0');
+			writer.WriteI32(static_cast<i32>(bpmChanges.size()));
+			for (auto& bpmChange : bpmChanges)
+			{
+				writer.WriteI32(bpmChange.Index.Bar);
+				writer.WriteI32(bpmChange.Index.Beat);
+				writer.WriteF32(bpmChange.BPM);
+			}
+			writer.WriteU32_BE('END\0');
+
+			writer.WriteU32_BE('SIG\0');
+			writer.WriteI32(static_cast<i32>(sigChanges.size()));
+			for (auto& sigChange : sigChanges)
+			{
+				writer.WriteI32(sigChange.Index.Bar);
+				writer.WriteI32(sigChange.Index.Beat);
+				writer.WriteU32(sigChange.Numerator);
+				writer.WriteU32(sigChange.Denominator);
+			}
+			writer.WriteU32_BE('END\0');
+
+			writer.WriteU32_BE('TGT\0');
+			writer.WriteI32(static_cast<i32>(targets.size()));
+			for (auto& target : targets)
+			{
+				writer.WriteI32(target.Index.Bar);
+				writer.WriteI32(target.Index.Beat);
+				writer.WriteU32(static_cast<u32>(target.Type));
+				writer.WriteF32(target.Position.x);
+				writer.WriteF32(target.Position.y);
+				writer.WriteF32(target.Angle);
+				writer.WriteF32(target.Frequency);
+				writer.WriteF32(target.Amplitude);
+				writer.WriteF32(target.Distance);
+				writer.WriteF32(target.FlyTime);
+			}
+			writer.WriteU32_BE('END\0');
+
+			writer.WriteU32_BE('EOF\0');
+			writer.WritePadding(28, 0x00);
+
+			return IO::StreamResult::Success;
+		}
+
+		void PJEFile::FromChart(const Chart& sourceChart)
+		{
+			beatsPerBar = 192;
+			buttonSound = 0;
+			slideSound = 0;
+			chainSound = 0;
+			touchSound = 0;
+			pvID = 999;
+			difficulty = 2;
+			pvLevel = 1;
+
+			songOffset = sourceChart.StartOffset;
+			videoOffset = TimeSpan::Zero();
+			songEnd = sourceChart.TimelineMap.GetTickAt(sourceChart.DurationOrDefault());
+
+			const auto sourceSongTitle = sourceChart.SongTitleOrDefault();
+			songTitle = {};
+			std::memcpy(songTitle.data(), sourceSongTitle.data(), std::min(sourceSongTitle.size(), songTitle.size() - 1));
+
+			bpmChanges.reserve(sourceChart.TempoMap.TempoChangeCount());
+			sigChanges.reserve(sourceChart.TempoMap.TempoChangeCount());
+			for (const auto& sourceTempoChange : sourceChart.TempoMap)
+			{
+				auto& newBPMChange = bpmChanges.emplace_back();
+				auto& newSigChange = sigChanges.emplace_back();
+				newBPMChange.Index = sourceTempoChange.Tick;
+				newBPMChange.BPM = sourceTempoChange.Tempo.BeatsPerMinute;
+				newSigChange.Index = sourceTempoChange.Tick;
+				newSigChange.Numerator = sourceTempoChange.Signature.Numerator;
+				newSigChange.Denominator = sourceTempoChange.Signature.Denominator;
+			}
+
+			targets.reserve(sourceChart.Targets.size());
+			for (const auto& sourceTarget : sourceChart.Targets)
+			{
+				const auto properties = sourceTarget.Flags.HasProperties ?
+					sourceTarget.Properties :
+					Rules::PresetTargetProperties(sourceTarget.Type, sourceTarget.Tick, sourceTarget.Flags);
+
+				auto& newTarget = targets.emplace_back();
+				newTarget.Index = sourceTarget.Tick;
+				newTarget.Type = ConvertButtonType(sourceTarget.Type, sourceTarget.Flags);
+				newTarget.Position = properties.Position;
+				newTarget.Angle = properties.Angle;
+				newTarget.Frequency = properties.Frequency;
+				newTarget.Amplitude = properties.Amplitude;
+				newTarget.Distance = properties.Distance;
+				newTarget.FlyTime = static_cast<f32>((sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick) - sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick - TimelineTick::FromBars(1))).TotalMilliseconds());
+			}
+		}
+
 		PJEFile::ButtonTypeData PJEFile::ConverTargetType(TargetType type)
 		{
 			switch (type)
@@ -267,6 +397,30 @@ namespace Comfy::Studio::Editor
 			case TargetType::SlideRChance: return { ButtonType::SlideR, 0, 0, 1 };
 			}
 			return { ButtonType::Circle, 0, 0, 0 };
+		}
+
+		PJEFile::TargetType PJEFile::ConvertButtonType(ButtonType type, TargetFlags flags)
+		{
+			switch (type)
+			{
+			case ButtonType::Triangle: return flags.IsChance ? TargetType::TriangleChance : flags.IsHold ? TargetType::TriangleHold : TargetType::Triangle;
+			case ButtonType::Square: return flags.IsChance ? TargetType::SquareChance : flags.IsHold ? TargetType::SquareHold : TargetType::Square;
+			case ButtonType::Cross: return flags.IsChance ? TargetType::CrossChance : flags.IsHold ? TargetType::CrossHold : TargetType::Cross;
+			case ButtonType::Circle: return flags.IsChance ? TargetType::CircleChance : flags.IsHold ? TargetType::CircleHold : TargetType::Circle;
+			case ButtonType::SlideL: return flags.IsChance ? TargetType::SlideLChance : flags.IsChain ? TargetType::SlideLChain : TargetType::SlideL;
+			case ButtonType::SlideR: return flags.IsChance ? TargetType::SlideRChance : flags.IsChain ? TargetType::SlideRChain : TargetType::SlideR;
+			}
+			return TargetType::Circle;
+		}
+
+		PJEFile::TimelineIndex::TimelineIndex(TimelineTick tick)
+		{
+			// TODO: Scale correctly
+			static_assert(TimelineTick::TicksPerBeat * 4 == 192);
+			Bar = (tick.Ticks() / (tick.TicksPerBeat * 4));
+			Beat = (tick.Ticks() % (tick.TicksPerBeat * 4));
+
+			assert(TimelineTick(*this) == tick);
 		}
 
 		PJEFile::TimelineIndex::operator TimelineTick() const

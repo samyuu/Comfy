@@ -373,8 +373,8 @@ namespace Comfy::Studio::Editor
 		if (Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension))
 		{
 			// TODO: Implement IStreamWritable interface for PJEFile and FromChart constructor
-			// auto pjeFile = Legacy::PJEFile(*chart);
-			// IO::File::Save(filePath, pjeFile);
+			auto pjeFile = Legacy::PJEFile(*chart);
+			IO::File::Save(filePath, pjeFile);
 		}
 	}
 

@@ -8,7 +8,7 @@ namespace Comfy::Studio::Editor
 {
 	namespace Legacy
 	{
-		class PJEFile : public IO::IStreamReadable, NonCopyable
+		class PJEFile : public IO::IStreamReadable, public IO::IStreamWritable, NonCopyable
 		{
 		public:
 			static constexpr std::string_view Extension = ".pje";
@@ -17,6 +17,8 @@ namespace Comfy::Studio::Editor
 
 		public:
 			PJEFile() = default;
+			PJEFile(const Chart& sourceChart);
+			~PJEFile() = default;
 
 		public:
 			std::unique_ptr<Chart> ToChart() const;
@@ -24,6 +26,10 @@ namespace Comfy::Studio::Editor
 
 		public:
 			IO::StreamResult Read(IO::StreamReader& reader) override;
+			IO::StreamResult Write(IO::StreamWriter& writer) override;
+
+		private:
+			void FromChart(const Chart& sourceChart);
 
 		private:
 			enum class TargetType : u32
@@ -51,6 +57,9 @@ namespace Comfy::Studio::Editor
 			struct TimelineIndex
 			{
 				i32 Bar, Beat;
+
+				TimelineIndex() = default;
+				TimelineIndex(TimelineTick);
 				operator TimelineTick() const;
 			};
 
@@ -106,6 +115,7 @@ namespace Comfy::Studio::Editor
 			};
 
 			static ButtonTypeData ConverTargetType(TargetType type);
+			static TargetType ConvertButtonType(ButtonType type, TargetFlags flags);
 		};
 	}
 }
