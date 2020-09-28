@@ -27,6 +27,7 @@ namespace Comfy::Studio::Editor
 	private:
 		Undo::UndoManager& undoManager;
 
+		bool undoRedoHeaderButtons = false;
 		bool thisFrameIsAtBottom = false, lastFrameIsAtBottom = false;
 		size_t thisFrameUndoCount = 0, lastFrameUndoCount = 0;
 	};

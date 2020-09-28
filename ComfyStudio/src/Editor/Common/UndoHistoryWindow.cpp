@@ -14,15 +14,18 @@ namespace Comfy::Studio::Editor
 
 	bool UndoHistoryWindow::SingleColumnGui()
 	{
-		Gui::Columns(2, nullptr, false);
-		if (Gui::MenuItem("UndoManager::Undo()", nullptr, nullptr, undoManager.CanUndo()))
-			undoManager.Undo();
-		Gui::NextColumn();
+		if (undoRedoHeaderButtons)
+		{
+			Gui::Columns(2, nullptr, false);
+			if (Gui::MenuItem("UndoManager::Undo()", nullptr, nullptr, undoManager.CanUndo()))
+				undoManager.Undo();
+			Gui::NextColumn();
 
-		if (Gui::MenuItem("UndoManager::Redo()", nullptr, nullptr, undoManager.CanRedo()))
-			undoManager.Redo();
-		Gui::NextColumn();
-		Gui::Columns(1);
+			if (Gui::MenuItem("UndoManager::Redo()", nullptr, nullptr, undoManager.CanRedo()))
+				undoManager.Redo();
+			Gui::NextColumn();
+			Gui::Columns(1);
+		}
 
 		if (Gui::ListBoxHeader("##HistoryWindow::UndoRedoListBox", Gui::GetContentRegionAvail()))
 		{
