@@ -10,7 +10,7 @@
 
 namespace Comfy::Audio
 {
-	std::unique_ptr<DecoderFactory> DecoderFactoryInstance = nullptr;
+	std::unique_ptr<DecoderFactory> DecoderFactoryInstance = std::make_unique<DecoderFactory>();
 
 	DecoderFactory::DecoderFactory()
 	{
@@ -19,9 +19,6 @@ namespace Comfy::Audio
 
 	DecoderFactory& DecoderFactory::GetInstance()
 	{
-		if (DecoderFactoryInstance == nullptr)
-			DecoderFactoryInstance = std::make_unique<DecoderFactory>();
-
 		return *DecoderFactoryInstance;
 	}
 
@@ -34,7 +31,6 @@ namespace Comfy::Audio
 		}
 
 		const auto extension = IO::Path::GetExtension(filePath);
-
 		for (auto& decoder : availableDecoders)
 		{
 			if (!IO::Path::DoesAnyPackedExtensionMatch(extension, decoder->GetFileExtensions()))
@@ -47,25 +43,26 @@ namespace Comfy::Audio
 				return nullptr;
 			}
 
-			auto resultSampleProvider = std::make_unique<MemorySampleProvider>();
-
-			DecoderOutputData outputData;
-			outputData.ChannelCount = &resultSampleProvider->channelCount;
-			outputData.SampleRate = &resultSampleProvider->sampleRate;
-			outputData.SampleCount = &resultSampleProvider->sampleCount;
-			outputData.SampleData = &resultSampleProvider->sampleData;
-
-			if (decoder->DecodeParseAudio(fileContent.get(), fileSize, &outputData) == DecoderResult::Failure)
-				continue;
-
-			if (*outputData.SampleRate != AudioEngine::OutputSampleRate)
-				Resample<i16>(*outputData.SampleData, *outputData.SampleCount, *outputData.SampleRate, AudioEngine::OutputSampleRate, *outputData.ChannelCount);
-
-			return resultSampleProvider;
+			return DecodeAndProcess(*decoder, fileContent.get(), fileSize);
 		}
 
 		Logger::LogErrorLine(__FUNCTION__"(): No compatible IDecoder found for the input file %.*s", filePath.size(), filePath.data());
 		return nullptr;
+	}
+
+	std::unique_ptr<ISampleProvider> DecoderFactory::DecodeFileContentWAV(const void* fileContent, size_t fileSize)
+	{
+		assert(wavDecoder != nullptr);
+		assert(fileContent != nullptr && fileSize > 0);
+
+		return DecodeAndProcess(*wavDecoder, fileContent, fileSize);
+	}
+
+	template <typename T>
+	IDecoder* DecoderFactory::RegisterDecoder()
+	{
+		static_assert(std::is_base_of_v<IDecoder, T>, "T must inherit from IAudioDecoder");
+		return availableDecoders.emplace_back(std::make_unique<T>()).get();
 	}
 
 	void DecoderFactory::RegisterAllDecoders()
@@ -75,6 +72,25 @@ namespace Comfy::Audio
 		RegisterDecoder<HevagDecoder>();
 		RegisterDecoder<Mp3Decoder>();
 		RegisterDecoder<VorbisDecoder>();
-		RegisterDecoder<WavDecoder>();
+		wavDecoder = RegisterDecoder<WavDecoder>();
+	}
+
+	std::unique_ptr<ISampleProvider> DecoderFactory::DecodeAndProcess(IDecoder& decoder, const void* fileContent, size_t fileSize)
+	{
+		auto resultSampleProvider = std::make_unique<MemorySampleProvider>();
+
+		DecoderOutputData outputData;
+		outputData.ChannelCount = &resultSampleProvider->channelCount;
+		outputData.SampleRate = &resultSampleProvider->sampleRate;
+		outputData.SampleCount = &resultSampleProvider->sampleCount;
+		outputData.SampleData = &resultSampleProvider->sampleData;
+
+		if (decoder.DecodeParseAudio(fileContent, fileSize, &outputData) == DecoderResult::Failure)
+			return nullptr;
+
+		if (*outputData.SampleRate != AudioEngine::OutputSampleRate)
+			Resample<i16>(*outputData.SampleData, *outputData.SampleCount, *outputData.SampleRate, AudioEngine::OutputSampleRate, *outputData.ChannelCount);
+
+		return resultSampleProvider;
 	}
 }

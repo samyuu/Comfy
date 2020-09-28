@@ -469,12 +469,20 @@ namespace Comfy::Audio
 			if (impl->LoadedSources[i] != nullptr)
 				continue;
 
-			impl->LoadedSources[i] = sampleProvider;
+			impl->LoadedSources[i] = std::move(sampleProvider);
 			return static_cast<SourceHandle>(i);
 		}
 
-		impl->LoadedSources.push_back(sampleProvider);
+		impl->LoadedSources.push_back(std::move(sampleProvider));
 		return static_cast<SourceHandle>(impl->LoadedSources.size() - 1);
+	}
+
+	SourceHandle AudioEngine::LoadAudioSourceFromWAV(const void* fileContent, size_t fileSize)
+	{
+		if (fileContent == nullptr || fileSize == 0)
+			return SourceHandle::Invalid;
+
+		return LoadAudioSource(DecoderFactory::GetInstance().DecodeFileContentWAV(fileContent, fileSize));
 	}
 
 	void AudioEngine::UnloadSource(SourceHandle source)

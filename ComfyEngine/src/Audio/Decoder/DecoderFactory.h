@@ -12,21 +12,23 @@ namespace Comfy::Audio
 		DecoderFactory();
 		~DecoderFactory() = default;
 
+	public:
 		std::unique_ptr<ISampleProvider> DecodeFile(std::string_view filePath);
+		std::unique_ptr<ISampleProvider> DecodeFileContentWAV(const void* fileContent, size_t fileSize);
 
 	public:
 		static DecoderFactory& GetInstance();
 
 	private:
-		std::vector<std::unique_ptr<IDecoder>> availableDecoders;
-	
 		template <typename T>
-		void RegisterDecoder()
-		{
-			static_assert(std::is_base_of_v<IDecoder, T>, "T must inherit from IAudioDecoder");
-			availableDecoders.push_back(std::make_unique<T>());
-		}
+		IDecoder* RegisterDecoder();
 
 		void RegisterAllDecoders();
+
+		std::unique_ptr<ISampleProvider> DecodeAndProcess(IDecoder& decoder, const void* fileContent, size_t fileSize);
+
+	private:
+		std::vector<std::unique_ptr<IDecoder>> availableDecoders;
+		IDecoder* wavDecoder = nullptr;
 	};
 }
