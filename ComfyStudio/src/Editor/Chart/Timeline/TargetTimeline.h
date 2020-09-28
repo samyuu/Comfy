@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "TimelineButtonIcons.h"
+#include "TimelineMetronome.h"
 #include "Editor/Core/Theme.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Editor/Timeline/TimelineBase.h"
@@ -172,6 +173,9 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Having this enabled should *discourage* realtime target placement without an accurate tempo map / offset set
 		bool buttonSoundOnSuccessfulPlacementOnly = true;
+
+		bool metronomeEnabled = false;
+		TimelineMetronome metronome = {};
 
 		bool waveformUpdatePending = true;
 		bool waveformDrawIndividualLines = false;

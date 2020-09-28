@@ -182,6 +182,7 @@
     <ClCompile Include="src\Editor\Chart\FileFormat\PJEFile.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetInspector.cpp" />
+    <ClCompile Include="src\Editor\Chart\Timeline\TimelineMetronome.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineButtonIcons.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
     <ClCompile Include="src\Editor\Chart\ChartEditor.cpp" />
@@ -245,6 +246,7 @@
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
     <ClInclude Include="src\Editor\Chart\TargetInspector.h" />
     <ClInclude Include="src\Editor\Chart\TargetPropertyRules.h" />
+    <ClInclude Include="src\Editor\Chart\Timeline\TimelineMetronome.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineButtonIcons.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\Chart\Chart.h" />

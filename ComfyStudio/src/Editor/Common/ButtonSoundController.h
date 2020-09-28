@@ -26,7 +26,7 @@ namespace Comfy::Studio::Editor
 		Count,
 	};
 
-	class ButtonSoundController
+	class ButtonSoundController : NonCopyable
 	{
 	public:
 		static constexpr size_t ButtonVoicePoolSize = 24;

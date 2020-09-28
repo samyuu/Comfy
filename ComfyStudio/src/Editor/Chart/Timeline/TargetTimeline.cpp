@@ -145,7 +145,8 @@ namespace Comfy::Studio::Editor
 		if (elapsedTime >= elapsedThresholdAtWhichPlayingSoundsMakesNoSense)
 			return;
 
-		// TODO: Implement bar / beat metronome in a similar way
+		if (metronomeEnabled)
+			metronome.UpdatePlaySounds(*workingChart, thisFrameButtonSoundCursorTime, lastFrameButtonSoundCursorTime, buttonSoundFutureOffset);
 
 		// NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
 		for (const auto& target : workingChart->Targets)
@@ -163,37 +164,36 @@ namespace Comfy::Studio::Editor
 
 			if (offsetButtonTime >= lastFrameButtonSoundCursorTime && offsetButtonTime <= thisFrameButtonSoundCursorTime)
 			{
-				const auto startTime = (thisFrameButtonSoundCursorTime - buttonTime);
-				const auto externalClock = buttonTime;
-
 				// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
 				//		 or playback was started on top of an existing target
-				const auto clampedStartTime = (startTime >= TimeSpan::Zero()) ? TimeSpan::Zero() : startTime;
+				const auto startTime = std::min((thisFrameButtonSoundCursorTime - buttonTime), TimeSpan::Zero());
+				const auto externalClock = buttonTime;
 
 				if (target.Flags.IsChain)
 				{
 					const auto chainSoundSlot = (target.Type == ButtonType::SlideL) ? ChainSoundSlot::Left : ChainSoundSlot::Right;
 					if (target.Flags.IsChainStart)
 					{
-						buttonSoundController.PlayChainSoundStart(chainSoundSlot, clampedStartTime, externalClock);
+						buttonSoundController.PlayChainSoundStart(chainSoundSlot, startTime, externalClock);
 					}
 					if (target.Flags.IsChainEnd)
 					{
 						if (constexpr bool success = true; success)
-							buttonSoundController.PlayChainSoundSuccess(chainSoundSlot, clampedStartTime, externalClock);
+							buttonSoundController.PlayChainSoundSuccess(chainSoundSlot, startTime, externalClock);
 						else
-							buttonSoundController.PlayChainSoundFailure(chainSoundSlot, clampedStartTime, externalClock);
+							buttonSoundController.PlayChainSoundFailure(chainSoundSlot, startTime, externalClock);
 
+						// BUG: Sync chain slides with the left chain ending earlier than the right one. In practice this should rarely ever happen though
 						buttonSoundController.FadeOutLastChainSound(chainSoundSlot);
 					}
 				}
 				else if (IsSlideButtonType(target.Type))
 				{
-					buttonSoundController.PlaySlideSound(clampedStartTime, externalClock);
+					buttonSoundController.PlaySlideSound(startTime, externalClock);
 				}
 				else
 				{
-					buttonSoundController.PlayButtonSound(clampedStartTime, externalClock);
+					buttonSoundController.PlayButtonSound(startTime, externalClock);
 				}
 			}
 		}
