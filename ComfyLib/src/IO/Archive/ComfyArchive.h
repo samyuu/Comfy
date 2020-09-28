@@ -5,6 +5,7 @@
 #include "IO/Stream/MemoryStream.h"
 #include "IO/Stream/FileInterfaces.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
+#include <mutex>
 
 namespace Comfy::IO
 {
@@ -149,10 +150,12 @@ namespace Comfy::IO
 	private:
 		bool isMounted = false;
 
+		std::mutex dataStreamMutex = {};
+		FileStream dataStream;
+
+		std::unique_ptr<u8[]> headerDataBuffer = nullptr;
+
 		ComfyArchiveHeader header = {};
 		ComfyDirectory* rootDirectory = nullptr;
-
-		std::unique_ptr<u8[]> dataBuffer = nullptr;
-		FileStream dataStream;
 	};
 }

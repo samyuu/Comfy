@@ -15,6 +15,8 @@ namespace Comfy::IO
 			return true;
 
 		isMounted = true;
+
+		const auto lock = std::scoped_lock(dataStreamMutex);
 		dataStream.OpenRead(filePath);
 
 		if (!dataStream.IsOpen())
@@ -34,10 +36,11 @@ namespace Comfy::IO
 		if (!isMounted)
 			return;
 
+		const auto lock = std::scoped_lock(dataStreamMutex);
 		if (dataStream.IsOpen())
 			dataStream.Close();
 
-		dataBuffer = nullptr;
+		headerDataBuffer = nullptr;
 	}
 
 	const ComfyArchiveHeader& ComfyArchive::GetHeader() const
@@ -116,6 +119,7 @@ namespace Comfy::IO
 		if (entry == nullptr)
 			return false;
 
+		const auto lock = std::scoped_lock(dataStreamMutex);
 		if (!isMounted || !dataStream.IsOpen() || !dataStream.CanRead())
 		{
 			assert(false);
@@ -167,10 +171,10 @@ namespace Comfy::IO
 		// TODO: Extensive validation checking
 		assert(header.Magic == ComfyArchive::Magic);
 
-		dataBuffer = std::make_unique<u8[]>(header.DataSize);
+		headerDataBuffer = std::make_unique<u8[]>(header.DataSize);
 
 		dataStream.Seek(static_cast<FileAddr>(header.DataOffset));
-		dataStream.ReadBuffer(dataBuffer.get(), header.DataSize);
+		dataStream.ReadBuffer(headerDataBuffer.get(), header.DataSize);
 	}
 
 	namespace
@@ -204,9 +208,9 @@ namespace Comfy::IO
 
 	void ComfyArchive::LinkRemapPointers()
 	{
-		u8* offsetDataBuffer = dataBuffer.get() - header.DataOffset;
+		u8* offsetDataBuffer = headerDataBuffer.get() - header.DataOffset;
 
-		rootDirectory = reinterpret_cast<ComfyDirectory*>(dataBuffer.get());
+		rootDirectory = reinterpret_cast<ComfyDirectory*>(headerDataBuffer.get());
 		LinkDirectoryEntry(rootDirectory, offsetDataBuffer);
 	}
 
