@@ -1,11 +1,44 @@
 #pragma once
 #include "Types.h"
+#include "Tools/TargetBoxSelectionTool.h"
+#include "Tools/TargetTool.h"
 #include "TargetRenderHelper.h"
 #include "Editor/Chart/Chart.h"
+#include "Editor/Chart/TargetPropertyRules.h"
 #include "Window/RenderWindow.h"
 #include "Editor/Common/CheckerboardGrid.h"
 #include "Render/Render.h"
 #include "Undo/Undo.h"
+
+namespace Comfy::Studio::Editor
+{
+	constexpr vec2 TargetPositionOrPreset(const TimelineTarget& target)
+	{
+		return target.Flags.HasProperties ? target.Properties.Position : target.Flags.IsChain ?
+			Rules::PresetTargetChainPosition(target.Type, target.Tick, target.Flags) :
+			Rules::PresetTargetPosition(target.Type, target.Tick, target.Flags);
+	}
+
+	constexpr std::array<u32, EnumCount<ButtonType>()> ButtonTypeColors =
+	{
+		0xFFCCFE62,
+		0xFFD542FF,
+		0xFFFEFF62,
+		0xFF6412FE,
+		0xFF2BD7FF,
+		0xFF2BD7FF,
+	};
+
+	constexpr u32 GetButtonTypeColorU32(ButtonType type)
+	{
+		return ButtonTypeColors[static_cast<u8>(type)];
+	}
+
+	constexpr u32 GetButtonTypeColorU32(ButtonType type, u8 alpha)
+	{
+		return (ButtonTypeColors[static_cast<u8>(type)] & 0x00FFFFFF) | (static_cast<u32>(alpha) << 24);
+	}
+}
 
 namespace Comfy::Studio::Editor
 {
@@ -14,6 +47,10 @@ namespace Comfy::Studio::Editor
 
 	class TargetRenderWindow : public RenderWindow
 	{
+	public:
+		static constexpr f32 TargetHitboxSize = 64.0f;
+		static constexpr f32 SelectionCenterMarkerSize = 9.0f;
+
 	public:
 		TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager, Render::Renderer2D& renderer);
 		~TargetRenderWindow() = default;
@@ -24,15 +61,26 @@ namespace Comfy::Studio::Editor
 	public:
 		ImTextureID GetTextureID() const override;
 
+	public:
+		vec2 TargetAreaToScreenSpace(const vec2 targetAreaSpace) const;
+		vec2 ScreenToTargetAreaSpace(const vec2 screenSpace) const;
+
+		const Render::Camera2D& GetCamera() const;
+
 	protected:
 		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override;
 		void PreRenderTextureGui() override;
 		void PostRenderTextureGui() override;
+
 		void OnResize(ivec2 newSize) override;
 		void OnRender() override;
 
 	private:
 		void UpdateAllInput();
+		void UpdateInputContextMenu();
+
+		void SelectActiveTool(TargetToolType toolType);
+		TargetTool* GetSelectedTool();
 
 	private:
 		void RenderBackground();
@@ -40,10 +88,6 @@ namespace Comfy::Studio::Editor
 		void RenderAllVisibleTargets();
 		void AddVisibleTargetsToDrawBuffers();
 		void FlushRenderTargetsDrawBuffers();
-
-	private:
-		vec2 TargetAreaToScreenSpace(const vec2 targetAreaSpace) const;
-		vec2 ScreenToTargetAreaSpace(const vec2 screenSpace) const;
 
 	private:
 		Chart* workingChart = nullptr;
@@ -76,8 +120,10 @@ namespace Comfy::Studio::Editor
 
 		TimelineTick targetPostHitLingerDuration = TimelineTick::FromBeats(1);
 
-		const f32 targetHitboxSize = 64.0f;
-		const f32 selectionCenterMarkerSize = 9.0f;
+		TargetBoxSelectionTool boxSelectionTool = { *this };
+
+		std::array<std::unique_ptr<TargetTool>, EnumCount<TargetToolType>()> availableTools;
+		TargetToolType selectedToolType = TargetToolType::Count;
 
 		Render::Camera2D camera;
 		std::unique_ptr<TargetRenderHelper> renderHelper = nullptr;

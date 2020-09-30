@@ -2,40 +2,15 @@
 #include "TargetGrid.h"
 #include "Editor/Core/Theme.h"
 #include "Editor/Chart/ChartEditor.h"
-#include "Editor/Chart/TargetPropertyRules.h"
+#include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/KeyBindings.h"
 
 namespace Comfy::Studio::Editor
 {
-	namespace
-	{
-		constexpr vec2 TargetPositionOrPreset(const TimelineTarget& target)
-		{
-			return target.Flags.HasProperties ? target.Properties.Position : target.Flags.IsChain ?
-				Rules::PresetTargetChainPosition(target.Type, target.Tick, target.Flags) :
-				Rules::PresetTargetPosition(target.Type, target.Tick, target.Flags);
-		}
-
-		constexpr std::array<u32, EnumCount<ButtonType>()> ButtonTypeColors =
-		{
-			0xFFCCFE62,
-			0xFFD542FF,
-			0xFFFEFF62,
-			0xFF6412FE,
-			0xFF2BD7FF,
-			0xFF2BD7FF,
-		};
-
-		constexpr u32 GetButtonTypeColorU32(ButtonType type)
-		{
-			return ButtonTypeColors[static_cast<u8>(type)];
-		}
-	}
-
 	using namespace Graphics;
 
 	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager, Render::Renderer2D& renderer)
-		: chartEditor(parent), timeline(timeline), undoManager(undoManager), renderer(renderer)
+		: chartEditor(parent), timeline(timeline), undoManager(undoManager), renderer(renderer), availableTools(TargetTool::CreateAllToolTypes(*this, undoManager))
 	{
 		SetWindowBackgroundCheckerboardEnabled(true);
 
@@ -56,6 +31,8 @@ namespace Comfy::Studio::Editor
 		renderHelper->SetAetSprGetter(renderer);
 
 		renderTarget = Render::Renderer2D::CreateRenderTarget();
+
+		SelectActiveTool(TargetToolType::StartupType);
 	}
 
 	void TargetRenderWindow::SetWorkingChart(Chart* chart)
@@ -66,6 +43,27 @@ namespace Comfy::Studio::Editor
 	ImTextureID TargetRenderWindow::GetTextureID() const
 	{
 		return (renderTarget != nullptr) ? renderTarget->GetTextureID() : nullptr;
+	}
+
+	vec2 TargetRenderWindow::TargetAreaToScreenSpace(const vec2 targetAreaSpace) const
+	{
+		const auto renderRegion = GetRenderRegion();
+		const auto scale = (renderRegion.GetSize() / Rules::PlacementAreaSize);
+
+		return renderRegion.GetTL() + (targetAreaSpace * scale);
+	}
+
+	vec2 TargetRenderWindow::ScreenToTargetAreaSpace(const vec2 screenSpace) const
+	{
+		const auto renderRegion = GetRenderRegion();
+		const auto scale = (Rules::PlacementAreaSize / renderRegion.GetSize());
+
+		return (screenSpace - renderRegion.GetTL()) * scale;
+	}
+
+	const Render::Camera2D& TargetRenderWindow::GetCamera() const
+	{
+		return camera;
 	}
 
 	ImGuiWindowFlags TargetRenderWindow::GetRenderTextureChildWindowFlags() const
@@ -80,17 +78,19 @@ namespace Comfy::Studio::Editor
 	void TargetRenderWindow::PostRenderTextureGui()
 	{
 		auto drawList = Gui::GetWindowDrawList();
+
+		auto selectedTool = GetSelectedTool();
+		if (selectedTool != nullptr)
+			selectedTool->PreRenderGUI(*workingChart, *drawList);
+
 		for (const auto& target : workingChart->Targets)
 		{
 			if (!target.IsSelected)
 				continue;
 
-			const auto position = target.Flags.HasProperties ? target.Properties.Position : target.Flags.IsChain ?
-				Rules::PresetTargetChainPosition(target.Type, target.Tick, target.Flags) :
-				Rules::PresetTargetPosition(target.Type, target.Tick, target.Flags);
-
-			const auto tl = glm::round(TargetAreaToScreenSpace(position - targetHitboxSize));
-			const auto br = glm::round(TargetAreaToScreenSpace(position + targetHitboxSize));
+			const auto position = TargetPositionOrPreset(target);
+			const auto tl = glm::round(TargetAreaToScreenSpace(position - TargetHitboxSize));
+			const auto br = glm::round(TargetAreaToScreenSpace(position + TargetHitboxSize));
 
 			drawList->AddRectFilled(tl, br, GetColor(EditorColor_TimelineSelection));
 			drawList->AddRect(tl, br, GetColor(EditorColor_TimelineSelectionBorder));
@@ -98,13 +98,18 @@ namespace Comfy::Studio::Editor
 			drawBuffers.CenterMarkers.push_back({ TargetAreaToScreenSpace(position), GetButtonTypeColorU32(target.Type) });
 		}
 
-		const auto markerScreenSize = (camera.Zoom * selectionCenterMarkerSize);
+		const auto markerScreenSize = (camera.Zoom * SelectionCenterMarkerSize);
 		for (const auto[center, color] : drawBuffers.CenterMarkers)
 		{
 			drawList->AddLine(center + vec2(-markerScreenSize, -markerScreenSize), center + vec2(+markerScreenSize, +markerScreenSize), color);
 			drawList->AddLine(center + vec2(-markerScreenSize, +markerScreenSize), center + vec2(+markerScreenSize, -markerScreenSize), color);
 		}
 		drawBuffers.CenterMarkers.clear();
+
+		boxSelectionTool.DrawSelection(*drawList);
+
+		if (selectedTool != nullptr)
+			selectedTool->PostRenderGUI(*workingChart, *drawList);
 	}
 
 	void TargetRenderWindow::OnResize(ivec2 newSize)
@@ -119,26 +124,77 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::OnRender()
 	{
-		renderHelper->UpdateAsyncLoading(renderer);
-
 		UpdateAllInput();
 
+		renderHelper->UpdateAsyncLoading(renderer);
 		renderer.Begin(camera, *renderTarget);
 		{
 			RenderBackground();
 			RenderHUDBackground();
+
+			auto selectedTool = GetSelectedTool();
+			if (selectedTool != nullptr)
+				selectedTool->PreRender(*workingChart, renderer);
+
 			RenderAllVisibleTargets();
+
+			if (selectedTool != nullptr)
+				selectedTool->PostRender(*workingChart, renderer);
 		}
 		renderer.End();
 	}
 
 	void TargetRenderWindow::UpdateAllInput()
 	{
-		// TODO: Context menu tools selection
+		UpdateInputContextMenu();
+		boxSelectionTool.UpdateInput(*workingChart, timeline.GetCursorTick(), targetPostHitLingerDuration);
 
-		// DEBUG: For now at least...
-		Gui::WindowContextMenu("TargetRenderWindowContextMenu", [&]
+		if (Gui::IsWindowFocused())
 		{
+			if (Gui::IsKeyPressed(KeyBindings::JumpToPreviousTarget, true))
+				timeline.AdvanceCursorToNextTarget(-1);
+
+			if (Gui::IsKeyPressed(KeyBindings::JumpToNextTarget, true))
+				timeline.AdvanceCursorToNextTarget(+1);
+
+			if (Gui::IsKeyPressed(KeyBindings::TogglePlayback, false))
+				timeline.GetIsPlayback() ? timeline.PausePlayback() : timeline.ResumePlayback();
+
+			for (size_t toolIndex = 0; toolIndex < EnumCount<TargetToolType>(); toolIndex++)
+			{
+				if (Gui::IsKeyPressed(KeyBindings::TargetToolTypes[toolIndex], false))
+					SelectActiveTool(static_cast<TargetToolType>(toolIndex));
+			}
+		}
+
+		if (auto selectedTool = GetSelectedTool(); selectedTool != nullptr)
+			selectedTool->UpdateInput(*workingChart);
+	}
+
+	void TargetRenderWindow::UpdateInputContextMenu()
+	{
+		constexpr const char* contextMenuID = "TargetRenderWindowContextMenu";
+
+		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && !Gui::IsAnyItemHovered())
+			Gui::OpenPopup(contextMenuID);
+
+		if (Gui::BeginPopup(contextMenuID, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
+		{
+			for (size_t toolIndex = 0; toolIndex < availableTools.size(); toolIndex++)
+			{
+				const auto toolType = static_cast<TargetToolType>(toolIndex);
+				const auto tool = availableTools[toolIndex].get();
+				const char* toolName = (tool != nullptr) ? tool->GetName() : "<Null Tool>";
+
+				bool isSelected = (toolType == selectedToolType);
+				if (Gui::MenuItem(toolName, Input::GetKeyCodeName(KeyBindings::TargetToolTypes[toolIndex]), &isSelected, !isSelected))
+					selectedToolType = toolType;
+			}
+			Gui::Separator();
+
+			if (auto selectedTool = GetSelectedTool(); selectedTool != nullptr)
+				selectedTool->OnContextMenuGUI(*workingChart);
+
 			if (Gui::WideBeginMenu("Layers", true))
 			{
 				Gui::Checkbox("Draw Buttons", &layers.DrawButtons);
@@ -174,20 +230,29 @@ namespace Comfy::Studio::Editor
 				Gui::PopItemDisabledAndTextColorIf(!practiceBackground.Enabled);
 				Gui::EndMenu();
 			}
-			Gui::Separator();
-		});
 
-		if (!Gui::IsWindowFocused())
+			Gui::EndPopup();
+		}
+	}
+
+	void TargetRenderWindow::SelectActiveTool(TargetToolType toolType)
+	{
+		if (selectedToolType == toolType)
 			return;
 
-		if (Gui::IsKeyPressed(KeyBindings::JumpToPreviousTarget, true))
-			timeline.AdvanceCursorToNextTarget(-1);
+		if (auto deselectedTool = GetSelectedTool(); deselectedTool != nullptr)
+			deselectedTool->OnDeselected();
 
-		if (Gui::IsKeyPressed(KeyBindings::JumpToNextTarget, true))
-			timeline.AdvanceCursorToNextTarget(+1);
+		selectedToolType = toolType;
 
-		if (Gui::IsKeyPressed(KeyBindings::TogglePlayback, false))
-			timeline.GetIsPlayback() ? timeline.PausePlayback() : timeline.ResumePlayback();
+		if (auto selectedTool = GetSelectedTool(); selectedTool != nullptr)
+			selectedTool->OnSelected();
+	}
+
+	TargetTool* TargetRenderWindow::GetSelectedTool()
+	{
+		const auto tool = IndexOrNull(static_cast<u8>(selectedToolType), availableTools);
+		return (tool != nullptr) ? tool->get() : nullptr;
 	}
 
 	void TargetRenderWindow::RenderBackground()
@@ -368,21 +433,5 @@ namespace Comfy::Studio::Editor
 		drawBuffers.Buttons.clear();
 		drawBuffers.Trails.clear();
 		drawBuffers.SyncLines.clear();
-	}
-
-	vec2 TargetRenderWindow::TargetAreaToScreenSpace(const vec2 targetAreaSpace) const
-	{
-		const auto renderRegion = GetRenderRegion();
-		const auto scale = (renderRegion.GetSize() / Rules::PlacementAreaSize);
-
-		return renderRegion.GetTL() + (targetAreaSpace * scale);
-	}
-
-	vec2 TargetRenderWindow::ScreenToTargetAreaSpace(const vec2 screenSpace) const
-	{
-		const auto renderRegion = GetRenderRegion();
-		const auto scale = (Rules::PlacementAreaSize / renderRegion.GetSize());
-
-		return (screenSpace - renderRegion.GetTL()) * scale;
 	}
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Input/Input.h"
 #include "SortedTargetList.h"
+#include "RenderWindow/Tools/TargetTool.h"
+#include "Input/Input.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -44,6 +45,19 @@ namespace Comfy::Studio::Editor
 			std::make_pair(ButtonType::Circle, Input::KeyCode_L),
 			std::make_pair(ButtonType::SlideL, Input::KeyCode_U),
 			std::make_pair(ButtonType::SlideR, Input::KeyCode_O),
+		};
+
+		constexpr std::array<Input::KeyCode, EnumCount<TargetToolType>()> TargetToolTypes =
+		{
+			Input::KeyCode_1,
+			Input::KeyCode_2,
+			// Input::KeyCode_3,
+			// Input::KeyCode_4,
+			// Input::KeyCode_5,
+			// Input::KeyCode_6,
+			// Input::KeyCode_7,
+			// Input::KeyCode_8,
+			// Input::KeyCode_9,
 		};
 	}
 }
