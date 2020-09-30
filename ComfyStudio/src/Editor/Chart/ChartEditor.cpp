@@ -1,5 +1,6 @@
 #include "ChartEditor.h"
 #include "ChartCommands.h"
+#include "KeyBindings.h"
 #include "FileFormat/PJEFile.h"
 #include "IO/Path.h"
 #include "IO/Shell.h"
@@ -460,14 +461,21 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::UpdateGlobalControlInput()
 	{
 		// TODO: Undo / redo controls for all child windows
+		// TODO: Move all keycodes into KeyBindings header and implement modifier + keycode string format helper
 
 		// HACK: Works for now I guess...
 		if (!parentApplication.GetHost().IsWindowFocused())
 			return;
 
-		if (Gui::GetIO().KeyCtrl)
+		if (Gui::GetIO().KeyCtrl && Gui::GetActiveID() == 0)
 		{
 			const bool shift = Gui::GetIO().KeyShift;
+
+			if (Gui::IsKeyPressed(KeyBindings::Undo, true))
+				undoManager.Undo();
+
+			if (Gui::IsKeyPressed(KeyBindings::Redo, true))
+				undoManager.Redo();
 
 			if (Gui::IsKeyPressed(Input::KeyCode_O, false) && !shift)
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
