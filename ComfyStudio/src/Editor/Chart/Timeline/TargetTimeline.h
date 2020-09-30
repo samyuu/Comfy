@@ -219,14 +219,14 @@ namespace Comfy::Studio::Editor
 			bool IsHovering;
 		} selectionDrag = {};
 
-		enum class SelectionAction : u8 { Clean, Add, Remove };
-
 		struct BoxSelectionData
 		{
+			enum class ActionType : u8 { Clean, Add, Remove };
+
 			TimelineTick StartTick, EndTick;
 			vec2 StartMouse, EndMouse;
 
-			SelectionAction Action;
+			ActionType Action;
 			bool IsActive;
 			bool IsSufficientlyLarge;
 		} boxSelection = {};

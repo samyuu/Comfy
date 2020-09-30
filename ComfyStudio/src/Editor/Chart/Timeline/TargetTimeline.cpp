@@ -705,11 +705,13 @@ namespace Comfy::Studio::Editor
 
 				GuiProperty::PropertyFuncValueFunc([&]
 				{
+					Gui::PushItemDisabledAndTextColorIf(tempoPopupIndex == 0);
 					if (Gui::Button("Remove##TempoChange", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 					{
 						undoManager.ExecuteEndOfFrame<RemoveTempoChange>(*workingChart, tempoChange.Tick);
 						Gui::CloseCurrentPopup();
 					}
+					Gui::PopItemDisabledAndTextColorIf(tempoPopupIndex == 0);
 					return false;
 				}, [&]
 				{
@@ -746,7 +748,11 @@ namespace Comfy::Studio::Editor
 			const auto center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[buttonIndex]);
 			const auto scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
 
-			buttonIcons->DrawButtonIcon(windowDrawList, target, center, scale, GetButtonEdgeFadeOpacity(screenX));
+			// TODO: Come up with a better visualization ... (?)
+			const bool tooEarly = (target.Tick < TimelineTick::FromBars(1));
+			constexpr auto tooEarlyOpacity = 0.35f;
+
+			buttonIcons->DrawButtonIcon(windowDrawList, target, center, scale, tooEarly ? tooEarlyOpacity : GetButtonEdgeFadeOpacity(screenX));
 
 			if (target.IsSelected)
 				tempSelectedTargetPositionBuffer.push_back(center);
@@ -845,7 +851,7 @@ namespace Comfy::Studio::Editor
 		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
 
 		// TODO: Move into common selection logic source file (?)
-		if (boxSelection.Action != SelectionAction::Clean)
+		if (boxSelection.Action != BoxSelectionData::ActionType::Clean)
 		{
 			constexpr f32 circleRadius = 6.0f;
 			constexpr f32 symbolSize = 2.0f;
@@ -856,10 +862,10 @@ namespace Comfy::Studio::Editor
 			baseDrawList->AddCircleFilled(symbolPos, circleRadius, Gui::GetColorU32(ImGuiCol_ChildBg));
 			baseDrawList->AddCircle(symbolPos, circleRadius, GetColor(EditorColor_TimelineSelectionBorder));
 
-			if (boxSelection.Action == SelectionAction::Add || boxSelection.Action == SelectionAction::Remove)
+			if (boxSelection.Action == BoxSelectionData::ActionType::Add || boxSelection.Action == BoxSelectionData::ActionType::Remove)
 				baseDrawList->AddLine(symbolPos - vec2(symbolSize, 0.0f), start + vec2(symbolSize + 1.0f, 0.0f), symbolColor, 1.0f);
 
-			if (boxSelection.Action == SelectionAction::Add)
+			if (boxSelection.Action == BoxSelectionData::ActionType::Add)
 				baseDrawList->AddLine(symbolPos - vec2(0.0f, symbolSize), start + vec2(0.0f, symbolSize + 1.0f), symbolColor, 1.0f);
 		}
 	}
@@ -1005,9 +1011,14 @@ namespace Comfy::Studio::Editor
 		selectionDrag.ThisFrameMouseTick = GetCursorMouseXTick(false);
 
 		if (selectionDrag.IsDragging)
+		{
+			Gui::SetActiveID(Gui::GetID(&selectionDrag), Gui::GetCurrentWindow());
 			selectionDrag.TicksMovedSoFar += (selectionDrag.ThisFrameMouseTick - selectionDrag.LastFrameMouseTick);
+		}
 
 		const auto dragTickIncrement = FloorTickToGrid(selectionDrag.TicksMovedSoFar);
+
+		// BUG: Need extra checks for moving chain fragments or at least update flags after the fact (allow moving partial sync pairs and always update flags (?))
 
 		// NOTE: Prevent moving through any existing targets to avoid having to resort the target list
 		if (selectionDrag.IsDragging && dragTickIncrement != TimelineTick::Zero() && !CheckIsAnySyncPairPartiallySelected() && CheckIsSelectionNotBlocked(dragTickIncrement))
@@ -1171,7 +1182,7 @@ namespace Comfy::Studio::Editor
 				Gui::OpenPopup(contextMenuID);
 		}
 
-		if (Gui::BeginPopupContextVoid(contextMenuID))
+		if (Gui::BeginPopup(contextMenuID, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
 		{
 			const auto selectionCount = CountSelectedTargets();
 
@@ -1187,6 +1198,17 @@ namespace Comfy::Studio::Editor
 						activeBarGridDivision = barDivision;
 				}
 
+				Gui::EndMenu();
+			}
+
+			// TODO: Maybe move metronome settings to the timeline info column header (?)
+			if (Gui::BeginMenu("Metronome"))
+			{
+				Gui::Checkbox("Enabled", &metronomeEnabled);
+				Gui::PushItemDisabledAndTextColorIf(!metronomeEnabled);
+				if (auto v = metronome.GetVolume(); Gui::SliderFloat("Volume", &v, 0.0f, 1.5f))
+					metronome.SetVolume(v);
+				Gui::PopItemDisabledAndTextColorIf(!metronomeEnabled);
 				Gui::EndMenu();
 			}
 
@@ -1216,7 +1238,7 @@ namespace Comfy::Studio::Editor
 			// TODO: Various options to turn a straight target row into patterns (?)
 			//		 OOOOO -> OXOXO, "compress" down to single type, etc.
 
-			if (Gui::MenuItem("Select All", "", nullptr, true))
+			if (Gui::MenuItem("Select All", "", nullptr, (workingChart->Targets.size() > 0)))
 				SelectAllTargets();
 
 			if (Gui::MenuItem("Deselect", "", nullptr, (selectionCount > 0)))
@@ -1251,13 +1273,15 @@ namespace Comfy::Studio::Editor
 			boxSelection.EndTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.EndMouse.x));
 
 			const auto& io = Gui::GetIO();
-			boxSelection.Action = io.KeyShift ? SelectionAction::Add : io.KeyAlt ? SelectionAction::Remove : SelectionAction::Clean;
+			boxSelection.Action = io.KeyShift ? BoxSelectionData::ActionType::Add : io.KeyAlt ? BoxSelectionData::ActionType::Remove : BoxSelectionData::ActionType::Clean;
 
 			constexpr f32 sizeThreshold = 4.0f;
 			const f32 selectionWidth = glm::abs(GetTimelinePosition(boxSelection.StartTick) - GetTimelinePosition(boxSelection.EndTick));
 			const f32 selectionHeight = glm::abs(boxSelection.StartMouse.y - boxSelection.EndMouse.y);
 
 			boxSelection.IsSufficientlyLarge = (selectionWidth >= sizeThreshold) || (selectionHeight >= sizeThreshold);
+			if (boxSelection.IsSufficientlyLarge)
+				Gui::SetActiveID(Gui::GetID(&boxSelection), Gui::GetCurrentWindow());
 		}
 
 		if (Gui::IsMouseReleased(boxSelectionButton) && boxSelection.IsActive)
@@ -1278,12 +1302,12 @@ namespace Comfy::Studio::Editor
 
 				switch (boxSelection.Action)
 				{
-				case SelectionAction::Clean:
+				case BoxSelectionData::ActionType::Clean:
 					for (auto& target : workingChart->Targets)
 						target.IsSelected = isTargetInSelectionRange(target);
 					break;
 
-				case SelectionAction::Add:
+				case BoxSelectionData::ActionType::Add:
 					for (auto& target : workingChart->Targets)
 					{
 						if (isTargetInSelectionRange(target))
@@ -1291,7 +1315,7 @@ namespace Comfy::Studio::Editor
 					}
 					break;
 
-				case SelectionAction::Remove:
+				case BoxSelectionData::ActionType::Remove:
 					for (auto& target : workingChart->Targets)
 					{
 						if (isTargetInSelectionRange(target))
@@ -1381,7 +1405,10 @@ namespace Comfy::Studio::Editor
 		const auto startTick = RoundTickToGrid(std::min(rangeSelection.StartTick, rangeSelection.EndTick));
 		const auto endTick = RoundTickToGrid(std::max(rangeSelection.StartTick, rangeSelection.EndTick));
 
-		const auto gridDivisionTick = GridDivisionTick();
+		// TODO: Come up with better chain placement controls, maybe shift + direction to place chain start, move cursor then press again to "confirm" end placement (?)
+		const bool placeChain = IsSlideButtonType(type);
+
+		const auto gridDivisionTick = placeChain ? (TimelineTick::FromBars(1) / 32) : GridDivisionTick();
 		const auto targetCount = ((endTick - startTick).Ticks() / gridDivisionTick.Ticks()) + 1;
 
 		std::vector<TimelineTarget> targets;
@@ -1391,7 +1418,12 @@ namespace Comfy::Studio::Editor
 		{
 			const auto tick = TimelineTick(startTick.Ticks() + (i * gridDivisionTick.Ticks()));
 			if (workingChart->Targets.FindIndex(tick, type) <= -1)
-				targets.emplace_back(tick, type);
+			{
+				auto& target = targets.emplace_back(tick, type);
+
+				if (placeChain)
+					target.Flags.IsChain = true;
+			}
 		}
 
 		if (!targets.empty())
