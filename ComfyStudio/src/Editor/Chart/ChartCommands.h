@@ -6,60 +6,14 @@
 
 namespace Comfy::Studio::Editor
 {
-	class ChangeSongTitle : public Undo::Command
-	{
-	public:
-		ChangeSongTitle(Chart& chart, std::string value)
-			: chart(chart), newValue(std::move(value)), oldValue(chart.Properties.Song.Title)
-		{
-		}
-
-	public:
-		void Undo() override
-		{
-			chart.Properties.Song.Title = oldValue;
-		}
-
-		void Redo() override
-		{
-			chart.Properties.Song.Title = newValue;
-		}
-
-		Undo::MergeResult TryMerge(Command& commandToMerge) override
-		{
-			auto* other = static_cast<decltype(this)>(&commandToMerge);
-			if (&other->chart != &chart)
-				return Undo::MergeResult::Failed;
-
-			newValue = std::move(other->newValue);
-			return Undo::MergeResult::ValueUpdated;
-		}
-
-		std::string_view GetName() const override { return "Change Song Name"; }
-
-	private:
-		Chart& chart;
-		std::string newValue, oldValue;
-	};
-
 	class ChangeStartOffset : public Undo::Command
 	{
 	public:
-		ChangeStartOffset(Chart& chart, TimeSpan value)
-			: chart(chart), newValue(value), oldValue(chart.StartOffset)
-		{
-		}
+		ChangeStartOffset(Chart& chart, TimeSpan value) : chart(chart), newValue(value), oldValue(chart.StartOffset) {}
 
 	public:
-		void Undo() override
-		{
-			chart.StartOffset = oldValue;
-		}
-
-		void Redo() override
-		{
-			chart.StartOffset = newValue;
-		}
+		void Undo() override { chart.StartOffset = oldValue; }
+		void Redo() override { chart.StartOffset = newValue; }
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
@@ -81,21 +35,11 @@ namespace Comfy::Studio::Editor
 	class ChangeSongDuration : public Undo::Command
 	{
 	public:
-		ChangeSongDuration(Chart& chart, TimeSpan value)
-			: chart(chart), newValue(value), oldValue(chart.Duration)
-		{
-		}
+		ChangeSongDuration(Chart& chart, TimeSpan value) : chart(chart), newValue(value), oldValue(chart.Duration) {}
 
 	public:
-		void Undo() override
-		{
-			chart.Duration = oldValue;
-		}
-
-		void Redo() override
-		{
-			chart.Duration = newValue;
-		}
+		void Undo() override { chart.Duration = oldValue; }
+		void Redo() override { chart.Duration = newValue; }
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
@@ -113,31 +57,20 @@ namespace Comfy::Studio::Editor
 		Chart& chart;
 		TimeSpan newValue, oldValue;
 	};
+}
 
+namespace Comfy::Studio::Editor
+{
 	class AddTarget : public Undo::Command
 	{
 	public:
-		AddTarget(Chart& chart, TimelineTarget target)
-			: chart(chart), target(target)
-		{
-		}
+		AddTarget(Chart& chart, TimelineTarget target) : chart(chart), target(target) {}
 
 	public:
-		void Undo() override
-		{
-			chart.Targets.Remove(target);
-		}
+		void Undo() override { chart.Targets.Remove(target); }
+		void Redo() override { chart.Targets.Add(target); }
 
-		void Redo() override
-		{
-			chart.Targets.Add(target);
-		}
-
-		Undo::MergeResult TryMerge(Command& commandToMerge) override
-		{
-			return Undo::MergeResult::Failed;
-		}
-
+		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
 		std::string_view GetName() const override { return "Add Target"; }
 
 	private:
@@ -148,10 +81,7 @@ namespace Comfy::Studio::Editor
 	class AddTargetList : public Undo::Command
 	{
 	public:
-		AddTargetList(Chart& chart, std::vector<TimelineTarget> targets)
-			: chart(chart), targets(std::move(targets))
-		{
-		}
+		AddTargetList(Chart& chart, std::vector<TimelineTarget> targets) : chart(chart), targets(std::move(targets)) {}
 
 	public:
 		void Undo() override
@@ -167,11 +97,7 @@ namespace Comfy::Studio::Editor
 				chart.Targets.Add(target);
 		}
 
-		Undo::MergeResult TryMerge(Command& commandToMerge) override
-		{
-			return Undo::MergeResult::Failed;
-		}
-
+		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
 		std::string_view GetName() const override { return "Add Targets"; }
 
 	private:
@@ -191,28 +117,14 @@ namespace Comfy::Studio::Editor
 	class RemoveTarget : public Undo::Command
 	{
 	public:
-		RemoveTarget(Chart& chart, TimelineTarget target)
-			: chart(chart), target(target)
-		{
-		}
+		// TODO: i32 targetIndex then store old properties
+		RemoveTarget(Chart& chart, TimelineTarget target) : chart(chart), target(target) {}
 
 	public:
-		void Undo() override
-		{
-			chart.Targets.Add(target);
-		}
+		void Undo() override { chart.Targets.Add(target); }
+		void Redo() override { chart.Targets.Remove(target); }
 
-		void Redo() override
-		{
-			// TODO: Store previous properties (?)
-			chart.Targets.Remove(target);
-		}
-
-		Undo::MergeResult TryMerge(Command& commandToMerge) override
-		{
-			return Undo::MergeResult::Failed;
-		}
-
+		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
 		std::string_view GetName() const override { return "Remove Target"; }
 
 	private:
@@ -223,10 +135,8 @@ namespace Comfy::Studio::Editor
 	class RemoveTargetList : public Undo::Command
 	{
 	public:
-		RemoveTargetList(Chart& chart, std::vector<TimelineTarget> targets)
-			: chart(chart), targets(std::move(targets))
-		{
-		}
+		// TODO: i32 targetIndex then store old properties
+		RemoveTargetList(Chart& chart, std::vector<TimelineTarget> targets) : chart(chart), targets(std::move(targets)) {}
 
 	public:
 		void Undo() override
@@ -241,11 +151,7 @@ namespace Comfy::Studio::Editor
 				chart.Targets.Remove(target);
 		}
 
-		Undo::MergeResult TryMerge(Command& commandToMerge) override
-		{
-			return Undo::MergeResult::Failed;
-		}
-
+		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
 		std::string_view GetName() const override { return "Remove Targets"; }
 
 	private:
@@ -460,10 +366,7 @@ namespace Comfy::Studio::Editor
 	class AddTempoChange : public Undo::Command
 	{
 	public:
-		AddTempoChange(Chart& chart, TempoChange newValue)
-			: chart(chart), newValue(newValue)
-		{
-		}
+		AddTempoChange(Chart& chart, TempoChange newValue) : chart(chart), newValue(newValue) {}
 
 	public:
 		void Undo() override
@@ -478,11 +381,7 @@ namespace Comfy::Studio::Editor
 			chart.UpdateMapTimes();
 		}
 
-		Undo::MergeResult TryMerge(Command& commandToMerge) override
-		{
-			return Undo::MergeResult::Failed;
-		}
-
+		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
 		std::string_view GetName() const override { return "Add Tempo Change"; }
 
 	private:
