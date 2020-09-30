@@ -8,7 +8,7 @@
 namespace ImGui::PropertyEditor::Widgets
 {
 	// TODO: template <typename ValueType>
-	bool InputF32Ex(std::string_view label, f32& inOutValue, f32& outIncrement, const char* customDisplayText = nullptr, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {})
+	bool InputF32Ex(std::string_view label, f32& inOutValue, f32& outIncrement, const char* customDisplayText = nullptr, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, const char* format = nullptr)
 	{
 		RAII::ID id(label);
 		return PropertyFuncValueFunc([&]
@@ -34,7 +34,7 @@ namespace ImGui::PropertyEditor::Widgets
 			const auto inputScaleScreenPos = Gui::GetCursorScreenPos();
 
 			using Lookup = Detail::TypeLookup::DataType<f32>;
-			const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, ImGuiDataType_Float, &inOutValue, nullptr, nullptr, Lookup::Format);
+			const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, ImGuiDataType_Float, &inOutValue, nullptr, nullptr, (format != nullptr) ? format : Lookup::Format);
 
 			if (customDisplayText != nullptr)
 			{
@@ -157,7 +157,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		f32 outIncrement = 0.0f;
-		if (GuiProperty::InputF32Ex(label, commonValue, outIncrement, customDisplayText))
+		if (GuiProperty::InputF32Ex(label, commonValue, outIncrement, customDisplayText, 1.0f, {}, "%.2f"))
 		{
 			std::vector<ChangeTargetListProperties::Data> targetData;
 			targetData.reserve(selectedTargets.size());
