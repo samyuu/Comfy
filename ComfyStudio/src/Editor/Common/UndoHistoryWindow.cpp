@@ -117,7 +117,11 @@ namespace Comfy::Studio::Editor
 		lastFrameUndoCount = thisFrameUndoCount;
 		thisFrameUndoCount = undoStackSize;
 
+#if 0 // NOTE: Too easy to accidentally prevent autoscrolling after having resized the window for example
 		if ((thisFrameIsAtBottom && lastFrameIsAtBottom) && (thisFrameUndoCount != lastFrameUndoCount))
+#else
+		if (thisFrameUndoCount != lastFrameUndoCount)
+#endif
 		{
 			// BUG: Minor issue with item spacing for the last selectable, the window scroll height seems to be a few pixels too large when using list clippers
 			// Gui::SetScrollHereY(1.0f);
