@@ -413,6 +413,9 @@
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineMetronome.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">

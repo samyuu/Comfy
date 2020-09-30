@@ -243,6 +243,7 @@
     <ClInclude Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.h" />
     <ClInclude Include="src\Editor\Chart\FileFormat\PJEFile.h" />
     <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
+    <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGrid.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
     <ClInclude Include="src\Editor\Chart\TargetInspector.h" />
     <ClInclude Include="src\Editor\Chart\TargetPropertyRules.h" />
