@@ -171,7 +171,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape))
 			CenterCursor();
 
-		if (Gui::IsWindowHovered() && io.MouseWheel != 0.0f)
+		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && io.MouseWheel != 0.0f)
 		{
 			if (io.KeyAlt) // NOTE: Zoom timeline
 			{

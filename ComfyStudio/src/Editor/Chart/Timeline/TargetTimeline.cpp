@@ -900,17 +900,7 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		// TODO: Move into some general function to be called by all window owning editor components (?)
-		if (Gui::GetIO().KeyCtrl)
-		{
-			if (Gui::IsKeyPressed(KeyBindings::Undo, true))
-				undoManager.Undo();
-
-			if (Gui::IsKeyPressed(KeyBindings::Redo, true))
-				undoManager.Redo();
-		}
-
-		if (Gui::GetIO().KeyCtrl)
+		if (Gui::GetIO().KeyCtrl && Gui::GetActiveID() == 0)
 		{
 			if (Gui::IsKeyPressed(KeyBindings::Cut, false))
 				ClipboardCutSelection();
@@ -967,9 +957,6 @@ namespace Comfy::Studio::Editor
 	{
 		if (!selectionDrag.IsDragging)
 		{
-			if (boxSelection.IsActive || isCursorScrubbing)
-				return;
-
 			if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
 				return;
 		}
@@ -1105,9 +1092,6 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
 			return;
 
-		if (selectionDrag.IsDragging || selectionDrag.IsHovering)
-			return;
-
 		if (Gui::IsMouseClicked(0) && !Gui::GetIO().KeyShift)
 		{
 			const auto newMouseTick = GetCursorMouseXTick();
@@ -1121,6 +1105,9 @@ namespace Comfy::Studio::Editor
 	{
 		if (Gui::IsMouseReleased(0) || !Gui::IsWindowFocused())
 			isCursorScrubbing = false;
+
+		if (isCursorScrubbing)
+			Gui::SetActiveID(Gui::GetID(&isCursorScrubbing), Gui::GetCurrentWindow());
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineHeaderRegion.Contains(Gui::GetMousePos()))
 		{
@@ -1178,7 +1165,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
 		{
-			if (!Gui::IsAnyItemHovered() && !boxSelection.IsSufficientlyLarge && !selectionDrag.IsDragging && !isCursorScrubbing)
+			if (!Gui::IsAnyItemHovered())
 				Gui::OpenPopup(contextMenuID);
 		}
 
@@ -1259,7 +1246,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
 		{
-			if (Gui::IsMouseClicked(boxSelectionButton) && !boxSelection.IsActive && !selectionDrag.IsDragging && !selectionDrag.IsHovering && !isCursorScrubbing)
+			if (Gui::IsMouseClicked(boxSelectionButton))
 			{
 				boxSelection.StartMouse = Gui::GetMousePos();
 				boxSelection.StartTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.StartMouse.x));
