@@ -10,7 +10,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetBoxSelectionTool::UpdateInput(Chart& chart, const TimelineTick cursorTick, const TimelineTick postHitLingerDuration)
 	{
-		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && Gui::IsWindowHovered())
+		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
 		{
 			if (Gui::IsMouseClicked(SelectionButton) && !data.IsActive)
 			{
