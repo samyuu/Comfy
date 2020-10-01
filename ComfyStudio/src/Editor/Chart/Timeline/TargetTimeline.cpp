@@ -499,7 +499,7 @@ namespace Comfy::Studio::Editor
 		const auto scrollX = GetScrollX();
 
 		const auto preStart = timelineContentRegion.GetTL();
-		const auto preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(TimelineTick(0)) - scrollX), 0.0f);
+		const auto preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(TimelineTick::FromBars(1)) - scrollX), 0.0f);
 		if (preEnd.x - preStart.x > 0.0f)
 			baseDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
 
@@ -750,7 +750,7 @@ namespace Comfy::Studio::Editor
 
 			// TODO: Come up with a better visualization ... (?)
 			const bool tooEarly = (target.Tick < TimelineTick::FromBars(1));
-			constexpr auto tooEarlyOpacity = 0.35f;
+			constexpr auto tooEarlyOpacity = 0.5f;
 
 			buttonIcons->DrawButtonIcon(windowDrawList, target, center, scale, tooEarly ? tooEarlyOpacity : GetButtonEdgeFadeOpacity(screenX));
 
@@ -966,7 +966,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		selectionDrag.IsHovering = false;
-		if (!selectionDrag.IsDragging)
+		if (!selectionDrag.IsDragging && Gui::IsWindowHovered())
 		{
 			// TODO: Min max visible tick range check optimization 
 			const f32 iconHitboxHalfSize = (iconHitboxSize / 2.0f);
@@ -1089,7 +1089,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputCursorClick()
 	{
-		if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
+		if (!Gui::IsWindowHovered() || !timelineContentRegion.Contains(Gui::GetMousePos()))
 			return;
 
 		if (Gui::IsMouseClicked(0) && !Gui::GetIO().KeyShift)
