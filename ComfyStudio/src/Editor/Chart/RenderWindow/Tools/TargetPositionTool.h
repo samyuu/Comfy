@@ -18,6 +18,7 @@ namespace Comfy::Studio::Editor
 		void PostRender(Chart& chart, Render::Renderer2D& renderer) override;
 
 		void OnContextMenuGUI(Chart& chart) override;
+		void OnOverlayGUI(Chart& chart) override;
 
 		void PreRenderGUI(Chart& chart, ImDrawList& drawList) override;
 		void PostRenderGUI(Chart& chart, ImDrawList& drawList) override;

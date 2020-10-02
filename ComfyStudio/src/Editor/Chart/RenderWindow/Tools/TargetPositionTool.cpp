@@ -20,10 +20,13 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::OnContextMenuGUI(Chart& chart)
 	{
-		// TODO:
+		// TODO: Sub tools, key bindings + menu items for flipping selection horizontall / vertically (?), etc.
 		Gui::MenuItem("Maybe Position Tool sub modes...", nullptr, nullptr, false);
 		Gui::Separator();
 	}
+
+	void TargetPositionTool::OnOverlayGUI(Chart& chart)
+	{
 
 	void TargetPositionTool::PreRenderGUI(Chart& chart, ImDrawList& drawList)
 	{

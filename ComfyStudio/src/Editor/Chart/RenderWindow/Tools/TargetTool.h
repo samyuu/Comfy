@@ -35,6 +35,7 @@ namespace Comfy::Studio::Editor
 		virtual void PostRender(Chart& chart, Render::Renderer2D& renderer) = 0;
 
 		virtual void OnContextMenuGUI(Chart& chart) = 0;
+		virtual void OnOverlayGUI(Chart& chart) = 0;
 
 		virtual void PreRenderGUI(Chart& chart, ImDrawList& drawList) = 0;
 		virtual void PostRenderGUI(Chart& chart, ImDrawList& drawList) = 0;

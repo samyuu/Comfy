@@ -77,6 +77,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::PostRenderTextureGui()
 	{
+		DrawOverlayGui();
+
 		auto drawList = Gui::GetWindowDrawList();
 
 		auto selectedTool = GetSelectedTool();
@@ -142,6 +144,13 @@ namespace Comfy::Studio::Editor
 				selectedTool->PostRender(*workingChart, renderer);
 		}
 		renderer.End();
+	}
+
+	void TargetRenderWindow::DrawOverlayGui()
+	{
+		auto selectedTool = GetSelectedTool();
+		if (selectedTool != nullptr)
+			selectedTool->OnOverlayGUI(*workingChart);
 	}
 
 	void TargetRenderWindow::UpdateAllInput()

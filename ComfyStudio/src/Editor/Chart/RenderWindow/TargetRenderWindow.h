@@ -76,6 +76,8 @@ namespace Comfy::Studio::Editor
 		void OnRender() override;
 
 	private:
+		void DrawOverlayGui();
+
 		void UpdateAllInput();
 		void UpdateInputContextMenu();
 
