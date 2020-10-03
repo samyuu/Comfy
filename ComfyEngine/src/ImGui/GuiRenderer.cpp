@@ -24,7 +24,8 @@ namespace ImGui
 		if (!SetStartupIOState())
 			return false;
 
-		LoadInitializeFontFiles();
+		LoadFontFiles();
+		InitializeFonts();
 
 		if (!SetComfyStyle())
 			return false;
@@ -46,6 +47,19 @@ namespace ImGui
 	void GuiRenderer::EndFrame()
 	{
 		Render();
+
+		// NOTE: Delaying the full glyph range font creation improves startup times making the program feel more responsive, even with the minor stutter on first use.
+		//		 For debug builds the full glyph ranges takes relatively long to load and isn't really needed
+#if defined(IMGUI_HACKS_RECORD_MISSING_GLYPHS) && !defined(COMFY_DEBUG)
+		if (!fullFontRangeHasBeenRebuilt && Gui::GetFont()->MissingGlyphEncountered)
+		{
+			buildFullTextGlyphRange = true;
+			InitializeFonts();
+			GetIO().Fonts->Build();
+			fullFontRangeHasBeenRebuilt = true;
+		}
+#endif
+
 		ComfyD3D11::RenderDrawData(GetDrawData());
 
 		const auto& io = GetIO();
@@ -125,7 +139,7 @@ namespace ImGui
 		return true;
 	}
 
-	bool GuiRenderer::LoadInitializeFontFiles()
+	bool GuiRenderer::LoadFontFiles()
 	{
 		const auto fontDirectory = System::Data.FindDirectory(fontDirectoryName);
 		if (fontDirectory == nullptr)
@@ -137,41 +151,58 @@ namespace ImGui
 		if (textFontEntry == nullptr || iconFontEntry == nullptr)
 			return false;
 
-		void* textFontFileContent = IM_ALLOC(textFontEntry->Size);
-		void* iconFontFileContent = IM_ALLOC(iconFontEntry->Size);
+		textFontFileSize = textFontEntry->Size;
+		iconFontFileSize = iconFontEntry->Size;
+		combinedFontFileContent = std::make_unique<u8[]>(textFontFileSize + iconFontFileSize);
+
+		u8* textFontFileContent = combinedFontFileContent.get();
+		u8* iconFontFileContent = combinedFontFileContent.get() + textFontFileSize;
 
 		if (!System::Data.ReadFileIntoBuffer(textFontEntry, textFontFileContent) || !System::Data.ReadFileIntoBuffer(iconFontEntry, iconFontFileContent))
 		{
-			IM_FREE(textFontFileContent);
-			IM_FREE(iconFontFileContent);
+			combinedFontFileContent = nullptr;
 			return false;
 		}
 
+		return true;
+	}
+
+	bool GuiRenderer::InitializeFonts()
+	{
 		auto& ioFonts = *GetIO().Fonts;
 		ioFonts.Flags |= ImFontAtlasFlags_NoMouseCursors;
 
+		if (combinedFontFileContent == nullptr || textFontFileSize == 0 || iconFontFileSize == 0)
+			return false;
+
+		if (!ioFonts.Fonts.empty())
+			ioFonts.Clear();
+
 		ImFontConfig textFontConfig = {};
-		textFontConfig.FontDataOwnedByAtlas = true;
+		textFontConfig.FontDataOwnedByAtlas = false;
 		memcpy(textFontConfig.Name, textFontName.data(), textFontName.size());
 
 		ImFontConfig iconFontConfig = {};
-		iconFontConfig.FontDataOwnedByAtlas = true;
+		iconFontConfig.FontDataOwnedByAtlas = false;
 		iconFontConfig.GlyphMinAdvanceX = iconMinAdvanceX;
 		iconFontConfig.MergeMode = true;
 		memcpy(iconFontConfig.Name, iconFontName.data(), iconFontName.size());
 
-		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSizes[0], &textFontConfig, GetTextGlyphRange()) == nullptr)
+		u8* textFontFileContent = combinedFontFileContent.get();
+		u8* iconFontFileContent = combinedFontFileContent.get() + textFontFileSize;
+
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), textFontSizes[0], &textFontConfig, GetTextGlyphRange()) == nullptr)
 			return false;
-		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontEntry->Size), iconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontFileSize), iconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
 			return false;
 
 		ImFontConfig boldFontConfig = {};
 		boldFontConfig.FontDataOwnedByAtlas = false;
 		memcpy(boldFontConfig.Name, textFontName.data(), textFontName.size());
 
-		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSizes[1], &boldFontConfig) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), textFontSizes[1], &boldFontConfig) == nullptr)
 			return false;
-		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontEntry->Size), textFontSizes[2], &boldFontConfig) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), textFontSizes[2], &boldFontConfig) == nullptr)
 			return false;
 
 		return true;
@@ -203,13 +234,7 @@ namespace ImGui
 
 	const ImWchar* GuiRenderer::GetTextGlyphRange() const
 	{
-#if COMFY_DEBUG && 1 // NOTE: Greatly improve debug build startup times
-		return GetIO().Fonts->GetGlyphRangesDefault();
-		// return GetIO().Fonts->GetGlyphRangesJapanese();
-#endif /* COMFY_DEBUG */
-
-		// TODO: Eventually replace with dynamic runtime glyph building or even loading a prerendered (BC7 compressed) font texture
-		return TextFontGlyphRanges;
+		return buildFullTextGlyphRange ? TextFontGlyphRanges : GetIO().Fonts->GetGlyphRangesDefault();
 	}
 
 	const ImWchar* GuiRenderer::GetIconGlyphRange() const

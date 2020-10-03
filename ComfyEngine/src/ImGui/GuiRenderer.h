@@ -27,7 +27,8 @@ namespace ImGui
 	private:
 		bool CreateImGuiContext();
 		bool SetStartupIOState();
-		bool LoadInitializeFontFiles();
+		bool LoadFontFiles();
+		bool InitializeFonts();
 		bool SetComfyStyle();
 		bool InitializeBackend();
 
@@ -36,7 +37,17 @@ namespace ImGui
 
 	private:
 		Comfy::ApplicationHost& host;
-		
+
+		std::unique_ptr<u8[]> combinedFontFileContent = nullptr;
+		size_t textFontFileSize = 0, iconFontFileSize = 0;
+
+#ifdef IMGUI_HACKS_RECORD_MISSING_GLYPHS
+		bool buildFullTextGlyphRange = false;
+		bool fullFontRangeHasBeenRebuilt = false;
+#else
+		bool buildFullTextGlyphRange = true;
+#endif
+
 	private:
 		static constexpr bool preLoadImGuiConfig = false;
 		static constexpr bool restoreConfigWindowSize = false;

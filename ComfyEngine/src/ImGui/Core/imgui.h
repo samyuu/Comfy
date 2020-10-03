@@ -2224,6 +2224,12 @@ struct ImFont
     const ImFontGlyph*          FallbackGlyph;      // 4-8   // out // = FindGlyph(FontFallbackChar)
     ImVec2                      DisplayOffset;      // 8     // in  // = (0,0)    // Offset font rendering by xx pixels
 
+#ifdef IMGUI_HACKS_RECORD_MISSING_GLYPHS
+	mutable bool				MissingGlyphEncountered = false;
+	mutable bool				RecordMissingGlyphs = false;
+	mutable ImVector<ImWchar>   RecordedMissingGlyphs;
+#endif
+
     // Members: Cold ~32/40 bytes
     ImFontAtlas*                ContainerAtlas;     // 4-8   // out //            // What we has been loaded into
     const ImFontConfig*         ConfigData;         // 4-8   // in  //            // Pointer within ContainerAtlas->ConfigData

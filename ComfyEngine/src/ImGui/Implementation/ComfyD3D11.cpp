@@ -78,6 +78,16 @@ namespace ImGui
 				D3D11_SetObjectDebugName(FontSampler.GetSampler(), "ComfyD3D11::FontSampler");
 				D3D11_SetObjectDebugName(BlendState.GetBlendState(), "ComfyD3D11::BlendState");
 
+				CreateSetFontTexture();
+			}
+
+			~ComfyD3D11DeviceObjects()
+			{
+				GetIO().Fonts->SetTexID(nullptr);
+			}
+
+			void CreateSetFontTexture()
+			{
 				u8* rgbaPixels;
 				ivec2 textureSize;
 				GetIO().Fonts->GetTexDataAsRGBA32(&rgbaPixels, &textureSize.x, &textureSize.y);
@@ -86,12 +96,7 @@ namespace ImGui
 				D3D11_SetObjectDebugName(FontTexture->GetTexture(), "ComfyD3D11::FontTexture");
 				D3D11_SetObjectDebugName(FontTexture->GetResourceView(), "ComfyD3D11::FontTextureView");
 
-				GetIO().Fonts->TexID = *FontTexture;
-			}
-
-			~ComfyD3D11DeviceObjects()
-			{
-				GetIO().Fonts->TexID = 0;
+				GetIO().Fonts->SetTexID(static_cast<ImTextureID>(*FontTexture));
 			}
 		};
 
@@ -165,6 +170,9 @@ namespace ImGui
 
 		void RenderDrawData(const ImDrawData* drawData)
 		{
+			if (GetIO().Fonts->TexID == nullptr)
+				Data.DeviceObjects->CreateSetFontTexture();
+
 			// NOTE: Avoid rendering when minimized
 			if (drawData->DisplaySize.x <= 0.0f || drawData->DisplaySize.y <= 0.0f)
 				return;
