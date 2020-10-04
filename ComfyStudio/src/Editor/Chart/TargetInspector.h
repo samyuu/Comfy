@@ -27,6 +27,7 @@ namespace Comfy::Studio::Editor
 		Undo::UndoManager& undoManager;
 
 		std::array<char, 64> selectedTargetsValueBuffer;
+		std::array<bool, TargetPropertyType_Count> propertyInputWidgetActiveStates = {};
 
 		struct TargetViewProperties
 		{

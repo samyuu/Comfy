@@ -156,6 +156,9 @@ namespace Comfy::Studio::Editor
 			customDisplayText = displayTextBuffer;
 		}
 
+		if (propertyInputWidgetActiveStates[property])
+			customDisplayText = nullptr;
+
 		f32 outIncrement = 0.0f;
 		if (GuiProperty::InputF32Ex(label, commonValue, outIncrement, customDisplayText, 1.0f, {}, "%.2f"))
 		{
@@ -183,6 +186,8 @@ namespace Comfy::Studio::Editor
 
 			undoManager.Execute<ChangeTargetListProperties>(chart, std::move(targetData), static_cast<TargetPropertyFlags>(1 << property));
 		}
+
+		propertyInputWidgetActiveStates[property] = Gui::IsItemActive();
 	}
 
 	i32 TargetInspector::GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const
