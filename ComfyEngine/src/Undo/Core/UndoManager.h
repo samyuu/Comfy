@@ -50,6 +50,7 @@ namespace Comfy::Undo
 		const std::vector<std::unique_ptr<Command>>& GetRedoStackView() const;
 
 		void DisallowMergeForLastCommand();
+		void ResetMergeTimeThresholdStopwatch();
 
 		TimeSpan GetCommandMergeTimeThreshold() const;
 		void SetCommandMergeTimeThreshold(TimeSpan value);

@@ -41,6 +41,11 @@ namespace Comfy::Undo
 		numberOfCommandsToDisallowMergesFor = 1;
 	}
 
+	void UndoManager::ResetMergeTimeThresholdStopwatch()
+	{
+		lastExecutedCommandStopwatch.Restart();
+	}
+
 	TimeSpan UndoManager::GetCommandMergeTimeThreshold() const
 	{
 		return commandMergeTimeThreshold;
