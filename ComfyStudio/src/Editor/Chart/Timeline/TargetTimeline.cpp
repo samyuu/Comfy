@@ -987,6 +987,7 @@ namespace Comfy::Studio::Editor
 					selectionDrag.IsDragging = true;
 					selectionDrag.TickOnPress = GetCursorMouseXTick(false);
 					selectionDrag.TicksMovedSoFar = {};
+					undoManager.DisallowMergeForLastCommand();
 				}
 			}
 		}
@@ -1000,6 +1001,9 @@ namespace Comfy::Studio::Editor
 		if (selectionDrag.IsDragging)
 		{
 			Gui::SetActiveID(Gui::GetID(&selectionDrag), Gui::GetCurrentWindow());
+			Gui::SetWindowFocus();
+
+			undoManager.ResetMergeTimeThresholdStopwatch();
 			selectionDrag.TicksMovedSoFar += (selectionDrag.ThisFrameMouseTick - selectionDrag.LastFrameMouseTick);
 		}
 
@@ -1027,7 +1031,7 @@ namespace Comfy::Studio::Editor
 					PlaySingleTargetButtonSoundAndAnimation(target, movedTick);
 			}
 
-			undoManager.Execute<MoveTargetList>(*workingChart, std::move(targetMoveIndices), dragTickIncrement, selectionDrag.TickOnPress);
+			undoManager.Execute<MoveTargetListTicks>(*workingChart, std::move(targetMoveIndices), dragTickIncrement);
 		}
 	}
 
