@@ -28,5 +28,39 @@ namespace Comfy::Studio::Editor
 		const char* GetName() const override;
 
 	private:
+		void DrawTickDistanceGuides(Chart& chart, ImDrawList& drawList);
+		void DrawRowDirectionGuide(Chart& chart, ImDrawList& drawList);
+
+		void UpdateKeyboardStepInput(Chart& chart);
+		void UpdateMouseGrabInput(Chart& chart);
+		void UpdateMouseRowInput(Chart& chart);
+
+		void IncrementSelectedTargetPositionsBy(Undo::UndoManager& undoManager, Chart& chart, vec2 positionIncrement);
+		void ArrangeSelectedTargetsInRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards);
+
+		i32 GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const;
+
+	private:
+		std::vector<TimelineTarget*> selectedTargetsBuffer;
+
+		struct GrabData
+		{
+			i32 GrabbedTargetIndex = -1, HoveredTargetIndex = -1;
+
+			vec2 MouseOnGrab;
+			vec2 TargetPositionOnGrab;
+
+			vec2 ThisPos, LastPos;
+			bool ThisGridSnap, LastGridSnap;
+		} grab = {};
+
+		struct RowData
+		{
+			vec2 Start, End;
+			vec2 Direction;
+			f32 Angle;
+			bool Active;
+			bool Backwards;
+		} row = {};
 	};
 }

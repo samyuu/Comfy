@@ -300,6 +300,24 @@ namespace Comfy::Studio::Editor
 		TargetPropertyFlags propertyFlags;
 	};
 
+	class ChangeTargetListPositions : public ChangeTargetListProperties
+	{
+	public:
+		ChangeTargetListPositions(Chart& chart, std::vector<Data> data) : ChangeTargetListProperties(chart, std::move(data), TargetPropertyFlags_PositionXY) {}
+
+	public:
+		std::string_view GetName() const override { return "Change Target Positions"; }
+	};
+
+	class ChangeTargetListPositionsRow : public ChangeTargetListPositions
+	{
+	public:
+		using ChangeTargetListPositions::ChangeTargetListPositions;
+
+	public:
+		std::string_view GetName() const override { return "Position Target Row"; }
+	};
+
 	class ChangeTargetListHasProperties : public Undo::Command
 	{
 	public:

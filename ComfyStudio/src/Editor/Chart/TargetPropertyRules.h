@@ -42,6 +42,8 @@ namespace Comfy::Studio::Editor
 		// NOTE: Assumes chain fragments at a 32nd bar division
 		constexpr f32 PlacementDistancePerBeatChain = 288.0f;
 
+		constexpr vec2 PlacementStairDirection = (vec2(5.0f, 3.0f) / 5.83095169f);
+
 		constexpr f32 TickToDistance(const TimelineTick tick)
 		{
 			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);

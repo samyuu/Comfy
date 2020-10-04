@@ -38,6 +38,9 @@ namespace Comfy::Studio::Editor
 		TargetPropertyFlags_Frequency = 1 << TargetPropertyType_Frequency,
 		TargetPropertyFlags_Amplitude = 1 << TargetPropertyType_Amplitude,
 		TargetPropertyFlags_Distance = 1 << TargetPropertyType_Distance,
+
+		TargetPropertyFlags_PositionXY = (TargetPropertyFlags_PositionX | TargetPropertyFlags_PositionY),
+		TargetPropertyFlags_All = (TargetPropertyFlags_PositionXY | TargetPropertyFlags_Angle | TargetPropertyFlags_Frequency | TargetPropertyFlags_Amplitude | TargetPropertyFlags_Distance),
 	};
 
 	constexpr bool IsSlideButtonType(ButtonType type) { return type == ButtonType::SlideL || type == ButtonType::SlideR; }
