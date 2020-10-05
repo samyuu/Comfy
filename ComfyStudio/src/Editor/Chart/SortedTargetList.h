@@ -106,6 +106,8 @@ namespace Comfy::Studio::Editor
 		i32 FindIndex(TimelineTick tick, ButtonType type) const;
 		void Clear();
 
+		void ExplicitlyUpdateFlagsAndSort(i32 startIndex = -1, i32 endIndex = -1);
+		
 	public:
 		auto begin() { return targets.begin(); }
 		auto end() { return targets.end(); }
@@ -133,12 +135,14 @@ namespace Comfy::Studio::Editor
 		size_t FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const;
 
 		void UpdateTargetInternalFlagsAround(i32 index);
-		void UpdateTargetInternalFlagsAroundRange(i32 start = -1, i32 end = -1);
+		void UpdateTargetInternalFlagsInRange(i32 startIndex = -1, i32 endIndex = -1);
 
-		size_t GetSyncPairCountAt(size_t targetStartIndex) const;
-		void UpdateSyncPairIndexFlags();
+		i32 FloorIndexToSyncPairStart(i32 index) const;
+		i32 CeilIndexToSyncPairEnd(i32 index) const;
+		i32 FindSyncPairCountAt(i32 startIndex) const;
+		void UpdateSyncPairFlagsInRange(i32 startIndex, i32 endIndex);
 
-		void UpdateChainFlags();
-		void UpdateChainFlagsForDirection(ButtonType slideDirection);
+		void UpdateChainFlagsInRange(i32 startIndex, i32 endIndex);
+		void UpdateChainFlagsForDirection(i32 startIndex, i32 endIndex, ButtonType slideDirection);
 	};
 }

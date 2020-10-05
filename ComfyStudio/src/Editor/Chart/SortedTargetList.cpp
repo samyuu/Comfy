@@ -42,7 +42,7 @@ namespace Comfy::Studio::Editor
 			targets.push_back(newTarget);
 			std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
 
-			UpdateTargetSyncFlags();
+			UpdateTargetInternalFlagsInRange();
 		}
 #endif
 
@@ -82,12 +82,31 @@ namespace Comfy::Studio::Editor
 		targets.clear();
 	}
 
+	void SortedTargetList::ExplicitlyUpdateFlagsAndSort(i32 startIndex, i32 endIndex)
+	{
+		if (targets.empty())
+			return;
+		
+		if (startIndex <= -1) 
+			startIndex = 0;
+		if (endIndex <= -1) 
+			endIndex = static_cast<i32>(targets.size());
+
+		// TODO: Is this how this should work (?)
+		std::sort(
+			std::clamp(targets.begin() + startIndex, targets.begin(), targets.end()),
+			std::clamp(targets.begin() + endIndex, targets.begin(), targets.end()),
+			[&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
+		
+		UpdateTargetInternalFlagsInRange(startIndex, endIndex);
+	}
+
 	void SortedTargetList::operator=(std::vector<TimelineTarget>&& newTargets)
 	{
 		targets = std::move(newTargets);
 
 		std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
-		UpdateTargetInternalFlagsAroundRange();
+		UpdateTargetInternalFlagsInRange();
 	}
 
 	size_t SortedTargetList::FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const
@@ -106,79 +125,97 @@ namespace Comfy::Studio::Editor
 
 	void SortedTargetList::UpdateTargetInternalFlagsAround(i32 index)
 	{
-		constexpr auto surroundingTargetsToCheck = static_cast<i32>(EnumCount<ButtonType>());
-
-		UpdateTargetInternalFlagsAroundRange(
-			index - surroundingTargetsToCheck,
-			index + surroundingTargetsToCheck);
+		constexpr auto surroundingTargetsToCheck = 1;
+		UpdateTargetInternalFlagsInRange(index - surroundingTargetsToCheck, index + surroundingTargetsToCheck);
 	}
 
-	void SortedTargetList::UpdateTargetInternalFlagsAroundRange(i32 start, i32 end)
+	void SortedTargetList::UpdateTargetInternalFlagsInRange(i32 startIndex, i32 endIndex)
 	{
-		if (start < 0)
-			start = 0;
+		if (startIndex < 0)
+			startIndex = 0;
 
 		const auto targetCount = static_cast<i32>(targets.size());
+		if (endIndex < 0 || endIndex > targetCount)
+			endIndex = targetCount;
 
-		if (end < 0 || end > targetCount)
-			end = targetCount;
+		const auto syncStartIndex = FloorIndexToSyncPairStart(startIndex);
+		const auto syncEndIndex = CeilIndexToSyncPairEnd(endIndex);
+		UpdateSyncPairFlagsInRange(syncStartIndex, syncEndIndex);
 
-		for (i32 i = start; i < end; i++)
-		{
-			auto& target = targets[i];
-			const auto* nextTarget = (i + 1 < targetCount) ? &targets[i + 1] : nullptr;
-			const auto* prevTarget = (i - 1 >= 0) ? &targets[i - 1] : nullptr;
-
-			target.Flags.IsSync = (prevTarget != nullptr && prevTarget->Tick == target.Tick) || (nextTarget != nullptr && nextTarget->Tick == target.Tick);
-		}
-
-		// TODO: Only update in the start and end index range
-		UpdateSyncPairIndexFlags();
-		UpdateChainFlags();
+		// TODO: Floor and ceil to "slide -> slide chain" transitions (?)
+		UpdateChainFlagsInRange(0, static_cast<i32>(targets.size()));
 	}
 
-	size_t SortedTargetList::GetSyncPairCountAt(size_t targetStartIndex) const
+	i32 SortedTargetList::FloorIndexToSyncPairStart(i32 index) const
 	{
-		for (size_t i = targetStartIndex; i < targets.size(); i++)
+		i32 syncPairStartIndex = index;
+		for (i32 i = (index - 1); i >= 0; i--)
+		{
+			if (targets[i].Tick == targets[index].Tick)
+				syncPairStartIndex--;
+			else
+				break;
+		}
+		return syncPairStartIndex;
+	}
+
+	i32 SortedTargetList::CeilIndexToSyncPairEnd(i32 index) const
+	{
+		i32 syncPairEndIndex = index;
+		for (i32 i = index; i < static_cast<i32>(targets.size()); i++)
+		{
+			if (targets[i].Tick == targets[index].Tick)
+				syncPairEndIndex++;
+			else
+				break;
+		}
+		return syncPairEndIndex;
+	}
+
+	i32 SortedTargetList::FindSyncPairCountAt(i32 startIndex) const
+	{
+		for (i32 i = startIndex; i < static_cast<i32>(targets.size()); i++)
 		{
 			const auto& target = targets[i];
 			const auto* nextTarget = IndexOrNull(i + 1, targets);
 
 			if (nextTarget == nullptr || target.Tick != nextTarget->Tick)
-				return (i - targetStartIndex) + 1;
+				return (i - startIndex) + 1;
 		}
 
 		return 1;
 	}
 
-	void SortedTargetList::UpdateSyncPairIndexFlags()
+	void SortedTargetList::UpdateSyncPairFlagsInRange(i32 startIndex, i32 endIndex)
 	{
-		for (size_t i = 0; i < targets.size();)
+		for (i32 i = startIndex; i < endIndex;)
 		{
-			const auto pairCount = GetSyncPairCountAt(i);
+			const auto pairCount = FindSyncPairCountAt(i);
 			assert(pairCount > 0);
 
-			for (size_t pairIndex = 0; pairIndex < pairCount; pairIndex++)
+			for (i32 pairIndex = 0; pairIndex < pairCount; pairIndex++)
 			{
 				auto& target = targets[i++];
+				target.Flags.IsSync = (pairCount > 1);
 				target.Flags.IndexWithinSyncPair = pairIndex;
 				target.Flags.SyncPairCount = pairCount;
 			}
 		}
 	}
 
-	void SortedTargetList::UpdateChainFlags()
+	void SortedTargetList::UpdateChainFlagsInRange(i32 startIndex, i32 endIndex)
 	{
-		UpdateChainFlagsForDirection(ButtonType::SlideL);
-		UpdateChainFlagsForDirection(ButtonType::SlideR);
+		UpdateChainFlagsForDirection(startIndex, endIndex, ButtonType::SlideL);
+		UpdateChainFlagsForDirection(startIndex, endIndex, ButtonType::SlideR);
 	}
 
-	void SortedTargetList::UpdateChainFlagsForDirection(ButtonType slideDirection)
+	void SortedTargetList::UpdateChainFlagsForDirection(i32 startIndex, i32 endIndex, ButtonType slideDirection)
 	{
 		assert(IsSlideButtonType(slideDirection));
 
-		for (auto& target : targets)
+		for (i32 i = startIndex; i < endIndex; i++)
 		{
+			auto& target = targets[i];
 			if (target.Type == slideDirection)
 			{
 				target.Flags.IsChainStart = false;
