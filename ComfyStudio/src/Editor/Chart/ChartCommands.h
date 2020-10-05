@@ -168,12 +168,79 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Cut Targets"; }
 	};
 
+	class ChangeTargetListTypes : public Undo::Command
+	{
+	public:
+		struct Data
+		{
+			i32 TargetIndex;
+			ButtonType NewValue, OldValue;
+		};
+
+	public:
+		ChangeTargetListTypes(Chart& chart, std::vector<Data> data)
+			: chart(chart), targetData(std::move(data))
+		{
+			auto compareIndex = [](auto& a, auto& b) { return (a.TargetIndex < b.TargetIndex); };
+			minIndex = targetData.empty() ? 0 : std::min_element(targetData.begin(), targetData.end(), compareIndex)->TargetIndex - 1;
+			maxIndex = targetData.empty() ? 0 : std::max_element(targetData.begin(), targetData.end(), compareIndex)->TargetIndex + 1;
+
+			for (auto& data : targetData)
+				data.OldValue = chart.Targets[data.TargetIndex].Type;
+		}
+
+	public:
+		void Undo() override
+		{
+			for (const auto& data : targetData)
+				chart.Targets[data.TargetIndex].Type = data.OldValue;
+			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
+		}
+
+		void Redo() override
+		{
+			for (const auto& data : targetData)
+				chart.Targets[data.TargetIndex].Type = data.NewValue;
+			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			auto* other = static_cast<decltype(this)>(&commandToMerge);
+			if (&other->chart != &chart)
+				return Undo::MergeResult::Failed;
+
+			if (targetData.size() != other->targetData.size())
+				return Undo::MergeResult::Failed;
+
+			for (size_t i = 0; i < targetData.size(); i++)
+			{
+				if (targetData[i].TargetIndex != other->targetData[i].TargetIndex)
+					return Undo::MergeResult::Failed;
+			}
+
+			for (size_t i = 0; i < targetData.size(); i++)
+				targetData[i].NewValue = other->targetData[i].NewValue;
+
+			return Undo::MergeResult::ValueUpdated;
+		}
+
+		std::string_view GetName() const override { return "Change Target Types"; }
+
+	private:
+		Chart& chart;
+		std::vector<Data> targetData;
+		i32 minIndex, maxIndex;
+	};
+
 	class MoveTargetListTicks : public Undo::Command
 	{
 	public:
 		MoveTargetListTicks(Chart& chart, std::vector<i32> indices, TimelineTick tickIncrement)
 			: chart(chart), targetIndices(std::move(indices)), tickIncrement(tickIncrement)
 		{
+			minIndex = targetIndices.empty() ? 0 : *std::min_element(targetIndices.begin(), targetIndices.end()) - 1;
+			maxIndex = targetIndices.empty() ? 0 : *std::max_element(targetIndices.begin(), targetIndices.end()) + 1;
 		}
 
 	public:
@@ -181,12 +248,14 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto index : targetIndices)
 				chart.Targets[index].Tick -= tickIncrement;
+			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
 		}
 
 		void Redo() override
 		{
 			for (const auto index : targetIndices)
 				chart.Targets[index].Tick += tickIncrement;
+			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -198,7 +267,8 @@ namespace Comfy::Studio::Editor
 			if (!std::equal(targetIndices.begin(), targetIndices.end(), other->targetIndices.begin(), other->targetIndices.end()))
 				return Undo::MergeResult::Failed;
 
-			Undo();
+			for (const auto index : targetIndices)
+				chart.Targets[index].Tick -= tickIncrement;
 			tickIncrement += other->tickIncrement;
 
 			return Undo::MergeResult::ValueUpdated;
@@ -210,6 +280,7 @@ namespace Comfy::Studio::Editor
 		Chart& chart;
 		std::vector<i32> targetIndices;
 		TimelineTick tickIncrement;
+		i32 minIndex, maxIndex;
 	};
 
 	class ChangeTargetListProperties : public Undo::Command

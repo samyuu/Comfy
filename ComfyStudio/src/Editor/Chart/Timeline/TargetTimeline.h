@@ -135,7 +135,9 @@ namespace Comfy::Studio::Editor
 		void PlayTargetButtonTypeSound(ButtonType type);
 
 		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
-		void PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target, std::optional<TimelineTick> buttonTick = {});
+
+		void PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target);
+		void PlaySingleTargetButtonSoundAndAnimation(ButtonType buttonType, TimelineTick buttonTick);
 
 		void PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime);
 
@@ -213,10 +215,13 @@ namespace Comfy::Studio::Editor
 		{
 			TimelineTick TickOnPress;
 			TimelineTick LastFrameMouseTick, ThisFrameMouseTick;
+			
 			TimelineTick TicksMovedSoFar;
+			f32 VerticalDistanceMovedSoFar;
 
 			bool IsDragging;
 			bool IsHovering;
+			bool ChangeType;
 		} selectionDrag = {};
 
 		struct BoxSelectionData

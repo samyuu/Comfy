@@ -982,18 +982,22 @@ namespace Comfy::Studio::Editor
 					continue;
 
 				selectionDrag.IsHovering = true;
+				selectionDrag.ChangeType = Gui::GetIO().KeyShift;
+
 				if (Gui::IsMouseClicked(0))
 				{
 					selectionDrag.IsDragging = true;
 					selectionDrag.TickOnPress = GetCursorMouseXTick(false);
 					selectionDrag.TicksMovedSoFar = {};
+					// NOTE: Account for the offset between the target center and the relative start mouse position
+					selectionDrag.VerticalDistanceMovedSoFar = (Gui::GetMousePos().y - center.y);
 					undoManager.DisallowMergeForLastCommand();
 				}
 			}
 		}
 
 		if (selectionDrag.IsDragging || selectionDrag.IsHovering)
-			Gui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+			Gui::SetMouseCursor(selectionDrag.ChangeType ? ImGuiMouseCursor_ResizeNS : ImGuiMouseCursor_ResizeEW);
 
 		selectionDrag.LastFrameMouseTick = selectionDrag.ThisFrameMouseTick;
 		selectionDrag.ThisFrameMouseTick = GetCursorMouseXTick(false);
@@ -1004,34 +1008,82 @@ namespace Comfy::Studio::Editor
 			Gui::SetWindowFocus();
 
 			undoManager.ResetMergeTimeThresholdStopwatch();
-			selectionDrag.TicksMovedSoFar += (selectionDrag.ThisFrameMouseTick - selectionDrag.LastFrameMouseTick);
+			if (selectionDrag.ChangeType)
+				selectionDrag.VerticalDistanceMovedSoFar += Gui::GetIO().MouseDelta.y;
+			else
+				selectionDrag.TicksMovedSoFar += (selectionDrag.ThisFrameMouseTick - selectionDrag.LastFrameMouseTick);
 		}
 
-		const auto dragTickIncrement = FloorTickToGrid(selectionDrag.TicksMovedSoFar);
-
-		// BUG: Need extra checks for moving chain fragments or at least update flags after the fact (allow moving partial sync pairs and always update flags (?))
-
-		// NOTE: Prevent moving through any existing targets to avoid having to resort the target list
-		if (selectionDrag.IsDragging && dragTickIncrement != TimelineTick::Zero() && !CheckIsAnySyncPairPartiallySelected() && CheckIsSelectionNotBlocked(dragTickIncrement))
+		if (selectionDrag.IsDragging)
 		{
-			selectionDrag.TicksMovedSoFar -= dragTickIncrement;
 			const auto cursorTick = GetCursorTick();
 
-			std::vector<i32> targetMoveIndices;
-			targetMoveIndices.reserve(CountSelectedTargets());
-
-			for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
+			if (selectionDrag.ChangeType)
 			{
-				const auto& target = workingChart->Targets[i];
-				if (!target.IsSelected)
-					continue;
+				const auto heightPerType = (rowHeight - 2.0f);
+				const auto buttonTypesToIncrement = static_cast<i32>(selectionDrag.VerticalDistanceMovedSoFar / heightPerType);
+				selectionDrag.VerticalDistanceMovedSoFar -= (buttonTypesToIncrement * heightPerType);
 
-				targetMoveIndices.push_back(i);
-				if (const auto movedTick = (target.Tick + dragTickIncrement); movedTick == cursorTick)
-					PlaySingleTargetButtonSoundAndAnimation(target, movedTick);
+				if (buttonTypesToIncrement != 0)
+				{
+					std::vector<ChangeTargetListTypes::Data> targetTypeData;
+					targetTypeData.reserve(CountSelectedTargets());
+
+					for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
+					{
+						const auto& target = workingChart->Targets[i];
+						if (!target.IsSelected)
+							continue;
+
+						auto& data = targetTypeData.emplace_back();
+						data.TargetIndex = i;
+
+						const auto newTypeIndex = std::clamp(static_cast<i32>(target.Type) + buttonTypesToIncrement, 0, static_cast<i32>(ButtonType::Count) - 1);
+						const auto newType = static_cast<ButtonType>(newTypeIndex);
+
+						// TODO: Instead of searching the entire list, check if IsSync then check surrounding pair... or only clamp in second loop (?)
+						const auto existingTargetWithType = std::find_if(
+							workingChart->Targets.begin(),
+							workingChart->Targets.end(),
+							[&](auto& t) { return (t.Tick == target.Tick) && (t.Type == newType); });
+
+						// BUG: Moving sync pairs
+						if (existingTargetWithType != workingChart->Targets.end() || (target.Flags.IsChain && !IsSlideButtonType(newType)))
+							data.NewValue = target.Type;
+						else
+							data.NewValue = newType;
+
+						if (target.Tick == cursorTick && data.NewValue != target.Type)
+							PlaySingleTargetButtonSoundAndAnimation(data.NewValue, target.Tick);
+					}
+
+					undoManager.Execute<ChangeTargetListTypes>(*workingChart, std::move(targetTypeData));
+				}
 			}
+			else
+			{
+				const auto dragTickIncrement = FloorTickToGrid(selectionDrag.TicksMovedSoFar);
+				if (dragTickIncrement != TimelineTick::Zero() && !CheckIsAnySyncPairPartiallySelected() && CheckIsSelectionNotBlocked(dragTickIncrement))
+				{
+					selectionDrag.TicksMovedSoFar -= dragTickIncrement;
 
-			undoManager.Execute<MoveTargetListTicks>(*workingChart, std::move(targetMoveIndices), dragTickIncrement);
+					std::vector<i32> targetMoveIndices;
+					targetMoveIndices.reserve(CountSelectedTargets());
+
+					for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
+					{
+						const auto& target = workingChart->Targets[i];
+						if (!target.IsSelected)
+							continue;
+
+						targetMoveIndices.push_back(i);
+						if (const auto movedTick = (target.Tick + dragTickIncrement); movedTick == cursorTick)
+							PlaySingleTargetButtonSoundAndAnimation(target.Type, movedTick);
+					}
+
+					undoManager.Execute<MoveTargetListTicks>(*workingChart, std::move(targetMoveIndices), dragTickIncrement);
+				}
+			}
 		}
 	}
 
@@ -1495,14 +1547,19 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target, std::optional<TimelineTick> buttonTick)
+	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target)
+	{
+		PlaySingleTargetButtonSoundAndAnimation(target.Type, target.Tick);
+	}
+
+	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(ButtonType buttonType, TimelineTick buttonTick)
 	{
 		// NOTE: During playback the sound will be handled automatically already
 		if (!GetIsPlayback())
-			PlayTargetButtonTypeSound(target.Type);
+			PlayTargetButtonTypeSound(buttonType);
 
-		const auto buttonIndex = static_cast<size_t>(target.Type);
-		buttonAnimations[buttonIndex].Tick = buttonTick.value_or(target.Tick);
+		const auto buttonIndex = static_cast<size_t>(buttonType);
+		buttonAnimations[buttonIndex].Tick = buttonTick;
 		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 	}
 
