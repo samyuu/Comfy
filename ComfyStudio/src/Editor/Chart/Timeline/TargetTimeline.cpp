@@ -1262,10 +1262,8 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::MenuItem("Cut", "Ctrl + X", nullptr, (selectionCount > 0)))
 				ClipboardCutSelection();
-
 			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0)))
 				ClipboardCopySelection();
-
 			if (Gui::MenuItem("Paste", "Ctrl + V", nullptr, true))
 				ClipboardPasteSelection();
 
@@ -1278,14 +1276,21 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 #endif
 
-			// TODO: Various options to turn a straight target row into patterns (?)
-			//		 OOOOO -> OXOXO, "compress" down to single type, etc.
-
 			if (Gui::MenuItem("Select All", "", nullptr, (workingChart->Targets.size() > 0)))
-				SelectAllTargets();
-
+				SelectAllTargets(*workingChart);
 			if (Gui::MenuItem("Deselect", "", nullptr, (selectionCount > 0)))
-				DeselectAllTargets();
+				DeselectAllTargets(*workingChart);
+
+			if (Gui::BeginMenu("Refine Selection", (selectionCount > 0)))
+			{
+				if (Gui::MenuItem("Select every 2nd Target")) SelectEveryNthTarget(*workingChart, 2);
+				if (Gui::MenuItem("Select every 3rd Target")) SelectEveryNthTarget(*workingChart, 3);
+				if (Gui::MenuItem("Select every 4th Target")) SelectEveryNthTarget(*workingChart, 4);
+				Gui::Separator();
+				if (Gui::MenuItem("Shift Selection Left")) ShiftTargetSelection(*workingChart, -1);
+				if (Gui::MenuItem("Shift Selection Right")) ShiftTargetSelection(*workingChart, +1);
+				Gui::EndMenu();
+			}
 
 			Gui::Separator();
 
@@ -1384,14 +1389,54 @@ namespace Comfy::Studio::Editor
 			[](const auto& t) { return t.IsSelected; });
 	}
 
-	void TargetTimeline::SelectAllTargets()
+	void TargetTimeline::SelectAllTargets(Chart& chart)
 	{
-		std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = true; });
+		std::for_each(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { t.IsSelected = true; });
 	}
 
-	void TargetTimeline::DeselectAllTargets()
+	void TargetTimeline::DeselectAllTargets(Chart& chart)
 	{
-		std::for_each(workingChart->Targets.begin(), workingChart->Targets.end(), [](auto& t) { t.IsSelected = false; });
+		std::for_each(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { t.IsSelected = false; });
+	}
+
+	void TargetTimeline::SelectEveryNthTarget(Chart& chart, size_t n)
+	{
+		for (size_t i = 0, selectionIndex = 0; i < chart.Targets.size(); i++)
+		{
+			if (auto& target = chart.Targets[i]; target.IsSelected)
+			{
+				if (++selectionIndex % n != 0)
+					target.IsSelected = false;
+			}
+		}
+	}
+
+	void TargetTimeline::ShiftTargetSelection(Chart& chart, i32 direction)
+	{
+		if (direction > 0)
+		{
+			for (i32 i = static_cast<i32>(chart.Targets.size()) - 1; i >= 0; i--)
+			{
+				auto& target = chart.Targets[i];
+				auto* nextTarget = IndexOrNull(i + 1, chart.Targets);
+
+				if (nextTarget != nullptr && target.IsSelected)
+					nextTarget->IsSelected = true;
+				target.IsSelected = false;
+			}
+		}
+		else
+		{
+			for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+			{
+				auto& target = chart.Targets[i];
+				auto* prevTarget = IndexOrNull(i - 1, chart.Targets);
+
+				if (prevTarget != nullptr && target.IsSelected)
+					prevTarget->IsSelected = true;
+				target.IsSelected = false;
+			}
+		}
 	}
 
 	void TargetTimeline::ClipboardCutSelection()

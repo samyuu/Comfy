@@ -119,8 +119,10 @@ namespace Comfy::Studio::Editor
 	private:
 		size_t CountSelectedTargets() const;
 
-		void SelectAllTargets();
-		void DeselectAllTargets();
+		void SelectAllTargets(Chart& chart);
+		void DeselectAllTargets(Chart& chart);
+		void SelectEveryNthTarget(Chart& chart, size_t n);
+		void ShiftTargetSelection(Chart& chart, i32 direction);
 
 		void ClipboardCutSelection();
 		void ClipboardCopySelection();
