@@ -53,7 +53,7 @@ namespace Comfy::Studio::Editor
 					const auto endTick = target.Tick + postHitLingerDuration;
 					if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))
 					{
-						const auto position = TargetPositionOrPreset(target);
+						const auto position = Rules::TryGetProperties(target).Position;
 						return (position.x > minTargetSpace.x && position.y >= minTargetSpace.y) && (position.x <= maxTargetSpace.x && position.y <= maxTargetSpace.y);
 					}
 					return false;

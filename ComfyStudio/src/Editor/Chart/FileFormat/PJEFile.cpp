@@ -357,9 +357,7 @@ namespace Comfy::Studio::Editor
 			targets.reserve(sourceChart.Targets.size());
 			for (const auto& sourceTarget : sourceChart.Targets)
 			{
-				const auto properties = sourceTarget.Flags.HasProperties ?
-					sourceTarget.Properties :
-					Rules::PresetTargetProperties(sourceTarget.Type, sourceTarget.Tick, sourceTarget.Flags);
+				const auto properties = Rules::TryGetProperties(sourceTarget);
 
 				auto& newTarget = targets.emplace_back();
 				newTarget.Index = sourceTarget.Tick;

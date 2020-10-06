@@ -135,67 +135,78 @@ namespace Comfy::Studio::Editor
 			-20.0f,
 		};
 
-		constexpr std::array<f32, EnumCount<ButtonType>()> VerticalSyncPairTypeHeightOffsets =
+		namespace Detail
 		{
-			VerticalSyncPairPlacementDistance * -3.0f,
-			VerticalSyncPairPlacementDistance * -2.0f,
-			VerticalSyncPairPlacementDistance * -1.0f,
-			VerticalSyncPairPlacementDistance * -0.0f,
-			VerticalSyncPairPlacementDistance * -1.0f,
-			VerticalSyncPairPlacementDistance * -0.0f,
-		};
-
-		constexpr vec2 PresetTargetPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
-		{
-			constexpr auto baselineX = TickToDistance(TimelineTick::FromBars(1) / 4);
-			constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
-
-			const auto x = TickToDistance((TimelineTick::FromBars(1) + tick) % TimelineTick::FromBars(2));
-			const auto y = flags.IsSync ? VerticalSyncPairTypeHeightOffsets[static_cast<size_t>(type)] : 0.0f;
-
-			return vec2(baselineX + x, baselineY + y);
-		}
-
-		constexpr vec2 PresetTargetChainPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
-		{
-			const bool isLeft = (type == ButtonType::SlideL);
-			const bool evenBar = (tick % TimelineTick::FromBars(2)) < TimelineTick::FromBars(1);
-
-			constexpr auto baselineXOdd = TickToDistance(TimelineTick::FromBeats(1) / 2);
-			constexpr auto baselineXEven = TickToDistance(TimelineTick::FromBars(1) - TimelineTick::FromBars(1) / 8);
-
-			constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
-
-			const auto x = (evenBar ? baselineXEven : baselineXOdd) + (TickToDistanceChain(tick % TimelineTick::FromBars(1)));
-			const auto y = (VerticalSyncPairPlacementDistance * (evenBar ? -2.0f : -1.0f));
-
-			return vec2(isLeft ? (PlacementAreaSize.x - x) : x, baselineY + y);
-		}
-
-		constexpr TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags, bool syncAnglesSteep = false)
-		{
-			if (flags.IsChain)
-				return { PresetTargetChainPosition(type, tick, flags), 0.0f, (type == ButtonType::SlideL) ? +2.0f : -2.0f, 500.0f, 1200.0f, };
-
-			if (!flags.IsSync)
-				return { PresetTargetPosition(type, tick, flags), 0.0f, -2.0f, 500.0f, 1200.0f, };
-
-			const auto pairCount = flags.SyncPairCount;
-			const auto pairIndex = flags.IndexWithinSyncPair;
-
-			bool upperHalfOfPair = pairIndex < (pairCount / 2);
-			if (pairCount == 3)
+			constexpr std::array<f32, EnumCount<ButtonType>()> VerticalSyncPairTypeHeightOffsets =
 			{
-				if (type == ButtonType::Square && pairIndex == 1)
-					upperHalfOfPair = true;
-				if (type == ButtonType::Cross)
-					upperHalfOfPair = false;
+				VerticalSyncPairPlacementDistance * -3.0f,
+				VerticalSyncPairPlacementDistance * -2.0f,
+				VerticalSyncPairPlacementDistance * -1.0f,
+				VerticalSyncPairPlacementDistance * -0.0f,
+				VerticalSyncPairPlacementDistance * -1.0f,
+				VerticalSyncPairPlacementDistance * -0.0f,
+			};
+
+			constexpr vec2 PresetTargetPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
+			{
+				constexpr auto baselineX = TickToDistance(TimelineTick::FromBars(1) / 4);
+				constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
+
+				const auto x = TickToDistance((TimelineTick::FromBars(1) + tick) % TimelineTick::FromBars(2));
+				const auto y = flags.IsSync ? VerticalSyncPairTypeHeightOffsets[static_cast<size_t>(type)] : 0.0f;
+
+				return vec2(baselineX + x, baselineY + y);
 			}
 
-			const auto& anglesArray = syncAnglesSteep ? VerticalSyncPairAnglesSteep : VerticalSyncPairAngles;
-			const auto angle = anglesArray[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
+			constexpr vec2 PresetTargetChainPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
+			{
+				const bool isLeft = (type == ButtonType::SlideL);
+				const bool evenBar = (tick % TimelineTick::FromBars(2)) < TimelineTick::FromBars(1);
 
-			return { PresetTargetPosition(type, tick, flags), angle, 0.0f, 500.0f, 880.0f, };
+				constexpr auto baselineXOdd = TickToDistance(TimelineTick::FromBeats(1) / 2);
+				constexpr auto baselineXEven = TickToDistance(TimelineTick::FromBars(1) - TimelineTick::FromBars(1) / 8);
+
+				constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
+
+				const auto x = (evenBar ? baselineXEven : baselineXOdd) + (TickToDistanceChain(tick % TimelineTick::FromBars(1)));
+				const auto y = (VerticalSyncPairPlacementDistance * (evenBar ? -2.0f : -1.0f));
+
+				return vec2(isLeft ? (PlacementAreaSize.x - x) : x, baselineY + y);
+			}
+
+			constexpr TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags)
+			{
+				if (flags.IsChain)
+					return { Detail::PresetTargetChainPosition(type, tick, flags), 0.0f, (type == ButtonType::SlideL) ? +2.0f : -2.0f, 500.0f, 1200.0f, };
+
+				if (!flags.IsSync)
+					return { Detail::PresetTargetPosition(type, tick, flags), 0.0f, -2.0f, 500.0f, 1200.0f, };
+
+				const auto pairCount = flags.SyncPairCount;
+				const auto pairIndex = flags.IndexWithinSyncPair;
+
+				bool upperHalfOfPair = pairIndex < (pairCount / 2);
+				if (pairCount == 3)
+				{
+					if (type == ButtonType::Square && pairIndex == 1)
+						upperHalfOfPair = true;
+					if (type == ButtonType::Cross)
+						upperHalfOfPair = false;
+				}
+
+				const auto angle = VerticalSyncPairAngles[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
+				return { Detail::PresetTargetPosition(type, tick, flags), angle, 0.0f, 500.0f, 880.0f, };
+			}
+
+			constexpr TargetProperties PresetTargetProperties(const TimelineTarget& target)
+			{
+				return PresetTargetProperties(target.Type, target.Tick, target.Flags);
+			}
+		}
+
+		constexpr TargetProperties TryGetProperties(const TimelineTarget& target)
+		{
+			return target.Flags.HasProperties ? target.Properties : Detail::PresetTargetProperties(target.Type, target.Tick, target.Flags);
 		}
 	}
 }

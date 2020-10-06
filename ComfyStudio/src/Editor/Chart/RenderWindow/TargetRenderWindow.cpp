@@ -90,7 +90,7 @@ namespace Comfy::Studio::Editor
 			if (!target.IsSelected)
 				continue;
 
-			const auto position = TargetPositionOrPreset(target);
+			const auto position = Rules::TryGetProperties(target).Position;
 			const auto tl = glm::round(TargetAreaToScreenSpace(position - TargetHitboxSize));
 			const auto br = glm::round(TargetAreaToScreenSpace(position + TargetHitboxSize));
 
@@ -305,11 +305,6 @@ namespace Comfy::Studio::Editor
 		constexpr auto fragDisplayOffsetX = 32.0f;
 		constexpr auto chainHitTickThreshold = (TimelineTick::FromBars(1) / 16);
 
-		auto tryGetProperties = [](const TimelineTarget& target)
-		{
-			return target.Flags.HasProperties ? target.Properties : Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags);
-		};
-
 		const auto& targets = workingChart->Targets;
 		const bool isPlayback = chartEditor.GetIsPlayback();
 
@@ -334,7 +329,7 @@ namespace Comfy::Studio::Editor
 				const auto progressUnbound = static_cast<f32>(ConvertRange(targetTime.TotalSeconds(), buttonTime.TotalSeconds(), 0.0, 1.0, cursorTime.TotalSeconds()));
 				const auto progress = glm::clamp(progressUnbound, 0.0f, 1.0f);
 
-				auto properties = tryGetProperties(target);
+				auto properties = Rules::TryGetProperties(target);
 
 				if (target.Flags.IsChain && !target.Flags.IsChainStart)
 					properties.Position.x += fragDisplayOffsetX * (target.Type == ButtonType::SlideL ? -1.0f : +1.0f);
@@ -392,7 +387,7 @@ namespace Comfy::Studio::Editor
 						for (size_t i = 0; i < std::min(4u, syncLineData.SyncPairCount); i++)
 						{
 							const auto& syncTarget = targets[thisIndex + i];
-							const auto syncTargetProperty = tryGetProperties(syncTarget);
+							const auto syncTargetProperty = Rules::TryGetProperties(syncTarget);
 
 							syncLineData.TargetPositions[i] = syncTargetProperty.Position;
 							syncLineData.ButtonPositions[i] = GetButtonPathSinePoint(progress, syncTargetProperty);

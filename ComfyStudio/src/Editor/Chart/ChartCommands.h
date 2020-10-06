@@ -330,7 +330,7 @@ namespace Comfy::Studio::Editor
 
 				if (!data.HadProperties)
 				{
-					target.Properties = Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags);
+					target.Properties = Rules::Detail::PresetTargetProperties(target);
 					target.Flags.HasProperties = true;
 				}
 
@@ -430,7 +430,7 @@ namespace Comfy::Studio::Editor
 
 				if (target.Flags.HasProperties != newHasProperties)
 				{
-					target.Properties = Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags);
+					target.Properties = Rules::Detail::PresetTargetProperties(target);
 					target.Flags.HasProperties = newHasProperties;
 				}
 			}

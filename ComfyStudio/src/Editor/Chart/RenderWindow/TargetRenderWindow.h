@@ -12,13 +12,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	constexpr vec2 TargetPositionOrPreset(const TimelineTarget& target)
-	{
-		return target.Flags.HasProperties ? target.Properties.Position : target.Flags.IsChain ?
-			Rules::PresetTargetChainPosition(target.Type, target.Tick, target.Flags) :
-			Rules::PresetTargetPosition(target.Type, target.Tick, target.Flags);
-	}
-
 	constexpr std::array<u32, EnumCount<ButtonType>()> ButtonTypeColors =
 	{
 		0xFFCCFE62,

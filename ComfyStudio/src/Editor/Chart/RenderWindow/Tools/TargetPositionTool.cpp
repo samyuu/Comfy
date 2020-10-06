@@ -242,7 +242,7 @@ namespace Comfy::Studio::Editor
 		{
 			const auto hoveredTarget = std::find_if(selectedTargetsBuffer.rbegin(), selectedTargetsBuffer.rend(), [&](auto* t)
 			{
-				const auto position = TargetPositionOrPreset(*t);
+				const auto position = Rules::TryGetProperties(*t).Position;
 				const auto tl = renderWindow.TargetAreaToScreenSpace(position - TargetRenderWindow::TargetHitboxSize);
 				const auto br = renderWindow.TargetAreaToScreenSpace(position + TargetRenderWindow::TargetHitboxSize);
 
@@ -255,7 +255,7 @@ namespace Comfy::Studio::Editor
 			{
 				grab.GrabbedTargetIndex = grab.HoveredTargetIndex;
 				grab.MouseOnGrab = mousePos;
-				grab.TargetPositionOnGrab = TargetPositionOrPreset(chart.Targets[grab.GrabbedTargetIndex]);
+				grab.TargetPositionOnGrab = Rules::TryGetProperties(chart.Targets[grab.GrabbedTargetIndex]).Position;
 				undoManager.DisallowMergeForLastCommand();
 			}
 		}
@@ -288,8 +288,9 @@ namespace Comfy::Studio::Editor
 				if (Gui::GetIO().KeyShift)
 					grabbedMovedPosition = SnapPositionToGrid(grabbedMovedPosition);
 
-				const auto increment = (grabbedMovedPosition - TargetPositionOrPreset(chart.Targets[grab.GrabbedTargetIndex]));
-				IncrementSelectedTargetPositionsBy(undoManager, chart, increment);
+				const auto increment = (grabbedMovedPosition - Rules::TryGetProperties(chart.Targets[grab.GrabbedTargetIndex]).Position);
+				if (increment != vec2(0.0f))
+					IncrementSelectedTargetPositionsBy(undoManager, chart, increment);
 			}
 		}
 	}
@@ -336,14 +337,14 @@ namespace Comfy::Studio::Editor
 		if (selectedTargetsBuffer.empty())
 			return;
 
-		std::vector<ChangeTargetListProperties::Data> targetData;
+		std::vector<ChangeTargetListPositions::Data> targetData;
 		targetData.reserve(selectedTargetsBuffer.size());
 
 		for (auto* selectedTarget : selectedTargetsBuffer)
 		{
 			auto& data = targetData.emplace_back();
 			data.TargetIndex = GetSelectedTargetIndex(chart, selectedTarget);
-			data.NewValue.Position = glm::round(TargetPositionOrPreset(*selectedTarget) + positionIncrement);
+			data.NewValue.Position = glm::round(Rules::TryGetProperties(*selectedTarget).Position + positionIncrement);
 		}
 
 		undoManager.Execute<ChangeTargetListPositions>(chart, std::move(targetData));
@@ -362,31 +363,31 @@ namespace Comfy::Studio::Editor
 				return (prevPosition + (rowDirection * Rules::TickToDistance(tickDistance)));
 		};
 
-		std::vector<ChangeTargetListProperties::Data> targetData;
+		std::vector<ChangeTargetListPositionsRow::Data> targetData;
 		targetData.resize(selectedTargetsBuffer.size());
 
 		if (backwards)
 		{
 			targetData.back().TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer.back());
-			targetData.back().NewValue.Position = TargetPositionOrPreset(*selectedTargetsBuffer.back());
+			targetData.back().NewValue.Position = Rules::TryGetProperties(*selectedTargetsBuffer.back()).Position;
 
 			for (i32 i = static_cast<i32>(selectedTargetsBuffer.size()) - 2; i >= 0; i--)
 			{
 				const auto tickDistance = (selectedTargetsBuffer[i + 1]->Tick - selectedTargetsBuffer[i]->Tick);
 				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer[i]);
-				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, TargetPositionOrPreset(*selectedTargetsBuffer[i]), tickDistance);
+				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(*selectedTargetsBuffer[i]).Position, tickDistance);
 			}
 		}
 		else
 		{
 			targetData.front().TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer.front());
-			targetData.front().NewValue.Position = TargetPositionOrPreset(*selectedTargetsBuffer.front());
+			targetData.front().NewValue.Position = Rules::TryGetProperties(*selectedTargetsBuffer.front()).Position;
 
 			for (i32 i = 1; i < static_cast<i32>(selectedTargetsBuffer.size()); i++)
 			{
 				const auto tickDistance = (selectedTargetsBuffer[i]->Tick - selectedTargetsBuffer[i - 1]->Tick);
 				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer[i]);
-				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, TargetPositionOrPreset(*selectedTargetsBuffer[i]), tickDistance);
+				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, Rules::TryGetProperties(*selectedTargetsBuffer[i]).Position, tickDistance);
 			}
 		}
 

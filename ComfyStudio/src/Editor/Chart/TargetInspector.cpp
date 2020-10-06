@@ -61,7 +61,7 @@ namespace Comfy::Studio::Editor
 		for (auto& target : chart.Targets)
 		{
 			if (target.IsSelected)
-				selectedTargets.push_back({ &target, target.Flags.HasProperties ? target.Properties : Rules::PresetTargetProperties(target.Type, target.Tick, target.Flags) });
+				selectedTargets.push_back({ &target, Rules::TryGetProperties(target) });
 		}
 
 		GuiPropertyRAII::PropertyValueColumns columns;
