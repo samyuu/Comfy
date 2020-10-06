@@ -31,6 +31,7 @@ namespace Comfy::Studio::Editor
 		void DrawTickDistanceGuides(Chart& chart, ImDrawList& drawList);
 		void DrawRowDirectionGuide(Chart& chart, ImDrawList& drawList);
 
+		void UpdateKeyboardKeyBindingsInput(Chart& chart);
 		void UpdateKeyboardStepInput(Chart& chart);
 		void UpdateMouseGrabInput(Chart& chart);
 		void UpdateMouseRowInput(Chart& chart);
@@ -38,10 +39,14 @@ namespace Comfy::Studio::Editor
 		void IncrementSelectedTargetPositionsBy(Undo::UndoManager& undoManager, Chart& chart, vec2 positionIncrement);
 		void ArrangeSelectedTargetsInRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards);
 
+		void FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, bool horizontal);
+		void InterpolateSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart);
+
 		i32 GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const;
 
 	private:
 		std::vector<TimelineTarget*> selectedTargetsBuffer;
+		size_t lastFrameSelectionCount = 0;
 
 		bool drawDistanceGuides = true;
 

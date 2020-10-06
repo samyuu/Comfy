@@ -21,6 +21,10 @@ namespace Comfy::Studio::Editor
 			std::make_pair(Input::KeyCode_Right, vec2(+1.0f, +0.0f)),
 		};
 
+		constexpr Input::KeyCode FlipHorizontalKeyBinding = Input::KeyCode_H;
+		constexpr Input::KeyCode FlipVerticalKeyBinding = Input::KeyCode_J;
+		constexpr Input::KeyCode InterpolatePositionsKeyBinding = Input::KeyCode_K;
+
 		// NOTE: To both prevent needless visual overload and to not overflow 16bit vertex indices too easily
 		constexpr size_t MaxDistanceGuideCirclesToRender = 64;
 
@@ -54,6 +58,14 @@ namespace Comfy::Studio::Editor
 		{
 			"N", "E", "S", "W", "NE", "SE", "SW", "NW",
 		};
+
+		inline f32 NormalizeAngle(const f32 angle)
+		{
+			auto normalized = glm::mod(angle + 180.0f, 360.0f);
+			if (normalized < 0.0f)
+				normalized += 360.0f;
+			return normalized - 180.0f;
+		}
 
 		constexpr CardinalDirection AngleToNearestCardinal(f32 angle)
 		{
@@ -119,8 +131,15 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::OnContextMenuGUI(Chart& chart)
 	{
-		// TODO: Sub tools, key bindings + menu items for flipping selection horizontall / vertically (?), etc.
-		Gui::MenuItem("Maybe Position Tool sub modes...", nullptr, nullptr, false);
+		// TODO: What about sync placement... need full integration for horziontal/verctical pairs as well as triangle and square formations
+
+		if (Gui::MenuItem("Flip Targets Horizontally", Input::GetKeyCodeName(FlipHorizontalKeyBinding), false, (lastFrameSelectionCount > 0)))
+			FlipSelectedTargets(undoManager, chart, true);
+		if (Gui::MenuItem("Flip Targets Vertically", Input::GetKeyCodeName(FlipVerticalKeyBinding), false, (lastFrameSelectionCount > 0)))
+			FlipSelectedTargets(undoManager, chart, false);
+		if (Gui::MenuItem("Interpolate Positions", Input::GetKeyCodeName(InterpolatePositionsKeyBinding), false, (lastFrameSelectionCount > 0)))
+			InterpolateSelectedTargetPositions(undoManager, chart);
+
 		Gui::Separator();
 	}
 
@@ -147,10 +166,12 @@ namespace Comfy::Studio::Editor
 				selectedTargetsBuffer.push_back(&target);
 		}
 
+		UpdateKeyboardKeyBindingsInput(chart);
 		UpdateKeyboardStepInput(chart);
 		UpdateMouseGrabInput(chart);
 		UpdateMouseRowInput(chart);
 
+		lastFrameSelectionCount = selectedTargetsBuffer.size();
 		selectedTargetsBuffer.clear();
 	}
 
@@ -231,6 +252,21 @@ namespace Comfy::Studio::Editor
 		drawList.AddText(row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f), whiteColor, Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
 	}
 
+	void TargetPositionTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
+	{
+		if (Gui::IsWindowFocused())
+		{
+			if (Gui::IsKeyPressed(FlipHorizontalKeyBinding, false))
+				FlipSelectedTargets(undoManager, chart, true);
+
+			if (Gui::IsKeyPressed(FlipVerticalKeyBinding, false))
+				FlipSelectedTargets(undoManager, chart, false);
+
+			if (Gui::IsKeyPressed(InterpolatePositionsKeyBinding, false))
+				InterpolateSelectedTargetPositions(undoManager, chart);
+		}
+	}
+
 	void TargetPositionTool::UpdateKeyboardStepInput(Chart& chart)
 	{
 		if (selectedTargetsBuffer.empty() || !Gui::IsWindowFocused())
@@ -249,6 +285,15 @@ namespace Comfy::Studio::Editor
 	void TargetPositionTool::UpdateMouseGrabInput(Chart& chart)
 	{
 		// TODO: Not just snap to grid but also be able to snap to other aligned targets (?) similarly to PS
+
+		// TODO: Maybe... if all targets or a sync pair are selected (and "smartPlacement" checkbox is ticked?) auto arrange vertical sync pairs on move (?)
+		//		 then toggle between smart vertical an horizontal mode using tab (indicated by menu item (?))
+		//		 Then similar "smart controls" for setting button path properties, by moving the mouse to either the left or right of the vertical sync pair,
+		//		 or up and down of the horizontal one. hold shift to set "sharp" / longer distances instead (?)
+		// 
+		//		 ~~Alternatively, the **far** easier "solution" would be to have keybindings to arrange sync pairs (?)~~ janky and unintuative
+
+		// TODO: Check box option to distance orbit the selecte targets around each other while mouse dragging, separately from the row placement (?)
 
 		const auto mousePos = Gui::GetMousePos();
 
@@ -414,6 +459,74 @@ namespace Comfy::Studio::Editor
 		}
 
 		undoManager.Execute<ChangeTargetListPositionsRow>(chart, std::move(targetData));
+	}
+
+	void TargetPositionTool::FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, bool horizontal)
+	{
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		auto flipHorizontal = [](vec2 pos) -> vec2 { return vec2(Rules::PlacementAreaSize.x, pos.y) - vec2(pos.x, 0.0f); };
+		auto flipVertical = [](vec2 pos) -> vec2 { return vec2(pos.x, Rules::PlacementAreaSize.y) - vec2(0.0f, pos.y); };
+
+		std::vector<ChangeTargetListProperties::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		{
+			auto& target = chart.Targets[i];
+			if (!target.IsSelected)
+				continue;
+
+			const auto properties = Rules::TryGetProperties(target);
+			auto& data = targetData.emplace_back();
+			data.TargetIndex = i;
+			data.NewValue = properties;
+			data.NewValue.Position = horizontal ? flipHorizontal(properties.Position) : flipVertical(properties.Position);
+			data.NewValue.Angle = (horizontal) ? NormalizeAngle(-data.NewValue.Angle) : NormalizeAngle(data.NewValue.Angle - 180.0f);
+			data.NewValue.Frequency *= -1.0f;
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		if (horizontal)
+			undoManager.Execute<FlipTargetListPropertiesHorizontal>(chart, std::move(targetData));
+		else
+			undoManager.Execute<FlipTargetListPropertiesVertical>(chart, std::move(targetData));
+	}
+
+	void TargetPositionTool::InterpolateSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart)
+	{
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+
+		const auto startPosition = Rules::TryGetProperties(firstTarget).Position;
+		const auto endPosition = Rules::TryGetProperties(lastTarget).Position;
+
+		const auto startTick = firstTarget.Tick.Ticks();
+		const auto endTick = lastTarget.Tick.Ticks();
+
+		std::vector<InterpolateTargetListPositions::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		{
+			auto& target = chart.Targets[i];
+			if (!target.IsSelected)
+				continue;
+
+			const auto ticks = target.Tick.Ticks();
+			auto& data = targetData.emplace_back();
+			data.TargetIndex = i;
+			data.NewValue.Position = (startPosition * static_cast<f32>(endTick - ticks) + endPosition * static_cast<f32>(ticks - startTick)) / static_cast<f32>(endTick - startTick);
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		undoManager.Execute<InterpolateTargetListPositions>(chart, std::move(targetData));
 	}
 
 	i32 TargetPositionTool::GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const
