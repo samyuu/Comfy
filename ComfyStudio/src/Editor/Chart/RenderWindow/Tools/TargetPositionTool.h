@@ -43,6 +43,8 @@ namespace Comfy::Studio::Editor
 	private:
 		std::vector<TimelineTarget*> selectedTargetsBuffer;
 
+		bool drawDistanceGuides = true;
+
 		struct GrabData
 		{
 			i32 GrabbedTargetIndex = -1, HoveredTargetIndex = -1;

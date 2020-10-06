@@ -21,6 +21,9 @@ namespace Comfy::Studio::Editor
 			std::make_pair(Input::KeyCode_Right, vec2(+1.0f, +0.0f)),
 		};
 
+		// NOTE: To both prevent needless visual overload and to not overflow 16bit vertex indices too easily
+		constexpr size_t MaxDistanceGuideCirclesToRender = 64;
+
 		constexpr auto PreciseStepDistance = 1.0f;
 		constexpr auto GridStepDistance = Rules::TickToDistance(TimelineTick::FromBars(1) / 16);
 
@@ -156,30 +159,43 @@ namespace Comfy::Studio::Editor
 		return "Position Tool";
 	}
 
+	namespace
+	{
+		constexpr i32 GetCircleSegmentCount(f32 radius)
+		{
+			// TODO: Dynamic segment count based on size
+			return 64;
+		}
+	}
+
 	void TargetPositionTool::DrawTickDistanceGuides(Chart& chart, ImDrawList& drawList)
 	{
-		const auto zoom = renderWindow.GetCamera().Zoom;
+		if (!drawDistanceGuides)
+			return;
 
-		// TODO: Only draw if selected count < threshold to prevent overflowing 16bit vertex indices
-		// TODO: Correctly handle sync pairs
+		if (std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; }) > MaxDistanceGuideCirclesToRender)
+			return;
 
-		for (size_t i = 0; i < chart.Targets.size(); i++)
+		const auto cameraZoom = renderWindow.GetCamera().Zoom;
+
+		// TODO: Correctly handle sync pairs. For each sync pair (or single), if any target in pair is selected, for each target in previous sync pair (or single) draw distance guide
+		for (size_t i = 1; i < chart.Targets.size(); i++)
 		{
 			const auto& target = chart.Targets[i];
-			const auto* prevTarget = IndexOrNull(i - 1, chart.Targets);
-
-			if (prevTarget == nullptr || !target.IsSelected)
+			if (!target.IsSelected)
 				continue;
 
-			const auto tickDistance = (target.Tick - prevTarget->Tick);
-			const auto distance = target.Flags.IsChain ? Rules::TickToDistanceChain(tickDistance) : Rules::TickToDistance(tickDistance);
+			const auto& prevTarget = chart.Targets[i - 1];
+			const auto tickDistance = (target.Tick - prevTarget.Tick);
 
-			// TODO: Dynamic segment count based on size
-			drawList.AddCircle(
-				renderWindow.TargetAreaToScreenSpace(TargetPositionOrPreset(*prevTarget)),
-				distance * zoom,
-				GetButtonTypeColorU32(prevTarget->Type, 0x84),
-				64);
+			auto radius = (prevTarget.Flags.IsChain && !prevTarget.Flags.IsChainEnd) ? Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistance);
+			if (prevTarget.Flags.IsChainEnd)
+				radius += Rules::ChainFragmentPlacementEndOffsetDistance;
+
+			const auto screenPosition = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(prevTarget).Position);
+			const auto screenRadius = (radius * cameraZoom);
+
+			drawList.AddCircle(screenPosition, screenRadius, GetButtonTypeColorU32(prevTarget.Type, 0x84), GetCircleSegmentCount(screenRadius));
 		}
 	}
 
@@ -232,7 +248,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::UpdateMouseGrabInput(Chart& chart)
 	{
-		// TODO: Moving the first fragment of a chain slide should automatically move all sequential fragments as well (?)
 		// TODO: Not just snap to grid but also be able to snap to other aligned targets (?) similarly to PS
 
 		const auto mousePos = Gui::GetMousePos();
@@ -327,7 +342,8 @@ namespace Comfy::Studio::Editor
 			const bool mouseWasMoved = (Gui::GetIO().MouseDelta.x != 0.0f || Gui::GetIO().MouseDelta.y != 0.0f);
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
-			if (glm::distance(row.Start, row.End) > 3.0f && (selectedTargetsBuffer.size() > 1) && row.Start != row.End && mouseWasMoved)
+			constexpr auto distanceThreshold = 9.0f;
+			if (glm::distance(row.Start, row.End) > distanceThreshold && (selectedTargetsBuffer.size() > 1) && row.Start != row.End && mouseWasMoved)
 				ArrangeSelectedTargetsInRow(undoManager, chart, rowDirection, IsIntercardinal(cardinal), row.Backwards);
 		}
 	}
@@ -355,12 +371,12 @@ namespace Comfy::Studio::Editor
 		if (selectedTargetsBuffer.size() < 2)
 			return;
 
-		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, TimelineTick tickDistance) -> vec2
+		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, TimelineTick tickDistance, bool chain, bool chainEnd) -> vec2
 		{
-			if (useStairDistance)
-				return (prevPosition + (rowDirection * Rules::TickToDistanceStair(tickDistance)));
-			else
-				return (prevPosition + (rowDirection * Rules::TickToDistance(tickDistance)));
+			auto distance = (chain && !chainEnd) ? Rules::ChainFragmentPlacementDistance : useStairDistance ? Rules::TickToDistanceStair(tickDistance) : Rules::TickToDistance(tickDistance);
+			if (chainEnd)
+				distance += Rules::ChainFragmentPlacementEndOffsetDistance;
+			return prevPosition + (rowDirection * distance);
 		};
 
 		std::vector<ChangeTargetListPositionsRow::Data> targetData;
@@ -373,9 +389,12 @@ namespace Comfy::Studio::Editor
 
 			for (i32 i = static_cast<i32>(selectedTargetsBuffer.size()) - 2; i >= 0; i--)
 			{
-				const auto tickDistance = (selectedTargetsBuffer[i + 1]->Tick - selectedTargetsBuffer[i]->Tick);
-				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer[i]);
-				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(*selectedTargetsBuffer[i]).Position, tickDistance);
+				const auto& thisTarget = *selectedTargetsBuffer[i];
+				const auto& prevTarget = *selectedTargetsBuffer[i + 1];
+				const auto tickDistance = (prevTarget.Tick - thisTarget.Tick);
+
+				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, &thisTarget);
+				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, prevTarget.Flags.IsChain, prevTarget.Flags.IsChainEnd);
 			}
 		}
 		else
@@ -385,9 +404,12 @@ namespace Comfy::Studio::Editor
 
 			for (i32 i = 1; i < static_cast<i32>(selectedTargetsBuffer.size()); i++)
 			{
-				const auto tickDistance = (selectedTargetsBuffer[i]->Tick - selectedTargetsBuffer[i - 1]->Tick);
-				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer[i]);
-				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, Rules::TryGetProperties(*selectedTargetsBuffer[i]).Position, tickDistance);
+				const auto& thisTarget = *selectedTargetsBuffer[i];
+				const auto& prevTarget = *selectedTargetsBuffer[i - 1];
+				const auto tickDistance = (thisTarget.Tick - prevTarget.Tick);
+
+				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, &thisTarget);
+				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, prevTarget.Flags.IsChain, prevTarget.Flags.IsChainEnd);
 			}
 		}
 
