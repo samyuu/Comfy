@@ -1483,7 +1483,14 @@ namespace Comfy::Studio::Editor
 
 		if (!pasteTargets.empty())
 		{
-			PlaySingleTargetButtonSoundAndAnimation(pasteTargets.front());
+			for (size_t i = 0; i < pasteTargets.size(); i++)
+			{
+				if (const auto& t = pasteTargets[i]; t.Tick == pasteTargets[0].Tick)
+					PlaySingleTargetButtonSoundAndAnimation(t);
+				else
+					break;
+			}
+
 			undoManager.Execute<PasteTargetList>(*workingChart, std::move(pasteTargets));
 		}
 	}
