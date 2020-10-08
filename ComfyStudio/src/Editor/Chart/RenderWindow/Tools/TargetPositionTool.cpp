@@ -59,33 +59,33 @@ namespace Comfy::Studio::Editor
 			"N", "E", "S", "W", "NE", "SE", "SW", "NW",
 		};
 
-		inline f32 NormalizeAngle(const f32 angle)
+		inline f32 NormalizeAngle(const f32 degrees)
 		{
-			auto normalized = glm::mod(angle + 180.0f, 360.0f);
+			auto normalized = glm::mod(degrees + 180.0f, 360.0f);
 			if (normalized < 0.0f)
 				normalized += 360.0f;
 			return normalized - 180.0f;
 		}
 
-		constexpr CardinalDirection AngleToNearestCardinal(f32 angle)
+		constexpr CardinalDirection AngleToNearestCardinal(f32 degrees)
 		{
 			// TODO: Cleanup
 			constexpr auto step = (360.0f / 8.0f) / 2.0f;
 
-			if (angle >= -67.5 && angle <= -22.5f)
+			if (degrees >= -67.5 && degrees <= -22.5f)
 				return CardinalDirection::NorthEast;
-			if (angle >= +22.5f && angle <= +67.5)
+			if (degrees >= +22.5f && degrees <= +67.5)
 				return CardinalDirection::SouthEast;
-			if (angle >= +112.5f && angle <= +157.5f)
+			if (degrees >= +112.5f && degrees <= +157.5f)
 				return CardinalDirection::SouthWest;
-			if (angle >= -157.5f && angle <= -112.5f)
+			if (degrees >= -157.5f && degrees <= -112.5f)
 				return CardinalDirection::NorthWest;
 
-			if (angle >= -35.0f && angle <= +35.0f)
+			if (degrees >= -35.0f && degrees <= +35.0f)
 				return CardinalDirection::East;
-			if (angle >= -135.0f && angle <= +35.0f)
+			if (degrees >= -135.0f && degrees <= +35.0f)
 				return CardinalDirection::North;
-			if ((angle >= -180.0f && angle <= -135.0f) || (angle <= 180.0f && angle >= 135.0f))
+			if ((degrees >= -180.0f && degrees <= -135.0f) || (degrees <= 180.0f && degrees >= 135.0f))
 				return CardinalDirection::West;
 			return CardinalDirection::South;
 		}
@@ -405,7 +405,7 @@ namespace Comfy::Studio::Editor
 		{
 			auto& data = targetData.emplace_back();
 			data.TargetIndex = GetSelectedTargetIndex(chart, selectedTarget);
-			data.NewValue.Position = glm::round(Rules::TryGetProperties(*selectedTarget).Position + positionIncrement);
+			data.NewValue.Position = (Rules::TryGetProperties(*selectedTarget).Position + positionIncrement);
 		}
 
 		undoManager.Execute<ChangeTargetListPositions>(chart, std::move(targetData));
@@ -416,12 +416,27 @@ namespace Comfy::Studio::Editor
 		if (selectedTargetsBuffer.size() < 2)
 			return;
 
+		const auto rowAngle = glm::degrees(glm::atan(rowDirection.y, rowDirection.x));
+		const auto rowCardinal = AngleToNearestCardinal(rowAngle);
+
+		const auto horizontalCardinal =
+			(rowCardinal == CardinalDirection::NorthWest || rowCardinal == CardinalDirection::SouthWest) ? CardinalDirection::West :
+			(rowCardinal == CardinalDirection::NorthEast || rowCardinal == CardinalDirection::SouthEast) ? CardinalDirection::East :
+			rowCardinal;
+
+		const auto horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal);
+
 		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, TimelineTick tickDistance, bool chain, bool chainEnd) -> vec2
 		{
-			auto distance = (chain && !chainEnd) ? Rules::ChainFragmentPlacementDistance : useStairDistance ? Rules::TickToDistanceStair(tickDistance) : Rules::TickToDistance(tickDistance);
+			auto distance = (chain && !chainEnd) ? Rules::ChainFragmentPlacementDistance :
+				(useStairDistance && !chainEnd) ? Rules::TickToDistanceStair(tickDistance) : Rules::TickToDistance(tickDistance);
+
 			if (chainEnd)
 				distance += Rules::ChainFragmentPlacementEndOffsetDistance;
-			return prevPosition + (rowDirection * distance);
+
+			// NOTE: Targets following one after the end of a chain need to be horizontal to avoid decimal fractions.
+			//		 If a stair like pattern is desired then the corret placement would be to vertically offset the height only
+			return prevPosition + ((chain ? horizontalDirection : rowDirection) * distance);
 		};
 
 		std::vector<ChangeTargetListPositionsRow::Data> targetData;
@@ -435,11 +450,11 @@ namespace Comfy::Studio::Editor
 			for (i32 i = static_cast<i32>(selectedTargetsBuffer.size()) - 2; i >= 0; i--)
 			{
 				const auto& thisTarget = *selectedTargetsBuffer[i];
-				const auto& prevTarget = *selectedTargetsBuffer[i + 1];
-				const auto tickDistance = (prevTarget.Tick - thisTarget.Tick);
+				const auto& nextTarget = *selectedTargetsBuffer[i + 1];
+				const auto tickDistance = (nextTarget.Tick - thisTarget.Tick);
 
 				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, &thisTarget);
-				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, prevTarget.Flags.IsChain, prevTarget.Flags.IsChainEnd);
+				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, thisTarget.Flags.IsChain, thisTarget.Flags.IsChainEnd);
 			}
 		}
 		else
