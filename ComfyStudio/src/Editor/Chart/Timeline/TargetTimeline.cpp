@@ -24,6 +24,11 @@ namespace Comfy::Studio::Editor
 		return TimelineTick::FromBars(1) / activeBarGridDivision;
 	}
 
+	TimelineTick TargetTimeline::ChainSlideDivisionTick() const
+	{
+		return TimelineTick::FromBars(1) / activeBarChainSlideDivision;
+	}
+
 	TimelineTick TargetTimeline::FloorTickToGrid(TimelineTick tick) const
 	{
 		const auto gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
@@ -1244,6 +1249,21 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
+			if (Gui::BeginMenu("Chain Slide Division"))
+			{
+				for (const auto barDivision : presetBarChainSlideDivisions)
+				{
+					char nameBuffer[32];
+					sprintf_s(nameBuffer, "Set 1 / %d", barDivision);
+
+					bool alreadySelected = (activeBarChainSlideDivision == barDivision);;
+					if (Gui::MenuItem(nameBuffer, nullptr, &alreadySelected, !alreadySelected))
+						activeBarChainSlideDivision = barDivision;
+				}
+
+				Gui::EndMenu();
+			}
+
 			// TODO: Maybe move metronome settings to the timeline info column header (?)
 			if (Gui::BeginMenu("Metronome"))
 			{
@@ -1503,15 +1523,15 @@ namespace Comfy::Studio::Editor
 		// TODO: Come up with better chain placement controls, maybe shift + direction to place chain start, move cursor then press again to "confirm" end placement (?)
 		const bool placeChain = IsSlideButtonType(type);
 
-		const auto gridDivisionTick = placeChain ? (TimelineTick::FromBars(1) / 32) : GridDivisionTick();
-		const auto targetCount = ((endTick - startTick).Ticks() / gridDivisionTick.Ticks()) + 1;
+		const auto divisionTick = placeChain ? ChainSlideDivisionTick() : GridDivisionTick();
+		const auto targetCount = ((endTick - startTick).Ticks() / divisionTick.Ticks()) + 1;
 
 		std::vector<TimelineTarget> targets;
 		targets.reserve(targetCount);
 
 		for (i32 i = 0; i < targetCount; i++)
 		{
-			const auto tick = TimelineTick(startTick.Ticks() + (i * gridDivisionTick.Ticks()));
+			const auto tick = TimelineTick(startTick.Ticks() + (i * divisionTick.Ticks()));
 			if (workingChart->Targets.FindIndex(tick, type) <= -1)
 			{
 				auto& target = targets.emplace_back(tick, type);

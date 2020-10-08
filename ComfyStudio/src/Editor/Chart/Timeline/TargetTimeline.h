@@ -35,6 +35,8 @@ namespace Comfy::Studio::Editor
 
 	public:
 		TimelineTick GridDivisionTick() const;
+		TimelineTick ChainSlideDivisionTick() const;
+
 		TimelineTick FloorTickToGrid(TimelineTick tick) const;
 		TimelineTick RoundTickToGrid(TimelineTick tick) const;
 
@@ -197,7 +199,10 @@ namespace Comfy::Studio::Editor
 
 	private:
 		static constexpr std::array<i32, 10> presetBarGridDivisions = { 4, 8, 12, 16, 24, 32, 48, 64, 96, 192 };
-		int activeBarGridDivision = 16;
+		static constexpr std::array<i32, 6> presetBarChainSlideDivisions = { 12, 16, 24, 32, 48, 64 };
+
+		i32 activeBarGridDivision = 16;
+		i32 activeBarChainSlideDivision = 32;
 
 	private:
 		const f32 iconScale = 1.0f;
@@ -217,7 +222,7 @@ namespace Comfy::Studio::Editor
 		{
 			TimelineTick TickOnPress;
 			TimelineTick LastFrameMouseTick, ThisFrameMouseTick;
-			
+
 			TimelineTick TicksMovedSoFar;
 			f32 VerticalDistanceMovedSoFar;
 
