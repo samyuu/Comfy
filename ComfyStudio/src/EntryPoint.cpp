@@ -1,4 +1,21 @@
-﻿#include "Core/Application.h"
+﻿#define COMFY_RUN_MAIN_TEST 0
+
+#if (COMFY_DEBUG)
+#define COMFY_USE_WIN_MAIN 0
+#else
+#define COMFY_USE_WIN_MAIN 1
+#endif /* COMFY_DEBUG */
+
+#if (COMFY_RUN_MAIN_TEST)
+#include "MainTest.cpp"
+
+int main(int argc, const char* argv[])
+{
+	return MainTest();
+}
+#else
+
+#include "Core/Application.h"
 #include "System/CommandLine/CommandLine.h"
 #include "IO/Path.h"
 #include "IO/Directory.h"
@@ -56,23 +73,6 @@ namespace Comfy::Studio
 		return EXIT_SUCCESS;
 	}
 }
-
-#define COMFY_RUN_MAIN_TEST 0
-
-#if (COMFY_DEBUG)
-#define COMFY_USE_WIN_MAIN 0
-#else
-#define COMFY_USE_WIN_MAIN 1
-#endif /* COMFY_DEBUG */
-
-#if (COMFY_RUN_MAIN_TEST)
-#include "MainTest.cpp"
-
-int main(int argc, const char* argv[])
-{
-	return MainTest();
-}
-#else
 
 #if (COMFY_USE_WIN_MAIN)
 int WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand)
