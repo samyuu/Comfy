@@ -1,11 +1,13 @@
 #include "AudioEngine.h"
 #include "SampleMix.h"
+#include "Backend/IAudioBackend.h"
+#include "Backend/RtAudioBackend.h"
+#include "Backend/WASAPIBackend.h"
 #include "Audio/Decoder/DecoderFactory.h"
 #include "Audio/Decoder/Detail/Decoders.h"
 #include "Core/Logger.h"
 #include "Time/Stopwatch.h"
 #include "IO/File.h"
-#include <RtAudio.h>
 #include <mutex>
 
 namespace Comfy::Audio
@@ -29,15 +31,26 @@ namespace Comfy::Audio
 			std::copy(stringToCopy.data(), stringToCopy.data() + copyLength, outputBuffer);
 			outputBuffer[copyLength] = '\0';
 		}
+
+		std::unique_ptr<IAudioBackend> CreateBackendInterface(AudioBackend backend)
+		{
+			switch (backend)
+			{
+			case AudioBackend::RtAudioASIO:
+				return std::make_unique<RtAudioBackend>(RtAudio::WINDOWS_ASIO);
+			case AudioBackend::RtAudioWASAPI:
+				return std::make_unique<RtAudioBackend>(RtAudio::WINDOWS_WASAPI);
+			case AudioBackend::WASAPIShared:
+			case AudioBackend::WASAPIExclusive:
+				return std::make_unique<WASAPIBackend>();
+			}
+
+			assert(false);
+			return nullptr;
+		}
 	}
 
 	std::unique_ptr<AudioEngine> EngineInstance = nullptr;
-
-	enum class CallbackResult
-	{
-		Continue = 0,
-		Stop = 1,
-	};
 
 	using VoiceFlags = u16;
 	enum VoiceFlagsEnum : VoiceFlags
@@ -79,18 +92,21 @@ namespace Comfy::Audio
 	struct AudioEngine::Impl
 	{
 	public:
-		bool IsStreamOpen = false, IsStreamRunning = false;
+		bool IsStreamOpenRunning = false;
 		f32 MasterVolume = AudioEngine::MaxVolume;
 
 	public:
-		AudioAPI CurrentAPI = AudioAPI::Invalid;
-		ChannelMixer ActiveChannelMixer;
+		ChannelMixer CurrentChannelMixer = {};
+
+		AudioBackend CurrentBackendType = AudioBackend::Invalid;
+		std::unique_ptr<IAudioBackend> CurrentBackend = nullptr;
+		// TODO: Fallback backend interface
 
 	public:
 		std::mutex CallbackMutex;
 
 		// NOTE: Indexed into by VoiceHandle, nullptr = free space
-		std::array<VoiceData, MaxSimultaneousVoices> ActiveVoices;
+		std::array<VoiceData, MaxSimultaneousVoices> VoicePool;
 
 		// NOTE: Indexed into by SourceHandle, nullptr = free space
 		std::vector<std::shared_ptr<ISampleProvider>> LoadedSources;
@@ -133,33 +149,9 @@ namespace Comfy::Audio
 		} DebugCapture;
 
 	public:
-		struct RtAudioData
-		{
-			std::unique_ptr<RtAudio> Context = nullptr;
-			RtAudio::StreamParameters OutputParameters = {};
-			RtAudio::StreamParameters* InputParameters = nullptr;
-
-			RtAudio::Api GetRtAudioAPI(AudioAPI inputAPI)
-			{
-				switch (inputAPI)
-				{
-				case AudioAPI::ASIO:
-					return RtAudio::WINDOWS_ASIO;
-				case AudioAPI::WASAPI:
-					return RtAudio::WINDOWS_WASAPI;
-				default:
-					assert(false);
-				case AudioAPI::Invalid:
-					return RtAudio::UNSPECIFIED;
-				}
-			}
-
-		} RtAudio;
-
-	public:
 		VoiceData* GetVoiceData(VoiceHandle handle)
 		{
-			auto voice = IndexOrNull(static_cast<HandleBaseType>(handle), ActiveVoices);
+			auto voice = IndexOrNull(static_cast<HandleBaseType>(handle), VoicePool);
 			return (voice != nullptr && (voice->Flags & VoiceFlags_Alive)) ? voice : nullptr;
 		}
 
@@ -210,7 +202,7 @@ namespace Comfy::Audio
 			// NOTE: 2 channels * 64 frames * sizeof(i16) -> 256 bytes inside the outputBuffer
 			//		 64 samples for each ear
 
-			for (auto& voiceData : ActiveVoices)
+			for (auto& voiceData : VoicePool)
 			{
 				if (!(voiceData.Flags & VoiceFlags_Alive))
 					continue;
@@ -245,7 +237,7 @@ namespace Comfy::Audio
 
 				i64 framesRead = 0;
 				if (sampleProvider->GetChannelCount() != OutputChannelCount)
-					framesRead = ActiveChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
+					framesRead = CurrentChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
 				else
 					framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
 				voiceData.FramePosition += framesRead;
@@ -302,14 +294,15 @@ namespace Comfy::Audio
 				CallbackDurationRingIndex = 0;
 		}
 
-		CallbackResult AudioCallback(i16* outputBuffer, u32 bufferFrameCount, TimeSpan streamTime)
+		void RenderAudioCallback(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferChannelCount)
 		{
 			auto stopwatch = Stopwatch::StartNew();;
 
 			const auto bufferSampleCount = (bufferFrameCount * OutputChannelCount);
 			CurrentBufferFrameSize = bufferFrameCount;
 
-			CallbackStreamTime = streamTime;
+			// TODO: Manual stopwatch
+			CallbackStreamTime = /*streamTime*/TimeSpan::Zero();
 			CallbackFrequency = (CallbackStreamTime - LastCallbackStreamTime);
 			LastCallbackStreamTime = CallbackStreamTime;
 
@@ -320,23 +313,15 @@ namespace Comfy::Audio
 			CallbackDebugRecordOutput(outputBuffer, bufferSampleCount);
 			CallbackUpdateLastPlayedSamplesRingBuffer(outputBuffer, bufferFrameCount);
 			CallbackUpdateCallbackDurationRingBuffer(stopwatch.Stop());
-
-			return CallbackResult::Continue;
-		}
-
-		static int StaticAudioCallback(void* outputBuffer, void*, u32 bufferFrames, double streamTime, RtAudioStreamStatus, void* userData)
-		{
-			auto implInstance = static_cast<AudioEngine*>(userData)->impl.get();
-			return static_cast<int>(implInstance->AudioCallback(static_cast<i16*>(outputBuffer), bufferFrames, TimeSpan::FromSeconds(streamTime)));
 		}
 	};
 
 	AudioEngine::AudioEngine() : impl(std::make_unique<Impl>())
 	{
-		SetAudioAPI(AudioAPI::Default);
+		SetAudioBackend(AudioBackend::Default);
 
-		impl->ActiveChannelMixer.SetTargetChannels(OutputChannelCount);
-		impl->ActiveChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Combine);
+		impl->CurrentChannelMixer.SetTargetChannels(OutputChannelCount);
+		impl->CurrentChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Combine);
 
 		constexpr size_t reasonableInitialSourceCapacity = 64;
 		impl->LoadedSources.reserve(reasonableInitialSourceCapacity);
@@ -347,8 +332,7 @@ namespace Comfy::Audio
 
 	AudioEngine::~AudioEngine()
 	{
-		if (impl->IsStreamOpen)
-			StopStream();
+		StopCloseStream();
 	}
 
 	void AudioEngine::CreateInstance()
@@ -372,77 +356,46 @@ namespace Comfy::Audio
 		return *EngineInstance;
 	}
 
-	void AudioEngine::OpenStream()
+	void AudioEngine::OpenStartStream()
 	{
-		if (impl->IsStreamOpen)
+		if (impl->IsStreamOpenRunning)
 			return;
 
-		// TODO: Store user preference via string name
-		const auto deviceID = impl->RtAudio.Context->getDefaultOutputDevice();
+		StreamParameters streamParam = {};
+		streamParam.SampleRate = OutputSampleRate;
+		streamParam.ChannelCount = OutputChannelCount;
+		streamParam.DesiredFrameCount = impl->CurrentBufferFrameSize;
+		streamParam.Mode = (impl->CurrentBackendType == AudioBackend::WASAPIExclusive) ? StreamShareMode::Exclusive : StreamShareMode::Shared;
 
-		impl->RtAudio.OutputParameters.deviceId = deviceID;
-		impl->RtAudio.OutputParameters.nChannels = OutputChannelCount;
-		impl->RtAudio.OutputParameters.firstChannel = 0;
+		if (impl->CurrentBackend == nullptr)
+			impl->CurrentBackend = CreateBackendInterface(impl->CurrentBackendType);
 
-		RtAudio::StreamParameters* inputParameters = nullptr;
+		if (impl->CurrentBackend == nullptr)
+			return;
 
-		auto format = RTAUDIO_SINT16;
-		auto sampleRate = OutputSampleRate;
-		auto bufferFrames = impl->CurrentBufferFrameSize;
-		void* userData = this;
-
-#if 0
-		try
+		const bool openStreamSuccess = impl->CurrentBackend->OpenStartStream(streamParam, [this](i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferChannelCount)
 		{
-			impl->RtAudio.Context->openStream(&impl->RtAudio.OutputParameters, impl->RtAudio.InputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
-			impl->IsStreamOpen = true;
-		}
-		catch (const RtAudioError& exception)
-		{
-			Logger::LogErrorLine(__FUNCTION__"(): Failed: %s", exception.getMessage().c_str());
-			return;
-		}
-#else
-		impl->RtAudio.Context->openStream(&impl->RtAudio.OutputParameters, impl->RtAudio.InputParameters, format, sampleRate, &bufferFrames, &Impl::StaticAudioCallback, userData);
-		impl->IsStreamOpen = true;
-#endif
+			impl->RenderAudioCallback(outputBuffer, bufferFrameCount, bufferChannelCount);
+		});
+
+		impl->IsStreamOpenRunning = openStreamSuccess;
 	}
 
-	void AudioEngine::CloseStream()
+	void AudioEngine::StopCloseStream()
 	{
-		if (!impl->IsStreamOpen)
+		if (!impl->IsStreamOpenRunning)
 			return;
 
-		impl->IsStreamOpen = false;
-		impl->IsStreamRunning = false;
-		impl->RtAudio.Context->closeStream();
-	}
+		if (impl->CurrentBackend != nullptr)
+			impl->CurrentBackend->StopCloseStream();
 
-	void AudioEngine::StartStream()
-	{
-		if (!impl->IsStreamOpen || impl->IsStreamRunning)
-			return;
-
-		impl->IsStreamRunning = true;
-		impl->RtAudio.Context->startStream();
-	}
-
-	void AudioEngine::StopStream()
-	{
-		if (!impl->IsStreamOpen || !impl->IsStreamRunning)
-			return;
-
-		impl->IsStreamRunning = false;
-		impl->RtAudio.Context->stopStream();
+		impl->IsStreamOpenRunning = false;
 	}
 
 	void AudioEngine::EnsureStreamRunning()
 	{
-		if (!GetIsStreamOpen())
-			OpenStream();
-
-		if (!GetIsStreamRunning())
-			StartStream();
+		if (!GetIsStreamOpenRunning())
+			OpenStartStream();
 	}
 
 	std::future<SourceHandle> AudioEngine::LoadAudioSourceAsync(std::string_view filePath)
@@ -498,7 +451,7 @@ namespace Comfy::Audio
 
 		*sourcePtr = nullptr;
 
-		for (auto& voice : impl->ActiveVoices)
+		for (auto& voice : impl->VoicePool)
 		{
 			if ((voice.Flags & VoiceFlags_Alive) && voice.Source == source)
 				voice.Source = SourceHandle::Invalid;
@@ -509,9 +462,9 @@ namespace Comfy::Audio
 	{
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
-		for (size_t i = 0; i < impl->ActiveVoices.size(); i++)
+		for (size_t i = 0; i < impl->VoicePool.size(); i++)
 		{
-			auto& voiceToUpdate = impl->ActiveVoices[i];
+			auto& voiceToUpdate = impl->VoicePool[i];
 			if (voiceToUpdate.Flags & VoiceFlags_Alive)
 				continue;
 
@@ -539,7 +492,7 @@ namespace Comfy::Audio
 		// TODO: Think these locks through again
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
-		if (auto voicePtr = IndexOrNull(static_cast<HandleBaseType>(voice), impl->ActiveVoices); voicePtr != nullptr)
+		if (auto voicePtr = IndexOrNull(static_cast<HandleBaseType>(voice), impl->VoicePool); voicePtr != nullptr)
 			voicePtr->Flags = VoiceFlags_Dead;
 	}
 
@@ -547,7 +500,7 @@ namespace Comfy::Audio
 	{
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
-		for (auto& voiceToUpdate : impl->ActiveVoices)
+		for (auto& voiceToUpdate : impl->VoicePool)
 		{
 			if (voiceToUpdate.Flags & VoiceFlags_Alive)
 				continue;
@@ -566,39 +519,47 @@ namespace Comfy::Audio
 		return impl->GetSharedSource(handle);
 	}
 
-	AudioEngine::AudioAPI AudioEngine::GetAudioAPI() const
+	AudioBackend AudioEngine::GetAudioBackend() const
 	{
-		return impl->CurrentAPI;
+		return impl->CurrentBackendType;
 	}
 
-	void AudioEngine::SetAudioAPI(AudioAPI value)
+	void AudioEngine::SetAudioBackend(AudioBackend value)
 	{
-		impl->CurrentAPI = value;
-		const bool wasStreamRunning = (impl->IsStreamOpen && impl->IsStreamRunning);
+		if (value == impl->CurrentBackendType)
+			return;
 
-		if (impl->IsStreamRunning)
-			StopStream();
-
-		if (impl->IsStreamOpen)
-			CloseStream();
-
-		impl->RtAudio.Context = std::make_unique<RtAudio>(impl->RtAudio.GetRtAudioAPI(value));
-
-		if (wasStreamRunning)
+		impl->CurrentBackendType = value;
+		if (impl->IsStreamOpenRunning)
 		{
-			OpenStream();
-			StartStream();
+			StopCloseStream();
+			impl->CurrentBackend = CreateBackendInterface(value);
+			OpenStartStream();
+		}
+		else
+		{
+			impl->CurrentBackend = CreateBackendInterface(value);
 		}
 	}
 
-	bool AudioEngine::GetIsStreamOpen() const
+	bool AudioEngine::GetIsStreamOpenRunning() const
 	{
-		return impl->IsStreamOpen;
+		return impl->IsStreamOpenRunning;
 	}
 
-	bool AudioEngine::GetIsStreamRunning() const
+	bool AudioEngine::GetAllVoicesAreIdle() const
 	{
-		return impl->IsStreamRunning;
+		if (!impl->IsStreamOpenRunning)
+			return true;
+
+		for (size_t i = 0; i < impl->VoicePool.size(); i++)
+		{
+			const auto& voice = impl->VoicePool[i];
+			if ((voice.Flags & VoiceFlags_Alive) && (voice.Flags & VoiceFlags_Playing))
+				return false;
+		}
+
+		return true;
 	}
 
 	f32 AudioEngine::GetMasterVolume() const
@@ -635,36 +596,11 @@ namespace Comfy::Audio
 
 		impl->CurrentBufferFrameSize = bufferFrameCount;
 
-		const bool wasStreamOpen = impl->IsStreamOpen;
-		const bool wasStreamRunning = impl->IsStreamRunning;
-
-		if (wasStreamOpen)
+		if (GetIsStreamOpenRunning())
 		{
-			CloseStream();
-			OpenStream();
+			StopCloseStream();
+			OpenStartStream();
 		}
-
-		if (wasStreamRunning && GetIsStreamOpen())
-			StartStream();
-	}
-
-	TimeSpan AudioEngine::GetStreamTime() const
-	{
-		return impl->CallbackStreamTime;
-	}
-
-	void AudioEngine::SetStreamTime(TimeSpan value)
-	{
-		if (impl->IsStreamOpen)
-		{
-			impl->RtAudio.Context->setStreamTime(value.TotalSeconds());
-			impl->CallbackStreamTime = value;
-		}
-	}
-
-	bool AudioEngine::GetIsExclusiveMode() const
-	{
-		return impl->CurrentAPI == AudioAPI::ASIO;
 	}
 
 	TimeSpan AudioEngine::GetCallbackFrequency() const
@@ -674,12 +610,12 @@ namespace Comfy::Audio
 
 	ChannelMixer& AudioEngine::GetChannelMixer()
 	{
-		return impl->ActiveChannelMixer;
+		return impl->CurrentChannelMixer;
 	}
 
 	void AudioEngine::DebugShowControlPanel() const
 	{
-		if (impl->CurrentAPI != AudioAPI::ASIO)
+		if (impl->CurrentBackendType != AudioBackend::RtAudioASIO)
 			return;
 
 		// NOTE: Defined in <rtaudio/asio.cpp>
@@ -693,9 +629,9 @@ namespace Comfy::Audio
 		assert(outputVoices != nullptr && outputVoiceCount != nullptr);
 		size_t voiceCount = 0;
 
-		for (size_t i = 0; i < impl->ActiveVoices.size(); i++)
+		for (size_t i = 0; i < impl->VoicePool.size(); i++)
 		{
-			const auto& voice = impl->ActiveVoices[i];
+			const auto& voice = impl->VoicePool[i];
 
 			if (voice.Flags & VoiceFlags_Alive)
 				outputVoices[voiceCount++] = static_cast<VoiceHandle>(i);

@@ -81,6 +81,17 @@ namespace Comfy::Audio
 	{
 	};
 
+	enum class AudioBackend : u32
+	{
+		Invalid,
+		RtAudioASIO,
+		RtAudioWASAPI,
+		WASAPIShared,
+		WASAPIExclusive,
+		Count,
+		Default = WASAPIShared,
+	};
+
 	class AudioEngine : NonCopyable
 	{
 		friend Voice;
@@ -88,7 +99,7 @@ namespace Comfy::Audio
 
 	public:
 		static constexpr f32 MinVolume = 0.0f, MaxVolume = 1.0f;
-		static constexpr size_t MaxSimultaneousVoices = 80;
+		static constexpr size_t MaxSimultaneousVoices = 88;
 
 		static constexpr u32 OutputChannelCount = 2;
 		static constexpr u32 OutputSampleRate = 44100;
@@ -102,14 +113,6 @@ namespace Comfy::Audio
 		static constexpr size_t CallbackDurationRingBufferSize = 64;
 		static constexpr size_t LastPlayedSamplesRingBufferFrameCount = MaxBufferSampleCount;
 
-		enum class AudioAPI : u32
-		{
-			Invalid,
-			ASIO,
-			WASAPI,
-			Default = WASAPI,
-		};
-
 	public:
 		AudioEngine();
 		~AudioEngine();
@@ -122,11 +125,8 @@ namespace Comfy::Audio
 		static AudioEngine& GetInstance();
 
 	public:
-		void OpenStream();
-		void CloseStream();
-
-		void StartStream();
-		void StopStream();
+		void OpenStartStream();
+		void StopCloseStream();
 
 		// NOTE: Little helper to easily delay opening and starting of the stream until it's necessary
 		void EnsureStreamRunning();
@@ -145,14 +145,14 @@ namespace Comfy::Audio
 		// NOTE: Add a voice, play it once then discard
 		void PlaySound(SourceHandle source, std::string_view name, f32 volume = MaxVolume);
 
-		std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle);
+		COMFY_NODISCARD std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle);
 
 	public:
-		AudioAPI GetAudioAPI() const;
-		void SetAudioAPI(AudioAPI value);
+		AudioBackend GetAudioBackend() const;
+		void SetAudioBackend(AudioBackend value);
 
-		bool GetIsStreamOpen() const;
-		bool GetIsStreamRunning() const;
+		bool GetIsStreamOpenRunning() const;
+		bool GetAllVoicesAreIdle() const;
 
 		f32 GetMasterVolume() const;
 		void SetMasterVolume(f32 value);
@@ -163,10 +163,6 @@ namespace Comfy::Audio
 		u32 GetBufferFrameSize() const;
 		void SetBufferFrameSize(u32 bufferFrameSize);
 
-		TimeSpan GetStreamTime() const;
-		void SetStreamTime(TimeSpan value);
-
-		bool GetIsExclusiveMode() const;
 		TimeSpan GetCallbackFrequency() const;
 
 		ChannelMixer& GetChannelMixer();

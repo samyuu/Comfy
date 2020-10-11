@@ -183,7 +183,7 @@ namespace Comfy
 			Input::DualShock4::DeleteInstance();
 
 			if (Audio::AudioEngine::InstanceValid())
-				Audio::AudioEngine::GetInstance().StopStream();
+				Audio::AudioEngine::GetInstance().StopCloseStream();
 			Audio::AudioEngine::DeleteInstance();
 
 			Render::D3D11::D3D.Dispose();
