@@ -55,6 +55,9 @@ namespace Comfy
 			bool Focused = true, LastFocused = false;
 			bool FocusLostThisFrame = false, FocusGainedThisFrame = false;
 
+			bool AnyFocused = true, AnyLastFocused = false;
+			bool AllFocusLostThisFrame = false, AnyFocusGainedThisFrame = false;
+
 			vec4 ClearColor = vec4(0.16f, 0.16f, 0.16f, 0.0f);
 
 		} Window;
@@ -154,7 +157,7 @@ namespace Comfy
 				UserUpdateTick();
 				System::Profiler::Get().EndFrame();
 
-				Timing.MainLoopLowPowerSleep = (!Window.Focused && !GuiRenderer.IsAnyViewportFocused());
+				Timing.MainLoopLowPowerSleep = !Window.AnyFocused;
 				if (Timing.MainLoopLowPowerSleep)
 				{
 					// NOTE: Arbitrary sleep to drastically reduce power usage. This could really use a better solution for final release builds
@@ -417,12 +420,19 @@ namespace Comfy
 			FileDrop.FilesLastDropped = FileDrop.FilesDropped;
 			FileDrop.FilesDropped = false;
 
+			Window.AnyFocused = (Window.Focused || GuiRenderer.IsAnyViewportFocused());
+
 			if (Timing.ElapsedFrames > 2)
 			{
 				Window.FocusLostThisFrame = Window.LastFocused && !Window.Focused;
 				Window.FocusGainedThisFrame = !Window.LastFocused && Window.Focused;
+
+				Window.AllFocusLostThisFrame = Window.AnyLastFocused && !Window.AnyFocused;
+				Window.AnyFocusGainedThisFrame = !Window.AnyLastFocused && Window.AnyFocused;
 			}
+
 			Window.LastFocused = Window.Focused;
+			Window.AnyLastFocused = Window.AnyFocused;
 		}
 
 		void GuiMainDockSpace(bool hasMenuBar)
@@ -756,19 +766,19 @@ namespace Comfy
 		impl->Timing.SwapInterval = interval;
 	}
 
-	bool ApplicationHost::HasFocusBeenGained() const
+	bool ApplicationHost::IsWindowFocused(bool mainWindowOnly) const
 	{
-		return impl->Window.FocusGainedThisFrame;
+		return mainWindowOnly ? impl->Window.Focused : impl->Window.AnyFocused;
 	}
 
-	bool ApplicationHost::HasFocusBeenLost() const
+	bool ApplicationHost::HasFocusBeenGained(bool mainWindowOnly) const
 	{
-		return impl->Window.FocusLostThisFrame;
+		return mainWindowOnly ? impl->Window.FocusGainedThisFrame : impl->Window.AnyFocusGainedThisFrame;
 	}
 
-	bool ApplicationHost::IsWindowFocused() const
+	bool ApplicationHost::HasFocusBeenLost(bool mainWindowOnly) const
 	{
-		return impl->Window.Focused;
+		return mainWindowOnly ? impl->Window.FocusLostThisFrame : impl->Window.AllFocusLostThisFrame;
 	}
 
 	bool ApplicationHost::GetMainLoopPowerSleep() const

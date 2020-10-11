@@ -65,10 +65,9 @@ namespace Comfy
 
 		void SetSwapInterval(int interval);
 
-		bool HasFocusBeenGained() const;
-		bool HasFocusBeenLost() const;
-
-		bool IsWindowFocused() const;
+		bool IsWindowFocused(bool mainWindowOnly = false) const;
+		bool HasFocusBeenGained(bool mainWindowOnly = false) const;
+		bool HasFocusBeenLost(bool mainWindowOnly = false) const;
 
 		bool GetMainLoopPowerSleep() const;
 		void SetMainLoopPowerSleep(bool value);
