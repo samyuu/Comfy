@@ -37,7 +37,7 @@ namespace Comfy::Studio::DataTest
 
 		float testButtonVolume = Audio::AudioEngine::MaxVolume;
 
-		Audio::AudioEngine::AudioAPI selectedAudioAPI = Audio::AudioEngine::AudioAPI::Invalid;
+		Audio::AudioBackend selectedAudioBackend = Audio::AudioBackend::Invalid;
 		Audio::ChannelMixer::MixingBehavior selectedMixingBehavior = static_cast<Audio::ChannelMixer::MixingBehavior>(-1);
 
 		u32 newBufferFrameCount = Audio::AudioEngine::DefaultBufferFrameCount;

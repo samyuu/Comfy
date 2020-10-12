@@ -36,10 +36,11 @@ namespace Comfy::Studio::DataTest
 			}
 		};
 
+		// TODO: Rework all of this
 		Gui::TextUnformatted("Audio Test:");
 		Gui::Separator();
 
-		float masterVolume = engine.GetMasterVolume();
+		f32 masterVolume = engine.GetMasterVolume();
 		if (Gui::SliderFloat("Master Volume", &masterVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
 			engine.SetMasterVolume(masterVolume);
 		Gui::Separator();
@@ -48,7 +49,7 @@ namespace Comfy::Studio::DataTest
 		{
 			Gui::Text("Device(s): %d", static_cast<int>(deviceInfoList.size()));
 
-			float halfWindowWidth = Gui::GetWindowWidth() / 2.0f;
+			f32 halfWindowWidth = Gui::GetWindowWidth() / 2.0f;
 
 			Gui::SameLine(halfWindowWidth);
 			if (Gui::Button("Refresh Device List", vec2(halfWindowWidth, 0.0f)))
@@ -70,52 +71,36 @@ namespace Comfy::Studio::DataTest
 
 		if (Gui::CollapsingHeader("Stream Control", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			const auto buttonSize = vec2(Gui::GetWindowWidth() / 4.0f, 0.0);
+			const auto buttonSize = vec2(Gui::GetWindowWidth() / 2.0f, 0.0);
 
 			Gui::PushItemWidth(buttonSize.x);
 			{
-				if (Gui::Button("OpenStream()", buttonSize))
-					engine.OpenStream();
+				if (Gui::Button("OpenStartStream()", buttonSize))
+					engine.OpenStartStream();
 				Gui::SameLine();
-				if (Gui::Button("CloseStream()", buttonSize))
-					engine.CloseStream();
+				if (Gui::Button("StopCloseStream()", buttonSize))
+					engine.StopCloseStream();
 
-				bool isStreamOpen = engine.GetIsStreamOpen();
-
-				Gui::SameLine();
-				Gui::Text("%-24s:", "GetIsStreamOpen()");
+				bool isStreamOpen = engine.GetIsStreamOpenRunning();
+				Gui::Text("%-24s:", "GetIsStreamOpenRunning()");
 				Gui::SameLine();
 				Gui::TextColored(isStreamOpen ? onColor : offColor, isStreamOpen ? "Open" : "Closed");
-			}
-			{
-				if (Gui::Button("StartStream()", buttonSize))
-					engine.StartStream();
-				Gui::SameLine();
-				if (Gui::Button("StopStream()", buttonSize))
-					engine.StopStream();
-
-				bool isStreamRunning = engine.GetIsStreamRunning();
-
-				Gui::SameLine();
-				Gui::Text("%-21s:", "GetIsStreamRunning()");
-				Gui::SameLine();
-				Gui::TextColored(isStreamRunning ? onColor : offColor, isStreamRunning ? "Running" : "Stopped");
 			}
 			Gui::PopItemWidth();
 
 			Gui::Text("%-25s: %u", "GetChannelCount()", engine.GetChannelCount());
 			Gui::Text("%-28s: %u Hz", "GetSampleRate()", engine.GetSampleRate());
-			Gui::Text("%-28s: %.3f sec", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
+			// Gui::Text("%-28s: %.3f sec", "GetStreamTime()", engine.GetStreamTime().TotalSeconds());
 			Gui::Text("%-23s: %.3f ms", "GetCallbackFrequency()", engine.GetCallbackFrequency().TotalMilliseconds());
 
 			const auto durations = engine.DebugGetCallbackDurations();
 
-			std::array<float, durations.size()> durationsMS;
+			std::array<f32, durations.size()> durationsMS;
 			for (size_t i = 0; i < durations.size(); i++)
-				durationsMS[i] = static_cast<float>(durations[i].TotalMilliseconds());
+				durationsMS[i] = static_cast<f32>(durations[i].TotalMilliseconds());
 
-			const float totalBufferProcessTimeMS = std::accumulate(durationsMS.begin(), durationsMS.end(), 0.0f);
-			const float averageProcessTimeMS = (totalBufferProcessTimeMS / static_cast<float>(durationsMS.size()));
+			const f32 totalBufferProcessTimeMS = std::accumulate(durationsMS.begin(), durationsMS.end(), 0.0f);
+			const f32 averageProcessTimeMS = (totalBufferProcessTimeMS / static_cast<f32>(durationsMS.size()));
 
 			char overlayTextBuffer[32];
 			sprintf_s(overlayTextBuffer, "Average: %.6f ms", averageProcessTimeMS);
@@ -131,10 +116,10 @@ namespace Comfy::Studio::DataTest
 				const auto lastPlayedSamples = engine.DebugGetLastPlayedSamples();
 				for (size_t channel = 0; channel < lastPlayedSamples.size(); channel++)
 				{
-					std::array<float, lastPlayedSamples[0].size()> normalizedSamples;
+					std::array<f32, lastPlayedSamples[0].size()> normalizedSamples;
 
 					for (size_t sample = 0; sample < normalizedSamples.size(); sample++)
-						normalizedSamples[sample] = static_cast<float>(lastPlayedSamples[channel][sample]) / static_cast<float>(std::numeric_limits<i16>::max());
+						normalizedSamples[sample] = static_cast<f32>(lastPlayedSamples[channel][sample]) / static_cast<f32>(std::numeric_limits<i16>::max());
 
 					char plotName[32];
 					sprintf_s(plotName, "Channel Output [%zu]", channel);
@@ -176,30 +161,30 @@ namespace Comfy::Studio::DataTest
 
 			Gui::Separator();
 
-			constexpr auto getAudioAPIName = [](Audio::AudioEngine::AudioAPI api)
+			constexpr auto getBackendName = [](Audio::AudioBackend backend)
 			{
-				switch (api)
+				switch (backend)
 				{
-				case Audio::AudioEngine::AudioAPI::ASIO:
-					return "AudioAPI::ASIO";
-				case Audio::AudioEngine::AudioAPI::WASAPI:
-					return "AudioAPI::WASAPI";
-				default:
-					return "AudioAPI::Invalid";
+				case Audio::AudioBackend::RtAudioASIO: return "RtAudio ASIO (Exclusive)";
+				case Audio::AudioBackend::RtAudioWASAPI: return "RtAudio WASAPI (Shared)";
+				case Audio::AudioBackend::WASAPIShared: return "Comfy WASAPI (Shared)";
+				case Audio::AudioBackend::WASAPIExclusive: return "Comfy WASAPI (Exclusive)";
+				default: return "Invalid";
 				}
 			};
 
-			Gui::Text("GetAudioAPI(): %s", getAudioAPIName(engine.GetAudioAPI()));
+			Gui::Text("GetAudioBackend(): %s", getBackendName(engine.GetAudioBackend()));
 
-			if (selectedAudioAPI == Audio::AudioEngine::AudioAPI::Invalid)
-				selectedAudioAPI = engine.GetAudioAPI();
+			if (selectedAudioBackend == Audio::AudioBackend::Invalid)
+				selectedAudioBackend = engine.GetAudioBackend();
 
-			if (Gui::BeginCombo("Audio API##Combo", getAudioAPIName(selectedAudioAPI)))
+			if (Gui::BeginCombo("Audio API##Combo", getBackendName(selectedAudioBackend)))
 			{
-				for (const auto availableAPI : std::array { Audio::AudioEngine::AudioAPI::WASAPI, Audio::AudioEngine::AudioAPI::ASIO })
+				for (size_t i = 0; i < EnumCount<Audio::AudioBackend>(); i++)
 				{
-					if (Gui::Selectable(getAudioAPIName(availableAPI), (selectedAudioAPI == availableAPI)))
-						selectedAudioAPI = availableAPI;
+					const auto backend = static_cast<Audio::AudioBackend>(i);
+					if (backend != Audio::AudioBackend::Invalid && Gui::Selectable(getBackendName(backend), (selectedAudioBackend == backend)))
+						selectedAudioBackend = backend;
 				}
 
 				Gui::EndCombo();
@@ -207,8 +192,8 @@ namespace Comfy::Studio::DataTest
 
 			Gui::Separator();
 
-			if (Gui::Button("SetAudioAPI()", vec2(Gui::CalcItemWidth(), 0.0f)))
-				engine.SetAudioAPI(selectedAudioAPI);
+			if (Gui::Button("SetAudioBackend()", vec2(Gui::CalcItemWidth(), 0.0f)))
+				engine.SetAudioBackend(selectedAudioBackend);
 
 			if (Gui::Button("ShowControlPanel()", vec2(Gui::CalcItemWidth(), 0.0f)))
 				engine.DebugShowControlPanel();
@@ -221,24 +206,6 @@ namespace Comfy::Studio::DataTest
 			if (Gui::Combo("Mixing Behavior##Combo", reinterpret_cast<int*>(&selectedMixingBehavior), mixingBehaviorNames.data(), static_cast<int>(mixingBehaviorNames.size())))
 				engine.GetChannelMixer().SetMixingBehavior(selectedMixingBehavior);
 		}
-
-		/*
-		if (Gui::CollapsingHeader("Audio Data"))
-		{
-			Gui::TextDisabled("(Dummy)");
-			//Gui::BeginCombo();
-			//Gui::PlotLines("PlitPLines", );
-
-			// static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
-			// Gui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
-
-			//float floatBuffer[MAX_BUFFER_SIZE];
-			//for (size_t i = 0; i < engine.GetBufferSize(); i++)
-			//	floatBuffer[i] = (float)(engine.SAMPLE_BUFFER_PTR[i]);
-			//Gui::PlotLines("SAMPLE_BUFFER_PTR", floatBuffer, engine.GetBufferSize());
-		}
-		Gui::Separator();
-		*/
 
 		if (Gui::CollapsingHeader("Audio Voices"))
 		{
@@ -295,8 +262,8 @@ namespace Comfy::Studio::DataTest
 
 				Gui::Separator();
 
-				float position = static_cast<float>(testSongVoice.GetPosition().TotalSeconds());
-				float duration = static_cast<float>(testSongVoice.GetDuration().TotalSeconds());
+				f32 position = static_cast<f32>(testSongVoice.GetPosition().TotalSeconds());
+				f32 duration = static_cast<f32>(testSongVoice.GetDuration().TotalSeconds());
 				if (Gui::SliderFloat("TestSongVoice::Position", &position, 0, duration, "%f sec"))
 					testSongVoice.SetPosition(TimeSpan::FromSeconds(position));
 
@@ -306,7 +273,7 @@ namespace Comfy::Studio::DataTest
 				Gui::Text("TestSongVoice::GetPosition(): %s", testSongVoice.GetPosition().FormatTime().data());
 				Gui::Separator();
 
-				float volume = testSongVoice.GetVolume();
+				f32 volume = testSongVoice.GetVolume();
 				if (Gui::SliderFloat("Volume", &volume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume))
 					testSongVoice.SetVolume(volume);
 
