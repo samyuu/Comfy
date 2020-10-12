@@ -64,7 +64,11 @@ namespace Comfy::Audio
 			const auto streamFlags = (streamParam.Mode == StreamShareMode::Shared) ? sharedStreamFlags : exclusiveStreamFlags;
 
 			// TODO: Account for user requested frame buffer size (?)
+			//		 at least for shared mode where ~400 samples (~9ms) are longer than that of a 144FPS frame
+			//		 for exclusive streams the native buffer size should be optimal (?)
+			//		 need to "emulate" the requested interval manually (?)
 			error = audioClient->GetDevicePeriod(nullptr, &bufferTimeDuration);
+
 			deviceTimePeriod = (streamParam.Mode == StreamShareMode::Shared) ? 0 : bufferTimeDuration;
 
 			if (FAILED(error))
@@ -128,6 +132,10 @@ namespace Comfy::Audio
 				return false;
 			}
 
+			error = audioClient->GetService(__uuidof(::ISimpleAudioVolume), &simpleAudioVolume);
+			if (FAILED(error))
+				Logger::LogErrorLine(__FUNCTION__"(): Unable to get simple audio volume interface. Error: 0x%X", error);
+
 			renderThread = ::CreateThread(nullptr, 0, [](LPVOID lpParameter) -> DWORD
 			{
 				return static_cast<DWORD>(reinterpret_cast<WASAPIBackend::Impl*>(lpParameter)->RenderThreadEntryPoint());
@@ -164,6 +172,7 @@ namespace Comfy::Audio
 				audioClientEvent = NULL;
 			}
 
+			simpleAudioVolume = nullptr;
 			renderClient = nullptr;
 			audioClient = nullptr;
 			device = nullptr;
@@ -201,8 +210,8 @@ namespace Comfy::Audio
 			BYTE* tempOutputBuffer = nullptr;
 			error = renderClient->GetBuffer(bufferFrameCount, &tempOutputBuffer);
 
-			if (tempOutputBuffer != nullptr)
-				renderCallback(reinterpret_cast<i16*>(tempOutputBuffer), bufferFrameCount, streamParam.ChannelCount);
+			if (!FAILED(error))
+				RenderThreadProcessOutputBuffer(reinterpret_cast<i16*>(tempOutputBuffer), bufferFrameCount, streamParam.ChannelCount);
 
 			DWORD releaseBufferFlags = 0;
 			error = renderClient->ReleaseBuffer(bufferFrameCount, releaseBufferFlags);
@@ -247,8 +256,8 @@ namespace Comfy::Audio
 
 				error = renderClient->GetBuffer(remainingFrameCount, &tempOutputBuffer);
 
-				if (!FAILED(error) && tempOutputBuffer != nullptr)
-					renderCallback(reinterpret_cast<i16*>(tempOutputBuffer), remainingFrameCount, streamParam.ChannelCount);
+				if (!FAILED(error))
+					RenderThreadProcessOutputBuffer(reinterpret_cast<i16*>(tempOutputBuffer), remainingFrameCount, streamParam.ChannelCount);
 
 				error = renderClient->ReleaseBuffer(remainingFrameCount, releaseBufferFlags);
 			}
@@ -263,13 +272,37 @@ namespace Comfy::Audio
 			return 0;
 		}
 
+		void RenderThreadProcessOutputBuffer(i16* outputBuffer, const u32 frameCount, const u32 channelCount)
+		{
+			if (outputBuffer == nullptr)
+				return;
+
+			renderCallback(outputBuffer, frameCount, channelCount);
+
+			auto i16ToF32 = [](i16 v) -> f32 { return static_cast<f32>(v) * static_cast<f32>(INT16_MAX); };
+			auto f32ToI16 = [](f32 v) -> i16 { return static_cast<i16>(v / static_cast<f32>(INT16_MAX)); };
+
+			if (applySharedSessionVolume && streamParam.Mode == StreamShareMode::Exclusive)
+			{
+				float sharedSessionVolume = 1.0f;
+				const auto error = (simpleAudioVolume != nullptr) ? simpleAudioVolume->GetMasterVolume(&sharedSessionVolume) : E_POINTER;
+
+				if (!FAILED(error) && sharedSessionVolume >= 0.0f && sharedSessionVolume < 1.0f)
+				{
+					for (u32 i = 0; i < (frameCount * streamParam.ChannelCount); i++)
+						outputBuffer[i] = f32ToI16(i16ToF32(outputBuffer[i]) * sharedSessionVolume);
+				}
+			}
+		}
+
 	private:
 		StreamParameters streamParam = {};
 		RenderCallbackFunc renderCallback;
 
 		std::atomic<bool> isOpenRunning = false;
 		std::atomic<bool> renderThreadStopRequested = false;
-		// std::atomic<bool> renderThreadError;
+
+		bool applySharedSessionVolume = true;
 
 		::WAVEFORMATEX waveformat = {};
 		::REFERENCE_TIME bufferTimeDuration = {}, deviceTimePeriod = {};
@@ -285,6 +318,7 @@ namespace Comfy::Audio
 		ComPtr<::IMMDevice> device = nullptr;
 		ComPtr<::IAudioClient> audioClient = nullptr;
 		ComPtr<::IAudioRenderClient> renderClient = nullptr;
+		ComPtr<::ISimpleAudioVolume> simpleAudioVolume = nullptr;
 	};
 
 	WASAPIBackend::WASAPIBackend() : impl(std::make_unique<Impl>())
