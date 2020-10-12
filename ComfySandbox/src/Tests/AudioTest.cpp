@@ -7,9 +7,8 @@ namespace Comfy::Sandbox::Tests
 	public:
 		AudioTest()
 		{
-			Audio::AudioEngine::GetInstance().OpenStream();
-			Audio::AudioEngine::GetInstance().StartStream();
-			// Audio::Engine::GetInstance().SetAudioAPI(Audio::Engine::AudioAPI::ASIO);
+			// Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::WASAPIExclusive);
+			Audio::AudioEngine::GetInstance().OpenStartStream();
 		}
 
 		void Update() override
@@ -22,8 +21,10 @@ namespace Comfy::Sandbox::Tests
 
 			if (Gui::Begin("Test Audio Control"))
 			{
-				if (Gui::Button("WASAPI")) Audio::AudioEngine::GetInstance().SetAudioAPI(Audio::AudioEngine::AudioAPI::WASAPI);
-				if (Gui::Button("ASIO")) Audio::AudioEngine::GetInstance().SetAudioAPI(Audio::AudioEngine::AudioAPI::ASIO);
+				if (Gui::Button("RtAudio ASIO")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::RtAudioASIO);
+				if (Gui::Button("RtAudio WASAPI")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::RtAudioWASAPI);
+				if (Gui::Button("WASAPI (Shared)")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::WASAPIShared);
+				if (Gui::Button("WASAPI (Exclusive)")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::WASAPIExclusive);
 			}
 			Gui::End();
 		}
