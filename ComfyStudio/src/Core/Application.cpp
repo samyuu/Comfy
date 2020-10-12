@@ -45,6 +45,7 @@ namespace Comfy::Studio
 		host->EnterProgramLoop([&]()
 		{
 			Gui();
+			UpdateWindowFocusAudioEngineResponse();
 		});
 
 		BaseDispose();
@@ -196,6 +197,28 @@ namespace Comfy::Studio
 			GuiTestWindowWindows();
 		}
 
+	}
+
+	void Application::UpdateWindowFocusAudioEngineResponse()
+	{
+		if (!Audio::AudioEngine::InstanceValid())
+			return;
+
+		auto& audioEngine = Audio::AudioEngine::GetInstance();
+
+		if (host->HasFocusBeenLost())
+		{
+			audioEngineRunningIdleOnFocusLost = (audioEngine.GetIsStreamOpenRunning() && audioEngine.GetAllVoicesAreIdle());
+
+			if (audioEngineRunningIdleOnFocusLost)
+				audioEngine.StopCloseStream();
+		}
+
+		if (host->HasFocusBeenGained())
+		{
+			if (audioEngineRunningIdleOnFocusLost)
+				audioEngine.OpenStartStream();
+		}
 	}
 
 	void Application::GuiMainMenuBar()

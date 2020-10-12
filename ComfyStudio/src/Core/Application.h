@@ -41,6 +41,7 @@ namespace Comfy::Studio
 
 	private:
 		void Gui();
+		void UpdateWindowFocusAudioEngineResponse();
 
 		void GuiMainMenuBar();
 		void GuiApplicationWindowMenu();
@@ -66,6 +67,9 @@ namespace Comfy::Studio
 
 		// NOTE: Should probably be disabled for final release builds but needlessly adds a lot of closing latency
 		const bool skipApplicationCleanup = true;
+
+		// NOTE: Specifically to avoid exclusive mode taking over all system sounds while idle
+		bool audioEngineRunningIdleOnFocusLost = false;
 
 		bool showMainAppEngineWindow = false;
 		bool exclusiveAppEngineWindow = false;
