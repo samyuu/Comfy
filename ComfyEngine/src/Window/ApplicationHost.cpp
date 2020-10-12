@@ -79,7 +79,7 @@ namespace Comfy
 			u64 ElapsedFrames = 0;
 
 			bool MainLoopLowPowerSleep = false;
-			TimeSpan PowerSleepDuration = TimeSpan::FromMilliseconds(10.0);
+			TimeSpan PowerSleepDuration = TimeSpan::FromMilliseconds(5.0);
 		} Timing;
 
 		struct FileDropData
