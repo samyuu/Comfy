@@ -125,6 +125,8 @@ namespace Comfy::Audio
 		size_t LastPlayedSamplesRingIndex = 0;
 		std::array<std::array<i16, AudioEngine::LastPlayedSamplesRingBufferFrameCount>, OutputChannelCount> LastPlayedSamplesRingBuffer = {};
 
+		Stopwatch StreamTimeStopwatch = {};
+
 		TimeSpan CallbackFrequency = {};
 		TimeSpan CallbackStreamTime = {}, LastCallbackStreamTime = {};
 
@@ -301,8 +303,7 @@ namespace Comfy::Audio
 			const auto bufferSampleCount = (bufferFrameCount * OutputChannelCount);
 			CurrentBufferFrameSize = bufferFrameCount;
 
-			// TODO: Manual stopwatch
-			CallbackStreamTime = /*streamTime*/TimeSpan::Zero();
+			CallbackStreamTime = StreamTimeStopwatch.GetElapsed();
 			CallbackFrequency = (CallbackStreamTime - LastCallbackStreamTime);
 			LastCallbackStreamTime = CallbackStreamTime;
 
@@ -378,6 +379,9 @@ namespace Comfy::Audio
 			impl->RenderAudioCallback(outputBuffer, bufferFrameCount, bufferChannelCount);
 		});
 
+		if (openStreamSuccess)
+			impl->StreamTimeStopwatch.Restart();
+
 		impl->IsStreamOpenRunning = openStreamSuccess;
 	}
 
@@ -388,6 +392,8 @@ namespace Comfy::Audio
 
 		if (impl->CurrentBackend != nullptr)
 			impl->CurrentBackend->StopCloseStream();
+
+		impl->StreamTimeStopwatch.Stop();
 
 		impl->IsStreamOpenRunning = false;
 	}
