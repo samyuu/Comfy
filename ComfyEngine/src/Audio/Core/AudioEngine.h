@@ -89,7 +89,7 @@ namespace Comfy::Audio
 		WASAPIShared,
 		WASAPIExclusive,
 		Count,
-		Default = WASAPIShared,
+		Default = WASAPIExclusive, // WASAPIShared,
 	};
 
 	class AudioEngine : NonCopyable

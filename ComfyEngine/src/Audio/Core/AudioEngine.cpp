@@ -400,8 +400,18 @@ namespace Comfy::Audio
 
 	void AudioEngine::EnsureStreamRunning()
 	{
-		if (!GetIsStreamOpenRunning())
+		if (GetIsStreamOpenRunning())
+			return;
+
+		OpenStartStream();
+
+		const bool exclusiveAndFailedToStart = (impl->CurrentBackendType == AudioBackend::WASAPIExclusive && !GetIsStreamOpenRunning());
+		if (exclusiveAndFailedToStart)
+		{
+			// NOTE: Because *any* audio is probably always better than *no* audio
+			SetAudioBackend(AudioBackend::WASAPIShared);
 			OpenStartStream();
+		}
 	}
 
 	std::future<SourceHandle> AudioEngine::LoadAudioSourceAsync(std::string_view filePath)
