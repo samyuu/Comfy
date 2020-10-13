@@ -110,7 +110,7 @@ namespace Comfy::Render::D3D11
 		D3D.Context->RSSetScissorRects(1, &scissorRect);
 	}
 
-	void Direct3D::EnsureDeviceObjectLifetimeUntilRendering(ID3D11DeviceChild * object)
+	void Direct3D::EnsureDeviceObjectLifetimeUntilRendering(ID3D11DeviceChild* object)
 	{
 		if (object == nullptr)
 			return;
@@ -186,7 +186,8 @@ namespace Comfy::Render::D3D11
 		driverType = D3D_DRIVER_TYPE_WARP;
 #endif
 
-		UINT deviceFlags = 0;
+		UINT deviceFlags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+
 #if COMFY_DEBUG
 		deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
