@@ -403,6 +403,8 @@ namespace Comfy::Studio::Editor
 		const auto barColor = GetColor(EditorColor_Bar);
 		const auto gridColor = GetColor(EditorColor_Grid);
 		const auto gridAltColor = GetColor(EditorColor_GridAlt);
+		const auto barTextColor = Gui::GetColorU32(ImGuiCol_Text);
+		const auto barTimeColor = Gui::GetColorU32(ImGuiCol_Text, 0.5f);
 
 		const i32 songDurationTicks = TimeToTick(workingChart->DurationOrDefault()).Ticks();
 		const i32 gridTickStep = GridDivisionTick().Ticks();
@@ -449,11 +451,12 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				return true;
 
-			char buffer[16];
+			char buffer[32];
 			const auto start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.85f));
 			const auto end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
 			baseDrawList->AddLine(start, end, barColor);
-			baseDrawList->AddText(start + vec2(3.0f, -1.0f), barColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
+			baseDrawList->AddText(nullptr, 14.0f, start + vec2(3.0f, -4.0f), barTextColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
+			baseDrawList->AddText(nullptr, 13.0f, start + vec2(3.0f, -4.0f + 9.0f), barTimeColor, workingChart->TimelineMap.GetTimeAt(barTick).FormatTime().data());
 			return false;
 		});
 	}
