@@ -209,5 +209,13 @@ namespace Comfy::Studio::Editor
 		{
 			return target.Flags.HasProperties ? target.Properties : Detail::PresetTargetProperties(target.Type, target.Tick, target.Flags);
 		}
+
+		inline f32 NormalizeAngle(const f32 degrees)
+		{
+			auto normalized = glm::mod(degrees + 180.0f, 360.0f);
+			if (normalized < 0.0f)
+				normalized += 360.0f;
+			return normalized - 180.0f;
+		}
 	}
 }

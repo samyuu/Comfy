@@ -59,14 +59,6 @@ namespace Comfy::Studio::Editor
 			"N", "E", "S", "W", "NE", "SE", "SW", "NW",
 		};
 
-		inline f32 NormalizeAngle(const f32 degrees)
-		{
-			auto normalized = glm::mod(degrees + 180.0f, 360.0f);
-			if (normalized < 0.0f)
-				normalized += 360.0f;
-			return normalized - 180.0f;
-		}
-
 		constexpr CardinalDirection AngleToNearestCardinal(f32 degrees)
 		{
 			// TODO: Cleanup
@@ -499,7 +491,7 @@ namespace Comfy::Studio::Editor
 			data.TargetIndex = i;
 			data.NewValue = properties;
 			data.NewValue.Position = horizontal ? flipHorizontal(properties.Position) : flipVertical(properties.Position);
-			data.NewValue.Angle = (horizontal) ? NormalizeAngle(-data.NewValue.Angle) : NormalizeAngle(data.NewValue.Angle - 180.0f);
+			data.NewValue.Angle = (horizontal) ? Rules::NormalizeAngle(-data.NewValue.Angle) : Rules::NormalizeAngle(data.NewValue.Angle - 180.0f);
 			data.NewValue.Frequency *= -1.0f;
 		}
 
