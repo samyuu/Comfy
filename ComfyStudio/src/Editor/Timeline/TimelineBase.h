@@ -161,6 +161,10 @@ namespace Comfy::Studio::Editor
 		vec2 scroll = vec2(0.0f, 0.0f);
 		vec2 maxScroll = vec2(0.0f, 0.0f);
 
+		// TODO: 
+		// vec2 scrollSmoothness;
+		// vec2 scrollTarget = scroll;
+
 		void UpdateAllInput();
 	};
 }
