@@ -62,7 +62,7 @@ namespace Comfy::Studio::Editor
 
 			GuiProperty::TreeNode("Creator", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
-				changesMade |= GuiProperty::InputWithHint("Name", "Who asked? PogO", chart.Properties.Creator.Name);
+				changesMade |= GuiProperty::InputWithHint("Name", defaultHint, chart.Properties.Creator.Name);
 				changesMade |= GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment);
 			});
 
