@@ -232,7 +232,7 @@ namespace Comfy::Studio
 			GuiAppEngineMenus();
 			GuiTestWindowMenus();
 			GuiHelpMenus();
-			GuiMenuBarPerformanceDisplay();
+			GuiMenuBarAudioAndPerformanceDisplay();
 			Gui::EndMainMenuBar();
 		}
 		Gui::PopStyleColor(1);
@@ -419,16 +419,144 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::GuiMenuBarPerformanceDisplay()
+	void Application::GuiMenuBarAudioAndPerformanceDisplay()
 	{
+		char performanceText[64];
+		char audioText[128];
+
 		const auto frameRate = Gui::GetIO().Framerate;
+		sprintf_s(performanceText, "[ %.3f ms (%.1f FPS) ]", (1000.0f / frameRate), frameRate);
 
-		// TODO: Popup window on hover (+ double click to create overlay) showing a frametime plot
-		char infoBuffer[32];
-		sprintf_s(infoBuffer, sizeof(infoBuffer), "%.3f ms (%.1f FPS)", (1000.0f / frameRate), frameRate);
+		auto audioBackendToString = [](Audio::AudioBackend backend) -> const char*
+		{
+			switch (backend)
+			{
+			case Audio::AudioBackend::RtAudioASIO: return "RtAudio ASIO";
+			case Audio::AudioBackend::RtAudioWASAPI: return "RtAudio WASAPI";
+			case Audio::AudioBackend::WASAPIShared: return "WASAPI Shared";
+			case Audio::AudioBackend::WASAPIExclusive: return "WASAPI Exclusive";
+			default: return "Invalid";
+			}
+		};
 
-		Gui::SetCursorPosX(Gui::GetWindowWidth() - Gui::CalcTextSize(infoBuffer).x - Gui::GetStyle().WindowPadding.x);
-		Gui::TextUnformatted(infoBuffer);
+		auto* audioEngine = Audio::AudioEngine::InstanceValid() ? &Audio::AudioEngine::GetInstance() : nullptr;
+		if (audioEngine != nullptr && audioEngine->GetIsStreamOpenRunning())
+		{
+			const auto sampleRatekHz = static_cast<f64>(audioEngine->GetSampleRate()) / 1000.0;
+			const auto sampleBitSize = sizeof(i16) * CHAR_BIT;
+			const auto bufferDuration = TimeSpan::FromSeconds(static_cast<f64>(audioEngine->GetBufferFrameSize()) / static_cast<f64>(audioEngine->GetSampleRate()));
+			const auto backendString = audioBackendToString(audioEngine->GetAudioBackend());
+
+			sprintf_s(audioText, "[ %gkHz %zubit %dch ~%.0fms %s ]",
+				sampleRatekHz,
+				sampleBitSize,
+				audioEngine->GetChannelCount(),
+				bufferDuration.TotalMilliseconds(),
+				backendString);
+		}
+		else
+		{
+			strcpy_s(audioText, "[ Audio Device Closed ]");
+		}
+
+		const auto windowWidth = Gui::GetWindowWidth();
+		const auto perItemItemSpacing = (Gui::GetStyle().ItemSpacing.x * 2.0f);
+		const auto performanceWidth = Gui::CalcTextSize(performanceText).x + perItemItemSpacing;
+		const auto audioWidth = Gui::CalcTextSize(audioText).x + perItemItemSpacing;
+
+		Gui::SetCursorPos(vec2(windowWidth - performanceWidth - audioWidth, Gui::GetCursorPos().y));
+		if (Gui::BeginMenu(audioText))
+		{
+			const bool deviceIsOpen = audioEngine->GetIsStreamOpenRunning();
+
+			if (Gui::MenuItem("Open Audio Device", nullptr, false, !deviceIsOpen))
+				audioEngine->OpenStartStream();
+			if (Gui::MenuItem("Close Audio Device", nullptr, false, deviceIsOpen))
+				audioEngine->StopCloseStream();
+			Gui::Separator();
+
+			static constexpr std::array availableBackends =
+			{
+				Audio::AudioBackend::WASAPIShared, Audio::AudioBackend::WASAPIExclusive, Audio::AudioBackend::RtAudioWASAPI, Audio::AudioBackend::RtAudioASIO,
+			};
+
+			const auto currentBackend = audioEngine->GetAudioBackend();
+			for (const auto backendType : availableBackends)
+			{
+				char buffer[32];
+				sprintf_s(buffer, "Use %s", audioBackendToString(backendType));
+
+				if (Gui::MenuItem(buffer, nullptr, (backendType == currentBackend), (backendType != currentBackend)))
+					audioEngine->SetAudioBackend(backendType);
+			}
+
+			Gui::EndMenu();
+		}
+
+		// TODO: Come up with a better performance overlay and move data into a class member
+		static struct PerformanceData
+		{
+			bool ShowOverlay;
+			std::array<f32, 256> FrameTimes;
+			size_t FrameTimeIndex;
+			size_t FrameTimeSize;
+		} performance = {};
+
+		if (Gui::MenuItem(performanceText))
+			performance.ShowOverlay ^= true;
+
+		if (performance.ShowOverlay)
+		{
+			auto* mainViewport = Gui::GetMainViewport();
+			Gui::SetNextWindowPos(vec2(mainViewport->Pos.x + mainViewport->Size.x, mainViewport->Pos.y + 24.0f), ImGuiCond_Always, vec2(1.0f, 0.0f));
+			Gui::SetNextWindowViewport(mainViewport->ID);
+
+			Gui::PushStyleColor(ImGuiCol_WindowBg, Gui::GetStyleColorVec4(ImGuiCol_PopupBg));
+
+			constexpr auto overlayWindowFlags = (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav /*| ImGuiWindowFlags_NoInputs*/);
+			if (Gui::Begin("PerformanceOverlay", nullptr, overlayWindowFlags))
+			{
+				performance.FrameTimes[performance.FrameTimeIndex++] = Gui::GetIO().DeltaTime;
+				if (performance.FrameTimeIndex >= performance.FrameTimes.size())
+					performance.FrameTimeIndex = 0;
+				performance.FrameTimeSize = std::max(performance.FrameTimeIndex, performance.FrameTimeSize);
+
+				f32 averageFrameTime = 0.0f;
+				for (size_t i = 0; i < performance.FrameTimeSize; i++)
+					averageFrameTime += performance.FrameTimes[i];
+				averageFrameTime /= static_cast<f32>(performance.FrameTimeSize);
+
+				f32 minFrameTime = std::numeric_limits<f32>::max();
+				for (size_t i = 0; i < performance.FrameTimeSize; i++)
+					minFrameTime = std::min(minFrameTime, performance.FrameTimes[i]);
+
+				f32 maxFrameTime = std::numeric_limits<f32>::min();
+				for (size_t i = 0; i < performance.FrameTimeSize; i++)
+					maxFrameTime = std::max(maxFrameTime, performance.FrameTimes[i]);
+
+				char overlayText[64];
+				sprintf_s(overlayText,
+					"Average: %.3f ms\n"
+					"Min: %.3f ms\n"
+					"Max: %.3f ms",
+					averageFrameTime * 1000.0f,
+					minFrameTime * 1000.0f,
+					maxFrameTime * 1000.0f);
+
+				Gui::PlotLines("##PerformanceHistoryPlot",
+					performance.FrameTimes.data(),
+					static_cast<int>(performance.FrameTimes.size()),
+					0,
+					overlayText,
+					minFrameTime - 0.001f,
+					maxFrameTime + 0.001f,
+					vec2(static_cast<f32>(performance.FrameTimes.size()), 120.0f));
+
+				Gui::End();
+			}
+
+			Gui::PopStyleColor();
+		}
 	}
 
 	void Application::BaseDispose()

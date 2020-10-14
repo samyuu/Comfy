@@ -54,7 +54,7 @@ namespace Comfy::Studio
 		void GuiHelpMenus();
 		void GuiLicensePopup();
 		void GuiHelpVersionPopup();
-		void GuiMenuBarPerformanceDisplay();
+		void GuiMenuBarAudioAndPerformanceDisplay();
 
 	private:
 		void BaseDispose();
