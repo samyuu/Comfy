@@ -2,29 +2,12 @@
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
+#include "Editor/Chart/KeyBindings.h"
 
 namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		// TODO: Move to key bindings header
-		static constexpr std::array MoveStepKeyMapping =
-		{
-			std::make_pair(Input::KeyCode_W, vec2(+0.0f, -1.0f)),
-			std::make_pair(Input::KeyCode_A, vec2(-1.0f, +0.0f)),
-			std::make_pair(Input::KeyCode_S, vec2(+0.0f, +1.0f)),
-			std::make_pair(Input::KeyCode_D, vec2(+1.0f, +0.0f)),
-
-			std::make_pair(Input::KeyCode_Up, vec2(+0.0f, -1.0f)),
-			std::make_pair(Input::KeyCode_Left, vec2(-1.0f, +0.0f)),
-			std::make_pair(Input::KeyCode_Down, vec2(+0.0f, +1.0f)),
-			std::make_pair(Input::KeyCode_Right, vec2(+1.0f, +0.0f)),
-		};
-
-		constexpr Input::KeyCode FlipHorizontalKeyBinding = Input::KeyCode_H;
-		constexpr Input::KeyCode FlipVerticalKeyBinding = Input::KeyCode_J;
-		constexpr Input::KeyCode InterpolatePositionsKeyBinding = Input::KeyCode_K;
-
 		// NOTE: To both prevent needless visual overload and to not overflow 16bit vertex indices too easily
 		constexpr size_t MaxDistanceGuideCirclesToRender = 64;
 
@@ -125,11 +108,11 @@ namespace Comfy::Studio::Editor
 	{
 		// TODO: What about sync placement... need full integration for horziontal/verctical pairs as well as triangle and square formations
 
-		if (Gui::MenuItem("Flip Targets Horizontally", Input::GetKeyCodeName(FlipHorizontalKeyBinding), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Flip Targets Horizontally", Input::GetKeyCodeName(KeyBindings::PositionToolFlipHorizontal), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, true);
-		if (Gui::MenuItem("Flip Targets Vertically", Input::GetKeyCodeName(FlipVerticalKeyBinding), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Flip Targets Vertically", Input::GetKeyCodeName(KeyBindings::PositionToolFlipVertical), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, false);
-		if (Gui::MenuItem("Interpolate Positions", Input::GetKeyCodeName(InterpolatePositionsKeyBinding), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Positions", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolate), false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositions(undoManager, chart);
 
 		Gui::Separator();
@@ -222,20 +205,20 @@ namespace Comfy::Studio::Editor
 
 		const auto whiteColor = Gui::GetColorU32(ImGuiCol_Text);
 		const auto dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
-		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.45f);
+		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.75f);
 
 		constexpr auto guideRadius = Rules::TickToDistance(TimelineTick::FromBars(1) / 16);
 		drawList.AddCircleFilled(row.Start, guideRadius, dimColor, 32);
 		drawList.AddCircle(row.Start, guideRadius, whiteColor, 32);
 
-		drawList.AddLine(row.Start, row.Start + (vec2(+0.0f, -1.0f) * guideRadius), dimWhiteColor, 1);
-		drawList.AddLine(row.Start, row.Start + (vec2(+1.0f, +0.0f) * guideRadius), dimWhiteColor, 1);
-		drawList.AddLine(row.Start, row.Start + (vec2(+0.0f, +1.0f) * guideRadius), dimWhiteColor, 1);
-		drawList.AddLine(row.Start, row.Start + (vec2(-1.0f, +0.0f) * guideRadius), dimWhiteColor, 1);
+		drawList.AddLine(row.Start, row.Start + (vec2(+0.0f, -1.0f) * guideRadius), dimWhiteColor, 1.0f);
+		drawList.AddLine(row.Start, row.Start + (vec2(+1.0f, +0.0f) * guideRadius), dimWhiteColor, 1.0f);
+		drawList.AddLine(row.Start, row.Start + (vec2(+0.0f, +1.0f) * guideRadius), dimWhiteColor, 1.0f);
+		drawList.AddLine(row.Start, row.Start + (vec2(-1.0f, +0.0f) * guideRadius), dimWhiteColor, 1.0f);
 
 		drawList.AddCircleFilled(row.Start, 2.0f, whiteColor, 9);
 		drawList.AddCircleFilled(row.Start + (direction * guideRadius), 4.0f, whiteColor, 9);
-		drawList.AddLine(row.Start, row.Start + (direction * guideRadius), whiteColor, 1);
+		drawList.AddLine(row.Start, row.Start + (direction * guideRadius), whiteColor, 1.0f);
 
 		char buffer[32];
 		const auto bufferView = std::string_view(buffer, sprintf_s(buffer, "[%s]", CardinalDirectionNames[static_cast<u8>(cardinal)]));
@@ -246,15 +229,15 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
 	{
-		if (Gui::IsWindowFocused())
+		if (Gui::IsWindowFocused() && Gui::GetActiveID() == 0)
 		{
-			if (Gui::IsKeyPressed(FlipHorizontalKeyBinding, false))
+			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipHorizontal, false))
 				FlipSelectedTargets(undoManager, chart, true);
 
-			if (Gui::IsKeyPressed(FlipVerticalKeyBinding, false))
+			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipVertical, false))
 				FlipSelectedTargets(undoManager, chart, false);
 
-			if (Gui::IsKeyPressed(InterpolatePositionsKeyBinding, false))
+			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolate, false))
 				InterpolateSelectedTargetPositions(undoManager, chart);
 		}
 	}
@@ -264,9 +247,9 @@ namespace Comfy::Studio::Editor
 		if (selectedTargetsBuffer.empty() || !Gui::IsWindowFocused())
 			return;
 
-		for (const auto&[key, direction] : MoveStepKeyMapping)
+		for (const auto&[key, direction] : KeyBindings::PositionToolMoveStep)
 		{
-			if (Gui::IsKeyPressed(key, true))
+			if (Gui::IsKeyPressed(key, true) && Gui::GetActiveID() == 0)
 			{
 				const auto stepDistance = Gui::GetIO().KeyShift ? GridStepDistance : PreciseStepDistance;
 				IncrementSelectedTargetPositionsBy(undoManager, chart, direction * stepDistance);

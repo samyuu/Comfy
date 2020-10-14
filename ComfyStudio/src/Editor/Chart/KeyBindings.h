@@ -59,5 +59,22 @@ namespace Comfy::Studio::Editor
 			// Input::KeyCode_8,
 			// Input::KeyCode_9,
 		};
+
+		constexpr std::array PositionToolMoveStep =
+		{
+			std::make_pair(Input::KeyCode_W, vec2(+0.0f, -1.0f)),
+			std::make_pair(Input::KeyCode_A, vec2(-1.0f, +0.0f)),
+			std::make_pair(Input::KeyCode_S, vec2(+0.0f, +1.0f)),
+			std::make_pair(Input::KeyCode_D, vec2(+1.0f, +0.0f)),
+
+			std::make_pair(Input::KeyCode_Up, vec2(+0.0f, -1.0f)),
+			std::make_pair(Input::KeyCode_Left, vec2(-1.0f, +0.0f)),
+			std::make_pair(Input::KeyCode_Down, vec2(+0.0f, +1.0f)),
+			std::make_pair(Input::KeyCode_Right, vec2(+1.0f, +0.0f)),
+		};
+
+		constexpr Input::KeyCode PositionToolFlipHorizontal = Input::KeyCode_H;
+		constexpr Input::KeyCode PositionToolFlipVertical = Input::KeyCode_J;
+		constexpr Input::KeyCode PositionToolInterpolate = Input::KeyCode_K;
 	}
 }
