@@ -13,12 +13,12 @@ namespace Comfy::Studio::Editor
 
 	enum class TargetToolType : u8
 	{
-		PositionTool,
+		Position,
 		// TODO:
-		RotationTool,
+		Rotation,
 		Count,
 
-		StartupType = PositionTool,
+		StartupType = Position,
 	};
 
 	class TargetTool : NonCopyable

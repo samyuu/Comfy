@@ -183,6 +183,7 @@
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetBoxSelectionTool.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetPositionTool.cpp" />
+    <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetRotationTool.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetTool.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetInspector.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMetronome.cpp" />
@@ -248,7 +249,9 @@
     <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGrid.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
+    <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\CardinalDirection.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetBoxSelectionTool.h" />
+    <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetRotationTool.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetTool.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetPositionTool.h" />
     <ClInclude Include="src\Editor\Chart\TargetInspector.h" />
