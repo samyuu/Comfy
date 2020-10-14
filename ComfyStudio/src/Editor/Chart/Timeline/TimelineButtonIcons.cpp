@@ -32,6 +32,19 @@ namespace Comfy::Studio::Editor
 		{
 			// TODO: draw tgt_txt
 		}
+
+#if COMFY_DEBUG && 0 // DEBUG: CHAIN FLAG TEST
+		if (target.Flags.IsChainStart)
+			drawList->AddCircle((bottomRight + position) / 2.0f, 14.0f, 0xFFFFFF00);
+		if (target.Flags.IsChainEnd)
+			drawList->AddCircle((bottomRight + position) / 2.0f, 9.0f, 0xFFFF00FF);
+#endif
+
+#if COMFY_DEBUG && 0 // DEBUG: SYNC INDEX FLAG TEST
+		char buffer[64]; const auto center = (bottomRight + position) / 2.0f;
+		drawList->AddCircleFilled(center, 8.0f, IM_COL32_BLACK);
+		drawList->AddText(center - vec2(3.0f, 9.0f), IM_COL32_WHITE, buffer, buffer + sprintf_s(buffer, "%d", target.Flags.IndexWithinSyncPair));
+#endif
 	}
 
 	size_t TimelineButtonIcons::GetTargetButtonIconIndex(const TimelineTarget& target) const
