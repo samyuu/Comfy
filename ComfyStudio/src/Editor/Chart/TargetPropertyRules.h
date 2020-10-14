@@ -212,10 +212,18 @@ namespace Comfy::Studio::Editor
 
 		inline f32 NormalizeAngle(const f32 degrees)
 		{
+			if (glm::isnan(degrees) || glm::isinf(degrees))
+				return 0.0f;
+
 			auto normalized = glm::mod(degrees + 180.0f, 360.0f);
 			if (normalized < 0.0f)
 				normalized += 360.0f;
-			return normalized - 180.0f;
+			normalized -= 180.0f;
+
+			if (normalized == -180.0f)
+				return 180.0f;
+			else
+				return normalized;
 		}
 	}
 }
