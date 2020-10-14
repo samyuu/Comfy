@@ -1,4 +1,5 @@
 #include "TargetPositionTool.h"
+#include "CardinalDirection.h"
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
@@ -17,74 +18,6 @@ namespace Comfy::Studio::Editor
 		constexpr vec2 SnapPositionToGrid(vec2 position)
 		{
 			return glm::round(position / GridStepDistance) * GridStepDistance;
-		}
-
-		enum class CardinalDirection
-		{
-			North,
-			East,
-			South,
-			West,
-			NorthEast,
-			SouthEast,
-			SouthWest,
-			NorthWest,
-			Count,
-
-			CardinalStart = North,
-			CardinalEnd = West,
-			IntercardinalStart = NorthEast,
-			IntercardinalEnd = NorthWest,
-		};
-
-		constexpr std::array<const char*, EnumCount<CardinalDirection>()> CardinalDirectionNames =
-		{
-			"N", "E", "S", "W", "NE", "SE", "SW", "NW",
-		};
-
-		constexpr CardinalDirection AngleToNearestCardinal(f32 degrees)
-		{
-			// TODO: Cleanup
-			constexpr auto step = (360.0f / 8.0f) / 2.0f;
-
-			if (degrees >= -67.5 && degrees <= -22.5f)
-				return CardinalDirection::NorthEast;
-			if (degrees >= +22.5f && degrees <= +67.5)
-				return CardinalDirection::SouthEast;
-			if (degrees >= +112.5f && degrees <= +157.5f)
-				return CardinalDirection::SouthWest;
-			if (degrees >= -157.5f && degrees <= -112.5f)
-				return CardinalDirection::NorthWest;
-
-			if (degrees >= -35.0f && degrees <= +35.0f)
-				return CardinalDirection::East;
-			if (degrees >= -135.0f && degrees <= +35.0f)
-				return CardinalDirection::North;
-			if ((degrees >= -180.0f && degrees <= -135.0f) || (degrees <= 180.0f && degrees >= 135.0f))
-				return CardinalDirection::West;
-			return CardinalDirection::South;
-		}
-
-		constexpr bool IsIntercardinal(CardinalDirection cardinal)
-		{
-			return (cardinal >= CardinalDirection::IntercardinalStart);
-		}
-
-		constexpr std::array<vec2, EnumCount<CardinalDirection>()> CardinalTargetRowDirections =
-		{
-			vec2(+0.0f, -1.0f),
-			vec2(+1.0f, +0.0f),
-			vec2(+0.0f, +1.0f),
-			vec2(-1.0f, +0.0f),
-			vec2(+Rules::PlacementStairDirection.x, -Rules::PlacementStairDirection.y),
-			vec2(+Rules::PlacementStairDirection.x, +Rules::PlacementStairDirection.y),
-			vec2(-Rules::PlacementStairDirection.x, +Rules::PlacementStairDirection.y),
-			vec2(-Rules::PlacementStairDirection.x, -Rules::PlacementStairDirection.y),
-		};
-
-		constexpr vec2 CardinalToTargetRowDirection(CardinalDirection direction)
-		{
-			return CardinalTargetRowDirections[static_cast<u8>(direction)];
 		}
 	}
 
@@ -221,7 +154,7 @@ namespace Comfy::Studio::Editor
 		drawList.AddLine(row.Start, row.Start + (direction * guideRadius), whiteColor, 1.0f);
 
 		char buffer[32];
-		const auto bufferView = std::string_view(buffer, sprintf_s(buffer, "[%s]", CardinalDirectionNames[static_cast<u8>(cardinal)]));
+		const auto bufferView = std::string_view(buffer, sprintf_s(buffer, "[%s]", CardinalDirectionAbbreviations[static_cast<u8>(cardinal)]));
 
 		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
 		drawList.AddText(row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f), whiteColor, Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
