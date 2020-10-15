@@ -77,7 +77,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		constexpr f32 ChainFragmentPlacementDistance = TickToDistanceChain(TimelineTick::FromBars(1) / 32);
-		constexpr f32 ChainFragmentPlacementEndOffsetDistance = 32.0f;
+		constexpr f32 ChainFragmentStartEndOffsetDistance = 32.0f;
 
 		constexpr vec2 RecommendedPlacementAreaMin =
 		{

@@ -127,7 +127,7 @@ namespace Comfy::Studio::Editor
 				auto radius = (lastTargetOfPrevPair.Flags.IsChain && !lastTargetOfPrevPair.Flags.IsChainEnd) ?
 					Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistanceToPrevPair);
 				if (lastTargetOfPrevPair.Flags.IsChainEnd)
-					radius += Rules::ChainFragmentPlacementEndOffsetDistance;
+					radius += Rules::ChainFragmentStartEndOffsetDistance;
 
 				const auto screenRadius = (radius * cameraZoom);
 
@@ -358,7 +358,7 @@ namespace Comfy::Studio::Editor
 				(useStairDistance && !chainEnd) ? Rules::TickToDistanceStair(tickDistance) : Rules::TickToDistance(tickDistance);
 
 			if (chainEnd)
-				distance += Rules::ChainFragmentPlacementEndOffsetDistance;
+				distance += Rules::ChainFragmentStartEndOffsetDistance;
 
 			// NOTE: Targets following one after the end of a chain need to be horizontal to avoid decimal fractions.
 			//		 If a stair like pattern is desired then the corret placement would be to vertically offset the height only

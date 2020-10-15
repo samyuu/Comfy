@@ -301,8 +301,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::AddVisibleTargetsToDrawBuffers()
 	{
-		// TODO: Move... somewhere else (?)
-		constexpr auto fragDisplayOffsetX = 32.0f;
 		constexpr auto chainHitTickThreshold = (TimelineTick::FromBars(1) / 16);
 
 		const auto& targets = workingChart->Targets;
@@ -332,7 +330,7 @@ namespace Comfy::Studio::Editor
 				auto properties = Rules::TryGetProperties(target);
 
 				if (target.Flags.IsChain && !target.Flags.IsChainStart)
-					properties.Position.x += fragDisplayOffsetX * (target.Type == ButtonType::SlideL ? -1.0f : +1.0f);
+					properties.Position.x += Rules::ChainFragmentStartEndOffsetDistance * (target.Type == ButtonType::SlideL ? -1.0f : +1.0f);
 
 				const bool inCursorBarRange = (cursorTick >= targetTick && cursorTick <= buttonTick);
 
