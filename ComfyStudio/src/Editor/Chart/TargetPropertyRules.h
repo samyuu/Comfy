@@ -212,7 +212,7 @@ namespace Comfy::Studio::Editor
 
 		inline f32 NormalizeAngle(const f32 degrees)
 		{
-			if (glm::isnan(degrees) || glm::isinf(degrees))
+			if (std::fpclassify(degrees) != FP_NORMAL)
 				return 0.0f;
 
 			auto normalized = glm::mod(degrees + 180.0f, 360.0f);
@@ -221,7 +221,7 @@ namespace Comfy::Studio::Editor
 			normalized -= 180.0f;
 
 			if (normalized == -180.0f)
-				return 180.0f;
+				return -normalized;
 			else
 				return normalized;
 		}
