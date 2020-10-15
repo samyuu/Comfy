@@ -107,24 +107,42 @@ namespace Comfy::Studio::Editor
 
 		const auto cameraZoom = renderWindow.GetCamera().Zoom;
 
-		// TODO: Correctly handle sync pairs. For each sync pair (or single), if any target in pair is selected, for each target in previous sync pair (or single) draw distance guide
-		for (size_t i = 1; i < chart.Targets.size(); i++)
+		// NOTE: For each pair, if any is selected within, draw distance guide around each target in previous pair
+		for (size_t i = 0; i < chart.Targets.size();)
 		{
-			const auto& target = chart.Targets[i];
-			if (!target.IsSelected)
-				continue;
+			const auto& firstTargetOfPair = chart.Targets[i];
 
-			const auto& prevTarget = chart.Targets[i - 1];
-			const auto tickDistance = (target.Tick - prevTarget.Tick);
+			bool anyWithinPairSelected = false;
+			for (size_t pair = 0; pair < firstTargetOfPair.Flags.SyncPairCount; pair++)
+			{
+				if (chart.Targets[i + pair].IsSelected)
+					anyWithinPairSelected = true;
+			}
 
-			auto radius = (prevTarget.Flags.IsChain && !prevTarget.Flags.IsChainEnd) ? Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistance);
-			if (prevTarget.Flags.IsChainEnd)
-				radius += Rules::ChainFragmentPlacementEndOffsetDistance;
+			if (anyWithinPairSelected && i > 0)
+			{
+				const auto& lastTargetOfPrevPair = chart.Targets[i - 1];
+				const auto tickDistanceToPrevPair = (firstTargetOfPair.Tick - lastTargetOfPrevPair.Tick);
 
-			const auto screenPosition = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(prevTarget).Position);
-			const auto screenRadius = (radius * cameraZoom);
+				auto radius = (lastTargetOfPrevPair.Flags.IsChain && !lastTargetOfPrevPair.Flags.IsChainEnd) ?
+					Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistanceToPrevPair);
+				if (lastTargetOfPrevPair.Flags.IsChainEnd)
+					radius += Rules::ChainFragmentPlacementEndOffsetDistance;
 
-			drawList.AddCircle(screenPosition, screenRadius, GetButtonTypeColorU32(prevTarget.Type, 0x84), GetCircleSegmentCount(screenRadius));
+				const auto screenRadius = (radius * cameraZoom);
+
+				assert(lastTargetOfPrevPair.Flags.SyncPairCount >= 1);
+				for (size_t pair = 0; pair < lastTargetOfPrevPair.Flags.SyncPairCount; pair++)
+				{
+					const auto& prevPairTarget = chart.Targets[(i + pair - lastTargetOfPrevPair.Flags.SyncPairCount)];
+
+					const auto screenPosition = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(prevPairTarget).Position);
+					drawList.AddCircle(screenPosition, screenRadius, GetButtonTypeColorU32(prevPairTarget.Type, 0x84), GetCircleSegmentCount(screenRadius));
+				}
+			}
+
+			assert(firstTargetOfPair.Flags.SyncPairCount >= 1);
+			i += firstTargetOfPair.Flags.SyncPairCount;
 		}
 	}
 
@@ -438,11 +456,10 @@ namespace Comfy::Studio::Editor
 
 		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
 		{
-			auto& target = chart.Targets[i];
-			if (!target.IsSelected)
+			if (!chart.Targets[i].IsSelected)
 				continue;
 
-			const auto ticks = target.Tick.Ticks();
+			const auto ticks = chart.Targets[i].Tick.Ticks();
 			auto& data = targetData.emplace_back();
 			data.TargetIndex = i;
 			data.NewValue.Position = (startPosition * static_cast<f32>(endTick - ticks) + endPosition * static_cast<f32>(ticks - startTick)) / static_cast<f32>(endTick - startTick);
