@@ -71,6 +71,19 @@ namespace Comfy
 		return index;
 	}
 
+	template <typename CollectionType, typename Func>
+	COMFY_NODISCARD auto FindLastIndexOf(CollectionType& collection, Func predicate) -> size_t
+	{
+		size_t index = std::size(collection) - 1;
+		for (auto it = std::rbegin(collection); it != std::rend(collection); it++)
+		{
+			if (predicate(*it))
+				return index;
+			index--;
+		}
+		return index;
+	}
+
 	template <typename FloatType>
 	COMFY_NODISCARD constexpr auto ConvertRange(FloatType originalStart, FloatType originalEnd, FloatType newStart, FloatType newEnd, FloatType value) -> FloatType
 	{
