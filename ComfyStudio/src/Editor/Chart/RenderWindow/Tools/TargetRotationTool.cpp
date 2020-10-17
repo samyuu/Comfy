@@ -79,44 +79,110 @@ namespace Comfy::Studio::Editor
 		constexpr size_t maxPathsToDraw = 64;
 		size_t pathDrawCount = 0;
 
-		// TODO: Is this a good solution..?
 		if (angleDrag.Active)
 		{
+			const auto* dragTarget = IndexOrNull(angleDrag.TargetIndex, chart.Targets);
+
 			for (auto& target : chart.Targets)
 			{
-				if (!target.IsSelected)
-					continue;
-
-				DrawTargetButtonAngleLine(drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0xD6), 2.0f);
-				if (pathDrawCount++ >= maxPathsToDraw)
-					break;
+				if (target.IsSelected && &target != dragTarget)
+				{
+					DrawTargetButtonAngleLine(drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0x76), 2.0f);
+					if (pathDrawCount++ >= maxPathsToDraw)
+						break;
+				}
 			}
+
+			// NOTE: For readibility sake always draw the main drag arrow on top
+			if (dragTarget != nullptr)
+				DrawTargetButtonAngleArrowLine(drawList, Rules::TryGetProperties(*dragTarget), GetButtonTypeColorU32(dragTarget->Type, 0xD6), 2.0f);
 		}
 		else
 		{
 			for (auto& target : chart.Targets)
 			{
-				if (!target.IsSelected)
-					continue;
-
-				DrawTargetButtonPathCurve(drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0xD6), 2.0f);
-				if (pathDrawCount++ >= maxPathsToDraw)
-					break;
+				if (target.IsSelected)
+				{
+					DrawTargetButtonPathCurve(drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0xD6), 2.0f);
+					if (pathDrawCount++ >= maxPathsToDraw)
+						break;
+				}
 			}
 		}
-
-
 	}
 
 	void TargetRotationTool::DrawTargetButtonAngleLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
 	{
 		const auto angleRadians = glm::radians(properties.Angle) - glm::radians(90.0f);
-		const auto angleVector = vec2(glm::cos(angleRadians), glm::sin(angleRadians));
+		const auto angleDirection = vec2(glm::cos(angleRadians), glm::sin(angleRadians));
 
 		const auto start = renderWindow.TargetAreaToScreenSpace(properties.Position);
-		const auto end = renderWindow.TargetAreaToScreenSpace(properties.Position + (angleVector * properties.Distance));
+		const auto end = renderWindow.TargetAreaToScreenSpace(properties.Position + (angleDirection * properties.Distance));
 
 		drawList.AddLine(start, end, color, thickness);
+	}
+
+	void TargetRotationTool::DrawTargetButtonAngleArrowLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
+	{
+		static constexpr struct ArrowSettings
+		{
+			f32 HeadSpacing = 96.0f;
+			f32 HeadEndSpacingFactor = 0.6f;
+			f32 HeadSize = 168.0f;
+			f32 HeadAngle = 16.0f;
+			vec4 BackgroundColor = vec4(0.16f, 0.16f, 0.16f, 0.95f);
+		} settings;
+
+		const auto angleRadians = glm::radians(properties.Angle) - glm::radians(90.0f);
+		const auto angleDirection = vec2(glm::cos(angleRadians), glm::sin(angleRadians));
+
+		const auto start = renderWindow.TargetAreaToScreenSpace(properties.Position);
+		const auto end = renderWindow.TargetAreaToScreenSpace(properties.Position + (angleDirection * properties.Distance));
+
+		const auto headSpacing = settings.HeadSpacing * renderWindow.GetCamera().Zoom;
+		const auto headSize = (settings.HeadSize * renderWindow.GetCamera().Zoom) / 2.0f;
+		const auto headRadians = glm::radians(settings.HeadAngle);
+
+		const auto headRadiansL = (angleRadians - headRadians);
+		const auto headRadiansR = (angleRadians + headRadians);
+		const auto headDirectionL = vec2(glm::cos(headRadiansL), glm::sin(headRadiansL));
+		const auto headDirectionR = vec2(glm::cos(headRadiansR), glm::sin(headRadiansR));
+		const auto backgroundColor = Gui::ColorConvertFloat4ToU32(settings.BackgroundColor * Gui::ColorConvertU32ToFloat4(color));
+
+		const auto startEndDistance = (properties.Distance <= 0.0f) ? 0.0f : glm::distance(start, end);
+		const auto headCount = std::max(1, static_cast<i32>(glm::floor(startEndDistance / headSpacing)));
+
+		for (i32 head = 0; head < headCount; head++)
+		{
+			const auto headDistance = ((head + 0) * headSpacing) + (headSpacing * settings.HeadEndSpacingFactor) + (thickness / 2.0f);
+			const auto headDistanceNext = ((head + 1) == headCount) ? startEndDistance : glm::min(startEndDistance, ((head + 1) * headSpacing));
+
+			const auto headStart = start + (headDistance * angleDirection);
+			const auto headEnd = start + (headDistanceNext * angleDirection);
+
+			drawList.AddLine(headStart, headEnd, color, thickness);
+		}
+
+		for (i32 head = 0; head < headCount; head++)
+		{
+			const auto headDistance = (head * headSpacing);
+
+			const auto headStart = start + (headDistance * angleDirection);
+			const auto headEnd = start + ((headDistance + (headSpacing * settings.HeadEndSpacingFactor)) * angleDirection);
+
+			const auto headEndL = headStart + (headDirectionL * headSize);
+			const auto headEndR = headStart + (headDirectionR * headSize);
+
+			// NOTE: Primarily to hide the AA triangle seams at some angles
+			drawList.AddLine(headStart, headEnd, backgroundColor, 1.0f);
+			drawList.AddTriangleFilled(headStart, headEndL, headEnd, backgroundColor);
+			drawList.AddTriangleFilled(headEnd, headEndR, headStart, backgroundColor);
+
+			drawList.AddLine(headStart, headEndL, color, thickness);
+			drawList.AddLine(headStart, headEndR, color, thickness);
+			drawList.AddLine(headEndL, headEnd, color, thickness);
+			drawList.AddLine(headEndR, headEnd, color, thickness);
+		}
 	}
 
 	void TargetRotationTool::DrawTargetButtonPathCurve(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
@@ -141,31 +207,37 @@ namespace Comfy::Studio::Editor
 		if (!angleDrag.Active)
 			return;
 
-		const auto whiteColor = Gui::GetColorU32(ImGuiCol_Text);
-		const auto dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
-		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.75f);
+		const auto dragTarget = IndexOrNull(angleDrag.TargetIndex, chart.Targets);
+		if (dragTarget == nullptr)
+			return;
 
-		constexpr auto guideRadius = Rules::TickToDistance(TimelineTick::FromBars(1) / 16);
-		drawList.AddCircleFilled(angleDrag.Start, guideRadius, dimColor, 32);
-		drawList.AddCircle(angleDrag.Start, guideRadius, whiteColor, 32);
+		const auto targetProperties = Rules::TryGetProperties(*dragTarget);
+		const auto screenPosition = renderWindow.TargetAreaToScreenSpace(targetProperties.Position);
+		const auto cameraZoom = renderWindow.GetCamera().Zoom;
 
-		drawList.AddLine(angleDrag.Start, angleDrag.Start + (vec2(+0.0f, -1.0f) * guideRadius), dimWhiteColor, 1.0f);
-		drawList.AddLine(angleDrag.Start, angleDrag.Start + (vec2(+1.0f, +0.0f) * guideRadius), dimWhiteColor, 1.0f);
-		drawList.AddLine(angleDrag.Start, angleDrag.Start + (vec2(+0.0f, +1.0f) * guideRadius), dimWhiteColor, 1.0f);
-		drawList.AddLine(angleDrag.Start, angleDrag.Start + (vec2(-1.0f, +0.0f) * guideRadius), dimWhiteColor, 1.0f);
+		const auto buttonTypeColor = GetButtonTypeColorU32(dragTarget->Type, 0x80);
 
-		const auto directionRadians = glm::radians(angleDrag.DegreesTargetAngle - 90.0f);
-		const auto direction = vec2(glm::cos(directionRadians), glm::sin(directionRadians));
+		drawList.AddLine(
+			screenPosition,
+			screenPosition + vec2(0.0f, -Rules::TickToDistance(TimelineTick::FromBars(1) / 6) * cameraZoom),
+			buttonTypeColor,
+			2.0f);
 
-		drawList.AddCircleFilled(angleDrag.Start, 2.0f, whiteColor, 9);
-		drawList.AddCircleFilled(angleDrag.Start + (direction * guideRadius), 4.0f, whiteColor, 9);
-		drawList.AddLine(angleDrag.Start, angleDrag.Start + (direction * guideRadius), whiteColor, 1);
+		const auto radius = Rules::TickToDistance(TimelineTick::FromBars(1) / 8) * cameraZoom;
+		const auto angle = Rules::NormalizeAngle(targetProperties.Angle) - 90.0f;
 
-		char buffer[32];
-		const auto bufferView = std::string_view(buffer, sprintf_s(buffer, (angleDrag.Start != angleDrag.End) ? "[%.1f deg]" : "[--.- deg]", angleDrag.DegreesTargetAngle));
+		drawList.PathArcTo(screenPosition, radius - 0.5f, glm::radians(-90.0f), glm::radians(angle), 32);
+		drawList.PathStroke(buttonTypeColor, false, 2.0f);
 
-		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
-		drawList.AddText(angleDrag.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f), whiteColor, Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
+		char buffer[64];
+		const auto textPadding = vec2(3.0f, 1.0f);
+		const auto textSize = Gui::CalcTextSize(buffer, buffer + sprintf_s(buffer, u8"%.1f��", targetProperties.Angle)) + textPadding;
+		const auto textPos = renderWindow.TargetAreaToScreenSpace(
+			targetProperties.Position + vec2(Rules::TickToDistance(TimelineTick::FromBars(1) / 10)) * vec2(1.0f, -1.0f)) - (textSize / 2.0f);
+
+		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);
+		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
+		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), buffer);
 	}
 
 	void TargetRotationTool::UpdateMouseAngleDragInput(Chart& chart)
@@ -180,10 +252,18 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsMouseClicked(0) && !Gui::IsAnyItemHovered())
 			{
-				if (std::any_of(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) {return t.IsSelected; }))
+				angleDrag.UseLastTarget = Gui::GetIO().KeyAlt;
+
+				const auto targetIndex = angleDrag.UseLastTarget ?
+					FindLastIndexOf(chart.Targets, [&](auto& t) { return t.IsSelected; }) :
+					FindIndexOf(chart.Targets, [&](auto& t) { return t.IsSelected; });
+
+				if (InBounds(targetIndex, chart.Targets))
 				{
 					angleDrag.Active = true;
-					angleDrag.Start = Gui::GetMousePos();
+					angleDrag.StartMouse = Gui::GetMousePos();
+					angleDrag.StartTarget = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(chart.Targets[targetIndex]).Position);
+					angleDrag.TargetIndex = static_cast<i32>(targetIndex);
 					undoManager.DisallowMergeForLastCommand();
 				}
 			}
@@ -197,18 +277,25 @@ namespace Comfy::Studio::Editor
 			angleDrag.RoughStep = Gui::GetIO().KeyShift;
 			angleDrag.PreciseStep = Gui::GetIO().KeyAlt;
 
-			angleDrag.End = Gui::GetMousePos();
-			angleDrag.Direction = glm::normalize(angleDrag.End - angleDrag.Start);
-			angleDrag.DegreesTargetAngle = glm::degrees(glm::atan(angleDrag.Direction.y, angleDrag.Direction.x)) + 90.0f;
+			angleDrag.EndMouse = Gui::GetMousePos();
+			angleDrag.TargetMouseDirection = glm::normalize(angleDrag.EndMouse - angleDrag.StartTarget);
+			angleDrag.DegreesTargetAngle = glm::degrees(glm::atan(angleDrag.TargetMouseDirection.y, angleDrag.TargetMouseDirection.x)) + 90.0f;
 
-			constexpr f32 roughAngleSnap = 15.0f, preciseAngleSnap = 0.1f, angleSnap = 0.1f;
+			constexpr f32 distanceActionThreshold = 3.0f;
+			if (!angleDrag.MovedFarEnoughFromStart && glm::distance(angleDrag.StartMouse, angleDrag.EndMouse) > distanceActionThreshold)
+				angleDrag.MovedFarEnoughFromStart = true;
 
-			const auto snap = angleDrag.RoughStep ? roughAngleSnap : angleDrag.PreciseStep ? preciseAngleSnap : angleSnap;
-			angleDrag.DegreesTargetAngle = Rules::NormalizeAngle(glm::round(angleDrag.DegreesTargetAngle / snap) * snap);
+			if (angleDrag.MovedFarEnoughFromStart)
+			{
+				constexpr f32 roughAngleSnap = 15.0f, preciseAngleSnap = 0.1f, angleSnap = 1.0f;
 
-			constexpr auto distanceThreshold = 4.0f;
-			if (glm::distance(angleDrag.Start, angleDrag.End) > distanceThreshold)
-				SetSelectedTargetAnglesTo(undoManager, chart, angleDrag.DegreesTargetAngle);
+				const auto snap = angleDrag.RoughStep ? roughAngleSnap : angleDrag.PreciseStep ? preciseAngleSnap : angleSnap;
+				angleDrag.DegreesTargetAngle = Rules::NormalizeAngle(glm::round(angleDrag.DegreesTargetAngle / snap) * snap);
+
+				constexpr auto distanceThreshold = 4.0f;
+				if (glm::distance(angleDrag.StartTarget, angleDrag.EndMouse) > distanceThreshold)
+					SetSelectedTargetAnglesTo(undoManager, chart, angleDrag.DegreesTargetAngle);
+			}
 		}
 	}
 
@@ -291,6 +378,7 @@ namespace Comfy::Studio::Editor
 		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
 		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
 
+		// BUG: Negative -> position angles not handled correctly (?)
 		const auto startAngle = Rules::TryGetProperties(firstTarget).Angle;
 		const auto endAngle = clockwise ? Rules::TryGetProperties(lastTarget).Angle : (Rules::TryGetProperties(lastTarget).Angle - 360.0f);
 

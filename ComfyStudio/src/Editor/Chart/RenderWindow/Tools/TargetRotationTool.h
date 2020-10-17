@@ -30,6 +30,7 @@ namespace Comfy::Studio::Editor
 	private:
 		void DrawTargetAngleGuides(Chart& chart, ImDrawList& drawList);
 		void DrawTargetButtonAngleLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const;
+		void DrawTargetButtonAngleArrowLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const;
 		void DrawTargetButtonPathCurve(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const;
 
 		void DrawAngleDragGuide(Chart& chart, ImDrawList& drawList);
@@ -45,12 +46,18 @@ namespace Comfy::Studio::Editor
 	private:
 		struct AngleDragData
 		{
-			vec2 Start, End;
-			vec2 Direction;
+			vec2 StartTarget;
+			vec2 StartMouse, EndMouse;
+			vec2 TargetMouseDirection;
 			f32 DegreesTargetAngle;
 
 			bool Active;
 			bool RoughStep, PreciseStep;
+
+			bool UseLastTarget;
+			bool MovedFarEnoughFromStart;
+
+			i32 TargetIndex = -1;
 		} angleDrag = {};
 	};
 }
