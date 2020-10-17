@@ -171,11 +171,13 @@ namespace Comfy::Studio::Editor
 		drawList.AddCircleFilled(row.Start + (direction * guideRadius), 4.0f, whiteColor, 9);
 		drawList.AddLine(row.Start, row.Start + (direction * guideRadius), whiteColor, 1.0f);
 
-		char buffer[32];
-		const auto bufferView = std::string_view(buffer, sprintf_s(buffer, "[%s]", CardinalDirectionAbbreviations[static_cast<u8>(cardinal)]));
+		char textBuffer[32];
+		const auto textView = std::string_view(textBuffer, sprintf_s(textBuffer, "[%s]", CardinalDirectionAbbreviations[static_cast<u8>(cardinal)]));
+		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
+		const auto textPos = row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f);
 
-		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
-		drawList.AddText(row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f), whiteColor, Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
+		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
+		drawList.AddText(textPos, whiteColor, Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
 	}
 
 	void TargetPositionTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
