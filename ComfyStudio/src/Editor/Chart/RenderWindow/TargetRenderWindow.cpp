@@ -372,7 +372,7 @@ namespace Comfy::Studio::Editor
 						trailData.Properties = properties;
 						trailData.Progress = static_cast<f32>(flyDuration.TotalSeconds()) * progressUnbound;
 						trailData.ProgressStart = progress;
-						trailData.ProgressEnd = (progress - normalizedLength);
+						trailData.ProgressEnd = glm::max(0.0f, (progress - normalizedLength));
 					}
 
 					if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair == 0)
