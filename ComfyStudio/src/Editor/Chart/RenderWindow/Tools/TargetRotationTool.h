@@ -35,6 +35,8 @@ namespace Comfy::Studio::Editor
 
 		void DrawAngleDragGuide(Chart& chart, ImDrawList& drawList);
 
+		void UpdateKeyboardKeyBindingsInput(Chart& chart);
+		void UpdateMouseAngleScrollInput(Chart& chart);
 		void UpdateMouseAngleDragInput(Chart& chart);
 
 		void IncrementSelectedTargetAnglesBy(Undo::UndoManager& undoManager, Chart& chart, f32 increment);
@@ -44,6 +46,13 @@ namespace Comfy::Studio::Editor
 		void InterpolateSelectedTargetAngles(Undo::UndoManager& undoManager, Chart& chart, bool clockwise);
 
 	private:
+		struct AngleScrollData
+		{
+			Stopwatch LastScroll;
+			bool Active;
+			i32 TargetIndex = -1;
+		} angleScroll = {};
+
 		struct AngleDragData
 		{
 			vec2 StartTarget;

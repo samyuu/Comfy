@@ -24,7 +24,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRotationTool::OnContextMenuGUI(Chart& chart)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 
 		if (Gui::MenuItem("Invert Target Frequencies", Input::GetKeyCodeName(KeyBindings::RotationToolInvertFrequencies), false, (selectionCount > 0)))
 			InvertSelectedTargetFrequencies(undoManager, chart);
@@ -50,22 +50,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetRotationTool::UpdateInput(Chart& chart)
 	{
-		// TODO: Move into separate functions
-		if (Gui::IsWindowFocused() && Gui::GetActiveID() == 0)
-		{
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolInvertFrequencies, false))
-				InvertSelectedTargetFrequencies(undoManager, chart);
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolInterpolateClockwise, false))
-				InterpolateSelectedTargetAngles(undoManager, chart, true);
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolInterpolateCounterclockwise, false))
-				InterpolateSelectedTargetAngles(undoManager, chart, false);
-		}
-		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
-		{
-			if (const auto wheel = Gui::GetIO().MouseWheel; wheel != 0.0f)
-				IncrementSelectedTargetAnglesBy(undoManager, chart, -wheel);
-		}
-
+		UpdateKeyboardKeyBindingsInput(chart);
+		UpdateMouseAngleScrollInput(chart);
 		UpdateMouseAngleDragInput(chart);
 	}
 
@@ -79,9 +65,9 @@ namespace Comfy::Studio::Editor
 		constexpr size_t maxPathsToDraw = 64;
 		size_t pathDrawCount = 0;
 
-		if (angleDrag.Active)
+		if (angleDrag.Active || angleScroll.Active)
 		{
-			const auto* dragTarget = IndexOrNull(angleDrag.TargetIndex, chart.Targets);
+			const auto* dragTarget = IndexOrNull(angleDrag.Active ? angleDrag.TargetIndex : angleScroll.TargetIndex, chart.Targets);
 
 			for (auto& target : chart.Targets)
 			{
@@ -204,10 +190,10 @@ namespace Comfy::Studio::Editor
 
 	void TargetRotationTool::DrawAngleDragGuide(Chart& chart, ImDrawList& drawList)
 	{
-		if (!angleDrag.Active)
+		if (!angleDrag.Active && !angleScroll.Active)
 			return;
 
-		const auto dragTarget = IndexOrNull(angleDrag.TargetIndex, chart.Targets);
+		const auto dragTarget = IndexOrNull(angleDrag.Active ? angleDrag.TargetIndex : angleScroll.TargetIndex, chart.Targets);
 		if (dragTarget == nullptr)
 			return;
 
@@ -231,13 +217,47 @@ namespace Comfy::Studio::Editor
 
 		char buffer[64];
 		const auto textPadding = vec2(3.0f, 1.0f);
-		const auto textSize = Gui::CalcTextSize(buffer, buffer + sprintf_s(buffer, u8"%.1fÔøΩÔøΩ", targetProperties.Angle)) + textPadding;
+		const auto textSize = Gui::CalcTextSize(buffer, buffer + sprintf_s(buffer, u8"%.1fÅã", targetProperties.Angle)) + textPadding;
 		const auto textPos = renderWindow.TargetAreaToScreenSpace(
 			targetProperties.Position + vec2(Rules::TickToDistance(TimelineTick::FromBars(1) / 10)) * vec2(1.0f, -1.0f)) - (textSize / 2.0f);
 
 		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);
 		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
 		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), buffer);
+	}
+
+	void TargetRotationTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
+	{
+		if (Gui::IsWindowFocused() && Gui::GetActiveID() == 0)
+		{
+			if (Gui::IsKeyPressed(KeyBindings::RotationToolInvertFrequencies, false))
+				InvertSelectedTargetFrequencies(undoManager, chart);
+			if (Gui::IsKeyPressed(KeyBindings::RotationToolInterpolateClockwise, false))
+				InterpolateSelectedTargetAngles(undoManager, chart, true);
+			if (Gui::IsKeyPressed(KeyBindings::RotationToolInterpolateCounterclockwise, false))
+				InterpolateSelectedTargetAngles(undoManager, chart, false);
+		}
+	}
+
+	void TargetRotationTool::UpdateMouseAngleScrollInput(Chart& chart)
+	{
+		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
+		{
+			if (const auto& io = Gui::GetIO(); io.MouseWheel != 0.0f)
+			{
+				constexpr f32 roughAngleStep = 5.0f, preciseAngleStep = 0.1f, angleStep = 1.0f;
+				constexpr f32 scrollDirection = -1.0f;
+
+				const auto angleIncrement = io.KeyShift ? roughAngleStep : io.KeyAlt ? preciseAngleStep : angleStep;
+				IncrementSelectedTargetAnglesBy(undoManager, chart, (angleIncrement * io.MouseWheel * scrollDirection));
+
+				angleScroll.LastScroll.Restart();
+			}
+		}
+
+		constexpr auto activeScrollThreshold = TimeSpan::FromSeconds(0.75);
+		angleScroll.Active = angleScroll.LastScroll.IsRunning() && angleScroll.LastScroll.GetElapsed() <= activeScrollThreshold;
+		angleScroll.TargetIndex = angleScroll.Active ? static_cast<i32>(FindIndexOf(chart.Targets, [](auto& t) { return t.IsSelected; })) : -1;
 	}
 
 	void TargetRotationTool::UpdateMouseAngleDragInput(Chart& chart)
@@ -255,8 +275,8 @@ namespace Comfy::Studio::Editor
 				angleDrag.UseLastTarget = Gui::GetIO().KeyAlt;
 
 				const auto targetIndex = angleDrag.UseLastTarget ?
-					FindLastIndexOf(chart.Targets, [&](auto& t) { return t.IsSelected; }) :
-					FindIndexOf(chart.Targets, [&](auto& t) { return t.IsSelected; });
+					FindLastIndexOf(chart.Targets, [](auto& t) { return t.IsSelected; }) :
+					FindIndexOf(chart.Targets, [](auto& t) { return t.IsSelected; });
 
 				if (InBounds(targetIndex, chart.Targets))
 				{
@@ -301,7 +321,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRotationTool::IncrementSelectedTargetAnglesBy(Undo::UndoManager& undoManager, Chart& chart, f32 increment)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -314,7 +334,7 @@ namespace Comfy::Studio::Editor
 			{
 				auto& data = targetData.emplace_back();
 				data.TargetIndex = i;
-				data.NewValue.Angle = Rules::TryGetProperties(target).Angle + increment;
+				data.NewValue.Angle = Rules::NormalizeAngle(Rules::TryGetProperties(target).Angle + increment);
 			}
 		}
 
@@ -323,7 +343,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRotationTool::SetSelectedTargetAnglesTo(Undo::UndoManager& undoManager, Chart& chart, f32 newAngle)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -345,7 +365,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRotationTool::InvertSelectedTargetFrequencies(Undo::UndoManager& undoManager, Chart& chart)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -371,12 +391,12 @@ namespace Comfy::Studio::Editor
 
 	void TargetRotationTool::InterpolateSelectedTargetAngles(Undo::UndoManager& undoManager, Chart& chart, bool clockwise)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
-		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
-		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [](auto& t) { return t.IsSelected; });
 
 		// BUG: Negative -> position angles not handled correctly (?)
 		const auto startAngle = Rules::TryGetProperties(firstTarget).Angle;
