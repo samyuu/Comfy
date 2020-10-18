@@ -618,13 +618,13 @@ namespace Comfy::Studio::Editor
 			Gui::Text("  Save changes to the current file?\n\n\n");
 			Gui::Separator();
 
-			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Enter));
+			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Enter, false));
 			Gui::SameLine();
 
 			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   Discard Changes", buttonSize);
 			Gui::SameLine();
 
-			const bool clickedCancel = Gui::Button("Cancel", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape));
+			const bool clickedCancel = Gui::Button("Cancel", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape, false));
 
 			if (clickedYes || clickedNo || clickedCancel)
 			{
