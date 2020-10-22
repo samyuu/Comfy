@@ -103,17 +103,12 @@ namespace Comfy::Studio::Editor
 		{
 			frontSelectedTarget = !selectedTargets.empty() ? selectedTargets.front().Target : nullptr;
 			frontSelectedProperties = !selectedTargets.empty() ? selectedTargets.front().PropertiesOrPreset : TargetProperties {};
-			frontSelectedHasProperties = (frontSelectedTarget != nullptr) ? frontSelectedTarget->Flags.HasProperties : false;
-
-			// NOTE: Invert "has properties" to "use preset" to make it more user friendly. HasProperties used internally to allow for "0 is initialization"
-			const bool sameHasProperties = std::all_of(selectedTargets.begin(), selectedTargets.end(), [&](const auto& t) { return t->Flags.HasProperties == frontSelectedHasProperties; });
-			auto commonUsePreset = (sameHasProperties && !selectedTargets.empty()) ? static_cast<GuiProperty::Boolean>(!frontSelectedHasProperties) : GuiProperty::Boolean::Count;
-			const auto previousCommonUsePreset = commonUsePreset;
 
 			if (frontSelectedTarget == nullptr)
 				Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
-			if (GuiProperty::ComboBoolean("Use Preset", commonUsePreset) && (commonUsePreset != previousCommonUsePreset))
+			auto usePresetValueGetter = [](auto& t) { return static_cast<GuiProperty::Boolean>(!t.Flags.HasProperties); };
+			BooleanGui("Use Preset", usePresetValueGetter, [](auto& t) { return true; }, [&](const bool newValue)
 			{
 				std::vector<ChangeTargetListHasProperties::Data> targetData;
 				targetData.reserve(selectedTargets.size());
@@ -121,8 +116,9 @@ namespace Comfy::Studio::Editor
 				for (const auto& targetView : selectedTargets)
 					targetData.emplace_back().TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
 
-				undoManager.Execute<ChangeTargetListHasProperties>(chart, std::move(targetData), !static_cast<bool>(commonUsePreset));
-			}
+				if (!targetData.empty())
+					undoManager.Execute<ChangeTargetListHasProperties>(chart, std::move(targetData), !newValue);
+			});
 
 			PropertyGui(chart, "Position X", TargetPropertyType_PositionX);
 			PropertyGui(chart, "Position Y", TargetPropertyType_PositionY);
@@ -134,6 +130,24 @@ namespace Comfy::Studio::Editor
 			if (frontSelectedTarget == nullptr)
 				Gui::PopItemFlag();
 		});
+	}
+
+	template<typename ValueGetter, typename ConditionGetter, typename OnChange>
+	void TargetInspector::BooleanGui(std::string_view label, ValueGetter valueGetter, ConditionGetter conditionGetter, OnChange onChange)
+	{
+		const bool allAreValid = std::all_of(selectedTargets.begin(), selectedTargets.end(), [&](auto& t) { return conditionGetter(*t); });
+
+		const auto frontValue = (allAreValid && frontSelectedTarget != nullptr) ? valueGetter(*frontSelectedTarget) : GuiProperty::Boolean::Count;
+		const auto allValuesSame = (allAreValid && std::all_of(selectedTargets.begin(), selectedTargets.end(), [&](auto& t) { return valueGetter(*t) == frontValue; }));
+
+		auto commonBoolean = (allAreValid && allValuesSame && !selectedTargets.empty()) ? frontValue : GuiProperty::Boolean::Count;
+		const auto commonBooleanOld = commonBoolean;
+
+		if (GuiProperty::ComboBoolean(label, commonBoolean) && (commonBoolean != commonBooleanOld))
+		{
+			const bool newValue = static_cast<bool>(commonBoolean);
+			onChange(newValue);
+		}
 	}
 
 	void TargetInspector::PropertyGui(Chart& chart, std::string_view label, TargetPropertyType property, f32 dragSpeed)

@@ -19,6 +19,10 @@ namespace Comfy::Studio::Editor
 		std::string_view FormatSelectedTargetsValueBuffer(const Chart& chart);
 
 		void GuiSelectedTargets(Chart& chart);
+
+		template <typename ValueGetter, typename ConditionGetter, typename OnChange>
+		void BooleanGui(std::string_view label, ValueGetter valueGetter, ConditionGetter conditionGetter, OnChange onChange);
+
 		void PropertyGui(Chart& chart, std::string_view label, TargetPropertyType property, f32 dragSpeed = 1.0f);
 
 		i32 GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const;
@@ -34,6 +38,8 @@ namespace Comfy::Studio::Editor
 			TimelineTarget* Target;
 			TargetProperties PropertiesOrPreset;
 
+			TimelineTarget& operator*() { return *Target; }
+			const TimelineTarget& operator*() const { return *Target; }
 			TimelineTarget* operator->() { return Target; }
 			const TimelineTarget* operator->() const { return Target; }
 		};
@@ -43,6 +49,5 @@ namespace Comfy::Studio::Editor
 
 		TimelineTarget* frontSelectedTarget;
 		TargetProperties frontSelectedProperties;
-		bool frontSelectedHasProperties;
 	};
 }
