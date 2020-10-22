@@ -80,5 +80,8 @@ namespace Comfy::Studio::Editor
 		constexpr Input::KeyCode RotationToolInvertFrequencies = Input::KeyCode_R;
 		constexpr Input::KeyCode RotationToolInterpolateClockwise = Input::KeyCode_T;
 		constexpr Input::KeyCode RotationToolInterpolateCounterclockwise = Input::KeyCode_G;
+
+		constexpr Input::KeyCode RotationToolApplyAngleVariationsPositive = Input::KeyCode_F;
+		constexpr Input::KeyCode RotationToolApplyAngleVariationsNegative = Input::KeyCode_V;
 	}
 }

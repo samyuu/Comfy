@@ -1,4 +1,5 @@
 #include "TargetRotationTool.h"
+#include "CardinalDirection.h"
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
@@ -38,6 +39,28 @@ namespace Comfy::Studio::Editor
 			InterpolateSelectedTargetAngles(undoManager, chart, true);
 		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::RotationToolInterpolateCounterclockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, false);
+
+		if (Gui::BeginMenu("Angle Variation Settings"))
+		{
+			constexpr auto formatString = ("%.2f" DEGREE_SIGN);
+			Gui::InputFloat("Increment Per Beat", &angleVariation.IncrementPerBeat, 1.0f, 5.0f, formatString);
+			Gui::InputFloat("Increment Per Beat (Slope)", &angleVariation.IncrementPerBeatSlope, 1.0f, 5.0f, formatString);
+
+			constexpr auto defaultVariation = AngleVariationData {};
+			const bool isDefault = (angleVariation.IncrementPerBeat == defaultVariation.IncrementPerBeat && angleVariation.IncrementPerBeatSlope == defaultVariation.IncrementPerBeatSlope);
+
+			Gui::PushItemDisabledAndTextColorIf(isDefault);
+			if (Gui::Button("Set Default", vec2(Gui::GetContentRegionAvailWidth() * 0.645f, 0.0f)))
+				angleVariation = defaultVariation;
+			Gui::PopItemDisabledAndTextColorIf(isDefault);
+
+			Gui::EndMenu();
+		}
+
+		if (Gui::MenuItem("Apply Angle Variations Positive", Input::GetKeyCodeName(KeyBindings::RotationToolApplyAngleVariationsPositive), false, (selectionCount > 0)))
+			ApplySelectedTargetAngleVariations(undoManager, chart, +1.0f);
+		if (Gui::MenuItem("Apply Angle Variations Negative", Input::GetKeyCodeName(KeyBindings::RotationToolApplyAngleVariationsNegative), false, (selectionCount > 0)))
+			ApplySelectedTargetAngleVariations(undoManager, chart, -1.0f);
 	}
 
 	void TargetRotationTool::OnOverlayGUI(Chart& chart)
@@ -244,6 +267,10 @@ namespace Comfy::Studio::Editor
 				InterpolateSelectedTargetAngles(undoManager, chart, true);
 			if (Gui::IsKeyPressed(KeyBindings::RotationToolInterpolateCounterclockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, false);
+			if (Gui::IsKeyPressed(KeyBindings::RotationToolApplyAngleVariationsPositive, false))
+				ApplySelectedTargetAngleVariations(undoManager, chart, +1.0f);
+			if (Gui::IsKeyPressed(KeyBindings::RotationToolApplyAngleVariationsNegative, false))
+				ApplySelectedTargetAngleVariations(undoManager, chart, -1.0f);
 		}
 	}
 
@@ -434,5 +461,50 @@ namespace Comfy::Studio::Editor
 
 		undoManager.DisallowMergeForLastCommand();
 		undoManager.Execute<InterpolateTargetListAngles>(chart, std::move(targetData));
+	}
+
+	void TargetRotationTool::ApplySelectedTargetAngleVariations(Undo::UndoManager& undoManager, Chart& chart, f32 direction)
+	{
+		assert(std::isnormal(direction));
+
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		std::vector<ChangeTargetListAngles::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		{
+			if (!chart.Targets[i].IsSelected)
+				continue;
+
+			auto& data = targetData.emplace_back();
+			data.TargetIndex = i;
+			data.NewValue = Rules::TryGetProperties(chart.Targets[i]);
+		}
+
+		for (size_t i = 1; i < targetData.size(); i++)
+		{
+			auto& prevData = targetData[i - 1];
+			auto& thisData = targetData[i];
+
+			const auto& prevTarget = chart.Targets[prevData.TargetIndex];
+			const auto& thisTarget = chart.Targets[thisData.TargetIndex];
+
+			const auto tickDifference = (prevTarget.Tick - thisTarget.Tick);
+
+			const auto directionToLastTarget = glm::normalize(prevData.NewValue.Position - thisData.NewValue.Position);
+			const auto angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
+			const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
+
+			const auto incrementPerBeat = (isSlope ? angleVariation.IncrementPerBeatSlope : angleVariation.IncrementPerBeat);
+			const auto angleIncrement = (tickDifference.BeatsFraction() * incrementPerBeat * direction);
+
+			thisData.NewValue.Angle = Rules::NormalizeAngle(prevData.NewValue.Angle + angleIncrement);
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		undoManager.Execute<ApplyTargetListAngleVarations>(chart, std::move(targetData));
 	}
 }

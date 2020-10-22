@@ -45,6 +45,8 @@ namespace Comfy::Studio::Editor
 		void InvertSelectedTargetFrequencies(Undo::UndoManager& undoManager, Chart& chart);
 		void InterpolateSelectedTargetAngles(Undo::UndoManager& undoManager, Chart& chart, bool clockwise);
 
+		void ApplySelectedTargetAngleVariations(Undo::UndoManager& undoManager, Chart& chart, f32 direction);
+
 	private:
 		struct AngleScrollData
 		{
@@ -68,5 +70,11 @@ namespace Comfy::Studio::Editor
 
 			i32 TargetIndex = -1;
 		} angleDrag = {};
+
+		struct AngleVariationData
+		{
+			f32 IncrementPerBeat = 2.0f;
+			f32 IncrementPerBeatSlope = 10.0f;
+		} angleVariation = {};
 	};
 }
