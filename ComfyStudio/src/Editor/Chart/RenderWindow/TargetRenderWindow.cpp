@@ -85,6 +85,10 @@ namespace Comfy::Studio::Editor
 		if (selectedTool != nullptr)
 			selectedTool->PreRenderGUI(*workingChart, *drawList);
 
+		// NOTE: Avoid overflowing 16-bit vertex buffer indices
+		constexpr size_t maxSelectionToDraw = 512;
+		size_t selectionDrawCount = 0;
+
 		for (const auto& target : workingChart->Targets)
 		{
 			if (!target.IsSelected)
@@ -98,6 +102,8 @@ namespace Comfy::Studio::Editor
 			drawList->AddRect(tl, br, GetColor(EditorColor_TimelineSelectionBorder));
 
 			drawBuffers.CenterMarkers.push_back({ TargetAreaToScreenSpace(position), GetButtonTypeColorU32(target.Type) });
+			if (selectionDrawCount++ >= maxSelectionToDraw)
+				break;
 		}
 
 		const auto markerScreenSize = (camera.Zoom * SelectionCenterMarkerSize);
@@ -204,21 +210,12 @@ namespace Comfy::Studio::Editor
 			if (auto selectedTool = GetSelectedTool(); selectedTool != nullptr)
 				selectedTool->OnContextMenuGUI(*workingChart);
 
-			if (Gui::WideBeginMenu("Layers", true))
+			if (Gui::BeginMenu("Settings", true))
 			{
-				Gui::Checkbox("Draw Buttons", &layers.DrawButtons);
-				Gui::Checkbox("Draw Targets", &layers.DrawTargets);
-				Gui::PushItemDisabledAndTextColorIf(!layers.DrawTargets);
-				Gui::Checkbox("Draw Target Hands", &layers.DrawTargetHands);
-				Gui::PopItemDisabledAndTextColorIf(!layers.DrawTargets);
-				Gui::EndMenu();
-			}
-
-			if (Gui::WideBeginMenu("Settings", true))
-			{
-				Gui::Checkbox("Checkerboard", &drawCheckerboard);
+				Gui::Checkbox("Target Buttons", &layers.DrawButtons);
 				Gui::Checkbox("Target Grid", &drawTargetGrid);
 
+				Gui::Checkbox("Background Checkerboard", &drawCheckerboard);
 				Gui::SliderFloat("Background Dim", &backgroundDim, 0.0f, 1.0f);
 
 				if (auto t = targetPostHitLingerDuration.Ticks(); Gui::SliderInt("Post Hit Linger Duration", &t, 0, TimelineTick::TicksPerBeat * 8, "%d Ticks"))
@@ -227,7 +224,7 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
-			if (Gui::WideBeginMenu("Practice Background", true))
+			if (Gui::BeginMenu("Practice Background", true))
 			{
 				Gui::Checkbox("Enabled", &practiceBackground.Enabled);
 				Gui::PushItemDisabledAndTextColorIf(!practiceBackground.Enabled);
