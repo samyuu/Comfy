@@ -70,9 +70,11 @@ namespace Comfy::Studio::Editor
 			}
 		});
 
-		const auto cursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
-		const auto tempoChangeAtCursor = chart.TempoMap.FindTempoChangeAtTick(cursorTick);
-		const auto cursorSitsOnTempoChange = (tempoChangeAtCursor.Tick == cursorTick);
+		lastFrameCursorTick = thisFrameCursorTick;
+		thisFrameCursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
+
+		const auto tempoChangeAtCursor = chart.TempoMap.FindTempoChangeAtTick(thisFrameCursorTick);
+		const auto cursorSitsOnTempoChange = (tempoChangeAtCursor.Tick == thisFrameCursorTick);
 
 		auto tempoComparison = [](const auto& a, const auto& b) { return (a.Tempo.BeatsPerMinute < b.Tempo.BeatsPerMinute); };
 		const auto minBPM = (chart.TempoMap.TempoChangeCount() < 1) ? 0.0f : std::min_element(chart.TempoMap.begin(), chart.TempoMap.end(), tempoComparison)->Tempo.BeatsPerMinute;
@@ -87,10 +89,15 @@ namespace Comfy::Studio::Editor
 		{
 			auto executeAddOrUpdate = [&]()
 			{
+				// HACK: Moving the cursor on the timeline (= losing focus on the same frame) while having a textbox focused
+				//		 would otherwise incorrectly insert an additional tempo change at the new cursor location
+				if (thisFrameCursorTick != lastFrameCursorTick)
+					return;
+
 				if (cursorSitsOnTempoChange)
-					undoManager.Execute<UpdateTempoChange>(chart, TempoChange(cursorTick, newTempo, newSignature));
+					undoManager.Execute<UpdateTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newSignature));
 				else
-					undoManager.Execute<AddTempoChange>(chart, TempoChange(cursorTick, newTempo, newSignature));
+					undoManager.Execute<AddTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newSignature));
 			};
 
 			newTempo = tempoChangeAtCursor.Tempo;
@@ -130,7 +137,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::Button("Remove##SyncWindow", vec2(buttonWidth, 0.0f)))
 				{
 					if (cursorSitsOnTempoChange)
-						undoManager.Execute<RemoveTempoChange>(chart, cursorTick);
+						undoManager.Execute<RemoveTempoChange>(chart, thisFrameCursorTick);
 				}
 
 				Gui::PopStyleVar();
