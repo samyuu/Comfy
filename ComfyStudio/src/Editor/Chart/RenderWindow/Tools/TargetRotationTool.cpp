@@ -4,6 +4,12 @@
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
 #include "Editor/Chart/KeyBindings.h"
 
+// NOTE: Explicit code point macro because git was complaining about encoding issues
+//		 U+00B0: Degree Sign
+//		 U+00BA: Masculine Ordinal (easier to read with the current font)
+// #define DEGREE_SIGN "\xC2\xB0"
+#define DEGREE_SIGN "\xC2\xBA"
+
 namespace Comfy::Studio::Editor
 {
 	void TargetRotationTool::OnSelected()
@@ -216,14 +222,16 @@ namespace Comfy::Studio::Editor
 		drawList.PathStroke(buttonTypeColor, false, 2.0f);
 
 		char buffer[64];
+		const auto bufferView = std::string_view(buffer, sprintf_s(buffer, ("%.2f" DEGREE_SIGN), targetProperties.Angle));
+
 		const auto textPadding = vec2(3.0f, 1.0f);
-		const auto textSize = Gui::CalcTextSize(buffer, buffer + sprintf_s(buffer, u8"%.1fÅã", targetProperties.Angle)) + textPadding;
+		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView)) + textPadding;
 		const auto textPos = renderWindow.TargetAreaToScreenSpace(
 			targetProperties.Position + vec2(Rules::TickToDistance(TimelineTick::FromBars(1) / 10)) * vec2(1.0f, -1.0f)) - (textSize / 2.0f);
 
 		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);
 		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
-		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), buffer);
+		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
 	}
 
 	void TargetRotationTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
@@ -251,6 +259,11 @@ namespace Comfy::Studio::Editor
 				const auto angleIncrement = io.KeyShift ? roughAngleStep : io.KeyAlt ? preciseAngleStep : angleStep;
 				IncrementSelectedTargetAnglesBy(undoManager, chart, (angleIncrement * io.MouseWheel * scrollDirection));
 
+				angleScroll.LastScroll.Restart();
+			}
+			else if (Gui::IsMouseClicked(2, true))
+			{
+				// NOTE: Middle mouse surving as a way to quickly preview angles, especially useful when holding down while cycling through different targets
 				angleScroll.LastScroll.Restart();
 			}
 		}
