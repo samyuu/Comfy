@@ -558,6 +558,12 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::End();
 
+		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Target Presets", nullptr, ImGuiWindowFlags_None))
+		{
+			presetWindow.Gui(*chart);
+		}
+		Gui::End();
+
 		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
 		{
 			timeline->DrawTimelineGui();

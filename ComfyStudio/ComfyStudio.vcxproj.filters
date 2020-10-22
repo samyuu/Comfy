@@ -186,6 +186,9 @@
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetRotationTool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\PresetWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -441,6 +444,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\CardinalDirection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\PresetWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -180,6 +180,7 @@
     <ClCompile Include="src\Editor\Chart\ClipboardHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.cpp" />
     <ClCompile Include="src\Editor\Chart\FileFormat\PJEFile.cpp" />
+    <ClCompile Include="src\Editor\Chart\PresetWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetBoxSelectionTool.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetPositionTool.cpp" />
@@ -247,6 +248,7 @@
     <ClInclude Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.h" />
     <ClInclude Include="src\Editor\Chart\FileFormat\PJEFile.h" />
     <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
+    <ClInclude Include="src\Editor\Chart\PresetWindow.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGrid.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\CardinalDirection.h" />
