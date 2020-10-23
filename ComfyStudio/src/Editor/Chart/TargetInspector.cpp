@@ -107,6 +107,27 @@ namespace Comfy::Studio::Editor
 			if (frontSelectedTarget == nullptr)
 				Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
+			auto isHoldValueGetter = [](auto& t) { return static_cast<GuiProperty::Boolean>(t.Flags.IsHold); };
+			auto isHoldConditionGetter = [](auto& t) { return !IsSlideButtonType(t.Type); };
+			BooleanGui("Is Hold", isHoldValueGetter, isHoldConditionGetter, [&](const bool newValue)
+			{
+				std::vector<ChangeTargetListIsHold::Data> targetData;
+				targetData.reserve(selectedTargets.size());
+
+				for (const auto& targetView : selectedTargets)
+				{
+					if (!isHoldConditionGetter(*targetView))
+						continue;
+
+					auto& data = targetData.emplace_back();
+					data.TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
+					data.NewValue = newValue;
+				}
+
+				if (!targetData.empty())
+					undoManager.Execute<ChangeTargetListIsHold>(chart, std::move(targetData));
+			});
+
 			auto usePresetValueGetter = [](auto& t) { return static_cast<GuiProperty::Boolean>(!t.Flags.HasProperties); };
 			BooleanGui("Use Preset", usePresetValueGetter, [](auto& t) { return true; }, [&](const bool newValue)
 			{

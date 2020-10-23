@@ -511,6 +511,57 @@ namespace Comfy::Studio::Editor
 		std::vector<Data> targetData;
 		bool newHasProperties;
 	};
+
+	class ChangeTargetListIsHold : public Undo::Command
+	{
+	public:
+		struct Data
+		{
+			i32 TargetIndex;
+			bool NewValue, OldValue;
+		};
+
+	public:
+		ChangeTargetListIsHold(Chart& chart, std::vector<Data> data)
+			: chart(chart), targetData(std::move(data))
+		{
+			for (auto& data : targetData)
+			{
+				const auto& target = chart.Targets[data.TargetIndex];
+				data.OldValue = target.Flags.IsHold;
+			}
+		}
+
+	public:
+		void Undo() override
+		{
+			for (const auto& data : targetData)
+			{
+				auto& target = chart.Targets[data.TargetIndex];
+				target.Flags.IsHold = data.OldValue;
+			}
+		}
+
+		void Redo() override
+		{
+			for (const auto& data : targetData)
+			{
+				auto& target = chart.Targets[data.TargetIndex];
+				target.Flags.IsHold = data.NewValue;
+			}
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			return Undo::MergeResult::Failed;
+		}
+
+		std::string_view GetName() const override { return "Change Target Holds"; }
+
+	private:
+		Chart& chart;
+		std::vector<Data> targetData;
+	};
 }
 
 namespace Comfy::Studio::Editor
