@@ -53,6 +53,7 @@ namespace Comfy::Studio::Editor
 			bool Chain;
 			bool ChainStart;
 			bool ChainHit;
+			bool Chance;
 			vec2 Position;
 			f32 Progress;
 		};

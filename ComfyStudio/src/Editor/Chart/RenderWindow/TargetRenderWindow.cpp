@@ -342,6 +342,7 @@ namespace Comfy::Studio::Editor
 				targetData.Chain = target.Flags.IsChain;
 				targetData.ChainStart = target.Flags.IsChainStart;
 				targetData.ChainHit = (target.Flags.IsChain && ((buttonTick - cursorTick) <= chainHitTickThreshold));
+				targetData.Chance = target.Flags.IsChance;
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
 

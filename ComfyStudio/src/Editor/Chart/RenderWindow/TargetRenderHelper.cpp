@@ -109,6 +109,34 @@ namespace Comfy::Studio::Editor
 				registerTypeLayer(ButtonType::Cross, "target_batsu_synchold", layers.TargetsSyncHold);
 				registerTypeLayer(ButtonType::Circle, "target_maru_synchold", layers.TargetsSyncHold);
 
+				registerTypeLayer(ButtonType::Triangle, "target_sp_sankaku", layers.TargetsChance);
+				registerTypeLayer(ButtonType::Square, "target_sp_shikaku", layers.TargetsChance);
+				registerTypeLayer(ButtonType::Cross, "target_sp_batsu", layers.TargetsChance);
+				registerTypeLayer(ButtonType::Circle, "target_sp_maru", layers.TargetsChance);
+				registerTypeLayer(ButtonType::SlideL, "target_sp_slide18_l", layers.TargetsChance);
+				registerTypeLayer(ButtonType::SlideR, "target_sp_slide18_r", layers.TargetsChance);
+
+				registerTypeLayer(ButtonType::Triangle, "target_sp_sankaku_hold", layers.TargetsChanceHold);
+				registerTypeLayer(ButtonType::Square, "target_sp_shikaku_hold", layers.TargetsChanceHold);
+				registerTypeLayer(ButtonType::Cross, "target_sp_batsu_hold", layers.TargetsChanceHold);
+				registerTypeLayer(ButtonType::Circle, "target_sp_maru_hold", layers.TargetsChanceHold);
+				registerTypeLayer(ButtonType::SlideL, "target_sp_slide18_l_hold", layers.TargetsChanceHold);
+				registerTypeLayer(ButtonType::SlideR, "target_sp_slide18_r_hold", layers.TargetsChanceHold);
+
+				registerTypeLayer(ButtonType::Triangle, "target_sp_sankaku_sync", layers.TargetsChanceSync);
+				registerTypeLayer(ButtonType::Square, "target_sp_shikaku_sync", layers.TargetsChanceSync);
+				registerTypeLayer(ButtonType::Cross, "target_sp_batsu_sync", layers.TargetsChanceSync);
+				registerTypeLayer(ButtonType::Circle, "target_sp_maru_sync", layers.TargetsChanceSync);
+				registerTypeLayer(ButtonType::SlideL, "target_sp_slide18_l_sync", layers.TargetsChanceSync);
+				registerTypeLayer(ButtonType::SlideR, "target_sp_slide18_r_sync", layers.TargetsChanceSync);
+
+				registerTypeLayer(ButtonType::Triangle, "target_sp_sankaku_synchold", layers.TargetsChanceSyncHold);
+				registerTypeLayer(ButtonType::Square, "target_sp_shikaku_synchold", layers.TargetsChanceSyncHold);
+				registerTypeLayer(ButtonType::Cross, "target_sp_batsu_synchold", layers.TargetsChanceSyncHold);
+				registerTypeLayer(ButtonType::Circle, "target_sp_maru_synchold", layers.TargetsChanceSyncHold);
+				registerTypeLayer(ButtonType::SlideL, "target_sp_slide18_l_synchold", layers.TargetsChanceSyncHold);
+				registerTypeLayer(ButtonType::SlideR, "target_sp_slide18_r_synchold", layers.TargetsChanceSyncHold);
+
 				registerTypeLayer(ButtonType::Triangle, "button_sankaku", layers.Buttons);
 				registerTypeLayer(ButtonType::Square, "button_shikaku", layers.Buttons);
 				registerTypeLayer(ButtonType::Cross, "button_batsu", layers.Buttons);
@@ -304,14 +332,17 @@ namespace Comfy::Studio::Editor
 				{
 					tempKeyFrameBackupStack.push(key.Value);
 					key.Value = staticScale;
+					tempKeyFrameBackupStack.push(key.Curve);
+					key.Curve = 0.0f;
 				});
 			};
 
-			for (auto& item : baseLayer.GetCompItem()->GetLayers())
+			auto& layers = baseLayer.GetCompItem()->GetLayers();
+			std::for_each(layers.begin(), layers.end(), [&](auto& layer)
 			{
-				push(item->LayerVideo->Transform.Scale.X.Keys);
-				push(item->LayerVideo->Transform.Scale.Y.Keys);
-			}
+				push(layer->LayerVideo->Transform.Scale.X.Keys);
+				push(layer->LayerVideo->Transform.Scale.Y.Keys);
+			});
 		}
 		void PopRestoreScaleKeyFrames(const Aet::Layer& baseLayer) const
 		{
@@ -319,16 +350,19 @@ namespace Comfy::Studio::Editor
 			{
 				std::for_each(keys.rbegin(), keys.rend(), [&](auto& key)
 				{
+					key.Curve = tempKeyFrameBackupStack.top();
+					tempKeyFrameBackupStack.pop();
 					key.Value = tempKeyFrameBackupStack.top();
 					tempKeyFrameBackupStack.pop();
 				});
 			};
 
-			for (auto& item : baseLayer.GetCompItem()->GetLayers())
+			auto& layers = baseLayer.GetCompItem()->GetLayers();
+			std::for_each(layers.rbegin(), layers.rend(), [&](auto& layer)
 			{
-				pop(item->LayerVideo->Transform.Scale.Y.Keys);
-				pop(item->LayerVideo->Transform.Scale.X.Keys);
-			}
+				pop(layer->LayerVideo->Transform.Scale.Y.Keys);
+				pop(layer->LayerVideo->Transform.Scale.X.Keys);
+			});
 		}
 
 		void PushHideHandLayers(const Aet::Layer& baseLayer) const
@@ -342,7 +376,8 @@ namespace Comfy::Studio::Editor
 				}
 			};
 
-			std::for_each(baseLayer.GetCompItem()->GetLayers().begin(), baseLayer.GetCompItem()->GetLayers().end(), [&](auto& layer)
+			auto& layers = baseLayer.GetCompItem()->GetLayers();
+			std::for_each(layers.begin(), layers.end(), [&](auto& layer)
 			{
 				if (auto& comp = layer->GetCompItem(); comp != nullptr)
 					std::for_each(comp->GetLayers().begin(), comp->GetLayers().end(), [&](auto& l) { push(*l); });
@@ -361,7 +396,8 @@ namespace Comfy::Studio::Editor
 				}
 			};
 
-			std::for_each(baseLayer.GetCompItem()->GetLayers().rbegin(), baseLayer.GetCompItem()->GetLayers().rend(), [&](auto& layer)
+			auto& layers = baseLayer.GetCompItem()->GetLayers();
+			std::for_each(layers.rbegin(), layers.rend(), [&](auto& layer)
 			{
 				if (auto& comp = layer->GetCompItem(); comp != nullptr)
 					std::for_each(comp->GetLayers().rbegin(), comp->GetLayers().rend(), [&](auto& l) { pop(*l); });
@@ -379,6 +415,14 @@ namespace Comfy::Studio::Editor
 
 				if (data.Chain && !data.ChainStart)
 					return data.Sync ? layers.TargetsFragSync : layers.TargetsFrag;
+
+				if (data.Chance)
+				{
+					if (data.Sync)
+						return data.HoldText ? layers.TargetsChanceSyncHold : layers.TargetsChanceSync;
+					else
+						return data.HoldText ? layers.TargetsChanceHold : layers.TargetsChance;
+				}
 
 				if (data.Sync)
 					return data.HoldText ? layers.TargetsSyncHold : layers.TargetsSync;
@@ -745,6 +789,10 @@ namespace Comfy::Studio::Editor
 				TargetsFragSync,
 				TargetsHold,
 				TargetsSyncHold,
+				TargetsChance,
+				TargetsChanceHold,
+				TargetsChanceSync,
+				TargetsChanceSyncHold,
 				Buttons,
 				ButtonsFrag,
 				ButtonsSync,
