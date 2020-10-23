@@ -21,8 +21,6 @@ namespace Comfy::Sandbox::Tests
 
 			if (Gui::Begin("Test Audio Control"))
 			{
-				if (Gui::Button("RtAudio ASIO")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::RtAudioASIO);
-				if (Gui::Button("RtAudio WASAPI")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::RtAudioWASAPI);
 				if (Gui::Button("WASAPI (Shared)")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::WASAPIShared);
 				if (Gui::Button("WASAPI (Exclusive)")) Audio::AudioEngine::GetInstance().SetAudioBackend(Audio::AudioBackend::WASAPIExclusive);
 			}

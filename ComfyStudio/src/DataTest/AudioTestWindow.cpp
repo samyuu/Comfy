@@ -165,10 +165,8 @@ namespace Comfy::Studio::DataTest
 			{
 				switch (backend)
 				{
-				case Audio::AudioBackend::RtAudioASIO: return "RtAudio ASIO (Exclusive)";
-				case Audio::AudioBackend::RtAudioWASAPI: return "RtAudio WASAPI (Shared)";
-				case Audio::AudioBackend::WASAPIShared: return "Comfy WASAPI (Shared)";
-				case Audio::AudioBackend::WASAPIExclusive: return "Comfy WASAPI (Exclusive)";
+				case Audio::AudioBackend::WASAPIShared: return "WASAPI (Shared)";
+				case Audio::AudioBackend::WASAPIExclusive: return "WASAPI (Exclusive)";
 				default: return "Invalid";
 				}
 			};

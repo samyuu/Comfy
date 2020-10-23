@@ -431,8 +431,6 @@ namespace Comfy::Studio
 		{
 			switch (backend)
 			{
-			case Audio::AudioBackend::RtAudioASIO: return "RtAudio ASIO";
-			case Audio::AudioBackend::RtAudioWASAPI: return "RtAudio WASAPI";
 			case Audio::AudioBackend::WASAPIShared: return "WASAPI Shared";
 			case Audio::AudioBackend::WASAPIExclusive: return "WASAPI Exclusive";
 			default: return "Invalid";
@@ -475,10 +473,7 @@ namespace Comfy::Studio
 				audioEngine->StopCloseStream();
 			Gui::Separator();
 
-			static constexpr std::array availableBackends =
-			{
-				Audio::AudioBackend::WASAPIShared, Audio::AudioBackend::WASAPIExclusive, Audio::AudioBackend::RtAudioWASAPI, Audio::AudioBackend::RtAudioASIO,
-			};
+			static constexpr std::array availableBackends = { Audio::AudioBackend::WASAPIShared, Audio::AudioBackend::WASAPIExclusive, };
 
 			const auto currentBackend = audioEngine->GetAudioBackend();
 			for (const auto backendType : availableBackends)

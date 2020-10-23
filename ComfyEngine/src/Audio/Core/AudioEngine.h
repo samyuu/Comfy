@@ -84,8 +84,6 @@ namespace Comfy::Audio
 	enum class AudioBackend : u32
 	{
 		Invalid,
-		RtAudioASIO,
-		RtAudioWASAPI,
 		WASAPIShared,
 		WASAPIExclusive,
 		Count,

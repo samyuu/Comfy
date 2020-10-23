@@ -8,6 +8,8 @@ GitHub: https://github.com/samyuu/Comfy
 TBD
 
 #license
+Copyright (C) 2020 Samyuu
+
 License To Be Determined
 
 #remark

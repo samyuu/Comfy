@@ -1,7 +1,6 @@
 #include "AudioEngine.h"
 #include "SampleMix.h"
 #include "Backend/IAudioBackend.h"
-#include "Backend/RtAudioBackend.h"
 #include "Backend/WASAPIBackend.h"
 #include "Audio/Decoder/DecoderFactory.h"
 #include "Audio/Decoder/Detail/Decoders.h"
@@ -36,10 +35,6 @@ namespace Comfy::Audio
 		{
 			switch (backend)
 			{
-			case AudioBackend::RtAudioASIO:
-				return std::make_unique<RtAudioBackend>(RtAudio::WINDOWS_ASIO);
-			case AudioBackend::RtAudioWASAPI:
-				return std::make_unique<RtAudioBackend>(RtAudio::WINDOWS_WASAPI);
 			case AudioBackend::WASAPIShared:
 			case AudioBackend::WASAPIExclusive:
 				return std::make_unique<WASAPIBackend>();
@@ -631,13 +626,13 @@ namespace Comfy::Audio
 
 	void AudioEngine::DebugShowControlPanel() const
 	{
-		if (impl->CurrentBackendType != AudioBackend::RtAudioASIO)
+#if 0 // TODO: Implement together with ASIO backend
+		if (impl->CurrentBackendType != AudioBackend::ASIO)
 			return;
 
-		// NOTE: Defined in <rtaudio/asio.cpp>
 		long ASIOControlPanel();
-
 		ASIOControlPanel();
+#endif
 	}
 
 	void AudioEngine::DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount)
