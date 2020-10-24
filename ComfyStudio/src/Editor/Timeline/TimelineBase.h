@@ -101,6 +101,7 @@ namespace Comfy::Studio::Editor
 			float autoScrollCursorOffsetPercentage = 0.75f;
 
 			bool autoScrollCursorEnabled = false;
+			bool isMouseScrollGrabbing = false;
 
 			float scrollDelta = 0.0f;
 			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;

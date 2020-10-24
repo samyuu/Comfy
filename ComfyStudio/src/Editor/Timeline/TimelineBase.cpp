@@ -160,12 +160,22 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::UpdateInputTimelineScroll()
 	{
 		const auto& io = Gui::GetIO();
+		constexpr int scrollGrabMouseButton = 2;
 
-		constexpr int timelineGrabButton = 2;
-		if (Gui::IsWindowHovered() && !Gui::IsAnyItemActive() && Gui::IsMouseDown(timelineGrabButton))
+		if (Gui::IsMouseReleased(scrollGrabMouseButton) || !Gui::IsWindowFocused())
+			isMouseScrollGrabbing = false;
+
+		if (isMouseScrollGrabbing)
 		{
-			SetScrollX(GetScrollX() - io.MouseDelta.x);
 			Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
+			Gui::SetActiveID(Gui::GetID(&isMouseScrollGrabbing), Gui::GetCurrentWindow());
+			SetScrollX(GetScrollX() - io.MouseDelta.x);
+		}
+
+		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && Gui::IsMouseClicked(scrollGrabMouseButton))
+		{
+			isMouseScrollGrabbing = true;
+			Gui::SetWindowFocus();
 		}
 
 		if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape))
