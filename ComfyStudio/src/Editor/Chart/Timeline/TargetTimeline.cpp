@@ -150,8 +150,10 @@ namespace Comfy::Studio::Editor
 		if (elapsedTime >= elapsedThresholdAtWhichPlayingSoundsMakesNoSense)
 			return;
 
+		const auto futureOffset = (buttonSoundFutureOffset * glm::min(chartEditor.GetSongVoice().GetPlaybackSpeed(), 1.0f));
+
 		if (metronomeEnabled)
-			metronome.UpdatePlaySounds(*workingChart, thisFrameButtonSoundCursorTime, lastFrameButtonSoundCursorTime, buttonSoundFutureOffset);
+			metronome.UpdatePlaySounds(*workingChart, thisFrameButtonSoundCursorTime, lastFrameButtonSoundCursorTime, futureOffset);
 
 		// NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
 		for (const auto& target : workingChart->Targets)
@@ -165,7 +167,7 @@ namespace Comfy::Studio::Editor
 				continue;
 
 			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(target.Tick);
-			const auto offsetButtonTime = buttonTime - buttonSoundFutureOffset;
+			const auto offsetButtonTime = buttonTime - futureOffset;
 
 			if (offsetButtonTime >= lastFrameButtonSoundCursorTime && offsetButtonTime <= thisFrameButtonSoundCursorTime)
 			{
@@ -1267,13 +1269,36 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
+			if (Gui::BeginMenu("Playback Speed"))
+			{
+				auto songVoice = chartEditor.GetSongVoice();
+				f32 songPlaybackSpeed = songVoice.GetPlaybackSpeed();
+
+				for (const auto presetSpeed : std::array { 1.00f, 0.75f, 0.50f, 0.25f, })
+				{
+					char b[64]; sprintf_s(b, "Set %3.0f%%", presetSpeed * 100.0f);
+
+					if (Gui::MenuItem(b, nullptr, (presetSpeed == songPlaybackSpeed), (presetSpeed != songPlaybackSpeed)))
+						songVoice.SetPlaybackSpeed(presetSpeed);
+				}
+
+				if (Gui::BeginMenu("Set Exact"))
+				{
+					if (auto s = (songPlaybackSpeed * 100.0f); Gui::SliderFloat("##PlaybackSpeedSlider", &s, 10.0f, 200.0f, "%.0f%% Playback Speed"))
+						songVoice.SetPlaybackSpeed(s / 100.0f);
+					Gui::EndMenu();
+				}
+
+				Gui::EndMenu();
+			}
+
 			// TODO: Maybe move metronome settings to the timeline info column header (?)
 			if (Gui::BeginMenu("Metronome"))
 			{
 				Gui::Checkbox("Enabled", &metronomeEnabled);
 				Gui::PushItemDisabledAndTextColorIf(!metronomeEnabled);
-				if (auto v = metronome.GetVolume(); Gui::SliderFloat("Volume", &v, 0.0f, 1.5f))
-					metronome.SetVolume(v);
+				if (auto v = (metronome.GetVolume() * 100.0f); Gui::SliderFloat("##MetronomeVolumeSlider", &v, 10.0f, 150.0f, "%.0f%% Volume"))
+					metronome.SetVolume(v / 100.0f);
 				Gui::PopItemDisabledAndTextColorIf(!metronomeEnabled);
 				Gui::EndMenu();
 			}
