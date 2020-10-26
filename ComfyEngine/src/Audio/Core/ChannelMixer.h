@@ -5,7 +5,7 @@
 
 namespace Comfy::Audio
 {
-	class ChannelMixer
+	class ChannelMixer : NonCopyable
 	{
 	public:
 		enum class MixingBehavior
@@ -15,6 +15,9 @@ namespace Comfy::Audio
 
 	public:
 		i64 MixChannels(ISampleProvider& sampleProvider, i16 bufferToFill[], i64 frameOffset, i64 framesToRead);
+		i64 MixChannels(u32 sourceChannels, i16 sampleSwapBuffer[], i64 framesRead, i16 bufferToFill[], i64 frameOffset, i64 framesToRead);
+
+		i16* GetMixSampleBuffer(size_t sampleCount);
 
 		MixingBehavior GetMixingBehavior() const;
 		void SetMixingBehavior(MixingBehavior value);
@@ -24,8 +27,8 @@ namespace Comfy::Audio
 
 	private:
 		MixingBehavior mixingBehavior = MixingBehavior::Ignore;
-		std::vector<i16> sampleSwapBuffer;
-		
+		std::vector<i16> sampleMixBuffer;
+
 		u32 targetChannels = 0;
 	};
 }

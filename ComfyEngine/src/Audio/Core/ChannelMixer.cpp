@@ -6,12 +6,14 @@ namespace Comfy::Audio
 	i64 ChannelMixer::MixChannels(ISampleProvider& sampleProvider, i16 bufferToFill[], i64 frameOffset, i64 framesToRead)
 	{
 		const auto sourceChannels = sampleProvider.GetChannelCount();
+		const auto mixBuffer = GetMixSampleBuffer(framesToRead * sourceChannels);
 
-		const u64 samplesToRead = framesToRead * sourceChannels;
-		if (sampleSwapBuffer.size() < samplesToRead)
-			sampleSwapBuffer.resize(samplesToRead);
+		const i64 framesRead = sampleProvider.ReadSamples(mixBuffer, frameOffset, framesToRead, sourceChannels);
+		return MixChannels(sourceChannels, mixBuffer, framesRead, bufferToFill, frameOffset, framesToRead);
+	}
 
-		const i64 framesRead = sampleProvider.ReadSamples(sampleSwapBuffer.data(), frameOffset, framesToRead, sourceChannels);
+	i64 ChannelMixer::MixChannels(u32 sourceChannels, i16 mixBuffer[], i64 framesRead, i16 bufferToFill[], i64 frameOffset, i64 framesToRead)
+	{
 		const i64 samplesRead = framesRead * sourceChannels;
 
 		if (sourceChannels < targetChannels)
@@ -21,7 +23,7 @@ namespace Comfy::Audio
 			for (i64 i = 0; i < samplesRead; i++)
 			{
 				for (size_t c = 0; c < targetChannels; c++)
-					bufferToFill[targetIndex++] = sampleSwapBuffer[i];
+					bufferToFill[targetIndex++] = mixBuffer[i];
 			}
 		}
 		else
@@ -42,8 +44,8 @@ namespace Comfy::Audio
 				// NOTE: Remove extra channel(s)
 				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
-					bufferToFill[i++] = sampleSwapBuffer[swapBufferIndex + 0];
-					bufferToFill[i++] = sampleSwapBuffer[swapBufferIndex + 1];
+					bufferToFill[i++] = mixBuffer[swapBufferIndex + 0];
+					bufferToFill[i++] = mixBuffer[swapBufferIndex + 1];
 					swapBufferIndex += sourceChannels;
 				}
 
@@ -54,8 +56,8 @@ namespace Comfy::Audio
 				// NOTE: Mix extra channel(s)
 				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
-					bufferToFill[i++] = MixSamples(sampleSwapBuffer[swapBufferIndex + 0], sampleSwapBuffer[swapBufferIndex + 2]);
-					bufferToFill[i++] = MixSamples(sampleSwapBuffer[swapBufferIndex + 1], sampleSwapBuffer[swapBufferIndex + 3]);
+					bufferToFill[i++] = MixSamples(mixBuffer[swapBufferIndex + 0], mixBuffer[swapBufferIndex + 2]);
+					bufferToFill[i++] = MixSamples(mixBuffer[swapBufferIndex + 1], mixBuffer[swapBufferIndex + 3]);
 					swapBufferIndex += sourceChannels;
 				}
 
@@ -68,6 +70,14 @@ namespace Comfy::Audio
 		}
 
 		return framesRead;
+	}
+
+	i16* ChannelMixer::GetMixSampleBuffer(size_t sampleCount)
+	{
+		if (sampleMixBuffer.size() < sampleCount)
+			sampleMixBuffer.resize(sampleCount);
+
+		return sampleMixBuffer.data();
 	}
 
 	ChannelMixer::MixingBehavior ChannelMixer::GetMixingBehavior() const

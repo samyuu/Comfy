@@ -1,4 +1,5 @@
 #include "AudioEngine.h"
+#include "Resample.h"
 #include "SampleMix.h"
 #include "Backend/IAudioBackend.h"
 #include "Backend/WASAPIBackend.h"
@@ -57,9 +58,8 @@ namespace Comfy::Audio
 		VoiceFlags_PlayPastEnd = 1 << 3,
 		VoiceFlags_RemoveOnEnd = 1 << 4,
 		VoiceFlags_PauseOnEnd = 1 << 5,
+		VoiceFlags_VariablePlaybackSpeed = 1 << 6,
 	};
-
-	// TODO: Strong i64 typedefs for Frame and Sample units
 
 	struct AtomicVoiceVolumeMap
 	{
@@ -76,6 +76,9 @@ namespace Comfy::Audio
 		std::atomic<f32> Volume;
 		std::atomic<i64> FramePosition;
 
+		std::atomic<f32> PlaybackSpeed;
+		std::atomic<f64> TimePositionSeconds;
+
 		std::array<char, 64> Name;
 
 		// TODO: Loop between
@@ -88,10 +91,10 @@ namespace Comfy::Audio
 	{
 	public:
 		bool IsStreamOpenRunning = false;
-		f32 MasterVolume = AudioEngine::MaxVolume;
+		std::atomic<f32> MasterVolume = AudioEngine::MaxVolume;
 
 	public:
-		ChannelMixer CurrentChannelMixer = {};
+		ChannelMixer ChannelMixer = {};
 
 		AudioBackend CurrentBackendType = AudioBackend::Invalid;
 		std::unique_ptr<IAudioBackend> CurrentBackend = nullptr;
@@ -178,7 +181,7 @@ namespace Comfy::Audio
 			std::fill(outputBuffer, outputBuffer + sampleCount, 0);
 		}
 
-		f32 GetInterpolatedVolumeAt(const i64 startFrame, const i64 endFrame, const f32 startVolume, const f32 endVolume, const i64 frame)
+		f32 SampleVolumeMapAt(const i64 startFrame, const i64 endFrame, const f32 startVolume, const f32 endVolume, const i64 frame)
 		{
 			if (frame <= startFrame)
 				return startVolume;
@@ -192,12 +195,60 @@ namespace Comfy::Audio
 			return lerpVolume;
 		}
 
+		void CallbackApplyVoiceVolumeAndMixTempBufferIntoOutput(i16* outputBuffer, const i64 frameCount, const VoiceData& voiceData, const u32 sampleRate)
+		{
+			const f32 voiceVolume = voiceData.Volume;
+			const f32 startVolume = voiceData.VolumeMap.StartVolume;
+			const f32 endVolume = voiceData.VolumeMap.EndVolume;
+
+			if (startVolume == endVolume)
+			{
+				for (i64 i = 0; i < (frameCount * OutputChannelCount); i++)
+					outputBuffer[i] = MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * voiceVolume));
+			}
+			else
+			{
+				const i64 volumeMapStartFrame = voiceData.VolumeMap.StartFrame;
+				const i64 volumeMapEndFrame = voiceData.VolumeMap.EndFrame;
+
+				if (voiceData.Flags & VoiceFlags_VariablePlaybackSpeed)
+				{
+					const auto frameDuration = FramesToTimeSpan(1, sampleRate) * voiceData.PlaybackSpeed;
+					const auto bufferDuration = TimeSpan::FromSeconds(frameDuration.TotalSeconds() * frameCount);
+					const auto voiceStartTime = TimeSpan::FromSeconds(voiceData.TimePositionSeconds) - bufferDuration;
+
+					for (i64 f = 0; f < frameCount; f++)
+					{
+						const auto frameTime = TimeSpan::FromSeconds(voiceStartTime.TotalSeconds() + (f * frameDuration.TotalSeconds()));
+						const f32 frameVolume = SampleVolumeMapAt(volumeMapStartFrame, volumeMapEndFrame, startVolume, endVolume, TimeSpanToFrames(frameTime, sampleRate)) * voiceVolume;
+
+						for (u32 c = 0; c < OutputChannelCount; c++)
+						{
+							const auto sampleIndex = (f * OutputChannelCount) + c;
+							outputBuffer[sampleIndex] = MixSamples(outputBuffer[sampleIndex], static_cast<i16>(TempOutputBuffer[sampleIndex] * frameVolume));
+						}
+					}
+				}
+				else
+				{
+					const i64 voiceStartFrame = (voiceData.FramePosition - frameCount);
+
+					for (i64 f = 0; f < frameCount; f++)
+					{
+						const f32 frameVolume = SampleVolumeMapAt(volumeMapStartFrame, volumeMapEndFrame, startVolume, endVolume, voiceStartFrame + f) * voiceVolume;
+						for (u32 c = 0; c < OutputChannelCount; c++)
+						{
+							const auto sampleIndex = (f * OutputChannelCount) + c;
+							outputBuffer[sampleIndex] = MixSamples(outputBuffer[sampleIndex], static_cast<i16>(TempOutputBuffer[sampleIndex] * frameVolume));
+						}
+					}
+				}
+			}
+		}
+
 		void CallbackProcessVoices(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferSampleCount)
 		{
 			const auto lock = std::scoped_lock(CallbackMutex);
-
-			// NOTE: 2 channels * 64 frames * sizeof(i16) -> 256 bytes inside the outputBuffer
-			//		 64 samples for each ear
 
 			for (auto& voiceData : VoicePool)
 			{
@@ -206,8 +257,11 @@ namespace Comfy::Audio
 
 				auto sampleProvider = GetSource(voiceData.Source);
 
+				const bool variablePlaybackSpeed = (voiceData.Flags & VoiceFlags_VariablePlaybackSpeed);
 				const bool playPastEnd = (voiceData.Flags & VoiceFlags_PlayPastEnd);
-				const bool hasReachedEnd = (sampleProvider == nullptr) ? false : (voiceData.FramePosition >= sampleProvider->GetFrameCount());
+				const bool hasReachedEnd = (sampleProvider == nullptr) ? false :
+					(variablePlaybackSpeed ? (voiceData.TimePositionSeconds >= FramesToTimeSpan(sampleProvider->GetFrameCount(), sampleProvider->GetSampleRate()).TotalSeconds()) :
+					(voiceData.FramePosition >= sampleProvider->GetFrameCount()));
 
 				if (hasReachedEnd)
 				{
@@ -218,48 +272,100 @@ namespace Comfy::Audio
 					}
 					else if (voiceData.Flags & VoiceFlags_PauseOnEnd)
 					{
-						voiceData.Flags = voiceData.Flags & ~VoiceFlags_Playing;
+						voiceData.Flags &= ~VoiceFlags_Playing;
 						continue;
 					}
 				}
 
-				if (!(voiceData.Flags & VoiceFlags_Playing))
-					continue;
-
-				if (sampleProvider == nullptr)
+				if (voiceData.Flags & VoiceFlags_Playing)
 				{
-					voiceData.FramePosition += bufferFrameCount;
-					continue;
+					if (variablePlaybackSpeed)
+						CallbackProcessVariableSpeedVoiceSamples(outputBuffer, bufferFrameCount, playPastEnd, hasReachedEnd, voiceData, sampleProvider);
+					else
+						CallbackProcessNormalSpeedVoiceSamples(outputBuffer, bufferFrameCount, playPastEnd, hasReachedEnd, voiceData, sampleProvider);
+				}
+			}
+		}
+
+		void CallbackProcessNormalSpeedVoiceSamples(i16* outputBuffer, const u32 bufferFrameCount, const bool playPastEnd, const bool hasReachedEnd, VoiceData& voiceData, ISampleProvider* sampleProvider)
+		{
+			if (sampleProvider == nullptr)
+			{
+				voiceData.FramePosition += bufferFrameCount;
+				return;
+			}
+
+			i64 framesRead = 0;
+			if (sampleProvider->GetChannelCount() != OutputChannelCount)
+				framesRead = ChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
+			else
+				framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
+			voiceData.FramePosition += framesRead;
+
+			if (hasReachedEnd && !playPastEnd)
+				voiceData.FramePosition = (voiceData.Flags & VoiceFlags_Looping) ? 0 : sampleProvider->GetFrameCount();
+
+			CallbackApplyVoiceVolumeAndMixTempBufferIntoOutput(outputBuffer, framesRead, voiceData, sampleProvider->GetSampleRate());
+		}
+
+		void CallbackProcessVariableSpeedVoiceSamples(i16* outputBuffer, const u32 bufferFrameCount, const bool playPastEnd, const bool hasReachedEnd, VoiceData& voiceData, ISampleProvider* sampleProvider)
+		{
+			const auto sampleRate = (sampleProvider != nullptr) ? sampleProvider->GetSampleRate() : OutputSampleRate;
+			const auto bufferDurationSec = (FramesToTimeSpan(bufferFrameCount, sampleRate).TotalSeconds() * voiceData.PlaybackSpeed);
+
+			// TODO: Implement without the need for a raw sample view if it's ever needed
+			const auto rawSamples = (sampleProvider != nullptr) ? sampleProvider->GetRawSampleView() : nullptr;
+
+			if (sampleProvider == nullptr || rawSamples == nullptr)
+			{
+				voiceData.TimePositionSeconds = voiceData.TimePositionSeconds + bufferDurationSec;
+				return;
+			}
+
+			const f64 sampleDurationSec = (1.0 / static_cast<i64>(sampleRate)) * voiceData.PlaybackSpeed;
+			const i64 framesRead = static_cast<i64>(glm::round(bufferDurationSec / sampleDurationSec));
+
+			const size_t providerSampleCount = sampleProvider->GetFrameCount() * sampleProvider->GetChannelCount();
+			const u32 providerChannelCount = sampleProvider->GetChannelCount();
+
+			const f64 sampleRateF64 = static_cast<f64>(sampleRate);
+			const f64 voiceStartTimeSec = voiceData.TimePositionSeconds;
+
+			if (providerChannelCount != OutputChannelCount)
+			{
+				auto mixBuffer = ChannelMixer.GetMixSampleBuffer(framesRead * providerChannelCount);
+
+				for (i64 f = 0; f < framesRead; f++)
+				{
+					const auto frameTimeSec = voiceStartTimeSec + (f * sampleDurationSec);
+					for (u32 c = 0; c < providerChannelCount; c++)
+						mixBuffer[(f * providerChannelCount) + c] = SampleAtTime<i16, Interpolation::Linear>(frameTimeSec, c, rawSamples, providerSampleCount, sampleRateF64, providerChannelCount);
 				}
 
-				i64 framesRead = 0;
-				if (sampleProvider->GetChannelCount() != OutputChannelCount)
-					framesRead = CurrentChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
-				else
-					framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
-				voiceData.FramePosition += framesRead;
-
-				if (hasReachedEnd && !playPastEnd)
-					voiceData.FramePosition = (voiceData.Flags & VoiceFlags_Looping) ? 0 : sampleProvider->GetFrameCount();
-
-				f32 finalVoiceVolume = voiceData.Volume;
-
-				const f32 startVolume = voiceData.VolumeMap.StartVolume;
-				const f32 endVolume = voiceData.VolumeMap.EndVolume;
-
-				if (startVolume != endVolume)
-					finalVoiceVolume *= GetInterpolatedVolumeAt(voiceData.VolumeMap.StartFrame, voiceData.VolumeMap.EndFrame, startVolume, endVolume, voiceData.FramePosition);
-
-				for (i64 i = 0; i < (framesRead * OutputChannelCount); i++)
-					outputBuffer[i] = MixSamples(outputBuffer[i], static_cast<i16>(TempOutputBuffer[i] * finalVoiceVolume));
+				ChannelMixer.MixChannels(providerChannelCount, mixBuffer, framesRead, TempOutputBuffer.data(), 0, framesRead);
 			}
+			else
+			{
+				for (i64 f = 0; f < framesRead; f++)
+				{
+					const auto frameTimeSec = voiceStartTimeSec + (f * sampleDurationSec);
+					for (u32 c = 0; c < OutputChannelCount; c++)
+						TempOutputBuffer[(f * OutputChannelCount) + c] = SampleAtTime<i16, Interpolation::Linear>(frameTimeSec, c, rawSamples, providerSampleCount, sampleRateF64, OutputChannelCount);
+				}
+			}
+
+			voiceData.TimePositionSeconds = voiceData.TimePositionSeconds + bufferDurationSec;
+			if (hasReachedEnd && !playPastEnd)
+				voiceData.TimePositionSeconds = (voiceData.Flags & VoiceFlags_Looping) ? 0.0 : FramesToTimeSpan(sampleProvider->GetFrameCount(), sampleRate).TotalSeconds();
+
+			CallbackApplyVoiceVolumeAndMixTempBufferIntoOutput(outputBuffer, framesRead, voiceData, sampleRate);
 		}
 
 		void CallbackAdjustBufferMasterVolume(i16* outputBuffer, const size_t sampleCount)
 		{
-			const auto bufferSampleCount = (CurrentBufferFrameSize * OutputChannelCount);
+			const auto masterVolume = MasterVolume.load();
 			for (auto i = 0; i < sampleCount; i++)
-				outputBuffer[i] = static_cast<i16>(outputBuffer[i] * MasterVolume);
+				outputBuffer[i] = static_cast<i16>(outputBuffer[i] * masterVolume);
 		}
 
 		void CallbackDebugRecordOutput(i16* outputBuffer, const size_t sampleCount)
@@ -316,8 +422,8 @@ namespace Comfy::Audio
 	{
 		SetAudioBackend(AudioBackend::Default);
 
-		impl->CurrentChannelMixer.SetTargetChannels(OutputChannelCount);
-		impl->CurrentChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Combine);
+		impl->ChannelMixer.SetTargetChannels(OutputChannelCount);
+		impl->ChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Combine);
 
 		constexpr size_t reasonableInitialSourceCapacity = 64;
 		impl->LoadedSources.reserve(reasonableInitialSourceCapacity);
@@ -621,7 +727,7 @@ namespace Comfy::Audio
 
 	ChannelMixer& AudioEngine::GetChannelMixer()
 	{
-		return impl->CurrentChannelMixer;
+		return impl->ChannelMixer;
 	}
 
 	void AudioEngine::DebugShowControlPanel() const
@@ -708,6 +814,46 @@ namespace Comfy::Audio
 			voice->Volume = value;
 	}
 
+	f32 Voice::GetPlaybackSpeed() const
+	{
+		auto& impl = EngineInstance->impl;
+
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
+		{
+			if (voice->Flags & VoiceFlags_VariablePlaybackSpeed)
+				return voice->PlaybackSpeed;
+		}
+		return 1.0f;
+	}
+
+	void Voice::SetPlaybackSpeed(f32 value)
+	{
+		auto& impl = EngineInstance->impl;
+
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
+		{
+			const auto source = impl->GetSource(voice->Source);
+			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
+
+			if (value == 1.0f)
+			{
+				if (voice->Flags & VoiceFlags_VariablePlaybackSpeed)
+					voice->FramePosition = TimeSpanToFrames(TimeSpan::FromSeconds(voice->TimePositionSeconds), sampleRate);
+
+				voice->Flags &= ~VoiceFlags_VariablePlaybackSpeed;
+			}
+			else
+			{
+				if (!(voice->Flags & VoiceFlags_VariablePlaybackSpeed))
+					voice->TimePositionSeconds = FramesToTimeSpan(voice->FramePosition, sampleRate).TotalSeconds();
+
+				voice->Flags |= VoiceFlags_VariablePlaybackSpeed;
+			}
+
+			voice->PlaybackSpeed = value;
+		}
+	}
+
 	TimeSpan Voice::GetPosition() const
 	{
 		auto& impl = EngineInstance->impl;
@@ -716,7 +862,11 @@ namespace Comfy::Audio
 		{
 			const auto source = impl->GetSource(voice->Source);
 			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
-			return FramesToTimeSpan(voice->FramePosition, sampleRate);
+
+			if (voice->Flags & VoiceFlags_VariablePlaybackSpeed)
+				return TimeSpan::FromSeconds(voice->TimePositionSeconds);
+			else
+				return FramesToTimeSpan(voice->FramePosition, sampleRate);
 		}
 		return TimeSpan::Zero();
 	}
@@ -730,6 +880,7 @@ namespace Comfy::Audio
 			const auto source = impl->GetSource(voice->Source);
 			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
 			voice->FramePosition = TimeSpanToFrames(value, sampleRate);
+			voice->TimePositionSeconds = value.TotalSeconds();
 		}
 	}
 

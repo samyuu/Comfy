@@ -35,6 +35,9 @@ namespace Comfy::Audio
 		f32 GetVolume() const;
 		void SetVolume(f32 value);
 
+		f32 GetPlaybackSpeed() const;
+		void SetPlaybackSpeed(f32 value);
+
 		TimeSpan GetPosition() const;
 		void SetPosition(TimeSpan value);
 
