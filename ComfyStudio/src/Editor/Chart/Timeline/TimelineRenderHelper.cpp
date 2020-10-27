@@ -23,7 +23,7 @@ namespace Comfy::Studio::Editor
 
 		auto findSprite = [this](std::string_view spriteName)
 		{
-			const auto found = FindIfOrNull(editorSprites->Sprites, [&](const auto& spr) {return spr.Name == spriteName; });
+			const auto found = FindIfOrNull(editorSprites->Sprites, [&](const auto& spr) { return spr.Name == spriteName; });
 			return (found != nullptr && InBounds(found->TextureIndex, editorSprites->TexSet.Textures)) ? found : nullptr;
 		};
 
