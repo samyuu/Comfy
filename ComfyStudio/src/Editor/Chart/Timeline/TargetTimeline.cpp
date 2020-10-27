@@ -1057,8 +1057,10 @@ namespace Comfy::Studio::Editor
 							workingChart->Targets.end(),
 							[&](auto& t) { return (t.Tick == target.Tick) && (t.Type == newType); });
 
+						const bool newTypeIsSlide = IsSlideButtonType(newType);
+
 						// BUG: Moving sync pairs
-						if (existingTargetWithType != workingChart->Targets.end() || (target.Flags.IsChain && !IsSlideButtonType(newType)))
+						if (existingTargetWithType != workingChart->Targets.end() || (target.Flags.IsChain && !newTypeIsSlide) || (target.Flags.IsHold && newTypeIsSlide))
 							data.NewValue = target.Type;
 						else
 							data.NewValue = newType;
