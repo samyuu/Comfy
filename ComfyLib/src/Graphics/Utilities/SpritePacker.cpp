@@ -144,6 +144,21 @@ namespace Comfy::Graphics::Utilities
 			}
 		}
 
+		void SetPixelsUniformTransparency(ivec2 size, void* rgbaPixels, u32 transparencyColor)
+		{
+			for (int y = 0; y < size.y; y++)
+			{
+				for (int x = 0; x < size.x; x++)
+				{
+					u32& pixel = GetPixel(size.x, rgbaPixels, x, y);
+					const bool isFullyTransparent = ((pixel >> 24) & 0xFF) == 0x00;
+
+					if (isFullyTransparent)
+						pixel = transparencyColor;
+				}
+			}
+		}
+
 		void FlipTextureY(ivec2 size, void* rgbaPixels)
 		{
 			for (int y = 0; y < size.y / 2; y++)
@@ -237,6 +252,9 @@ namespace Comfy::Graphics::Utilities
 
 	TextureFormat SpritePacker::DetermineSprOutputFormat(const SprMarkup& sprMarkup) const
 	{
+		if (!(sprMarkup.Flags & SprMarkupFlags_Compress))
+			return TextureFormat::RGBA8;
+
 		if ((sprMarkup.Flags & SprMarkupFlags_NoMerge) && Area(sprMarkup.Size) <= Settings.NoMergeUncompressedAreaThreshold)
 			return TextureFormat::RGBA8;
 
@@ -504,6 +522,9 @@ namespace Comfy::Graphics::Utilities
 			for (const auto& sprBox : texMarkup.SpriteBoxes)
 				CopySprIntoTex(texMarkup, texData.get(), sprBox);
 		}
+
+		if (Settings.TransparencyColor.has_value())
+			SetPixelsUniformTransparency(texMarkup.Size, texData.get(), Settings.TransparencyColor.value());
 
 		if (Settings.FlipTexturesY)
 			FlipTextureY(texMarkup.Size, texData.get());
