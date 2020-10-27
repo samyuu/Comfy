@@ -5,8 +5,9 @@
 #include "IO/Path.h"
 #include "IO/Shell.h"
 #include "IO/Directory.h"
-#include "Misc/StringUtil.h"
 #include "Core/Application.h"
+#include "Misc/StringUtil.h"
+#include "System/ComfyData.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -34,8 +35,12 @@ namespace Comfy::Studio::Editor
 
 		renderer = std::make_unique<Render::Renderer2D>();
 
+		// TODO: Load async (?)
+		editorSprites = System::Data.Load<Graphics::SprSet>(System::Data.FindFile("sprite/spr_chart_editor.bin"));
+
 		timeline = std::make_unique<TargetTimeline>(*this, undoManager);
 		timeline->SetWorkingChart(chart.get());
+		timeline->OnEditorSpritesLoaded(editorSprites.get());
 
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
 		renderWindow->SetWorkingChart(chart.get());

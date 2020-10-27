@@ -87,6 +87,8 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Chart> chart = nullptr;
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 
+		std::unique_ptr<Graphics::SprSet> editorSprites = nullptr;
+
 	private:
 		Undo::UndoManager undoManager = {};
 		std::unique_ptr<TargetTimeline> timeline;

@@ -15,8 +15,6 @@ namespace Comfy::Studio::Editor
 		scrollSpeedFast = 5.5f;
 		autoScrollCursorOffsetPercentage = 0.35f;
 		infoColumnWidth = 240.0f;
-
-		buttonIcons = std::make_unique<TimelineButtonIcons>();
 	}
 
 	TimelineTick TargetTimeline::GridDivisionTick() const
@@ -220,6 +218,11 @@ namespace Comfy::Studio::Editor
 		CenterCursor();
 	}
 
+	void TargetTimeline::OnEditorSpritesLoaded(const Graphics::SprSet* sprSet)
+	{
+		renderHelper.OnEditorSpritesLoaded(sprSet);
+	}
+
 	void TargetTimeline::SetWorkingChart(Chart* chart)
 	{
 		workingChart = chart;
@@ -382,7 +385,7 @@ namespace Comfy::Studio::Editor
 		for (size_t row = 0; row < iconCenters.size(); row++)
 		{
 			const auto tempTarget = TimelineTarget(TimelineTick::Zero(), static_cast<ButtonType>(row));
-			buttonIcons->DrawButtonIcon(drawList, tempTarget, iconCenters[row], iconScale);
+			renderHelper.DrawButtonIcon(drawList, tempTarget, iconCenters[row], iconScale);
 		}
 	}
 
@@ -762,7 +765,7 @@ namespace Comfy::Studio::Editor
 			const bool tooEarly = (target.Tick < TimelineTick::FromBars(1));
 			constexpr auto tooEarlyOpacity = 0.5f;
 
-			buttonIcons->DrawButtonIcon(windowDrawList, target, center, scale, tooEarly ? tooEarlyOpacity : GetButtonEdgeFadeOpacity(screenX));
+			renderHelper.DrawButtonIcon(windowDrawList, target, center, scale, tooEarly ? tooEarlyOpacity : GetButtonEdgeFadeOpacity(screenX));
 
 			if (target.IsSelected)
 				tempSelectedTargetPositionBuffer.push_back(center);

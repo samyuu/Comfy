@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "TimelineButtonIcons.h"
+#include "TimelineRenderHelper.h"
 #include "TimelineMetronome.h"
 #include "Editor/Core/Theme.h"
 #include "Editor/Core/IEditorComponent.h"
@@ -32,6 +32,8 @@ namespace Comfy::Studio::Editor
 		void OnPlaybackResumed();
 		void OnPlaybackPaused();
 		void OnPlaybackStopped();
+
+		void OnEditorSpritesLoaded(const Graphics::SprSet* sprSet);
 
 	public:
 		TimelineTick GridDivisionTick() const;
@@ -212,7 +214,7 @@ namespace Comfy::Studio::Editor
 		std::vector<vec2> tempSelectedTargetPositionBuffer;
 
 		std::array<f32, EnumCount<ButtonType>()> targetYPositions = {};
-		std::unique_ptr<TimelineButtonIcons> buttonIcons = nullptr;
+		TimelineRenderHelper renderHelper = {};
 
 	private:
 		int tempoPopupIndex = -1;
