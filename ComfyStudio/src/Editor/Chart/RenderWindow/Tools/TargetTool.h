@@ -14,7 +14,6 @@ namespace Comfy::Studio::Editor
 	enum class TargetToolType : u8
 	{
 		Position,
-		// TODO:
 		Rotation,
 		Count,
 

@@ -161,6 +161,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::UpdateAllInput()
 	{
+		// TODO: "CTRL + A", "CTRL + D" to select all targets on screen and deselect all (?)
+
 		UpdateInputContextMenu();
 		boxSelectionTool.UpdateInput(*workingChart, timeline.GetCursorTick(), targetPostHitLingerDuration);
 
