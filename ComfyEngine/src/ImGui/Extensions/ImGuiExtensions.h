@@ -9,6 +9,8 @@
 namespace Comfy::Graphics
 {
 	class Tex;
+	struct Spr;
+	class SprSet;
 }
 
 #define BeginMenu WideBeginMenu
@@ -40,6 +42,7 @@ namespace ImGui
 
 	void AddTexture(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 center, vec2 scale, vec2 uv0, vec2 uv1);
 	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
+	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::SprSet& sprSet, const Comfy::Graphics::Spr& spr, vec2 topLeft, vec2 bottomRight, ImU32 color);
 
 	inline void AddTexture(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 center, float scale, vec2 uv0, vec2 uv1)
 	{

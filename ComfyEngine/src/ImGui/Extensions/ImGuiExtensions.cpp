@@ -1,5 +1,6 @@
 #include "ImGuiExtensions.h"
 #include "Graphics/TexSet.h"
+#include "Graphics/Auth2D/SprSet.h"
 #include "Time/Stopwatch.h"
 
 using namespace Comfy::Graphics;
@@ -131,6 +132,18 @@ namespace ImGui
 		uv1.y = uv0.y + (sourceRegion.w / textureSize.y);
 
 		drawList->AddImage(*tex, position, position + vec2(sourceRegion.z, sourceRegion.w), uv0, uv1, color);
+	}
+
+	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::SprSet& sprSet, const Comfy::Graphics::Spr& spr, vec2 topLeft, vec2 bottomRight, ImU32 color)
+	{
+		if (!Comfy::InBounds(spr.TextureIndex, sprSet.TexSet.Textures))
+			return;
+		
+		const auto& tex = sprSet.TexSet.Textures[spr.TextureIndex];
+		const auto uv0 = vec2(spr.TexelRegion.x, 1.0f - spr.TexelRegion.y);
+		const auto uv1 = vec2(spr.TexelRegion.x + spr.TexelRegion.z, 1.0f - (spr.TexelRegion.y + spr.TexelRegion.w));
+
+		drawList->AddImage(*tex, topLeft, bottomRight, uv0, uv1, color);
 	}
 
 	void AddLine(ImDrawList* drawList, vec2 start, vec2 end, ImU32 color, float thickness)

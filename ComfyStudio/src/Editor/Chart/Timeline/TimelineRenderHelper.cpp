@@ -1,20 +1,9 @@
 #include "TimelineRenderHelper.h"
 #include "System/ComfyData.h"
+#include "ImGui/Extensions/ImGuiExtensions.h"
 
 namespace Comfy::Studio::Editor
 {
-	namespace
-	{
-		void AddSpriteImage(ImDrawList* drawList, const Graphics::SprSet& sprSet, const Graphics::Spr& spr, vec2 topLeft, vec2 bottomRight, u32 color)
-		{
-			const auto& tex = sprSet.TexSet.Textures[spr.TextureIndex];
-			const auto uv0 = vec2(spr.TexelRegion.x, 1.0f - spr.TexelRegion.y);
-			const auto uv1 = vec2(spr.TexelRegion.x + spr.TexelRegion.z, 1.0f - (spr.TexelRegion.y + spr.TexelRegion.w));
-
-			drawList->AddImage(*tex, topLeft, bottomRight, uv0, uv1, color);
-		}
-	}
-
 	void TimelineRenderHelper::OnEditorSpritesLoaded(const Graphics::SprSet* sprSet)
 	{
 		editorSprites = sprSet;
@@ -60,14 +49,14 @@ namespace Comfy::Studio::Editor
 		const auto color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF * transparency);
 
 		if (const auto buttonSpr = GetButtonSpriteForTarget(target); buttonSpr != nullptr)
-			AddSpriteImage(drawList, *editorSprites, *buttonSpr, topLeft, bottomRight, color);
+			Gui::AddSprite(drawList, *editorSprites, *buttonSpr, topLeft, bottomRight, color);
 		else
 			drawList->AddRect(position - vec2(radius * 0.25f), position + vec2(radius * 0.25f), color);
 
 		if (target.Flags.IsHold)
 		{
 			if (const auto holdTextSpr = GetHoldTextSprite(target.Flags.IsSync); holdTextSpr != nullptr)
-				AddSpriteImage(drawList, *editorSprites, *holdTextSpr, topLeft, bottomRight, color);
+				Gui::AddSprite(drawList, *editorSprites, *holdTextSpr, topLeft, bottomRight, color);
 			else
 				drawList->AddText(Gui::GetFont(), 12.0f, position + vec2(-12.0f, 0.0f), color, "HOLD");
 		}
