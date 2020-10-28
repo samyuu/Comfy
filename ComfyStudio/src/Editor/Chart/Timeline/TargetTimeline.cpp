@@ -14,7 +14,7 @@ namespace Comfy::Studio::Editor
 		scrollSpeed = 2.5f;
 		scrollSpeedFast = 5.5f;
 		autoScrollCursorOffsetPercentage = 0.35f;
-		infoColumnWidth = 240.0f;
+		infoColumnWidth = 210.0f;
 	}
 
 	TimelineTick TargetTimeline::GridDivisionTick() const
@@ -335,19 +335,14 @@ namespace Comfy::Studio::Editor
 				Gui::SetWideItemTooltip("Go to last beat");
 			}
 
-			// TODO: What functionality should go here?
-			{
-				Gui::SameLine();
-				Gui::Button(ICON_FA_ADJUST);
-				Gui::SetWideItemTooltip("???");
-			}
-
 			// NOTE: Settings button
 			{
 				Gui::SameLine();
+				Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				if (Gui::Button(ICON_FA_COG))
 					Gui::OpenPopup(settingsPopupName);
 				Gui::SetWideItemTooltip("Timeline settings");
+				Gui::PopItemFlag();
 			}
 		}
 		Gui::PopStyleColor(1);
@@ -475,9 +470,9 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnDrawTimelineScrollBarRegion()
 	{
-		constexpr float timeDragTextOffset = 10.0f;
-		constexpr float timeDragTextWidth = 60.0f + 26.0f;
-		constexpr float gridDivisionButtonWidth = (72.0f * 2.0f);
+		constexpr f32 timeDragTextOffset = 10.0f;
+		constexpr f32 timeDragTextWidth = 60.0f + 26.0f;
+		constexpr f32 gridDivisionButtonWidth = ((72.0f * 2.0f) - (240.0f - /*infoColumnWidth*/210.0f));
 
 		Gui::SetCursorPosX(Gui::GetCursorPosX() + timeDragTextOffset);
 
