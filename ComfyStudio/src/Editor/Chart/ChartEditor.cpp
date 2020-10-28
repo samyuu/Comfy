@@ -45,6 +45,8 @@ namespace Comfy::Studio::Editor
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
 		renderWindow->SetWorkingChart(chart.get());
 
+		presetWindow.OnEditorSpritesLoaded(editorSprites.get());
+
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
 		const auto fileToOpen = parentApplication.GetFileToOpenOnStartup();

@@ -93,6 +93,9 @@ namespace Comfy::Studio::Editor
 
 		constexpr f32 VerticalSyncPairPlacementDistance = TickToDistance(TimelineTick::FromBars(1) / 8);
 
+		constexpr f32 SyncFormationHeightOffset = TickToDistance(TimelineTick::FromBars(1) / 32);
+		constexpr f32 SyncFormationHeightOffsetAlt = TickToDistance(TimelineTick::FromBars(1) / 8 + TimelineTick::FromBars(1) / 32);
+
 		static_assert(RecommendedPlacementAreaMin == vec2(96.0f, 192.0f));
 		static_assert(RecommendedPlacementAreaMax == vec2(1824.0f, 864.0f));
 
@@ -103,7 +106,7 @@ namespace Comfy::Studio::Editor
 		static_assert(DistanceToTick(TickToDistance(TimelineTick::FromBeats(1))) == TimelineTick::FromBeats(1));
 		static_assert(DistanceToTick(TickToDistance(TimelineTick::FromBars(1))) == TimelineTick::FromBars(1));
 
-		enum class AngleCorner
+		enum class AngleCorner : u8
 		{
 			TopRight,
 			BotRight,
@@ -134,6 +137,16 @@ namespace Comfy::Studio::Editor
 			+160.0f,
 			-160.0f,
 			-20.0f,
+		};
+
+		constexpr std::array<f32, EnumCount<ButtonType>()> HorizontalSyncPairPositionsX =
+		{
+			240.0f,
+			720.0f,
+			1200.0f,
+			1680.0f,
+			240.0f,
+			1680.0f,
 		};
 
 		namespace Detail
@@ -175,6 +188,22 @@ namespace Comfy::Studio::Editor
 				return vec2(isLeft ? (PlacementAreaSize.x - x) : x, baselineY + y);
 			}
 
+			constexpr bool IsUpperPartOfSyncPair(const ButtonType type, const TargetFlags flags)
+			{
+				if (flags.IndexWithinSyncPair < (flags.SyncPairCount / 2))
+					return true;
+
+				if (flags.SyncPairCount == 3)
+				{
+					if (type == ButtonType::Square && flags.IndexWithinSyncPair == 1)
+						return true;
+					if (type == ButtonType::Cross)
+						return false;
+				}
+
+				return false;
+			}
+
 			constexpr TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags)
 			{
 				if (flags.IsChain)
@@ -183,18 +212,7 @@ namespace Comfy::Studio::Editor
 				if (!flags.IsSync)
 					return { Detail::PresetTargetPosition(type, tick, flags), 0.0f, -2.0f, 500.0f, 1200.0f, };
 
-				const auto pairCount = flags.SyncPairCount;
-				const auto pairIndex = flags.IndexWithinSyncPair;
-
-				bool upperHalfOfPair = pairIndex < (pairCount / 2);
-				if (pairCount == 3)
-				{
-					if (type == ButtonType::Square && pairIndex == 1)
-						upperHalfOfPair = true;
-					if (type == ButtonType::Cross)
-						upperHalfOfPair = false;
-				}
-
+				const bool upperHalfOfPair = IsUpperPartOfSyncPair(type, flags);
 				const auto angle = VerticalSyncPairAngles[static_cast<size_t>(upperHalfOfPair ? AngleCorner::TopRight : AngleCorner::BotRight)];
 				return { Detail::PresetTargetPosition(type, tick, flags), angle, 0.0f, 500.0f, 880.0f, };
 			}
