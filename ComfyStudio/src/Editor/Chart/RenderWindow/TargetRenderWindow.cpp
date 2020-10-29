@@ -197,6 +197,8 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::BeginPopup(contextMenuID, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
 		{
+			std::optional<TargetToolType> newToolToSelect = {};
+
 			for (size_t toolIndex = 0; toolIndex < availableTools.size(); toolIndex++)
 			{
 				const auto toolType = static_cast<TargetToolType>(toolIndex);
@@ -205,7 +207,7 @@ namespace Comfy::Studio::Editor
 
 				bool isSelected = (toolType == selectedToolType);
 				if (Gui::MenuItem(toolName, Input::GetKeyCodeName(KeyBindings::TargetToolTypes[toolIndex]), &isSelected, !isSelected))
-					selectedToolType = toolType;
+					newToolToSelect = toolType;
 			}
 			Gui::Separator();
 
@@ -214,30 +216,41 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::BeginMenu("Settings", true))
 			{
-				Gui::Checkbox("Target Buttons", &layers.DrawButtons);
-				Gui::Checkbox("Target Grid", &drawTargetGrid);
+				if (Gui::BeginMenu("Target Area", true))
+				{
+					Gui::Checkbox("Show Target Buttons", &layers.DrawButtons);
+					Gui::Checkbox("Show Target Grid", &drawTargetGrid);
 
-				Gui::Checkbox("Background Checkerboard", &drawCheckerboard);
-				Gui::SliderFloat("Background Dim", &backgroundDim, 0.0f, 1.0f);
+					Gui::Checkbox("Background Checkerboard", &drawCheckerboard);
 
-				if (auto t = targetPostHitLingerDuration.Ticks(); Gui::SliderInt("Post Hit Linger Duration", &t, 0, TimelineTick::TicksPerBeat * 8, "%d Ticks"))
-					targetPostHitLingerDuration = TimelineTick::FromTicks(t);
+					if (auto p = (backgroundDim * 100.0f); Gui::SliderFloat("##BackgroundDimSlider", &p, 0.0f, 100.0f, "Background Dim: %.f%%"))
+						backgroundDim = (p / 100.0f);
+
+					if (auto t = targetPostHitLingerDuration.Ticks(); Gui::SliderInt("##PostHitLingerSlider", &t, 0, TimelineTick::TicksPerBeat * 8, "Post Hit Linger: %d Ticks"))
+						targetPostHitLingerDuration = TimelineTick::FromTicks(t);
+
+					Gui::EndMenu();
+				}
+
+				if (Gui::BeginMenu("Practice Background", true))
+				{
+					Gui::Checkbox("Enabled", &practiceBackground.Enabled);
+					Gui::PushItemDisabledAndTextColorIf(!practiceBackground.Enabled);
+					Gui::Checkbox("Grid", &practiceBackground.Data.DrawGrid);
+					Gui::Checkbox("Dim", &practiceBackground.Data.DrawDim);
+					Gui::Checkbox("Logo", &practiceBackground.Data.DrawLogo);
+					Gui::Checkbox("Cover", &practiceBackground.Data.DrawCover);
+					Gui::Checkbox("Background", &practiceBackground.Data.DrawBackground);
+					Gui::PopItemDisabledAndTextColorIf(!practiceBackground.Enabled);
+					Gui::EndMenu();
+				}
 
 				Gui::EndMenu();
 			}
 
-			if (Gui::BeginMenu("Practice Background", true))
-			{
-				Gui::Checkbox("Enabled", &practiceBackground.Enabled);
-				Gui::PushItemDisabledAndTextColorIf(!practiceBackground.Enabled);
-				Gui::Checkbox("Grid", &practiceBackground.Data.DrawGrid);
-				Gui::Checkbox("Dim", &practiceBackground.Data.DrawDim);
-				Gui::Checkbox("Logo", &practiceBackground.Data.DrawLogo);
-				Gui::Checkbox("Cover", &practiceBackground.Data.DrawCover);
-				Gui::Checkbox("Background", &practiceBackground.Data.DrawBackground);
-				Gui::PopItemDisabledAndTextColorIf(!practiceBackground.Enabled);
-				Gui::EndMenu();
-			}
+			// NOTE: Avoid mid-frame tool switching to prevent ugly single frame context menu changes
+			if (newToolToSelect.has_value())
+				selectedToolType = newToolToSelect.value();
 
 			Gui::EndPopup();
 		}

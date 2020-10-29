@@ -61,6 +61,8 @@ namespace Comfy::Studio::Editor
 			ApplySelectedTargetAngleVariations(undoManager, chart, +1.0f);
 		if (Gui::MenuItem("Apply Angle Variations Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleVariationsNegative), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleVariations(undoManager, chart, -1.0f);
+
+		Gui::Separator();
 	}
 
 	void TargetPathTool::OnOverlayGUI(Chart& chart)
