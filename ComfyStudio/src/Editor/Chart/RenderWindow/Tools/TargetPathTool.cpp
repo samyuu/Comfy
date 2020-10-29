@@ -1,4 +1,4 @@
-#include "TargetRotationTool.h"
+#include "TargetPathTool.h"
 #include "CardinalDirection.h"
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/TargetPropertyRules.h"
@@ -13,31 +13,31 @@
 
 namespace Comfy::Studio::Editor
 {
-	void TargetRotationTool::OnSelected()
+	void TargetPathTool::OnSelected()
 	{
 	}
 
-	void TargetRotationTool::OnDeselected()
+	void TargetPathTool::OnDeselected()
 	{
 	}
 
-	void TargetRotationTool::PreRender(Chart& chart, Render::Renderer2D& renderer)
+	void TargetPathTool::PreRender(Chart& chart, Render::Renderer2D& renderer)
 	{
 	}
 
-	void TargetRotationTool::PostRender(Chart& chart, Render::Renderer2D& renderer)
+	void TargetPathTool::PostRender(Chart& chart, Render::Renderer2D& renderer)
 	{
 	}
 
-	void TargetRotationTool::OnContextMenuGUI(Chart& chart)
+	void TargetPathTool::OnContextMenuGUI(Chart& chart)
 	{
 		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 
-		if (Gui::MenuItem("Invert Target Frequencies", Input::GetKeyCodeName(KeyBindings::RotationToolInvertFrequencies), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Invert Target Frequencies", Input::GetKeyCodeName(KeyBindings::PathToolInvertFrequencies), false, (selectionCount > 0)))
 			InvertSelectedTargetFrequencies(undoManager, chart);
-		if (Gui::MenuItem("Interpolate Angles Clockwise", Input::GetKeyCodeName(KeyBindings::RotationToolInterpolateClockwise), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Angles Clockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateClockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, true);
-		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::RotationToolInterpolateCounterclockwise), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateCounterclockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, false);
 
 		if (Gui::BeginMenu("Angle Variation Settings"))
@@ -57,39 +57,39 @@ namespace Comfy::Studio::Editor
 			Gui::EndMenu();
 		}
 
-		if (Gui::MenuItem("Apply Angle Variations Positive", Input::GetKeyCodeName(KeyBindings::RotationToolApplyAngleVariationsPositive), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Variations Positive", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleVariationsPositive), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleVariations(undoManager, chart, +1.0f);
-		if (Gui::MenuItem("Apply Angle Variations Negative", Input::GetKeyCodeName(KeyBindings::RotationToolApplyAngleVariationsNegative), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Variations Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleVariationsNegative), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleVariations(undoManager, chart, -1.0f);
 	}
 
-	void TargetRotationTool::OnOverlayGUI(Chart& chart)
+	void TargetPathTool::OnOverlayGUI(Chart& chart)
 	{
 	}
 
-	void TargetRotationTool::PreRenderGUI(Chart& chart, ImDrawList& drawList)
+	void TargetPathTool::PreRenderGUI(Chart& chart, ImDrawList& drawList)
 	{
 	}
 
-	void TargetRotationTool::PostRenderGUI(Chart& chart, ImDrawList& drawList)
+	void TargetPathTool::PostRenderGUI(Chart& chart, ImDrawList& drawList)
 	{
 		DrawTargetAngleGuides(chart, drawList);
 		DrawAngleDragGuide(chart, drawList);
 	}
 
-	void TargetRotationTool::UpdateInput(Chart& chart)
+	void TargetPathTool::UpdateInput(Chart& chart)
 	{
 		UpdateKeyboardKeyBindingsInput(chart);
 		UpdateMouseAngleScrollInput(chart);
 		UpdateMouseAngleDragInput(chart);
 	}
 
-	const char* TargetRotationTool::GetName() const
+	const char* TargetPathTool::GetName() const
 	{
-		return "Rotation Tool";
+		return "Path Tool";
 	}
 
-	void TargetRotationTool::DrawTargetAngleGuides(Chart& chart, ImDrawList& drawList)
+	void TargetPathTool::DrawTargetAngleGuides(Chart& chart, ImDrawList& drawList)
 	{
 		constexpr size_t maxPathsToDraw = 64;
 		size_t pathDrawCount = 0;
@@ -126,7 +126,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetRotationTool::DrawTargetButtonAngleLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
+	void TargetPathTool::DrawTargetButtonAngleLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
 	{
 		const auto angleRadians = glm::radians(properties.Angle) - glm::radians(90.0f);
 		const auto angleDirection = vec2(glm::cos(angleRadians), glm::sin(angleRadians));
@@ -137,7 +137,7 @@ namespace Comfy::Studio::Editor
 		drawList.AddLine(start, end, color, thickness);
 	}
 
-	void TargetRotationTool::DrawTargetButtonAngleArrowLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
+	void TargetPathTool::DrawTargetButtonAngleArrowLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
 	{
 		static constexpr struct ArrowSettings
 		{
@@ -200,7 +200,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetRotationTool::DrawTargetButtonPathCurve(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
+	void TargetPathTool::DrawTargetButtonPathCurve(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
 	{
 		if (properties.Frequency == 0.0f || properties.Amplitude == 0.0f)
 		{
@@ -217,7 +217,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetRotationTool::DrawAngleDragGuide(Chart& chart, ImDrawList& drawList)
+	void TargetPathTool::DrawAngleDragGuide(Chart& chart, ImDrawList& drawList)
 	{
 		if (!angleDrag.Active && !angleScroll.Active)
 			return;
@@ -257,24 +257,24 @@ namespace Comfy::Studio::Editor
 		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
 	}
 
-	void TargetRotationTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
+	void TargetPathTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
 	{
 		if (Gui::IsWindowFocused() && Gui::GetActiveID() == 0)
 		{
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolInvertFrequencies, false))
+			if (Gui::IsKeyPressed(KeyBindings::PathToolInvertFrequencies, false))
 				InvertSelectedTargetFrequencies(undoManager, chart);
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolInterpolateClockwise, false))
+			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateClockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, true);
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolInterpolateCounterclockwise, false))
+			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateCounterclockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, false);
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolApplyAngleVariationsPositive, false))
+			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleVariationsPositive, false))
 				ApplySelectedTargetAngleVariations(undoManager, chart, +1.0f);
-			if (Gui::IsKeyPressed(KeyBindings::RotationToolApplyAngleVariationsNegative, false))
+			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleVariationsNegative, false))
 				ApplySelectedTargetAngleVariations(undoManager, chart, -1.0f);
 		}
 	}
 
-	void TargetRotationTool::UpdateMouseAngleScrollInput(Chart& chart)
+	void TargetPathTool::UpdateMouseAngleScrollInput(Chart& chart)
 	{
 		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
 		{
@@ -300,7 +300,7 @@ namespace Comfy::Studio::Editor
 		angleScroll.TargetIndex = angleScroll.Active ? static_cast<i32>(FindIndexOf(chart.Targets, [](auto& t) { return t.IsSelected; })) : -1;
 	}
 
-	void TargetRotationTool::UpdateMouseAngleDragInput(Chart& chart)
+	void TargetPathTool::UpdateMouseAngleDragInput(Chart& chart)
 	{
 		if (angleDrag.Active && Gui::IsMouseReleased(0))
 			undoManager.DisallowMergeForLastCommand();
@@ -359,7 +359,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetRotationTool::IncrementSelectedTargetAnglesBy(Undo::UndoManager& undoManager, Chart& chart, f32 increment)
+	void TargetPathTool::IncrementSelectedTargetAnglesBy(Undo::UndoManager& undoManager, Chart& chart, f32 increment)
 	{
 		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
@@ -381,7 +381,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<ChangeTargetListAngles>(chart, std::move(targetData));
 	}
 
-	void TargetRotationTool::SetSelectedTargetAnglesTo(Undo::UndoManager& undoManager, Chart& chart, f32 newAngle)
+	void TargetPathTool::SetSelectedTargetAnglesTo(Undo::UndoManager& undoManager, Chart& chart, f32 newAngle)
 	{
 		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
@@ -403,7 +403,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<ChangeTargetListAngles>(chart, std::move(targetData));
 	}
 
-	void TargetRotationTool::InvertSelectedTargetFrequencies(Undo::UndoManager& undoManager, Chart& chart)
+	void TargetPathTool::InvertSelectedTargetFrequencies(Undo::UndoManager& undoManager, Chart& chart)
 	{
 		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
@@ -429,7 +429,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<InvertTargetListFrequencies>(chart, std::move(targetData));
 	}
 
-	void TargetRotationTool::InterpolateSelectedTargetAngles(Undo::UndoManager& undoManager, Chart& chart, bool clockwise)
+	void TargetPathTool::InterpolateSelectedTargetAngles(Undo::UndoManager& undoManager, Chart& chart, bool clockwise)
 	{
 		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
@@ -463,7 +463,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<InterpolateTargetListAngles>(chart, std::move(targetData));
 	}
 
-	void TargetRotationTool::ApplySelectedTargetAngleVariations(Undo::UndoManager& undoManager, Chart& chart, f32 direction)
+	void TargetPathTool::ApplySelectedTargetAngleVariations(Undo::UndoManager& undoManager, Chart& chart, f32 direction)
 	{
 		assert(std::isnormal(direction));
 

@@ -14,7 +14,7 @@ namespace Comfy::Studio::Editor
 	enum class TargetToolType : u8
 	{
 		Position,
-		Rotation,
+		Path,
 		Count,
 
 		StartupType = Position,

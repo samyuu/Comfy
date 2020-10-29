@@ -5,7 +5,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	class TargetRotationTool : public TargetTool
+	class TargetPathTool : public TargetTool
 	{
 	public:
 		using TargetTool::TargetTool;

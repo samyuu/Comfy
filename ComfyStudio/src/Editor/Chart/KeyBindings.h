@@ -51,13 +51,6 @@ namespace Comfy::Studio::Editor
 		{
 			Input::KeyCode_1,
 			Input::KeyCode_2,
-			// Input::KeyCode_3,
-			// Input::KeyCode_4,
-			// Input::KeyCode_5,
-			// Input::KeyCode_6,
-			// Input::KeyCode_7,
-			// Input::KeyCode_8,
-			// Input::KeyCode_9,
 		};
 
 		constexpr std::array PositionToolMoveStep =
@@ -77,11 +70,11 @@ namespace Comfy::Studio::Editor
 		constexpr Input::KeyCode PositionToolFlipVertical = Input::KeyCode_J;
 		constexpr Input::KeyCode PositionToolInterpolate = Input::KeyCode_U;
 
-		constexpr Input::KeyCode RotationToolInvertFrequencies = Input::KeyCode_R;
-		constexpr Input::KeyCode RotationToolInterpolateClockwise = Input::KeyCode_U;
-		constexpr Input::KeyCode RotationToolInterpolateCounterclockwise = Input::KeyCode_I;
+		constexpr Input::KeyCode PathToolInvertFrequencies = Input::KeyCode_R;
+		constexpr Input::KeyCode PathToolInterpolateClockwise = Input::KeyCode_U;
+		constexpr Input::KeyCode PathToolInterpolateCounterclockwise = Input::KeyCode_I;
 
-		constexpr Input::KeyCode RotationToolApplyAngleVariationsPositive = Input::KeyCode_F;
-		constexpr Input::KeyCode RotationToolApplyAngleVariationsNegative = Input::KeyCode_V;
+		constexpr Input::KeyCode PathToolApplyAngleVariationsPositive = Input::KeyCode_F;
+		constexpr Input::KeyCode PathToolApplyAngleVariationsNegative = Input::KeyCode_V;
 	}
 }
