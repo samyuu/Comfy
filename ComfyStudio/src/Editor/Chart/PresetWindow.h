@@ -2,23 +2,13 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Chart.h"
+#include "TargetPropertyPresets.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include "Undo/Undo.h"
 #include "ImGui/Gui.h"
 
 namespace Comfy::Studio::Editor
 {
-	enum class DynamicSyncPreset : u8
-	{
-		VerticalLeft,
-		VerticalRight,
-		HorizontalUp,
-		HorizontalDown,
-		Square,
-		Triangle,
-		Count
-	};
-
 	class PresetWindow : NonCopyable
 	{
 	public:
@@ -26,11 +16,16 @@ namespace Comfy::Studio::Editor
 		~PresetWindow() = default;
 
 	public:
-		void Gui(Chart& chart);
+		void SyncGui(Chart& chart);
+		void SequenceGui(Chart& chart);
+
 		void OnEditorSpritesLoaded(const Graphics::SprSet* sprSet);
 
 	private:
 		Undo::UndoManager& undoManager;
+
+		std::vector<StaticSyncPreset> staticSyncPresets;
+		std::optional<DynamicSyncPreset> hoveredDynamicSyncPreset = {};
 
 		const Graphics::SprSet* editorSprites;
 		struct SpriteCache

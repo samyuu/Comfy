@@ -187,6 +187,7 @@
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetPathTool.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetTool.cpp" />
     <ClCompile Include="src\Editor\Chart\TargetInspector.cpp" />
+    <ClCompile Include="src\Editor\Chart\TargetPropertyPresets.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMetronome.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineRenderHelper.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
@@ -257,6 +258,7 @@
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetTool.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetPositionTool.h" />
     <ClInclude Include="src\Editor\Chart\TargetInspector.h" />
+    <ClInclude Include="src\Editor\Chart\TargetPropertyPresets.h" />
     <ClInclude Include="src\Editor\Chart\TargetPropertyRules.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineMetronome.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineRenderHelper.h" />

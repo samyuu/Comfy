@@ -559,54 +559,44 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiSubWindows()
 	{
+#if 0 // TODO:
 		if (Gui::Begin(ICON_FA_QUESTION_CIRCLE "  Chart Editor Manual", nullptr, ImGuiWindowFlags_None))
-		{
 			chartEditorManual.Gui();
-		}
+		Gui::End();
+#endif
+
+		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sync Target Presets", nullptr, ImGuiWindowFlags_None))
+			presetWindow.SyncGui(*chart);
 		Gui::End();
 
-		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Target Presets", nullptr, ImGuiWindowFlags_None))
-		{
-			presetWindow.Gui(*chart);
-		}
+		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sequence Target Presets", nullptr, ImGuiWindowFlags_None))
+			presetWindow.SequenceGui(*chart);
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
 			timeline->DrawTimelineGui();
-		}
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_STOPWATCH "  BPM Calculator##ChartEditor", nullptr, ImGuiWindowFlags_None))
+			bpmCalculatorWindow.Gui(*chart, GetIsPlayback() ? GetPlaybackTimeOnPlaybackStart() : GetPlaybackTimeAsync());
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_SYNC "  Sync Window##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
 			syncWindow.Gui(*chart, *timeline);
-		}
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_INFO_CIRCLE "  Target Inspector##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
 			inspector.Gui(*chart);
-		}
 		Gui::End();
 
 		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Preview##ChartEditor");
 
 		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
-		{
 			historyWindow.Gui();
-		}
-		Gui::End();
-
-		if (Gui::Begin(ICON_FA_STOPWATCH "  BPM Calculator##ChartEditor", nullptr, ImGuiWindowFlags_None))
-		{
-			bpmCalculatorWindow.Gui(*chart, GetIsPlayback() ? GetPlaybackTimeOnPlaybackStart() : GetPlaybackTimeAsync());
-		}
 		Gui::End();
 
 		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties", nullptr, ImGuiWindowFlags_None))
-		{
 			chartPropertiesWindow.Gui(*chart);
-		}
 		Gui::End();
 	}
 
