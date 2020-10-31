@@ -10,11 +10,15 @@
 #include "Editor/Common/CheckerboardGrid.h"
 #include "Render/Render.h"
 #include "Undo/Undo.h"
+#include <functional>
 
 namespace Comfy::Studio::Editor
 {
 	class ChartEditor;
 	class TargetTimeline;
+
+	using TargetRenderWindowRenderCallback = std::function<void(TargetRenderWindow&, Render::Renderer2D&, TargetRenderHelper&)>;
+	using TargetRenderWindowOverlayGuiCallback = std::function<void(TargetRenderWindow&, ImDrawList&)>;
 
 	class TargetRenderWindow : public RenderWindow
 	{
@@ -28,6 +32,9 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void SetWorkingChart(Chart* chart);
+
+		void RegisterRenderCallback(TargetRenderWindowRenderCallback onRender);
+		void RegisterOverlayGuiCallback(TargetRenderWindowOverlayGuiCallback onOverlayGui);
 
 	public:
 		ImTextureID GetTextureID() const override;
@@ -70,6 +77,9 @@ namespace Comfy::Studio::Editor
 
 		Undo::UndoManager& undoManager;
 		Render::Renderer2D& renderer;
+
+		TargetRenderWindowRenderCallback onRenderCallback;
+		TargetRenderWindowOverlayGuiCallback onOverlayGuiCallback;
 
 	private:
 		CheckerboardGrid backgroundCheckerboard;

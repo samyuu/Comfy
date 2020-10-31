@@ -40,6 +40,16 @@ namespace Comfy::Studio::Editor
 		workingChart = chart;
 	}
 
+	void TargetRenderWindow::RegisterRenderCallback(TargetRenderWindowRenderCallback onRender)
+	{
+		onRenderCallback = std::move(onRender);
+	}
+
+	void TargetRenderWindow::RegisterOverlayGuiCallback(TargetRenderWindowOverlayGuiCallback onOverlayGui)
+	{
+		onOverlayGuiCallback = std::move(onOverlayGui);
+	}
+
 	ImTextureID TargetRenderWindow::GetTextureID() const
 	{
 		return (renderTarget != nullptr) ? renderTarget->GetTextureID() : nullptr;
@@ -118,6 +128,9 @@ namespace Comfy::Studio::Editor
 
 		if (selectedTool != nullptr)
 			selectedTool->PostRenderGUI(*workingChart, *drawList);
+
+		if (onOverlayGuiCallback)
+			onOverlayGuiCallback(*this, *drawList);
 	}
 
 	void TargetRenderWindow::OnResize(ivec2 newSize)
@@ -148,6 +161,9 @@ namespace Comfy::Studio::Editor
 
 			if (selectedTool != nullptr)
 				selectedTool->PostRender(*workingChart, renderer);
+
+			if (onRenderCallback)
+				onRenderCallback(*this, renderer, *renderHelper);
 		}
 		renderer.End();
 	}
