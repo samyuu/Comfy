@@ -3,35 +3,13 @@
 #include "Tools/TargetBoxSelectionTool.h"
 #include "Tools/TargetTool.h"
 #include "TargetRenderHelper.h"
+#include "TargetGuiDrawUtil.h"
 #include "Editor/Chart/Chart.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Window/RenderWindow.h"
 #include "Editor/Common/CheckerboardGrid.h"
 #include "Render/Render.h"
 #include "Undo/Undo.h"
-
-namespace Comfy::Studio::Editor
-{
-	constexpr std::array<u32, EnumCount<ButtonType>()> ButtonTypeColors =
-	{
-		0xFFCCFE62,
-		0xFFD542FF,
-		0xFFFEFF62,
-		0xFF6412FE,
-		0xFF2BD7FF,
-		0xFF2BD7FF,
-	};
-
-	constexpr u32 GetButtonTypeColorU32(ButtonType type)
-	{
-		return ButtonTypeColors[static_cast<u8>(type)];
-	}
-
-	constexpr u32 GetButtonTypeColorU32(ButtonType type, u8 alpha)
-	{
-		return (ButtonTypeColors[static_cast<u8>(type)] & 0x00FFFFFF) | (static_cast<u32>(alpha) << 24);
-	}
-}
 
 namespace Comfy::Studio::Editor
 {

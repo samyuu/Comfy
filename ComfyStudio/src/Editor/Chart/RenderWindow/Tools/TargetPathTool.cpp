@@ -104,7 +104,7 @@ namespace Comfy::Studio::Editor
 			{
 				if (target.IsSelected && &target != dragTarget)
 				{
-					DrawTargetButtonAngleLine(drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0x76), 2.0f);
+					DrawStraightButtonAngleLine(renderWindow, drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0x76), 2.0f);
 					if (pathDrawCount++ >= maxPathsToDraw)
 						break;
 				}
@@ -112,7 +112,7 @@ namespace Comfy::Studio::Editor
 
 			// NOTE: For readibility sake always draw the main drag arrow on top
 			if (dragTarget != nullptr)
-				DrawTargetButtonAngleArrowLine(drawList, Rules::TryGetProperties(*dragTarget), GetButtonTypeColorU32(dragTarget->Type, 0xD6), 2.0f);
+				DrawCurvedButtonPathLineArrowHeads(renderWindow, drawList, Rules::TryGetProperties(*dragTarget), GetButtonTypeColorU32(dragTarget->Type, 0xD6), 2.0f);
 		}
 		else
 		{
@@ -120,102 +120,11 @@ namespace Comfy::Studio::Editor
 			{
 				if (target.IsSelected)
 				{
-					DrawTargetButtonPathCurve(drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0xD6), 2.0f);
+					DrawCurvedButtonPathLine(renderWindow, drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0xD6), 2.0f);
 					if (pathDrawCount++ >= maxPathsToDraw)
 						break;
 				}
 			}
-		}
-	}
-
-	void TargetPathTool::DrawTargetButtonAngleLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
-	{
-		const auto angleRadians = glm::radians(properties.Angle) - glm::radians(90.0f);
-		const auto angleDirection = vec2(glm::cos(angleRadians), glm::sin(angleRadians));
-
-		const auto start = renderWindow.TargetAreaToScreenSpace(properties.Position);
-		const auto end = renderWindow.TargetAreaToScreenSpace(properties.Position + (angleDirection * properties.Distance));
-
-		drawList.AddLine(start, end, color, thickness);
-	}
-
-	void TargetPathTool::DrawTargetButtonAngleArrowLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
-	{
-		static constexpr struct ArrowSettings
-		{
-			f32 HeadSpacing = 96.0f;
-			f32 HeadEndSpacingFactor = 0.6f;
-			f32 HeadSize = 168.0f;
-			f32 HeadAngle = 16.0f;
-			vec4 BackgroundColor = vec4(0.16f, 0.16f, 0.16f, 0.95f);
-		} settings;
-
-		const auto angleRadians = glm::radians(properties.Angle) - glm::radians(90.0f);
-		const auto angleDirection = vec2(glm::cos(angleRadians), glm::sin(angleRadians));
-
-		const auto start = renderWindow.TargetAreaToScreenSpace(properties.Position);
-		const auto end = renderWindow.TargetAreaToScreenSpace(properties.Position + (angleDirection * properties.Distance));
-
-		const auto headSpacing = settings.HeadSpacing * renderWindow.GetCamera().Zoom;
-		const auto headSize = (settings.HeadSize * renderWindow.GetCamera().Zoom) / 2.0f;
-		const auto headRadians = glm::radians(settings.HeadAngle);
-
-		const auto headRadiansL = (angleRadians - headRadians);
-		const auto headRadiansR = (angleRadians + headRadians);
-		const auto headDirectionL = vec2(glm::cos(headRadiansL), glm::sin(headRadiansL));
-		const auto headDirectionR = vec2(glm::cos(headRadiansR), glm::sin(headRadiansR));
-		const auto backgroundColor = Gui::ColorConvertFloat4ToU32(settings.BackgroundColor * Gui::ColorConvertU32ToFloat4(color));
-
-		const auto startEndDistance = (properties.Distance <= 0.0f) ? 0.0f : glm::distance(start, end);
-		const auto headCount = std::max(1, static_cast<i32>(glm::floor(startEndDistance / headSpacing)));
-
-		for (i32 head = 0; head < headCount; head++)
-		{
-			const auto headDistance = ((head + 0) * headSpacing) + (headSpacing * settings.HeadEndSpacingFactor) + (thickness / 2.0f);
-			const auto headDistanceNext = ((head + 1) == headCount) ? startEndDistance : glm::min(startEndDistance, ((head + 1) * headSpacing));
-
-			const auto headStart = start + (headDistance * angleDirection);
-			const auto headEnd = start + (headDistanceNext * angleDirection);
-
-			drawList.AddLine(headStart, headEnd, color, thickness);
-		}
-
-		for (i32 head = 0; head < headCount; head++)
-		{
-			const auto headDistance = (head * headSpacing);
-
-			const auto headStart = start + (headDistance * angleDirection);
-			const auto headEnd = start + ((headDistance + (headSpacing * settings.HeadEndSpacingFactor)) * angleDirection);
-
-			const auto headEndL = headStart + (headDirectionL * headSize);
-			const auto headEndR = headStart + (headDirectionR * headSize);
-
-			// NOTE: Primarily to hide the AA triangle seams at some angles
-			drawList.AddLine(headStart, headEnd, backgroundColor, 1.0f);
-			drawList.AddTriangleFilled(headStart, headEndL, headEnd, backgroundColor);
-			drawList.AddTriangleFilled(headEnd, headEndR, headStart, backgroundColor);
-
-			drawList.AddLine(headStart, headEndL, color, thickness);
-			drawList.AddLine(headStart, headEndR, color, thickness);
-			drawList.AddLine(headEndL, headEnd, color, thickness);
-			drawList.AddLine(headEndR, headEnd, color, thickness);
-		}
-	}
-
-	void TargetPathTool::DrawTargetButtonPathCurve(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const
-	{
-		if (properties.Frequency == 0.0f || properties.Amplitude == 0.0f)
-		{
-			DrawTargetButtonAngleLine(drawList, properties, color, thickness);
-		}
-		else
-		{
-			constexpr f32 step = (1.0f / 32.0f);
-
-			drawList.PathLineTo(renderWindow.TargetAreaToScreenSpace(GetButtonPathSinePoint(0.0f, properties)));
-			for (f32 i = step; i <= 1.0f; i += step)
-				drawList.PathLineTo(renderWindow.TargetAreaToScreenSpace(GetButtonPathSinePoint(i, properties)));
-			drawList.PathStroke(color, false, thickness);
 		}
 	}
 

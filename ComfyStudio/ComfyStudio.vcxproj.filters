@@ -192,6 +192,9 @@
     <ClCompile Include="src\Editor\Chart\TargetPropertyPresets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -453,6 +456,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\TargetPropertyPresets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

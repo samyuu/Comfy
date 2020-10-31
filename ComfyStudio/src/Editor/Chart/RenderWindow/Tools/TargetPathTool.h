@@ -29,10 +29,6 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void DrawTargetAngleGuides(Chart& chart, ImDrawList& drawList);
-		void DrawTargetButtonAngleLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const;
-		void DrawTargetButtonAngleArrowLine(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const;
-		void DrawTargetButtonPathCurve(ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness) const;
-
 		void DrawAngleDragGuide(Chart& chart, ImDrawList& drawList);
 
 		void UpdateKeyboardKeyBindingsInput(Chart& chart);
