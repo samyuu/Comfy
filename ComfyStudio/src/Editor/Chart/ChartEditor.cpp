@@ -174,7 +174,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenLoadAudioFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Open";
+		fileDialog.Title = "Open Audio File";
 		fileDialog.FileName;
 		fileDialog.DefaultExtension;
 		fileDialog.Filters =
@@ -299,7 +299,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenReadChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Open";
+		fileDialog.Title = "Open Chart";
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
@@ -314,7 +314,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenSaveChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Save As";
+		fileDialog.Title = "Save Chart As";
 		fileDialog.FileName = GetChartSaveDialogFileName(*chart);
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
@@ -389,7 +389,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenReadImportChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Import";
+		fileDialog.Title = "Import Chart";
 		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
 		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
@@ -404,7 +404,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenSaveExportChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Export As";
+		fileDialog.Title = "Export Chart As";
 		fileDialog.FileName = GetChartSaveDialogFileName(*chart);
 		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
 		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
