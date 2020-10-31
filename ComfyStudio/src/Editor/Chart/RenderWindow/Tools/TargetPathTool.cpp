@@ -43,11 +43,12 @@ namespace Comfy::Studio::Editor
 		if (Gui::BeginMenu("Angle Variation Settings"))
 		{
 			constexpr auto formatString = ("%.2f" DEGREE_SIGN);
-			Gui::InputFloat("Increment Per Beat", &angleVariation.IncrementPerBeat, 1.0f, 5.0f, formatString);
-			Gui::InputFloat("Increment Per Beat (Slope)", &angleVariation.IncrementPerBeatSlope, 1.0f, 5.0f, formatString);
+			Gui::InputFloat("Increment per Beat", &angleVariation.IncrementPerBeat, 1.0f, 5.0f, formatString);
+			Gui::InputFloat("Increment per Beat (Slope)", &angleVariation.IncrementPerBeatSlope, 1.0f, 5.0f, formatString);
+			Gui::Checkbox("Apply to Chain Slide Fragments", &angleVariation.ApplyToChainSlides);
 
 			constexpr auto defaultVariation = AngleVariationData {};
-			const bool isDefault = (angleVariation.IncrementPerBeat == defaultVariation.IncrementPerBeat && angleVariation.IncrementPerBeatSlope == defaultVariation.IncrementPerBeatSlope);
+			const bool isDefault = (angleVariation == defaultVariation);
 
 			Gui::PushItemDisabledAndTextColorIf(isDefault);
 			if (Gui::Button("Set Default", vec2(Gui::GetContentRegionAvailWidth() * 0.645f, 0.0f)))
@@ -410,7 +411,8 @@ namespace Comfy::Studio::Editor
 			const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
 
 			const auto incrementPerBeat = (isSlope ? angleVariation.IncrementPerBeatSlope : angleVariation.IncrementPerBeat);
-			const auto angleIncrement = (tickDifference.BeatsFraction() * incrementPerBeat * direction);
+			const auto angleIncrement = (!angleVariation.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ? 
+				0.0f : (tickDifference.BeatsFraction() * incrementPerBeat * direction);
 
 			thisData.NewValue.Angle = Rules::NormalizeAngle(prevData.NewValue.Angle + angleIncrement);
 		}

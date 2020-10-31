@@ -71,6 +71,10 @@ namespace Comfy::Studio::Editor
 		{
 			f32 IncrementPerBeat = 2.0f;
 			f32 IncrementPerBeatSlope = 10.0f;
+			bool ApplyToChainSlides = false;
+
+			bool operator==(const AngleVariationData& other) const { return (IncrementPerBeat == other.IncrementPerBeat) && (IncrementPerBeatSlope == other.IncrementPerBeatSlope) && (ApplyToChainSlides == other.ApplyToChainSlides); }
+			bool operator!=(const AngleVariationData& other) const { return !(*this == other); }
 		} angleVariation = {};
 	};
 }
