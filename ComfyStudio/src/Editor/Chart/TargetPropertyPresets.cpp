@@ -5,6 +5,19 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
+		constexpr bool IsAnyTargetWithinSyncPairSelected(const TimelineTarget* const syncPair, const i32 pairCount)
+		{
+			assert(syncPair != nullptr && pairCount > 1 && syncPair[0].Flags.IndexWithinSyncPair == 0);
+
+			for (i32 i = 0; i < pairCount; i++)
+			{
+				if (syncPair[i].IsSelected)
+					return true;
+			}
+
+			return false;
+		}
+
 		constexpr vec2 AngleCornerTypeToSquarePlacementAreaCorner(Rules::AngleCorner corner)
 		{
 			constexpr f32 top = 0.0f, bot = Rules::PlacementAreaSize.y - Rules::SyncFormationHeightOffset, left = 0.0f, right = Rules::PlacementAreaSize.x;
@@ -80,10 +93,27 @@ namespace Comfy::Studio::Editor
 			return true;
 		}
 
-		bool ApplyDynamicSyncPresetToSyncPair(const DynamicSyncPreset preset, const TimelineTarget* const syncPair, const i32 pairCount, ApplySyncPreset::Data* outProperties, const i32 masterIndex)
+		constexpr i32 DetermineDynamicSyncPresetMasterIndex(const DynamicSyncPreset preset, const TimelineTarget* const syncPair, const i32 pairCount)
 		{
-			assert(syncPair != nullptr && pairCount > 1 && outProperties != nullptr && masterIndex >= 0 && masterIndex < pairCount);
+			// TODO: Dynamic behavior based on preset type and existing positions (?) 
+			//		 If for example all 4 targets of a square preset are selected and are positioned in a screen corner, 
+			//		 then the furthest from the center should be chosen to avoid creating a minimum sized square (?)
+			for (i32 i = pairCount - 1; i >= 0; i--)
+			{
+				if (syncPair[i].IsSelected)
+					return i;
+			}
+
+			return 0;
+		}
+
+		bool ApplyDynamicSyncPresetToSyncPair(const DynamicSyncPreset preset, const TimelineTarget* const syncPair, const i32 pairCount, ApplySyncPreset::Data* outProperties)
+		{
+			assert(syncPair != nullptr && pairCount > 1 && outProperties != nullptr);
 			using namespace Rules;
+
+			const auto masterIndex = DetermineDynamicSyncPresetMasterIndex(preset, syncPair, pairCount);
+			assert(masterIndex >= 0 && masterIndex < pairCount);
 
 			const auto& masterTarget = syncPair[masterIndex];
 			auto& masterProperties = outProperties[masterIndex].NewValue;
@@ -261,37 +291,21 @@ namespace Comfy::Studio::Editor
 		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size());)
 		{
 			const auto& firstTargetOfPair = chart.Targets[i];
-			if (firstTargetOfPair.Flags.IsSync)
+			if (firstTargetOfPair.Flags.IsSync && IsAnyTargetWithinSyncPairSelected(&firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount))
 			{
-				i32 masterSelectionIndexWithinPair = -1;
-
-#if 0 // TODO: Should it be the first or the last (?)
-				for (i32 pair = firstTargetOfPair.Flags.SyncPairCount - 1; pair >= 0; pair--)
-#else
-				for (i32 pair = 0; pair < firstTargetOfPair.Flags.SyncPairCount; pair++)
-#endif
+				const auto targetDataStartIndex = targetData.size();
+				for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
 				{
-					if (chart.Targets[i + pair].IsSelected)
-						masterSelectionIndexWithinPair = pair;
+					auto& data = targetData.emplace_back();
+					data.TargetIndex = (i + j);
+					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
 				}
 
-				// TODO: Or maybe let the preset pick its own master (based on position for example) if multiple within a pair are selected (?)
-				if (masterSelectionIndexWithinPair > -1)
+				const bool failedToApply = !ApplyDynamicSyncPresetToSyncPair(preset, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, &targetData[targetDataStartIndex]);
+				if (failedToApply)
 				{
-					const auto targetDataStartIndex = targetData.size();
 					for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
-					{
-						auto& data = targetData.emplace_back();
-						data.TargetIndex = (i + j);
-						data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
-					}
-
-					const bool failedToApply = !ApplyDynamicSyncPresetToSyncPair(preset, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, &targetData[targetDataStartIndex], masterSelectionIndexWithinPair);
-					if (failedToApply)
-					{
-						for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
-							targetData.pop_back();
-					}
+						targetData.pop_back();
 				}
 			}
 
@@ -312,17 +326,8 @@ namespace Comfy::Studio::Editor
 		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size());)
 		{
 			const auto& firstTargetOfPair = chart.Targets[i];
-			if (firstTargetOfPair.Flags.IsSync)
-			{
-				for (i32 pair = 0; pair < firstTargetOfPair.Flags.SyncPairCount; pair++)
-				{
-					if (chart.Targets[i + pair].IsSelected)
-					{
-						syncSelectionCount += firstTargetOfPair.Flags.SyncPairCount;
-						break;
-					}
-				}
-			}
+			if (firstTargetOfPair.Flags.IsSync && IsAnyTargetWithinSyncPairSelected(&firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount))
+				syncSelectionCount += firstTargetOfPair.Flags.SyncPairCount;
 
 			assert(firstTargetOfPair.Flags.SyncPairCount >= 1);
 			i += firstTargetOfPair.Flags.SyncPairCount;
@@ -337,32 +342,21 @@ namespace Comfy::Studio::Editor
 		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size());)
 		{
 			const auto& firstTargetOfPair = chart.Targets[i];
-			if (firstTargetOfPair.Flags.IsSync)
+			if (firstTargetOfPair.Flags.IsSync && IsAnyTargetWithinSyncPairSelected(&firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount))
 			{
-				bool anyWithinPairSelected = false;
-
-				for (i32 pair = 0; pair < firstTargetOfPair.Flags.SyncPairCount; pair++)
+				const auto targetDataStartIndex = targetData.size();
+				for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
 				{
-					if (chart.Targets[i + pair].IsSelected)
-						anyWithinPairSelected = true;
+					auto& data = targetData.emplace_back();
+					data.TargetIndex = (i + j);
+					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
 				}
 
-				if (anyWithinPairSelected)
+				const bool failedToApply = !ApplyStaticSyncPresetToSyncPair(preset, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, &targetData[targetDataStartIndex]);
+				if (failedToApply)
 				{
-					const auto targetDataStartIndex = targetData.size();
 					for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
-					{
-						auto& data = targetData.emplace_back();
-						data.TargetIndex = (i + j);
-						data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
-					}
-
-					const bool failedToApply = !ApplyStaticSyncPresetToSyncPair(preset, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, &targetData[targetDataStartIndex]);
-					if (failedToApply)
-					{
-						for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
-							targetData.pop_back();
-					}
+						targetData.pop_back();
 				}
 			}
 
@@ -375,5 +369,40 @@ namespace Comfy::Studio::Editor
 			undoManager.DisallowMergeForLastCommand();
 			undoManager.Execute<ApplySyncPreset>(chart, std::move(targetData), TargetPropertyFlags_All);
 		}
+	}
+
+	u32 FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(const Chart& chart, const DynamicSyncPreset preset, std::array<PresetTargetData, Rules::MaxSyncPairCount>& outPresetTargets)
+	{
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size());)
+		{
+			const auto& firstTargetOfPair = chart.Targets[i];
+			if (firstTargetOfPair.Flags.IsSync && IsAnyTargetWithinSyncPairSelected(&firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount))
+			{
+				std::array<ApplySyncPreset::Data, Rules::MaxSyncPairCount> tempProperties;
+
+				for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
+				{
+					auto& data = tempProperties[j];
+					data.TargetIndex = (i + j);
+					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
+				}
+
+				if (ApplyDynamicSyncPresetToSyncPair(preset, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, tempProperties.data()))
+				{
+					for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
+					{
+						outPresetTargets[j].Type = chart.Targets[tempProperties[j].TargetIndex].Type;
+						outPresetTargets[j].Properties = tempProperties[j].NewValue;
+					}
+
+					return firstTargetOfPair.Flags.SyncPairCount;
+				}
+			}
+
+			assert(firstTargetOfPair.Flags.SyncPairCount >= 1);
+			i += firstTargetOfPair.Flags.SyncPairCount;
+		}
+
+		return 0;
 	}
 }

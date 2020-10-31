@@ -33,6 +33,8 @@ namespace Comfy::Studio::Editor
 
 	namespace Rules
 	{
+		constexpr size_t MaxSyncPairCount = 4;
+
 		constexpr vec2 PlacementAreaSize = { 1920.0f, 1080.0f };
 		constexpr vec2 PlacementAreaCenter = (PlacementAreaSize * 0.5f);
 

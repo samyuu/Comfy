@@ -18,14 +18,17 @@ namespace Comfy::Studio::Editor
 		Count
 	};
 
+	struct PresetTargetData 
+	{ 
+		ButtonType Type; 
+		TargetProperties Properties; 
+	};
+
 	struct StaticSyncPreset
 	{
-		struct Data { ButtonType Type; TargetProperties Properties; };
-		static constexpr size_t MaxSyncPairCount = 4;
-
 		std::string Name;
 		u32 TargetCount;
-		std::array<Data, MaxSyncPairCount> Targets;
+		std::array<PresetTargetData, Rules::MaxSyncPairCount> Targets;
 	};
 
 	// TODO: Implement as bezier curve points (?)
@@ -74,4 +77,6 @@ namespace Comfy::Studio::Editor
 
 	void ApplyDynamicSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const DynamicSyncPreset preset);
 	void ApplyStaticSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const StaticSyncPreset& preset);
+
+	u32 FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(const Chart& chart, const DynamicSyncPreset preset, std::array<PresetTargetData, Rules::MaxSyncPairCount>& outPresetTargets);
 }
