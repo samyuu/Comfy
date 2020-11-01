@@ -95,7 +95,9 @@ namespace Comfy::Studio::Editor
 
 	void PresetWindow::SyncGui(Chart& chart)
 	{
-		buttonHover = {};
+		hovered.DynamicSyncPreset = {};
+		hovered.StaticSyncPreset = {};
+		hovered.AnyChildWindow = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
 
 		const auto& style = Gui::GetStyle();
 
@@ -113,6 +115,8 @@ namespace Comfy::Studio::Editor
 
 		Gui::BeginChild("DynamicSyncPresetsChild", vec2(0.0f, dynamicChildHeight), true);
 		{
+			hovered.DynamincSyncPresetChild = Gui::IsWindowHovered();
+
 			const auto halfWidth = (Gui::GetContentRegionAvailWidth() - buttonSpacing.x) / 2.0f;
 			std::array<ImRect, EnumCount<DynamicSyncPreset>()> presetIconRectsToDraw;
 
@@ -124,7 +128,7 @@ namespace Comfy::Studio::Editor
 				Gui::PopID();
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-					buttonHover.DynamicSyncPreset = preset;
+					hovered.DynamicSyncPreset = preset;
 
 				const auto rect = [r = Gui::FitFixedAspectRatio(Gui::GetCurrentWindowRead()->DC.LastItemRect, 1.0f)]() mutable { r.Expand(-4.0f); return r; }();
 				presetIconRectsToDraw[static_cast<size_t>(preset)] = rect;
@@ -157,6 +161,8 @@ namespace Comfy::Studio::Editor
 
 		Gui::BeginChild("StaticSyncPresetsChild", vec2(0.0f, staticChildHeight), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		{
+			hovered.StaticSyncPresetChild = Gui::IsWindowHovered();
+
 			Gui::PushItemDisabledAndTextColorIf(!anySyncTargetSelected);
 			for (const auto& staticSyncPreset : staticSyncPresets)
 			{
@@ -166,7 +172,7 @@ namespace Comfy::Studio::Editor
 				Gui::PopID();
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-					buttonHover.StaticSyncPreset = static_cast<size_t>(std::distance(&*staticSyncPresets.cbegin(), &staticSyncPreset));
+					hovered.StaticSyncPreset = static_cast<size_t>(std::distance(&*staticSyncPresets.cbegin(), &staticSyncPreset));
 			}
 			Gui::PopItemDisabledAndTextColorIf(!anySyncTargetSelected);
 		}
@@ -174,12 +180,20 @@ namespace Comfy::Studio::Editor
 
 		Gui::BeginChild("AddPresetsChild", vec2(0.0f, addChildHeight), true);
 		{
+			hovered.AddPresetChild = Gui::IsWindowHovered();
+
 			// TODO: Open edit dialog with button to "create from selection" (?)
 			//		 Hide "Add New..." buttons in context menu (?)
 			if (Gui::ButtonEx("Add New...", vec2(Gui::GetContentRegionAvailWidth(), staticButtonHeight)))
 				staticSyncPresets.push_back(StaticSyncPreset { "DUMMY_PRESET" });
 		}
 		Gui::EndChild();
+
+		hovered.AnyHoveredLastFrame = hovered.AnyHoveredThisFrame;
+		hovered.AnyHoveredThisFrame = ((hovered.AnyChildWindow && !hovered.AddPresetChild) || hovered.DynamicSyncPreset.has_value() || hovered.StaticSyncPreset.has_value());
+
+		if (hovered.AnyHoveredThisFrame)
+			hovered.LastHoverStopwatch.Restart();
 	}
 
 	void PresetWindow::SequenceGui(Chart& chart)
@@ -190,20 +204,21 @@ namespace Comfy::Studio::Editor
 
 	void PresetWindow::OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer, TargetRenderHelper& renderHelper)
 	{
+		if (const auto dimness = GetPresetPreviewDimness(false); dimness > 0.0f)
+			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, dimness)));
+
 		presetPreview.TargetCount = 0;
-		if (!buttonHover.DynamicSyncPreset.has_value() && !buttonHover.StaticSyncPreset.has_value())
+		if (!hovered.DynamicSyncPreset.has_value() && !hovered.StaticSyncPreset.has_value())
 			return;
 
-		renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, 0.35f)));
-
-		if (buttonHover.DynamicSyncPreset.has_value())
+		if (hovered.DynamicSyncPreset.has_value())
 		{
-			presetPreview.TargetCount = FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(chart, buttonHover.DynamicSyncPreset.value(), presetPreview.Targets);
+			presetPreview.TargetCount = FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(chart, hovered.DynamicSyncPreset.value(), presetPreview.Targets);
 			RenderSyncPresetPreview(renderer, renderHelper, presetPreview.TargetCount, presetPreview.Targets);
 		}
-		else if (buttonHover.StaticSyncPreset.has_value())
+		else if (hovered.StaticSyncPreset.has_value())
 		{
-			const auto& hoveredPreset = staticSyncPresets[*buttonHover.StaticSyncPreset];
+			const auto& hoveredPreset = staticSyncPresets[*hovered.StaticSyncPreset];
 			presetPreview.TargetCount = hoveredPreset.TargetCount;
 			presetPreview.Targets = hoveredPreset.Targets;
 			RenderSyncPresetPreview(renderer, renderHelper, hoveredPreset.TargetCount, hoveredPreset.Targets);
@@ -212,11 +227,12 @@ namespace Comfy::Studio::Editor
 
 	void PresetWindow::OnRenderWindowOverlayGui(Chart& chart, TargetRenderWindow& renderWindow, ImDrawList& drawList)
 	{
-		if (!buttonHover.DynamicSyncPreset.has_value() && !buttonHover.StaticSyncPreset.has_value())
-			return;
-
 		const auto windowRect = Gui::GetCurrentWindow()->Rect();
-		drawList.AddRectFilled(windowRect.GetTL(), windowRect.GetBR(), ImColor(0.0f, 0.0f, 0.0f, 0.35f));
+		if (const auto dimness = GetPresetPreviewDimness(true); dimness > 0.0f)
+			drawList.AddRectFilled(windowRect.GetTL(), windowRect.GetBR(), ImColor(0.0f, 0.0f, 0.0f, dimness));
+
+		if (!hovered.DynamicSyncPreset.has_value() && !hovered.StaticSyncPreset.has_value())
+			return;
 
 		for (u32 i = 0; i < presetPreview.TargetCount; i++)
 		{
@@ -249,6 +265,21 @@ namespace Comfy::Studio::Editor
 		sprites.DynamicSyncPresetIcons[static_cast<size_t>(DynamicSyncPreset::HorizontalDown)] = findSprite("SYNC_PRESET_ICON_HORIZONTAL_DOWN");
 		sprites.DynamicSyncPresetIcons[static_cast<size_t>(DynamicSyncPreset::Square)] = findSprite("SYNC_PRESET_ICON_SQUARE");
 		sprites.DynamicSyncPresetIcons[static_cast<size_t>(DynamicSyncPreset::Triangle)] = findSprite("SYNC_PRESET_ICON_TRIANGLE");
+	}
+
+	f32 PresetWindow::GetPresetPreviewDimness(bool overlayPass) const
+	{
+		constexpr f32 maxDimRender = 0.15f, maxDimOverlay = 0.45f, transitionMS = 75.0f;
+		const auto max = overlayPass ? maxDimOverlay : maxDimRender;
+
+		if (!hovered.LastHoverStopwatch.IsRunning())
+			return 0.0f;
+		if (hovered.AnyHoveredThisFrame)
+			return max;
+
+		const auto sinceHoverMS = static_cast<f32>(hovered.LastHoverStopwatch.GetElapsed().TotalMilliseconds());
+		const auto dim = ConvertRange<f32>(0.0f, transitionMS, max, 0.0f, sinceHoverMS);
+		return std::clamp(dim, 0.0f, max);
 	}
 
 	void PresetWindow::RenderSyncPresetPreview(Render::Renderer2D& renderer, TargetRenderHelper& renderHelper, u32 targetCount, const std::array<PresetTargetData, Rules::MaxSyncPairCount>& presetTargets)

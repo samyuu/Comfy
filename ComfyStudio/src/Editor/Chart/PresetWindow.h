@@ -26,19 +26,27 @@ namespace Comfy::Studio::Editor
 		void OnEditorSpritesLoaded(const Graphics::SprSet* sprSet);
 
 	private:
+		f32 GetPresetPreviewDimness(bool overlayPass) const;
+
 		void RenderSyncPresetPreview(Render::Renderer2D& renderer, TargetRenderHelper& renderHelper, u32 targetCount, const std::array<PresetTargetData, Rules::MaxSyncPairCount>& presetTargets);
 
 	private:
 		Undo::UndoManager& undoManager;
 
 		std::vector<StaticSyncPreset> staticSyncPresets;
-		
-		struct ButtonHoverData
+
+		struct HoverData
 		{
+			bool AnyChildWindow;
+			bool DynamincSyncPresetChild;
+			bool StaticSyncPresetChild;
+			bool AddPresetChild;
 			std::optional<DynamicSyncPreset> DynamicSyncPreset;
 			std::optional<size_t> StaticSyncPreset;
-		} buttonHover = {};
-		
+			bool AnyHoveredThisFrame, AnyHoveredLastFrame;
+			Stopwatch LastHoverStopwatch;
+		} hovered = {};
+
 		struct PresetPreviewData
 		{
 			u32 TargetCount;
