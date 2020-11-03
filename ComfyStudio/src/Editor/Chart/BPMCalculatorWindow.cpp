@@ -13,110 +13,103 @@ namespace Comfy::Studio::Editor
 	void BPMCalculatorWindow::Gui(Chart& chart, TimeSpan cursorBPMTime)
 	{
 		bpmCalculator.Update();
+
 		const auto tapCount = bpmCalculator.GetTapCount();
-
-		constexpr auto tapKeyBinding = Input::KeyCode_Space, resetKeyBinding = Input::KeyCode_Escape;
-
-		const bool tapKeyPressed = (Gui::IsWindowFocused() && Gui::IsKeyPressed(tapKeyBinding, false));
-		const bool tapKeyDown = (Gui::IsWindowFocused() && Gui::IsKeyDown(tapKeyBinding));
-
-		const bool resetKeyPressed = (Gui::IsWindowFocused() && Gui::IsKeyPressed(resetKeyBinding, false));
-		const bool resetKeyDown = (Gui::IsWindowFocused() && Gui::IsKeyDown(resetKeyBinding));
+		const auto beatTime = TimeSpan::FromSeconds(60.0 / bpmCalculator.GetBPMOnLastTapRound());
 
 		const auto& style = Gui::GetStyle();
-		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
 
-		const auto fullButtonWidth = Gui::GetContentRegionAvailWidth();
-		const auto halfButtonWidth = (fullButtonWidth - style.ItemSpacing.x) / 2.0f;
-		const auto buttonHeight = 72.0f;
+		constexpr auto tapKeyBinding = Input::KeyCode_Space, resetKeyBinding = Input::KeyCode_Escape;
+		constexpr auto buttonHeight = 66.0f; // 72.0f;
 
-		char tapButtonName[32];
-		sprintf_s(tapButtonName, (tapCount == 0) ? "Tap" : (tapCount == 1) ? "First Beat" : "%.2f BPM", bpmCalculator.GetBPMOnLastTapRound());
-
-		const auto beatTime = TimeSpan::FromSeconds(60.0 / bpmCalculator.GetBPMOnLastTapRound());
-		const auto lerpDelta = (tapCount == 0) ? 1.0f : static_cast<f32>(bpmCalculator.GetTimeSinceLastTap() / beatTime);
-		const auto lerpColor = ImLerp(Gui::GetStyleColorVec4(ImGuiCol_ButtonActive), Gui::GetStyleColorVec4(ImGuiCol_Button), ImSaturate(lerpDelta));
-
-		Gui::PushStyleColor(ImGuiCol_Button, lerpColor);
-		if (tapCount > 0)
+		Gui::BeginChild("BPMCalculatorChild", vec2(0.0f, 0.0f), true);
+		Gui::BeginColumns("BPMCalculatorColumns", 2, ImGuiColumnsFlags_NoResize);
 		{
-			Gui::PushStyleColor(ImGuiCol_ButtonHovered, lerpColor);
-			Gui::PushStyleColor(ImGuiCol_ButtonActive, lerpColor);
-		}
-
-		if (Gui::ButtonEx(tapButtonName, vec2(halfButtonWidth, buttonHeight), ImGuiButtonFlags_PressedOnClick) | tapKeyPressed)
-		{
-			bpmCalculator.Tap();
-
-			if (applyTapToTempoMap && bpmCalculator.GetTapCount() > 1)
-				ExecuteUpdateTempoChangeBPM(chart, cursorBPMTime, bpmCalculator.GetBPMOnLastTapRound());
-		}
-
-		Gui::PopStyleColor((tapCount > 0) ? 3 : 1);
-
-		Gui::SameLine();
-
-		if (resetKeyDown)
-			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetColorU32(ImGuiCol_ButtonActive));
-
-		Gui::PushItemDisabledAndTextColorIf(tapCount == 0);
-		if (Gui::ButtonEx("Reset", vec2(halfButtonWidth, buttonHeight), ImGuiButtonFlags_PressedOnClickRelease) | resetKeyPressed)
-		{
-			bpmCalculator.Reset();
-		}
-		Gui::PopItemDisabledAndTextColorIf(tapCount == 0);
-
-		if (resetKeyDown)
-			Gui::PopStyleColor();
-
-		Gui::PopStyleVar();
-
-		Gui::WindowContextMenu("BPMCalculatorContextMenu", [&]
-		{
-			Gui::Text("BPM Calculator:");
-			Gui::Separator();
-			bool autoResetEnabled = (bpmCalculator.GetAutoResetInterval() > TimeSpan::Zero());
-			if (Gui::MenuItem("Auto Reset Enabled", nullptr, &autoResetEnabled))
-				bpmCalculator.SetAutoResetInterval(autoResetEnabled ? BPMTapCalculator::DefaultAutoResetInterval : TimeSpan::Zero());
-			Gui::MenuItem("Apply to Tempo Map", nullptr, &applyTapToTempoMap);
-		});
-
-		Gui::BeginColumns("BPMCalculatorColumns", 2, ImGuiColumnsFlags_NoBorder);
-		{
-			auto bpmText = [](f32 bpm)
 			{
-				if (bpm != 0.0f)
-					Gui::Text("%.2f BPM", bpm);
-				else
-					Gui::Text("--.-- BPM");
-			};
+				const bool tapKeyPressed = (Gui::IsWindowFocused() && Gui::IsKeyPressed(tapKeyBinding, false));
+				const bool resetKeyPressed = (Gui::IsWindowFocused() && Gui::IsKeyPressed(resetKeyBinding, false));
+				const bool resetKeyDown = (Gui::IsWindowFocused() && Gui::IsKeyDown(resetKeyBinding));
 
-			Gui::TextUnformatted("Minimum");
-			Gui::NextColumn();
-			bpmText(bpmCalculator.GetBPMOnLastTapMinRound());
-			Gui::NextColumn();
+				char tapButtonName[32];
+				sprintf_s(tapButtonName, (tapCount == 0) ? "Tap" : (tapCount == 1) ? "First Beat" : "%.2f BPM", bpmCalculator.GetBPMOnLastTapRound());
 
-			Gui::TextUnformatted("Maximum");
-			Gui::NextColumn();
-			bpmText(bpmCalculator.GetBPMOnLastTapMaxRound());
-			Gui::NextColumn();
+				const auto lerpDelta = (tapCount == 0) ? 1.0f : static_cast<f32>(bpmCalculator.GetTimeSinceLastTap() / beatTime);
+				const auto lerpColor = ImLerp(Gui::GetStyleColorVec4(ImGuiCol_ButtonActive), Gui::GetStyleColorVec4(ImGuiCol_Button), ImSaturate(lerpDelta));
 
-			Gui::TextUnformatted("Running");
-			Gui::NextColumn();
-			bpmText(bpmCalculator.GetRunningBPMRound());
-			Gui::NextColumn();
+				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.WindowPadding.x + 1.0f, style.ItemSpacing.y));
+				Gui::PushStyleColor(ImGuiCol_Button, lerpColor);
+				if (tapCount > 0)
+				{
+					Gui::PushStyleColor(ImGuiCol_ButtonHovered, lerpColor);
+					Gui::PushStyleColor(ImGuiCol_ButtonActive, lerpColor);
+				}
 
-			Gui::TextUnformatted("Beat Duration");
-			Gui::NextColumn();
-			Gui::TextUnformatted(beatTime.FormatTime().data());
-			Gui::NextColumn();
+				if (Gui::ButtonEx(tapButtonName, vec2(Gui::GetContentRegionAvailWidth(), buttonHeight), ImGuiButtonFlags_PressedOnClick) | tapKeyPressed)
+				{
+					bpmCalculator.Tap();
+					if (applyTapToTempoMap && bpmCalculator.GetTapCount() > 1)
+						ExecuteUpdateTempoChangeBPM(chart, cursorBPMTime, bpmCalculator.GetBPMOnLastTapRound());
+				}
+				Gui::NextColumn();
 
-			Gui::TextUnformatted("Timing Taps");
-			Gui::NextColumn();
-			Gui::Text("%d Tap(s)", bpmCalculator.GetTapCount());
-			Gui::NextColumn();
+				if (tapCount > 0)
+					Gui::PopStyleColor(2);
+				Gui::PopStyleColor(1);
+
+
+				if (resetKeyDown) Gui::PushStyleColor(ImGuiCol_Button, Gui::GetColorU32(ImGuiCol_ButtonActive));
+				Gui::PushItemDisabledAndTextColorIf(tapCount == 0);
+				if (Gui::ButtonEx("Reset", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight), ImGuiButtonFlags_PressedOnClickRelease) | resetKeyPressed)
+				{
+					bpmCalculator.Reset();
+				}
+				Gui::PopItemDisabledAndTextColorIf(tapCount == 0);
+				if (resetKeyDown) Gui::PopStyleColor();
+				Gui::NextColumn();
+
+				Gui::PopStyleVar();
+			}
+
+			Gui::Separator();
+			{
+				auto guiBPMText = [](f32 bpm) { if (bpm != 0.0f) { Gui::Text("%.2f BPM", bpm); } else { Gui::TextUnformatted("--.-- BPM"); } };
+
+				Gui::TextUnformatted("Minimum");
+				Gui::NextColumn();
+				guiBPMText(bpmCalculator.GetBPMOnLastTapMinRound());
+				Gui::NextColumn();
+
+				Gui::TextUnformatted("Maximum");
+				Gui::NextColumn();
+				guiBPMText(bpmCalculator.GetBPMOnLastTapMaxRound());
+				Gui::NextColumn();
+
+				Gui::TextUnformatted("Running");
+				Gui::NextColumn();
+				guiBPMText(bpmCalculator.GetRunningBPMRound());
+				Gui::NextColumn();
+
+				Gui::TextUnformatted("Beat Duration");
+				Gui::NextColumn();
+				Gui::TextUnformatted(beatTime.FormatTime().data());
+				Gui::NextColumn();
+
+				Gui::TextUnformatted("Timing Taps");
+				Gui::NextColumn();
+				Gui::Text("%d Tap(s)", bpmCalculator.GetTapCount());
+				Gui::NextColumn();
+			}
+
+			Gui::WindowContextMenu("BPMCalculatorContextMenu", [&]
+			{
+				bool autoResetEnabled = (bpmCalculator.GetAutoResetInterval() > TimeSpan::Zero());
+				if (Gui::MenuItem("Auto Reset Enabled", nullptr, &autoResetEnabled))
+					bpmCalculator.SetAutoResetInterval(autoResetEnabled ? BPMTapCalculator::DefaultAutoResetInterval : TimeSpan::Zero());
+				Gui::MenuItem("Apply to Tempo Map", nullptr, &applyTapToTempoMap);
+			});
 		}
 		Gui::EndColumns();
+		Gui::EndChild();
 	}
 
 	void BPMCalculatorWindow::ExecuteUpdateTempoChangeBPM(Chart& chart, TimeSpan cursorBPMTime, Tempo updatedTempo) const
