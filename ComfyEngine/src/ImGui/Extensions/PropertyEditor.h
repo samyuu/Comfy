@@ -311,6 +311,49 @@ namespace ImGui
 					}
 					return anyValueChanged;
 				}
+
+				inline bool InputFractionBase(ivec2& inOutValue, std::optional<ivec2> valueRange, ComponentFlags disabledComponents)
+				{
+					using VecType = ivec2;
+					using ValueType = ivec2::value_type;
+
+					constexpr std::string_view divisionLabel = " / ";
+					const float divisionLabelWidth = CalcTextSize(StringViewStart(divisionLabel), StringViewEnd(divisionLabel)).x;
+					const float perComponentInputFloatWidth = glm::floor(((GetContentRegionAvailWidth() - divisionLabelWidth) / static_cast<float>(VecType::length())));
+
+					bool anyValueChanged = false;
+					for (auto component = 0; component < VecType::length(); component++)
+					{
+						RAII::ID id(&inOutValue[component]);
+
+						const bool disabled = (disabledComponents & (1 << component));
+						if (disabled)
+							PushItemDisabled();
+
+						const bool isLastComponent = ((component + 1) == VecType::length());
+						RAII::ItemWidth width(isLastComponent ? (GetContentRegionAvailWidth() - 1.0f) : perComponentInputFloatWidth);
+
+						using Lookup = TypeLookup::DataType<ValueType>;
+						if (Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags))
+						{
+							if (valueRange.has_value())
+								inOutValue[component] = glm::clamp(inOutValue[component], valueRange->x, valueRange->y);
+
+							anyValueChanged = true;
+						}
+
+						if (!isLastComponent)
+						{
+							SameLine(0.0f, 0.0f);
+							TextUnformatted(StringViewStart(divisionLabel), StringViewEnd(divisionLabel));
+							SameLine(0.0f, 0.0f);
+						}
+
+						if (disabled)
+							PopItemDisabled();
+					}
+					return anyValueChanged;
+				}
 			}
 
 			inline bool Input(std::string_view label, float& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, const char* format = nullptr)
@@ -357,6 +400,11 @@ namespace ImGui
 					RAII::ItemWidth width(-1.0f);
 					return Gui::InputScalar(Detail::DummyLabel, Detail::TypeLookup::DataType<InputType>::TypeEnum, &inOutValue, &step, &fastStep, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
 				});
+			}
+
+			inline bool InputFraction(std::string_view label, ivec2& inOutValue, std::optional<ivec2> valueRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
+			{
+				return PropertyLabelValueFunc(label, [&] { return Detail::InputFractionBase(inOutValue, valueRange, disabledComponents); });
 			}
 
 			inline bool Input(std::string_view label, ivec2& inOutValue, float dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
@@ -481,12 +529,12 @@ namespace ImGui
 			}
 
 			template <typename EnumType, size_t ArraySize>
-			bool Combo(std::string_view label, EnumType& inOutEnum, const std::array<const char*, ArraySize>& nameLookup, ImGuiComboFlags flags = ImGuiComboFlags_None)
+			bool Combo(std::string_view label, EnumType& inOutEnum, const std::array<const char*, ArraySize>& nameLookup, ImGuiComboFlags flags = ImGuiComboFlags_None, int startRange = -1, int endRange = -1)
 			{
 				static_assert(sizeof(EnumType) <= sizeof(int));
 
 				int tempIndex = static_cast<int>(inOutEnum);
-				if (Combo(label, tempIndex, 0, static_cast<int>(ArraySize), flags, [&](int index) { return Comfy::IndexOr(index, nameLookup, nullptr); }))
+				if (Combo(label, tempIndex, (startRange < 0) ? 0 : startRange, (endRange < 0) ? static_cast<int>(ArraySize) : endRange, flags, [&](int index) { return Comfy::IndexOr(index, nameLookup, nullptr); }))
 				{
 					inOutEnum = static_cast<EnumType>(tempIndex);
 					return true;
