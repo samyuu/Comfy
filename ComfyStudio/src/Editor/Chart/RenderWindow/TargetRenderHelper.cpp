@@ -307,7 +307,16 @@ namespace Comfy::Studio::Editor
 			TryDrawLayerLooped(renderer, layers.LifeGauge, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.LifeGaugeInsurance, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.SongIconLoop, playbackFrame);
-			TryDrawLayerLooped(renderer, layers.PracticeLevelInfoHard, playbackFrame);
+
+			switch (hud.Difficulty)
+			{
+			case Difficulty::Easy: { TryDrawLayerLooped(renderer, layers.PracticeLevelInfoEasy, playbackFrame); break; }
+			case Difficulty::Normal: { TryDrawLayerLooped(renderer, layers.PracticeLevelInfoNormal, playbackFrame); break; }
+			case Difficulty::Hard: { TryDrawLayerLooped(renderer, layers.PracticeLevelInfoHard, playbackFrame); break; }
+			case Difficulty::Extreme: { TryDrawLayerLooped(renderer, layers.PracticeLevelInfoExtreme, playbackFrame); break; }
+			case Difficulty::ExExtreme: { TryDrawLayerLooped(renderer, layers.PracticeLevelInfoExExtreme, playbackFrame); break; }
+			}
+
 			TryDrawLayerLooped(renderer, layers.PracticeGaugeBase, playbackFrame);
 			DrawHUDPracitceTime(renderer, hud.PlaybackTime);
 

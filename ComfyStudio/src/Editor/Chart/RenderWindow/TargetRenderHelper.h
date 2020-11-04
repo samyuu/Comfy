@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "Render/Render.h"
 #include "Time/TimeSpan.h"
-#include "Editor/Chart/SortedTargetList.h"
+#include "Editor/Chart/Chart.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -33,7 +33,7 @@ namespace Comfy::Studio::Editor
 		struct HUDData
 		{
 			std::string_view SongTitle;
-
+			Difficulty Difficulty;
 			bool IsPlayback;
 			TimeSpan PlaybackTime;
 			TimeSpan PlaybackTimeOnStart;

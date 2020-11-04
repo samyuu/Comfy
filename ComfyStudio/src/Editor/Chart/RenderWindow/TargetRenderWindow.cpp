@@ -313,6 +313,7 @@ namespace Comfy::Studio::Editor
 	{
 		TargetRenderHelper::HUDData hudData;
 		hudData.SongTitle = workingChart->SongTitleOrDefault();
+		hudData.Difficulty = workingChart->Properties.Difficulty.Type;
 		hudData.IsPlayback = timeline.GetIsPlayback();
 		hudData.PlaybackTime = timeline.GetCursorTime();
 		hudData.PlaybackTimeOnStart = chartEditor.GetPlaybackTimeOnPlaybackStart();
