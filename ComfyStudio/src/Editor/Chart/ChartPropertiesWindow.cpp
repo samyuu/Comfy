@@ -34,7 +34,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, (songIsLoading ? "Loading..." : defaultHint), &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
 					chartEditor.LoadSongAsync(chart.SongFileName);
-					undoManager.SetChangesWereMade();
+					changesMade = true;
 				}
 				Gui::PopItemWidth();
 
@@ -43,7 +43,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::Button("...", vec2(buttonSize)))
 				{
 					if (chartEditor.OpenLoadAudioFileDialog())
-						undoManager.SetChangesWereMade();
+						changesMade = true;
 				}
 				Gui::PopStyleVar();
 
@@ -63,7 +63,13 @@ namespace Comfy::Studio::Editor
 			GuiProperty::TreeNode("Creator", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
 				changesMade |= GuiProperty::InputWithHint("Name", defaultHint, chart.Properties.Creator.Name);
-				changesMade |= GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment);
+				changesMade |= GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment, vec2(0.0f, 66.0f));
+			});
+
+			GuiProperty::TreeNode("Difficulty", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			{
+				changesMade |= GuiProperty::Combo("Type", chart.Properties.Difficulty.Type, DifficultyNames);
+				changesMade |= GuiProperty::Combo("Level", chart.Properties.Difficulty.Level, DifficultyLevelNames, ImGuiComboFlags_HeightLarge, static_cast<i32>(DifficultyLevel::StarMin), static_cast<i32>(DifficultyLevel::StarMax) + 1);
 			});
 
 			if (changesMade)
