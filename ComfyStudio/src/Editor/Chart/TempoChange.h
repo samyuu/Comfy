@@ -17,7 +17,7 @@ namespace Comfy::Studio::Editor
 	struct TimeSignature
 	{
 		static constexpr i16 MinValue = 1;
-		static constexpr i16 MaxValue = 12;
+		static constexpr i16 MaxValue = 64;
 
 		constexpr TimeSignature() = default;
 		constexpr TimeSignature(i16 numerator, i16 denominator) : Numerator(numerator), Denominator(denominator) {}

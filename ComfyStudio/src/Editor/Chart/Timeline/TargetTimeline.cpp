@@ -688,12 +688,9 @@ namespace Comfy::Studio::Editor
 				if (GuiProperty::Input("Tempo##TempoChange", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
 
-				char signatureFormatBuffer[32];
-				sprintf_s(signatureFormatBuffer, "%%d/%d", tempoChange.Signature.Denominator);
-
-				i32 numerator = tempoChange.Signature.Numerator;
-				if (GuiProperty::Input("Time Signature##TempoChange", numerator, 0.1f, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue), signatureFormatBuffer))
-					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, tempoChange.Tempo, TimeSignature(numerator, tempoChange.Signature.Denominator)));
+				ivec2 sig = { tempoChange.Signature.Numerator, tempoChange.Signature.Denominator };
+				if (GuiProperty::InputFraction("Time Signature", sig, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
+					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, tempoChange.Tempo, TimeSignature(sig[0], sig[1])));
 
 				GuiProperty::PropertyLabelValueFunc("", [&]
 				{

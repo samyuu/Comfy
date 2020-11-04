@@ -106,13 +106,10 @@ namespace Comfy::Studio::Editor
 			if (GuiProperty::Input("Tempo##SyncWindow", newTempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 				executeAddOrUpdate();
 
-			char signatureFormatBuffer[32];
-			sprintf_s(signatureFormatBuffer, "%%d/%d", newSignature.Denominator);
-
-			i32 numerator = newSignature.Numerator;
-			if (GuiProperty::Input("Time Signature##SyncWindow", numerator, 0.1f, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue), signatureFormatBuffer))
+			ivec2 sig = { newSignature.Numerator, newSignature.Denominator };
+			if (GuiProperty::InputFraction("Time Signature", sig, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
 			{
-				newSignature = TimeSignature(numerator, newSignature.Denominator);
+				newSignature = TimeSignature(sig[0], sig[1]);
 				executeAddOrUpdate();
 			}
 
