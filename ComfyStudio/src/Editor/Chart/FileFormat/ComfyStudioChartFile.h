@@ -50,6 +50,7 @@ namespace Comfy::Studio::Editor
 				std::vector<std::string> ButtonTypeNames;
 				i32 TicksPerBeat;
 				vec2 PlacementAreaSize;
+				f32 FullAngleRotation;
 			} Scale;
 
 			struct TimeData
@@ -62,6 +63,18 @@ namespace Comfy::Studio::Editor
 			std::vector<TempoChange> TempoMap;
 
 			SmallKeyValueMap SoundEffects;
-		} chart;
+
+			enum class DifficultyType : u8 { Easy, Normal, Hard, Extreme };
+			enum class DifficultyVersion : u8 { Original, Extra };
+			enum class DifficultyLevelWhole : u8 { Min = 0, Max = 10 };
+			enum class DifficultyLevelFraction : u8 { Zero = 0, Half = 5 };
+			struct DifficultyData
+			{
+				DifficultyType Type = DifficultyType::Hard;
+				DifficultyVersion Version = DifficultyVersion::Original;
+				DifficultyLevelWhole LevelWhole = static_cast<DifficultyLevelWhole>(7);
+				DifficultyLevelFraction LevelFraction = DifficultyLevelFraction::Half;
+			} Difficulty;
+		} chart = {};
 	};
 }

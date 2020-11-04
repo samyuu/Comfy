@@ -19,8 +19,11 @@ namespace Comfy::Studio::Editor
 			auto chart = std::make_unique<Chart>();
 
 			chart->Properties.Song.Title = songTitle.data();
-			chart->StartOffset = songOffset;
 
+			chart->Properties.Difficulty.Type = static_cast<Difficulty>(difficulty);
+			chart->Properties.Difficulty.Level = static_cast<DifficultyLevel>(pvLevel + 1);
+
+			chart->StartOffset = songOffset;
 			chart->Duration = TimeSpan::Zero();
 
 			std::vector<TempoChange> newTempoChanges;
@@ -330,8 +333,8 @@ namespace Comfy::Studio::Editor
 			chainSound = 0;
 			touchSound = 0;
 			pvID = 999;
-			difficulty = 2;
-			pvLevel = 1;
+			difficulty = static_cast<u8>(sourceChart.Properties.Difficulty.Type);
+			pvLevel = std::clamp(static_cast<u8>(sourceChart.Properties.Difficulty.Level), static_cast<u8>(1), static_cast<u8>(20)) - 1;
 
 			songOffset = sourceChart.StartOffset;
 			videoOffset = TimeSpan::Zero();

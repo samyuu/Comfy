@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	namespace ChartFileFormat
 	{
 		// NOTE: Increment major version for breaking changes and minor version for backwards and forward compatible additions
-		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 1, };
+		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 2, };
 		enum class Endianness : u16 { Little = 'L', Big = 'B' };
 		enum class PointerSize : u16 { Bit32 = 32, Bit64 = 64 };
 		enum class HeaderFlags : u32 { None = 0xFFFFFFFF };
@@ -86,6 +86,7 @@ namespace Comfy::Studio::Editor
 		constexpr std::string_view SectionIDChartSectionIDSoundEffectsChainSlideSuccess = "Chain Slide Success";
 		constexpr std::string_view SectionIDChartSectionIDSoundEffectsChainSlideFailure = "Chain Slide Failure";
 		constexpr std::string_view SectionIDChartSectionIDSoundEffectsSlideTouch = "Slide Touch";
+		constexpr std::string_view SectionIDChartSectionIDDifficulty = "Difficulty";
 
 		constexpr std::string_view SectionIDDebug = "Debug";
 
@@ -167,6 +168,16 @@ namespace Comfy::Studio::Editor
 		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsChainSlideSuccess, outChart->Properties.SoundEffect.ChainSlideSuccessName);
 		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsChainSlideFailure, outChart->Properties.SoundEffect.ChainSlideFailureName);
 		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsSlideTouch, outChart->Properties.SoundEffect.SlideTouchName);
+
+		const bool isOriginalVersion = (chart.Difficulty.Version == ChartData::DifficultyVersion::Original);
+		switch (chart.Difficulty.Type)
+		{
+		case ChartData::DifficultyType::Easy: { outChart->Properties.Difficulty.Type = Difficulty::Easy; break; }
+		case ChartData::DifficultyType::Normal: { outChart->Properties.Difficulty.Type = Difficulty::Normal; break; }
+		case ChartData::DifficultyType::Hard: { outChart->Properties.Difficulty.Type = Difficulty::Hard; break; }
+		case ChartData::DifficultyType::Extreme: { outChart->Properties.Difficulty.Type = isOriginalVersion ? Difficulty::Extreme : Difficulty::ExExtreme; break; }
+		}
+		outChart->Properties.Difficulty.Level = static_cast<DifficultyLevel>(static_cast<u8>(chart.Difficulty.LevelWhole) * 2 + (chart.Difficulty.LevelFraction == ChartData::DifficultyLevelFraction::Half));
 
 		return outChart;
 	}
@@ -285,7 +296,10 @@ namespace Comfy::Studio::Editor
 										chart.Scale.TicksPerBeat = reader.ReadI32();
 										reader.ReadI32();
 										chart.Scale.PlacementAreaSize = reader.ReadV2();
-										reader.ReadU64();
+										chart.Scale.FullAngleRotation = reader.ReadF32();
+										if (chart.Scale.FullAngleRotation == 0.0f)
+											chart.Scale.FullAngleRotation = 360.0f;
+										reader.ReadU32();
 										reader.ReadU64();
 										reader.ReadU64();
 										reader.ReadU64();
@@ -430,6 +444,15 @@ namespace Comfy::Studio::Editor
 											});
 										}
 									}
+									else if (chartSectionNameID == SectionIDChartSectionIDDifficulty)
+									{
+										chart.Difficulty.Type = static_cast<ChartData::DifficultyType>(reader.ReadU8());
+										chart.Difficulty.Version = static_cast<ChartData::DifficultyVersion>(reader.ReadU8());
+										chart.Difficulty.LevelWhole = static_cast<ChartData::DifficultyLevelWhole>(reader.ReadU8());
+										chart.Difficulty.LevelFraction = static_cast<ChartData::DifficultyLevelFraction>(reader.ReadU8());
+										reader.ReadU64();
+										reader.ReadU64();
+									}
 								});
 							}
 						});
@@ -503,7 +526,7 @@ namespace Comfy::Studio::Editor
 					writer.WriteStrPtr(SectionIDChart);
 					writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 					{
-						static constexpr auto chartSectionCount = 5;
+						static constexpr auto chartSectionCount = 6;
 						writer.WriteSize(chartSectionCount);
 						writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 						{
@@ -525,7 +548,8 @@ namespace Comfy::Studio::Editor
 										writer.WriteI32(0);
 										writer.WriteF32(chart.Scale.PlacementAreaSize.x);
 										writer.WriteF32(chart.Scale.PlacementAreaSize.y);
-										writer.WriteU64(0);
+										writer.WriteF32(chart.Scale.FullAngleRotation);
+										writer.WriteU32(0);
 										writer.WriteU64(0);
 										writer.WriteU64(0);
 										writer.WriteU64(0);
@@ -651,6 +675,22 @@ namespace Comfy::Studio::Editor
 									writer.WriteU64(0);
 									writer.WriteU64(0);
 								}
+								else if (chartSectionIndex == 5)
+								{
+									writer.WriteStrPtr(SectionIDChartSectionIDDifficulty);
+									writer.WriteFuncPtr([&](IO::StreamWriter& writer)
+									{
+										writer.WriteU8(static_cast<u8>(chart.Difficulty.Type));
+										writer.WriteU8(static_cast<u8>(chart.Difficulty.Version));
+										writer.WriteU8(static_cast<u8>(chart.Difficulty.LevelWhole));
+										writer.WriteU8(static_cast<u8>(chart.Difficulty.LevelFraction));
+										writer.WriteU64(0);
+										writer.WriteU64(0);
+										writer.WriteAlignmentPadding(16);
+									});
+									writer.WriteU64(0);
+									writer.WriteU64(0);
+								}
 								else
 								{
 									writer.WriteStrPtr(SectionIDError);
@@ -739,12 +779,24 @@ namespace Comfy::Studio::Editor
 
 		chart.Scale.TicksPerBeat = TimelineTick::TicksPerBeat;
 		chart.Scale.PlacementAreaSize = Rules::PlacementAreaSize;
+		chart.Scale.FullAngleRotation = 360.0f;
 
 		chart.Time.SongOffset = sourceChart.StartOffset;
 		chart.Time.Duration = sourceChart.Duration;
 
 		chart.Targets = sourceChart.Targets.GetRawView();
 		chart.TempoMap = sourceChart.TempoMap.GetRawView();
+
+		switch (sourceChart.Properties.Difficulty.Type)
+		{
+		case Difficulty::Easy: { chart.Difficulty.Type = ChartData::DifficultyType::Easy; chart.Difficulty.Version = ChartData::DifficultyVersion::Original; break; }
+		case Difficulty::Normal: { chart.Difficulty.Type = ChartData::DifficultyType::Normal; chart.Difficulty.Version = ChartData::DifficultyVersion::Original; break; }
+		case Difficulty::Hard: { chart.Difficulty.Type = ChartData::DifficultyType::Hard; chart.Difficulty.Version = ChartData::DifficultyVersion::Original; break; }
+		case Difficulty::Extreme: { chart.Difficulty.Type = ChartData::DifficultyType::Extreme; chart.Difficulty.Version = ChartData::DifficultyVersion::Original; break; }
+		case Difficulty::ExExtreme: { chart.Difficulty.Type = ChartData::DifficultyType::Extreme; chart.Difficulty.Version = ChartData::DifficultyVersion::Extra; break; }
+		}
+		chart.Difficulty.LevelWhole = static_cast<ChartData::DifficultyLevelWhole>(static_cast<u8>(sourceChart.Properties.Difficulty.Level) / 2);
+		chart.Difficulty.LevelFraction = (static_cast<u8>(sourceChart.Properties.Difficulty.Level) % 2 == 0) ? ChartData::DifficultyLevelFraction::Zero : ChartData::DifficultyLevelFraction::Half;
 
 		auto addSoundEffect = [this](std::string_view key, std::string_view value) { if (!value.empty()) { chart.SoundEffects.Add(std::string(key), std::string(value)); } };
 		addSoundEffect(SectionIDChartSectionIDSoundEffectsButton, sourceChart.Properties.SoundEffect.ButtonName);
