@@ -8,6 +8,58 @@
 
 namespace Comfy::Studio::Editor
 {
+	enum class Difficulty : u8
+	{
+		Easy,
+		Normal,
+		Hard,
+		Extreme,
+		ExExtreme,
+		Count,
+	};
+
+	constexpr std::array<const char*, EnumCount<Difficulty>()> DifficultyNames =
+	{
+		"Easy",
+		"Normal",
+		"Hard",
+		"Extreme",
+		"Extra Extreme",
+	};
+
+	enum class DifficultyLevel : u8
+	{
+		Star_00_0, Star_00_5,
+		Star_01_0, Star_01_5,
+		Star_02_0, Star_02_5,
+		Star_03_0, Star_03_5,
+		Star_04_0, Star_04_5,
+		Star_05_0, Star_05_5,
+		Star_06_0, Star_06_5,
+		Star_07_0, Star_07_5,
+		Star_08_0, Star_08_5,
+		Star_09_0, Star_09_5,
+		Star_10_0,
+		Count,
+		StarMin = Star_00_5,
+		StarMax = Star_10_0,
+	};
+
+	constexpr std::array<const char*, EnumCount<DifficultyLevel>()> DifficultyLevelNames =
+	{
+		"0.0 Stars", "0.5 Stars",
+		"1.0 Stars", "1.5 Stars",
+		"2.0 Stars", "2.5 Stars",
+		"3.0 Stars", "3.5 Stars",
+		"4.0 Stars", "4.5 Stars",
+		"5.0 Stars", "5.5 Stars",
+		"6.0 Stars", "6.5 Stars",
+		"7.0 Stars", "7.5 Stars",
+		"8.0 Stars", "8.5 Stars",
+		"9.0 Stars", "9.5 Stars",
+		"10.0 Stars",
+	};
+
 	class Chart
 	{
 	public:
@@ -59,7 +111,13 @@ namespace Comfy::Studio::Editor
 				std::string SlideTouchName;
 			} SoundEffect;
 
-		} Properties;
+			struct DifficultyInfo
+			{
+				Difficulty Type = Difficulty::Hard;
+				DifficultyLevel Level = DifficultyLevel::Star_07_5;
+			} Difficulty;
+
+		} Properties = {};
 
 		TimeSpan StartOffset = TimeSpan::Zero();
 		TimeSpan Duration = TimeSpan::Zero();
