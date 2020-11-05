@@ -29,6 +29,16 @@ namespace Comfy::Studio::Editor
 		i16 Denominator = MinValue;
 	};
 
+	struct DecomposedTimeSignature { TimelineTick TicksPerBeat; i32 BeatsPerBar; };
+
+	constexpr DecomposedTimeSignature DecomposeTimeSignature(TimeSignature signature)
+	{
+		DecomposedTimeSignature result;
+		result.TicksPerBeat = TimelineTick::FromBars(1) / signature.Denominator;
+		result.BeatsPerBar = signature.Numerator;
+		return result;
+	}
+
 	struct TempoChange
 	{
 		static constexpr auto DefaultTempo = Tempo(160.0f);

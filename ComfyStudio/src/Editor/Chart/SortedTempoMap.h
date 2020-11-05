@@ -21,7 +21,8 @@ namespace Comfy::Studio::Editor
 		template <typename Func>
 		void ForEachBar(Func perBarFunc) const;
 
-		bool FindIsTickOnBar(TimelineTick tick) const;
+		template <typename Func>
+		void ForEachBeatBar(Func perBeatBarFunc) const;
 
 		size_t TempoChangeCount() const;
 		void Clear();
@@ -47,16 +48,46 @@ namespace Comfy::Studio::Editor
 	{
 		for (size_t i = 0, barIndex = 0; i < tempoChanges.size(); i++)
 		{
-			auto& tempoChange = tempoChanges[i];
-			auto* nextTempoChange = IndexOrNull(i + 1, tempoChanges);
+			const auto& tempoChange = tempoChanges[i];
+			const auto* nextTempoChange = IndexOrNull(i + 1, tempoChanges);
 
 			const auto startTick = tempoChange.Tick;
 			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : TimelineTick::FromTicks(std::numeric_limits<i32>::max());
 
-			for (auto barTick = startTick; barTick < endTick; barTick += (TimelineTick::FromBeats(1) * tempoChange.Signature.Numerator))
+			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(tempoChange.Signature);
+			for (auto barTick = startTick; barTick < endTick; barTick += (ticksPerBeat * beatsPerBar))
 			{
 				if (perBarFunc(barTick, barIndex++))
 					return;
+			}
+		}
+	}
+
+	template <typename Func>
+	void SortedTempoMap::ForEachBeatBar(Func perBeatBarFunc) const
+	{
+		for (size_t i = 0, barIndex = 0; i < tempoChanges.size(); i++)
+		{
+			const auto& tempoChange = tempoChanges[i];
+			const auto* nextTempoChange = IndexOrNull(i + 1, tempoChanges);
+
+			const auto startTick = tempoChange.Tick;
+			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : TimelineTick::FromTicks(std::numeric_limits<i32>::max());
+
+			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(tempoChange.Signature);
+			for (auto beatTick = startTick; beatTick < endTick; beatTick += ticksPerBeat)
+			{
+				if (perBeatBarFunc(beatTick, barIndex, true))
+					return;
+
+				for (auto beatIndexWithinBar = 1; (beatIndexWithinBar < beatsPerBar) && (beatTick + ticksPerBeat < endTick); beatIndexWithinBar++)
+				{
+					beatTick += ticksPerBeat;
+					if (perBeatBarFunc(beatTick, barIndex, false))
+						return;
+				}
+
+				barIndex++;
 			}
 		}
 	}

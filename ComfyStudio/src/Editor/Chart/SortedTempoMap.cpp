@@ -69,20 +69,6 @@ namespace Comfy::Studio::Editor
 		return tempoChanges.back();
 	}
 
-	bool SortedTempoMap::FindIsTickOnBar(TimelineTick tick) const
-	{
-		bool onBar = false;
-		ForEachBar([&](const TimelineTick barTick, const size_t barIndex)
-		{
-			if (barTick < tick)
-				return false;
-
-			onBar = (barTick == tick);
-			return true;
-		});
-		return onBar;
-	}
-
 	size_t SortedTempoMap::TempoChangeCount() const
 	{
 		return tempoChanges.size();

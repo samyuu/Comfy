@@ -57,14 +57,14 @@ namespace Comfy::Studio::Editor
 			lastPlayedBeatTime = TimeSpan::FromSeconds(std::numeric_limits<f64>::min());
 		lastProvidedFrameTime = timeThisFrame;
 
-		const auto cursorBeat = (chart.TimelineMap.GetTickAt(timeThisFrame).Ticks() / TimelineTick::TicksPerBeat);
+		const auto cursorTick = chart.TimelineMap.GetTickAt(timeThisFrame);
+		const auto cursorEndTick = cursorTick + TimelineTick::FromBars(1);
 
-		const i32 startBeat = cursorBeat - 2;
-		const i32 endBeat = cursorBeat + 2;
-
-		for (i32 beat = startBeat; beat < endBeat; beat++)
+		chart.TempoMap.ForEachBeatBar([&](const TimelineTick beatTick, const size_t barIndex, const bool isBar)
 		{
-			const auto beatTick = TimelineTick::FromBeats(beat);
+			if (beatTick >= cursorEndTick)
+				return true;
+
 			const auto beatTime = chart.TimelineMap.GetTimeAt(beatTick);
 			const auto offsetBeatTime = (beatTime - futureOffset);
 
@@ -72,16 +72,17 @@ namespace Comfy::Studio::Editor
 			{
 				// NOTE: Otherwise identical beats occasionally get played twice, possibly due to rounding errors (?)
 				if (lastPlayedBeatTime == beatTime)
-					return;
+					return true;
 
 				const auto startTime = std::min((timeThisFrame - beatTime), TimeSpan::Zero());
-				const bool onBar = chart.TempoMap.FindIsTickOnBar(beatTick);
 
-				PlayTickSound(startTime, onBar);
+				PlayTickSound(startTime, isBar);
 				lastPlayedBeatTime = beatTime;
-				return;
+				return true;
 			}
-		}
+
+			return false;
+		});
 	}
 
 	f32 TimelineMetronome::GetVolume() const
