@@ -2,6 +2,7 @@
 #include "ChartCommands.h"
 #include "TargetPropertyRules.h"
 #include "ImGui/Extensions/ImGuiExtensions.h"
+#include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
 {
@@ -87,7 +88,6 @@ namespace Comfy::Studio::Editor
 
 	// TODO: Context menu (?) settings for narrow vertical angles, inside-out square / triangle angles and different sync formation height offset ("elevate bottom row" (?))
 	//		 Sequence preset option to round position to nearest pixel and angle to nearest whole (?)
-	// struct DynamicSyncPresetSettings { ... };
 
 	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager), staticSyncPresets(GetTestStaticSyncPresets())
 	{
@@ -100,10 +100,12 @@ namespace Comfy::Studio::Editor
 		hovered.AnyChildWindow = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
 
 		const auto& style = Gui::GetStyle();
+		const auto presetSettingsContextMenuID = Gui::GetCurrentWindow()->GetID("PresetWindowSyncSettingsContextMenu");
 
 		constexpr auto buttonSpacing = vec2(2.0f);
 		constexpr auto dynamicButtonHeight = 44.0f; // 46.0f;
 		constexpr auto staticButtonHeight = 22.0f; // 26.0f;
+		constexpr auto settingsButtonWidth = 26.0f;
 
 		const bool anySyncTargetSelected = std::any_of(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return (t.IsSelected && t.Flags.IsSync); });
 
@@ -124,7 +126,7 @@ namespace Comfy::Studio::Editor
 			{
 				Gui::PushID(static_cast<int>(preset));
 				if (Gui::ButtonEx("##DynamicSyncPresetButton", vec2(halfWidth, dynamicButtonHeight)))
-					ApplyDynamicSyncPresetToSelectedTargets(undoManager, chart, preset);
+					ApplyDynamicSyncPresetToSelectedTargets(undoManager, chart, preset, dynamicSyncPresetSettings);
 				Gui::PopID();
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -173,6 +175,8 @@ namespace Comfy::Studio::Editor
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 					hovered.StaticSyncPreset = static_cast<size_t>(std::distance(&*staticSyncPresets.cbegin(), &staticSyncPreset));
+
+				// TODO: At least basic item context menu for changing the name, move up/down and delete
 			}
 			Gui::PopItemDisabledAndTextColorIf(!anySyncTargetSelected);
 		}
@@ -182,15 +186,73 @@ namespace Comfy::Studio::Editor
 		{
 			hovered.AddPresetChild = Gui::IsWindowHovered();
 
-			// TODO: Open edit dialog with button to "create from selection" (?)
-			//		 Hide "Add New..." buttons in context menu (?)
-			if (Gui::ButtonEx("Add New...", vec2(Gui::GetContentRegionAvailWidth(), staticButtonHeight)))
-				staticSyncPresets.push_back(StaticSyncPreset { "DUMMY_PRESET" });
+			const bool addNewEnabled = COMFY_DEBUG_RELEASE_SWITCH(anySyncTargetSelected, false);
+			Gui::PushItemDisabledAndTextColorIf(!addNewEnabled);
+
+			if (Gui::ButtonEx("Add New...", vec2(Gui::GetContentRegionAvailWidth() - settingsButtonWidth, staticButtonHeight)))
+			{
+#if COMFY_DEBUG && 1 // TODO:
+				if (const auto firstSelectedTarget = FindIfOrNull(chart.Targets.GetRawView(), [&](auto& t) { return (t.IsSelected && t.Flags.IsSync); }); firstSelectedTarget != nullptr)
+				{
+					const auto syncPair = &firstSelectedTarget[-firstSelectedTarget->Flags.IndexWithinSyncPair];
+					assert(syncPair[0].Flags.IndexWithinSyncPair == 0);
+
+					auto& newPreset = staticSyncPresets.emplace_back();
+					newPreset.Name = "Unnamed Preset " + std::to_string(staticSyncPresets.size());
+					newPreset.TargetCount = syncPair->Flags.SyncPairCount;
+					for (size_t i = 0; i < newPreset.TargetCount; i++)
+					{
+						newPreset.Targets[i].Type = syncPair[i].Type;
+						newPreset.Targets[i].Properties = Rules::TryGetProperties(syncPair[i]);
+					}
+				}
+#endif
+			}
+
+			Gui::PopItemDisabledAndTextColorIf(!addNewEnabled);
+
+			Gui::SameLine(0.0f, 0.0f);
+			if (Gui::Button(ICON_FA_COG, vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				Gui::OpenPopupEx(presetSettingsContextMenuID);
 		}
 		Gui::EndChild();
 
+		if (Gui::BeginPopupEx(presetSettingsContextMenuID, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking)))
+		{
+			hovered.ContextMenu = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+
+			Gui::TextUnformatted("Sync Preset Settings  " ICON_FA_COG);
+			Gui::Separator();
+
+			Gui::Checkbox("Steep Angles", &dynamicSyncPresetSettings.SteepAngles);
+			Gui::ComfySameLineHelpMarker(
+				"Applies to left / right vertical sync presets\n"
+				"- Use steeper 35 instead of 45 degree angles\n"
+				"Intended for:\n"
+				"- Sync pairs placed in quick succession\n"
+				"- Sync pairs positioned closely to the top / bottom edge of the screen"
+			);
+
+			Gui::Separator();
+
+			Gui::Checkbox("Inside Out Angles", &dynamicSyncPresetSettings.InsideOutAngles);
+			Gui::ComfySameLineHelpMarker(
+				"Applies to square and triangle sync presets\n"
+				"- Flip angles by 180 degrees\n"
+				"- Increase button distances"
+			);
+
+			Gui::Checkbox("Elevate Bottom Row", &dynamicSyncPresetSettings.ElevateBottomRow);
+			Gui::ComfySameLineHelpMarker(
+				"Applies to square and triangle sync presets\n"
+				"- Raise position height of bottom row targets by one 1/8th step"
+			);
+
+			Gui::EndPopup();
+		}
+
 		hovered.AnyHoveredLastFrame = hovered.AnyHoveredThisFrame;
-		hovered.AnyHoveredThisFrame = ((hovered.AnyChildWindow && !hovered.AddPresetChild) || hovered.DynamicSyncPreset.has_value() || hovered.StaticSyncPreset.has_value());
+		hovered.AnyHoveredThisFrame = ((hovered.AnyChildWindow && !hovered.AddPresetChild && !hovered.ContextMenu) || hovered.DynamicSyncPreset.has_value() || hovered.StaticSyncPreset.has_value());
 
 		if (hovered.AnyHoveredThisFrame)
 			hovered.LastHoverStopwatch.Restart();
@@ -213,7 +275,7 @@ namespace Comfy::Studio::Editor
 
 		if (hovered.DynamicSyncPreset.has_value())
 		{
-			presetPreview.TargetCount = FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(chart, hovered.DynamicSyncPreset.value(), presetPreview.Targets);
+			presetPreview.TargetCount = FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(chart, hovered.DynamicSyncPreset.value(), dynamicSyncPresetSettings, presetPreview.Targets);
 			RenderSyncPresetPreview(renderer, renderHelper, presetPreview.TargetCount, presetPreview.Targets);
 		}
 		else if (hovered.StaticSyncPreset.has_value())

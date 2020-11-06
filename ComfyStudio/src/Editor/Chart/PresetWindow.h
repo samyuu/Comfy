@@ -33,6 +33,7 @@ namespace Comfy::Studio::Editor
 	private:
 		Undo::UndoManager& undoManager;
 
+		DynamicSyncPresetSettings dynamicSyncPresetSettings = {};
 		std::vector<StaticSyncPreset> staticSyncPresets;
 
 		struct HoverData
@@ -41,6 +42,7 @@ namespace Comfy::Studio::Editor
 			bool DynamincSyncPresetChild;
 			bool StaticSyncPresetChild;
 			bool AddPresetChild;
+			bool ContextMenu;
 			std::optional<DynamicSyncPreset> DynamicSyncPreset;
 			std::optional<size_t> StaticSyncPreset;
 			bool AnyHoveredThisFrame, AnyHoveredLastFrame;
