@@ -446,6 +446,8 @@ namespace Comfy::Studio::Editor
 
 		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
 		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+		if (firstTarget.Tick == lastTarget.Tick)
+			return;
 
 		const auto startPosition = Rules::TryGetProperties(firstTarget).Position;
 		const auto endPosition = Rules::TryGetProperties(lastTarget).Position;
