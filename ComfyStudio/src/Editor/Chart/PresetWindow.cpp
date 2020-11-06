@@ -82,12 +82,15 @@ namespace Comfy::Studio::Editor
 					PresetTargetData { ButtonType::Cross, { vec2(960, 888), -15.0f, -2.0f, 1000.0f, 2080.0f } },
 					PresetTargetData { ButtonType::Circle, { vec2(1320, 528), -105.0f, -2.0f, 1000.0f, 2080.0f } },
 				}));
+
+			// TEMP: To avoid any potential confusion for now...
+			presets.push_back(ConstructStaticSyncPreset<0>("(Presets will be customizable in the future)", {}));
+
 			return presets;
 		}
 	}
 
-	// TODO: Context menu (?) settings for narrow vertical angles, inside-out square / triangle angles and different sync formation height offset ("elevate bottom row" (?))
-	//		 Sequence preset option to round position to nearest pixel and angle to nearest whole (?)
+	// TODO: Sequence preset option to round position to nearest pixel and angle to nearest whole (?)
 
 	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager), staticSyncPresets(GetTestStaticSyncPresets())
 	{
@@ -165,12 +168,16 @@ namespace Comfy::Studio::Editor
 		{
 			hovered.StaticSyncPresetChild = Gui::IsWindowHovered();
 
-			Gui::PushItemDisabledAndTextColorIf(!anySyncTargetSelected);
 			for (const auto& staticSyncPreset : staticSyncPresets)
 			{
+				const bool presetDisabled = (!anySyncTargetSelected || staticSyncPreset.TargetCount < 1);
 				Gui::PushID(&staticSyncPreset);
+				Gui::PushItemDisabledAndTextColorIf(presetDisabled);
+
 				if (Gui::ButtonEx(staticSyncPreset.Name.c_str(), vec2(Gui::GetContentRegionAvailWidth(), staticButtonHeight)))
 					ApplyStaticSyncPresetToSelectedTargets(undoManager, chart, staticSyncPreset);
+
+				Gui::PopItemDisabledAndTextColorIf(presetDisabled);
 				Gui::PopID();
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -178,7 +185,6 @@ namespace Comfy::Studio::Editor
 
 				// TODO: At least basic item context menu for changing the name, move up/down and delete
 			}
-			Gui::PopItemDisabledAndTextColorIf(!anySyncTargetSelected);
 		}
 		Gui::EndChild();
 
@@ -352,6 +358,10 @@ namespace Comfy::Studio::Editor
 
 		TargetRenderHelper::ButtonSyncLineData syncLineData = {};
 		TargetRenderHelper::TargetData targetData = {};
+
+#if 0 // NOTE: Not rendering these as sync targets improves readability when rendering on top of the existing targets to be replaced
+		targetData.Sync = (targetCount > 1);
+#endif
 
 		syncLineData.SyncPairCount = targetCount;
 		syncLineData.Progress = 0.0f;
