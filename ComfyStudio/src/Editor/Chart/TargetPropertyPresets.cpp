@@ -18,9 +18,13 @@ namespace Comfy::Studio::Editor
 			return false;
 		}
 
-		constexpr vec2 AngleCornerTypeToSquarePlacementAreaCorner(Rules::AngleCorner corner)
+		constexpr vec2 AngleCornerTypeToSquarePlacementAreaCorner(Rules::AngleCorner corner, const DynamicSyncPresetSettings& settings)
 		{
-			constexpr f32 top = 0.0f, bot = Rules::PlacementAreaSize.y - Rules::SyncFormationHeightOffset, left = 0.0f, right = Rules::PlacementAreaSize.x;
+			const f32 top = 0.0f;
+			const f32 left = 0.0f;
+			const f32 bot = Rules::PlacementAreaSize.y - (settings.ElevateBottomRow ? Rules::SyncFormationHeightOffsetAlt : Rules::SyncFormationHeightOffset);
+			const f32 right = Rules::PlacementAreaSize.x;
+
 			switch (corner)
 			{
 			case Rules::AngleCorner::TopRight: return vec2(right, top);
@@ -28,6 +32,7 @@ namespace Comfy::Studio::Editor
 			case Rules::AngleCorner::BotLeft: return vec2(left, bot);
 			case Rules::AngleCorner::TopLeft: return vec2(left, top);
 			}
+
 			assert(false);
 			return {};
 		}
@@ -93,10 +98,10 @@ namespace Comfy::Studio::Editor
 			return true;
 		}
 
-		constexpr i32 DetermineDynamicSyncPresetMasterIndex(const DynamicSyncPreset preset, const TimelineTarget* const syncPair, const i32 pairCount)
+		constexpr i32 DetermineDynamicSyncPresetMasterIndex(const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings, const TimelineTarget* const syncPair, const i32 pairCount)
 		{
-			// TODO: Dynamic behavior based on preset type and existing positions (?) 
-			//		 If for example all 4 targets of a square preset are selected and are positioned in a screen corner, 
+			// TODO: Dynamic behavior based on preset type and existing positions (?)
+			//		 If for example all 4 targets of a square preset are selected and are positioned in a screen corner,
 			//		 then the furthest from the center should be chosen to avoid creating a minimum sized square (?)
 			for (i32 i = pairCount - 1; i >= 0; i--)
 			{
@@ -107,12 +112,12 @@ namespace Comfy::Studio::Editor
 			return 0;
 		}
 
-		bool ApplyDynamicSyncPresetToSyncPair(const DynamicSyncPreset preset, const TimelineTarget* const syncPair, const i32 pairCount, ApplySyncPreset::Data* outProperties)
+		bool ApplyDynamicSyncPresetToSyncPair(const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings, const TimelineTarget* const syncPair, const i32 pairCount, ApplySyncPreset::Data* outProperties)
 		{
 			assert(syncPair != nullptr && pairCount > 1 && outProperties != nullptr);
 			using namespace Rules;
 
-			const auto masterIndex = DetermineDynamicSyncPresetMasterIndex(preset, syncPair, pairCount);
+			const auto masterIndex = DetermineDynamicSyncPresetMasterIndex(preset, settings, syncPair, pairCount);
 			assert(masterIndex >= 0 && masterIndex < pairCount);
 
 			const auto& masterTarget = syncPair[masterIndex];
@@ -131,6 +136,9 @@ namespace Comfy::Studio::Editor
 			case DynamicSyncPreset::VerticalLeft:
 			case DynamicSyncPreset::VerticalRight:
 			{
+				const f32 upperAngle = (settings.SteepAngles ? 35.0f : 45.0f);
+				const f32 lowerAngle = Rules::NormalizeAngle(180.0f - upperAngle);
+
 				for (i32 i = 0; i < pairCount; i++)
 				{
 					const auto& slaveTarget = syncPair[i];
@@ -144,17 +152,21 @@ namespace Comfy::Studio::Editor
 						slaveProperties.Position.y = masterProperties.Position.y - heightDistanceToMaster;
 					}
 
-					slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? 45.0f : 135.0f;
+					slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? upperAngle : lowerAngle;
 					if (preset == DynamicSyncPreset::VerticalLeft)
 						slaveProperties.Angle *= -1.0f;
 				}
-				return true;
+				break;
 			}
 			case DynamicSyncPreset::HorizontalUp:
 			case DynamicSyncPreset::HorizontalDown:
 			{
 				// TODO: Special treatment for sync slides, maybe detect which kind of preset to choose based on existing position (?)
 				masterProperties.Position.x = HorizontalSyncPairPositionsX[static_cast<size_t>(masterTarget.Type)];
+
+				// TODO: Should steep angles also be applied here and if so to what extend?
+				const f32 rightAngle = (settings.SteepAngles ? 20.0f : 20.0f);
+				const f32 leftAngle = -rightAngle;
 
 				for (i32 i = 0; i < pairCount; i++)
 				{
@@ -167,12 +179,11 @@ namespace Comfy::Studio::Editor
 						slaveProperties.Position.y = masterProperties.Position.y;
 					}
 
-					if (preset == DynamicSyncPreset::HorizontalUp)
-						slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? -20.0f : +20.0f;
-					else
-						slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? -160.0f : +160.0f;
+					slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? leftAngle : rightAngle;
+					if (preset == DynamicSyncPreset::HorizontalDown)
+						slaveProperties.Angle = Rules::NormalizeAngle(180.0f - slaveProperties.Angle);
 				}
-				return true;
+				break;
 			}
 			case DynamicSyncPreset::Square:
 			{
@@ -182,10 +193,10 @@ namespace Comfy::Studio::Editor
 				constexpr std::array<AngleCorner, EnumCount<ButtonType>()> typeToCorner = { AngleCorner::TopLeft, AngleCorner::TopRight, AngleCorner::BotLeft, AngleCorner::BotRight, };
 				constexpr std::array<f32, EnumCount<AngleCorner>()> cornerToAngle = { +45.0f, +135.0f, -135.0f, -45.0f, };
 
-				constexpr auto minCornerDistance = (AngleCornerTypeToSquarePlacementAreaCorner(AngleCorner::BotRight) - VerticalSyncPairPlacementDistance) / 2.0f;
+				const auto minCornerDistance = (AngleCornerTypeToSquarePlacementAreaCorner(AngleCorner::BotRight, settings) - VerticalSyncPairPlacementDistance) / 2.0f;
 
 				const auto masterCorner = typeToCorner[static_cast<size_t>(masterTarget.Type)];
-				const auto masterCornerPosition = AngleCornerTypeToSquarePlacementAreaCorner(masterCorner);
+				const auto masterCornerPosition = AngleCornerTypeToSquarePlacementAreaCorner(masterCorner, settings);
 				const auto masterCornerDistance = glm::min(glm::abs(masterCornerPosition - masterProperties.Position), minCornerDistance);
 
 				for (i32 i = 0; i < pairCount; i++)
@@ -195,7 +206,7 @@ namespace Comfy::Studio::Editor
 					auto& slaveProperties = outProperties[i].NewValue;
 
 					slaveProperties.Angle = cornerToAngle[static_cast<size_t>(slaveCorner)];
-					slaveProperties.Position = AngleCornerTypeToSquarePlacementAreaCorner(slaveCorner);
+					slaveProperties.Position = AngleCornerTypeToSquarePlacementAreaCorner(slaveCorner, settings);
 
 					switch (slaveCorner)
 					{
@@ -205,7 +216,7 @@ namespace Comfy::Studio::Editor
 					case AngleCorner::TopLeft: slaveProperties.Position += vec2(+masterCornerDistance.x, +masterCornerDistance.y); break;
 					}
 				}
-				return true;
+				break;
 			}
 			case DynamicSyncPreset::Triangle:
 			{
@@ -215,7 +226,7 @@ namespace Comfy::Studio::Editor
 				if (!isLeftTriangle && !isRightTriangle)
 					return false;
 
-				constexpr f32 placementBot = (PlacementAreaSize.y - SyncFormationHeightOffset);
+				const f32 placementBot = Rules::PlacementAreaSize.y - (settings.ElevateBottomRow ? Rules::SyncFormationHeightOffsetAlt : Rules::SyncFormationHeightOffset);
 				const bool isMasterUpperRow = (masterProperties.Position.y < (placementBot / 2.0f));
 
 				const auto masterHeightDistance = isMasterUpperRow ? masterProperties.Position.y : (placementBot - masterProperties.Position.y);
@@ -231,12 +242,21 @@ namespace Comfy::Studio::Editor
 					slaveProperties.Position.y = (isSlaveUpperRow) ? masterHeightDistance : (placementBot - masterHeightDistance);
 					slaveProperties.Angle = TrianglePresetAngle(slaveTarget.Type, isLeftTriangle, isSlaveUpperRow);
 				}
-				return true;
+				break;
 			}
 			}
 
-			assert(false);
-			return false;
+			if (settings.InsideOutAngles && (preset == DynamicSyncPreset::Square || preset == DynamicSyncPreset::Triangle))
+			{
+				for (i32 i = 0; i < pairCount; i++)
+				{
+					auto& properties = outProperties[i].NewValue;
+					properties.Angle = Rules::NormalizeAngle(properties.Angle + 180.0f);
+					properties.Distance = 1360.0f;
+				}
+			}
+
+			return true;
 		}
 
 		bool ApplyStaticSyncPresetToSyncPair(const StaticSyncPreset& preset, const TimelineTarget* const syncPair, const i32 pairCount, ApplySyncPreset::Data* outProperties)
@@ -260,7 +280,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void ApplyDynamicSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const DynamicSyncPreset preset)
+	void ApplyDynamicSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings)
 	{
 		size_t syncSelectionCount = 0;
 		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size());)
@@ -301,7 +321,7 @@ namespace Comfy::Studio::Editor
 					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
 				}
 
-				const bool failedToApply = !ApplyDynamicSyncPresetToSyncPair(preset, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, &targetData[targetDataStartIndex]);
+				const bool failedToApply = !ApplyDynamicSyncPresetToSyncPair(preset, settings, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, &targetData[targetDataStartIndex]);
 				if (failedToApply)
 				{
 					for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
@@ -371,7 +391,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	u32 FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(const Chart& chart, const DynamicSyncPreset preset, std::array<PresetTargetData, Rules::MaxSyncPairCount>& outPresetTargets)
+	u32 FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(const Chart& chart, const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings, std::array<PresetTargetData, Rules::MaxSyncPairCount>& outPresetTargets)
 	{
 		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size());)
 		{
@@ -387,7 +407,7 @@ namespace Comfy::Studio::Editor
 					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
 				}
 
-				if (ApplyDynamicSyncPresetToSyncPair(preset, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, tempProperties.data()))
+				if (ApplyDynamicSyncPresetToSyncPair(preset, settings, &firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount, tempProperties.data()))
 				{
 					for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
 					{

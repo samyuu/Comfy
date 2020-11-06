@@ -18,10 +18,20 @@ namespace Comfy::Studio::Editor
 		Count
 	};
 
-	struct PresetTargetData 
-	{ 
-		ButtonType Type; 
-		TargetProperties Properties; 
+	struct DynamicSyncPresetSettings
+	{
+		// NOTE: Vertical and Horizontal
+		bool SteepAngles = false;
+
+		// NOTE: Square and Triangle
+		bool InsideOutAngles = false;
+		bool ElevateBottomRow = false;
+	};
+
+	struct PresetTargetData
+	{
+		ButtonType Type;
+		TargetProperties Properties;
 	};
 
 	struct StaticSyncPreset
@@ -75,8 +85,8 @@ namespace Comfy::Studio::Editor
 	};
 	*/
 
-	void ApplyDynamicSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const DynamicSyncPreset preset);
+	void ApplyDynamicSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings);
 	void ApplyStaticSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const StaticSyncPreset& preset);
 
-	u32 FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(const Chart& chart, const DynamicSyncPreset preset, std::array<PresetTargetData, Rules::MaxSyncPairCount>& outPresetTargets);
+	u32 FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(const Chart& chart, const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings, std::array<PresetTargetData, Rules::MaxSyncPairCount>& outPresetTargets);
 }
