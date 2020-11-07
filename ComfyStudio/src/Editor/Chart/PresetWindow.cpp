@@ -21,8 +21,11 @@ namespace Comfy::Studio::Editor
 
 		std::vector<StaticSyncPreset> GetTestStaticSyncPresets()
 		{
+			constexpr size_t testPresetCount = 9;
+
 			std::vector<StaticSyncPreset> presets;
-			presets.reserve(8);
+			presets.reserve(testPresetCount);
+
 			presets.push_back(ConstructStaticSyncPreset("Smallest Sideways Square", std::array
 				{
 					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 480.0f), 0.0f, 0.0f, 500.0f, 1040.0f } },
@@ -63,10 +66,10 @@ namespace Comfy::Studio::Editor
 
 			presets.push_back(ConstructStaticSyncPreset("Fancy Square Stuff [0]", std::array
 				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960, 432), 45.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(864, 528), -45.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960, 624), -135.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1056, 528), 135.0f, -2.0f, 1000.0f, 1040.0f } },
+					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 432.0f), 45.0f, -2.0f, 1000.0f, 1040.0f } },
+					PresetTargetData { ButtonType::Square, { vec2(864.0f, 528.0f), -45.0f, -2.0f, 1000.0f, 1040.0f } },
+					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 624.0f), -135.0f, -2.0f, 1000.0f, 1040.0f } },
+					PresetTargetData { ButtonType::Circle, { vec2(1056.0f, 528.0f), 135.0f, -2.0f, 1000.0f, 1040.0f } },
 				}));
 			presets.push_back(ConstructStaticSyncPreset("Fancy Square Stuff [1]", std::array
 				{
@@ -77,15 +80,16 @@ namespace Comfy::Studio::Editor
 				}));
 			presets.push_back(ConstructStaticSyncPreset("Fancy Square Stuff [2]", std::array
 				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960, 168), 165.0f, -2.0f, 1000.0f, 2080.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(600, 528), 75.0f, -2.0f, 1000.0f, 2080.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960, 888), -15.0f, -2.0f, 1000.0f, 2080.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1320, 528), -105.0f, -2.0f, 1000.0f, 2080.0f } },
+					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 168.0f), 165.0f, -2.0f, 1000.0f, 2080.0f } },
+					PresetTargetData { ButtonType::Square, { vec2(600.0f, 528.0f), 75.0f, -2.0f, 1000.0f, 2080.0f } },
+					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 888.0f), -15.0f, -2.0f, 1000.0f, 2080.0f } },
+					PresetTargetData { ButtonType::Circle, { vec2(1320.0f, 528.0f), -105.0f, -2.0f, 1000.0f, 2080.0f } },
 				}));
 
 			// TEMP: To avoid any potential confusion for now...
 			presets.push_back(ConstructStaticSyncPreset<0>("(Presets will be customizable in the future)", {}));
 
+			assert(presets.size() == testPresetCount);
 			return presets;
 		}
 	}
