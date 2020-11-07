@@ -310,6 +310,12 @@ namespace ImGui
 			if (wParam < 256)
 				io.KeysDown[wParam] = 0;
 			return 0;
+
+		case WM_KILLFOCUS:
+			// NOTE: Prevent held down keys getting stuck and repeat keys being registered
+			std::fill(std::begin(io.KeysDown), std::end(io.KeysDown), 0);
+			return 0;
+
 		case WM_CHAR:
 			// You can also use ToAscii()+GetKeyboardState() to retrieve characters.
 			if (wParam > 0 && wParam < 0x10000)
