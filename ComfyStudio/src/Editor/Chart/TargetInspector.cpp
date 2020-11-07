@@ -3,23 +3,24 @@
 #include "ChartCommands.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/PropertyEditor.h"
+#include <FontIcons.h>
 
 // TODO: Move to "PropertyEditor.h" once refined
 namespace ImGui::PropertyEditor::Widgets
 {
-	// TODO: template <typename ValueType>
-	bool InputF32Ex(std::string_view label, f32& inOutValue, f32& outIncrement, const char* customDisplayText = nullptr, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, const char* format = nullptr)
+	template <typename ValueType>
+	bool InputScalarEx(std::string_view label, ValueType& inOutValue, ValueType& outIncrement, const char* customDisplayText = nullptr, f32 dragSpeed = 1.0f, std::optional<glm::vec<2, ValueType>> dragRange = {}, const char* format = nullptr)
 	{
 		RAII::ID id(label);
 		return PropertyFuncValueFunc([&]
 		{
-			f32 preDragValue = inOutValue;
-			const bool dragChanged = Detail::DragTextT<f32>(label, inOutValue, dragSpeed,
+			const auto preDragValue = inOutValue;
+			const bool dragChanged = Detail::DragTextT<ValueType>(label, inOutValue, dragSpeed,
 				dragRange.has_value() ? &dragRange->x : nullptr,
 				dragRange.has_value() ? &dragRange->y : nullptr,
 				0.0f);
 
-			outIncrement = (dragChanged) ? (inOutValue - preDragValue) : 0.0f;
+			outIncrement = (dragChanged) ? (inOutValue - preDragValue) : static_cast<ValueType>(0);
 			return dragChanged;
 		}, [&]
 		{
@@ -33,8 +34,8 @@ namespace ImGui::PropertyEditor::Widgets
 
 			const auto inputScaleScreenPos = Gui::GetCursorScreenPos();
 
-			using Lookup = Detail::TypeLookup::DataType<f32>;
-			const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, ImGuiDataType_Float, &inOutValue, nullptr, nullptr, (format != nullptr) ? format : Lookup::Format);
+			using Lookup = Detail::TypeLookup::DataType<ValueType>;
+			const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, nullptr, nullptr, (format != nullptr) ? format : Lookup::Format);
 
 			if (customDisplayText != nullptr)
 			{
@@ -143,8 +144,8 @@ namespace Comfy::Studio::Editor
 
 			PropertyGui(chart, "Position X", TargetPropertyType_PositionX);
 			PropertyGui(chart, "Position Y", TargetPropertyType_PositionY);
-			PropertyGui(chart, "Angle", TargetPropertyType_Angle);
-			PropertyGui(chart, "Frequency", TargetPropertyType_Frequency);
+			PropertyGui(chart, "Angle", TargetPropertyType_Angle, 1.0f, false, true);
+			PropertyGui(chart, "Frequency", TargetPropertyType_Frequency, 0.05f, true);
 			PropertyGui(chart, "Amplitude", TargetPropertyType_Amplitude);
 			PropertyGui(chart, "Distance", TargetPropertyType_Distance);
 
@@ -171,9 +172,8 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetInspector::PropertyGui(Chart& chart, std::string_view label, TargetPropertyType property, f32 dragSpeed)
+	void TargetInspector::PropertyGui(Chart& chart, std::string_view label, TargetPropertyType property, f32 dragSpeed, bool isPropertyI32, bool degreeUnits)
 	{
-		// TODO: Cast input / output to i32 in case of TargetPropertyType_Frequency (?)
 		auto commonValue = frontSelectedProperties[property];
 
 		auto valueGetter = [property](const auto& t) { return t.PropertiesOrPreset[property]; };
@@ -187,7 +187,7 @@ namespace Comfy::Studio::Editor
 
 		if (minValue != maxValue)
 		{
-			sprintf_s(displayTextBuffer, "(%.2f ... %.2f)", minValue, maxValue);
+			sprintf_s(displayTextBuffer, degreeUnits ? ("(%.2f" DEGREE_SIGN " ... %.2f" DEGREE_SIGN ")") : isPropertyI32 ? "(%.0f ... %.0f)" : "(%.2f ... %.2f)", minValue, maxValue);
 			customDisplayText = displayTextBuffer;
 		}
 
@@ -195,7 +195,25 @@ namespace Comfy::Studio::Editor
 			customDisplayText = nullptr;
 
 		f32 outIncrement = 0.0f;
-		if (GuiProperty::InputF32Ex(label, commonValue, outIncrement, customDisplayText, 1.0f, {}, "%.2f"))
+		bool changesWereMade = false;
+
+		if (isPropertyI32)
+		{
+			i32 commonValueI32 = static_cast<i32>(commonValue);
+			i32 outIncrementI32 = 0;
+			if (GuiProperty::InputScalarEx<i32>(label, commonValueI32, outIncrementI32, customDisplayText, dragSpeed, {}, "%d"))
+			{
+				commonValue = static_cast<f32>(commonValueI32);
+				outIncrement = static_cast<f32>(outIncrementI32);
+				changesWereMade = true;
+			}
+		}
+		else
+		{
+			changesWereMade = GuiProperty::InputScalarEx<f32>(label, commonValue, outIncrement, customDisplayText, dragSpeed, {}, degreeUnits ? ("%.2f" DEGREE_SIGN) : "%.2f");
+		}
+
+		if (changesWereMade)
 		{
 			std::vector<ChangeTargetListProperties::Data> targetData;
 			targetData.reserve(selectedTargets.size());
@@ -217,6 +235,12 @@ namespace Comfy::Studio::Editor
 					data.TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
 					data.NewValue[property] = (valueGetter(targetView) + outIncrement);
 				}
+			}
+
+			if (property == TargetPropertyType_Angle)
+			{
+				for (auto& data : targetData)
+					data.NewValue.Angle = Rules::NormalizeAngle(data.NewValue.Angle);
 			}
 
 			undoManager.Execute<ChangeTargetListProperties>(chart, std::move(targetData), static_cast<TargetPropertyFlags>(1 << property));
