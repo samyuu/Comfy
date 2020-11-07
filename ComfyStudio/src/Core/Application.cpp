@@ -388,9 +388,9 @@ namespace Comfy::Studio
 			{
 				auto guiPropertyValue = [&](const char* property, const char* value)
 				{
-					Gui::TextUnformatted(property);
+					Gui::Text("%s::%s", "BuildVersion", property);
 					Gui::NextColumn();
-					Gui::Text("%s::%s", "BuildVersion", value);
+					Gui::TextUnformatted(value);
 					Gui::NextColumn();
 				};
 
