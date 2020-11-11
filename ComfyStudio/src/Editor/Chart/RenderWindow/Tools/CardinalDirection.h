@@ -66,8 +66,20 @@ namespace Comfy::Studio::Editor
 		vec2(-Rules::PlacementStairDirection.x, -Rules::PlacementStairDirection.y),
 	};
 
-	constexpr vec2 CardinalToTargetRowDirection(CardinalDirection direction)
+	constexpr std::array<vec2, EnumCount<CardinalDirection>()> CardinalTargetRowDirectionsSteep =
 	{
-		return CardinalTargetRowDirections[static_cast<u8>(direction)];
+		vec2(+0.0f, -1.0f),
+		vec2(+1.0f, +0.0f),
+		vec2(+0.0f, +1.0f),
+		vec2(-1.0f, +0.0f),
+		vec2(+Rules::PlacementStairSteepDirection.x, -Rules::PlacementStairSteepDirection.y),
+		vec2(+Rules::PlacementStairSteepDirection.x, +Rules::PlacementStairSteepDirection.y),
+		vec2(-Rules::PlacementStairSteepDirection.x, +Rules::PlacementStairSteepDirection.y),
+		vec2(-Rules::PlacementStairSteepDirection.x, -Rules::PlacementStairSteepDirection.y),
+	};
+
+	constexpr vec2 CardinalToTargetRowDirection(CardinalDirection direction, bool steep)
+	{
+		return (steep ? CardinalTargetRowDirectionsSteep : CardinalTargetRowDirections)[static_cast<u8>(direction)];
 	}
 }

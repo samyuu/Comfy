@@ -152,7 +152,7 @@ namespace Comfy::Studio::Editor
 			return;
 
 		const auto cardinal = AngleToNearestCardinal(row.Angle);
-		const auto direction = CardinalToTargetRowDirection(cardinal);
+		const auto direction = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
 
 		const auto whiteColor = Gui::GetColorU32(ImGuiCol_Text);
 		const auto dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
@@ -213,15 +213,6 @@ namespace Comfy::Studio::Editor
 	void TargetPositionTool::UpdateMouseGrabInput(Chart& chart)
 	{
 		// TODO: Not just snap to grid but also be able to snap to other aligned targets (?) similarly to PS
-
-		// TODO: Maybe... if all targets or a sync pair are selected (and "smartPlacement" checkbox is ticked?) auto arrange vertical sync pairs on move (?)
-		//		 then toggle between smart vertical an horizontal mode using tab (indicated by menu item (?))
-		//		 Then similar "smart controls" for setting button path properties, by moving the mouse to either the left or right of the vertical sync pair,
-		//		 or up and down of the horizontal one. hold shift to set "sharp" / longer distances instead (?)
-		// 
-		//		 ~~Alternatively, the **far** easier "solution" would be to have keybindings to arrange sync pairs (?)~~ janky and unintuative
-
-		// TODO: Check box option to distance orbit the selecte targets around each other while mouse dragging, separately from the row placement (?)
 
 		const auto mousePos = Gui::GetMousePos();
 
@@ -309,14 +300,19 @@ namespace Comfy::Studio::Editor
 			row.Direction = glm::normalize(row.End - row.Start);
 			row.Angle = glm::degrees(glm::atan(row.Direction.y, row.Direction.x));
 
+			row.SteepLastFrame = row.SteepThisFrame;
+			row.SteepThisFrame = Gui::GetIO().KeyShift;
+
 			const auto cardinal = AngleToNearestCardinal(row.Angle);
-			const auto rowDirection = CardinalToTargetRowDirection(cardinal);
+			const auto rowDirection = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
 
 			const bool mouseWasMoved = (Gui::GetIO().MouseDelta.x != 0.0f || Gui::GetIO().MouseDelta.y != 0.0f);
+			const bool steepStateChanged = (row.SteepThisFrame != row.SteepLastFrame);
+
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
 			constexpr auto distanceThreshold = 9.0f;
-			if (glm::distance(row.Start, row.End) > distanceThreshold && (selectedTargetsBuffer.size() > 1) && row.Start != row.End && mouseWasMoved)
+			if (glm::distance(row.Start, row.End) > distanceThreshold && (selectedTargetsBuffer.size() > 1) && row.Start != row.End && mouseWasMoved || steepStateChanged)
 				ArrangeSelectedTargetsInRow(undoManager, chart, rowDirection, IsIntercardinal(cardinal), row.Backwards);
 		}
 	}
@@ -352,7 +348,7 @@ namespace Comfy::Studio::Editor
 			(rowCardinal == CardinalDirection::NorthEast || rowCardinal == CardinalDirection::SouthEast) ? CardinalDirection::East :
 			rowCardinal;
 
-		const auto horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal);
+		const auto horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal, useStairDistance);
 
 		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, TimelineTick tickDistance, bool chain, bool chainEnd) -> vec2
 		{

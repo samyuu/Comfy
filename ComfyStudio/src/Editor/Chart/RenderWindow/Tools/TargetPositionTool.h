@@ -68,6 +68,7 @@ namespace Comfy::Studio::Editor
 			f32 Angle;
 			bool Active;
 			bool Backwards;
+			bool SteepThisFrame, SteepLastFrame;
 		} row = {};
 	};
 }

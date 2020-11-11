@@ -45,6 +45,7 @@ namespace Comfy::Studio::Editor
 		constexpr f32 PlacementDistancePerBeatChain = 288.0f;
 
 		constexpr vec2 PlacementStairDirection = (vec2(5.0f, 3.0f) / 5.83095169f);
+		constexpr vec2 PlacementStairSteepDirection = vec2(PlacementStairDirection.y, PlacementStairDirection.x);
 
 		constexpr f32 TickToDistance(const TimelineTick tick)
 		{
