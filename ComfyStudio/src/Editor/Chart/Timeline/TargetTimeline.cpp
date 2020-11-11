@@ -351,8 +351,8 @@ namespace Comfy::Studio::Editor
 		// NOTE: Settings popup
 		if (Gui::WideBeginPopup(settingsPopupName))
 		{
-			// TODO: Come up with a neat comfy layout
-			Gui::Text("TODO:");
+			// TODO: Audio volume settings here (?)
+			Gui::TextDisabled("TODO:");
 			Gui::EndPopup();
 		}
 	}
@@ -1334,6 +1334,9 @@ namespace Comfy::Studio::Editor
 				Gui::Separator();
 				if (Gui::MenuItem("Shift Selection Left")) ShiftTargetSelection(*workingChart, -1);
 				if (Gui::MenuItem("Shift Selection Right")) ShiftTargetSelection(*workingChart, +1);
+				Gui::Separator();
+				if (Gui::MenuItem("Select All Single Targets")) RefineTargetSelectionBySingleTargetsOnly(*workingChart);
+				if (Gui::MenuItem("Select All Sync Targets")) RefineTargetSelectionBySyncPairsOnly(*workingChart);
 				Gui::EndMenu();
 			}
 
@@ -1481,6 +1484,24 @@ namespace Comfy::Studio::Editor
 					prevTarget->IsSelected = true;
 				target.IsSelected = false;
 			}
+		}
+	}
+
+	void TargetTimeline::RefineTargetSelectionBySingleTargetsOnly(Chart& chart)
+	{
+		for (auto& target : chart.Targets)
+		{
+			if (target.IsSelected && target.Flags.IsSync)
+				target.IsSelected = false;
+		}
+	}
+
+	void TargetTimeline::RefineTargetSelectionBySyncPairsOnly(Chart& chart)
+	{
+		for (auto& target : chart.Targets)
+		{
+			if (target.IsSelected && !target.Flags.IsSync)
+				target.IsSelected = false;
 		}
 	}
 

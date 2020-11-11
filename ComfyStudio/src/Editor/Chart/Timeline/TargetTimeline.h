@@ -127,6 +127,8 @@ namespace Comfy::Studio::Editor
 		void DeselectAllTargets(Chart& chart);
 		void SelectEveryNthTarget(Chart& chart, size_t n);
 		void ShiftTargetSelection(Chart& chart, i32 direction);
+		void RefineTargetSelectionBySingleTargetsOnly(Chart& chart);
+		void RefineTargetSelectionBySyncPairsOnly(Chart& chart);
 
 		void ClipboardCutSelection();
 		void ClipboardCopySelection();
