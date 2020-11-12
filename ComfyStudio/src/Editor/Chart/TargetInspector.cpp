@@ -9,42 +9,126 @@
 namespace ImGui::PropertyEditor::Widgets
 {
 	template <typename ValueType>
-	bool InputScalarEx(std::string_view label, ValueType& inOutValue, ValueType& outIncrement, const char* customDisplayText = nullptr, f32 dragSpeed = 1.0f, std::optional<glm::vec<2, ValueType>> dragRange = {}, const char* format = nullptr)
+	struct InputScalarParam
+	{
+		ValueType InOutValue = {};
+		ValueType OutIncrement = {};
+		f32 DragSpeed = 1.0f;
+		std::optional<glm::vec<2, ValueType>> DragRange = {};
+		const char* Format = nullptr;
+		const char* CustomDisplayText = nullptr;
+		size_t ComboboxValueCount = 0;
+		const ValueType* ComboboxValues = nullptr;
+		bool OutIsActive = false;
+	};
+
+	template <typename ValueType>
+	bool InputScalarEx(std::string_view label, InputScalarParam<ValueType>& param)
 	{
 		RAII::ID id(label);
 		return PropertyFuncValueFunc([&]
 		{
-			const auto preDragValue = inOutValue;
-			const bool dragChanged = Detail::DragTextT<ValueType>(label, inOutValue, dragSpeed,
-				dragRange.has_value() ? &dragRange->x : nullptr,
-				dragRange.has_value() ? &dragRange->y : nullptr,
+			const auto preDragValue = param.InOutValue;
+			const bool dragChanged = Detail::DragTextT<ValueType>(label, param.InOutValue, param.DragSpeed,
+				param.DragRange.has_value() ? &param.DragRange->x : nullptr,
+				param.DragRange.has_value() ? &param.DragRange->y : nullptr,
 				0.0f);
 
-			outIncrement = (dragChanged) ? (inOutValue - preDragValue) : static_cast<ValueType>(0);
+			param.OutIncrement = (dragChanged) ? (param.InOutValue - preDragValue) : static_cast<ValueType>(0);
 			return dragChanged;
 		}, [&]
 		{
-			RAII::ItemWidth width(-1.0f);
+			const f32 comboButtonWidth = GetFrameHeight();
+			RAII::ItemWidth width((param.ComboboxValueCount > 0) ? (-1.0f - comboButtonWidth) : -1.0f);
 
-			if (customDisplayText != nullptr)
+			if (param.CustomDisplayText != nullptr)
 			{
 				PushStyleColor(ImGuiCol_Text, vec4(0.0f));
 				PushStyleColor(ImGuiCol_TextSelectedBg, vec4(0.0f));
 			}
 
-			const auto inputScaleScreenPos = Gui::GetCursorScreenPos();
+			const auto inputScaleScreenPos = GetCursorScreenPos();
 
 			using Lookup = Detail::TypeLookup::DataType<ValueType>;
-			const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, nullptr, nullptr, (format != nullptr) ? format : Lookup::Format);
+			const char* formatString = (param.Format != nullptr) ? param.Format : Lookup::Format;
+			bool valueChanged = InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &param.InOutValue, nullptr, nullptr, formatString);
 
-			if (customDisplayText != nullptr)
+			const bool inputScalarItemActive = IsItemActive();
+			param.OutIsActive = inputScalarItemActive;
+
+			if (param.CustomDisplayText != nullptr)
 			{
 				PopStyleColor(2);
-				GetWindowDrawList()->AddText(inputScaleScreenPos + GetStyle().FramePadding, GetColorU32(ImGuiCol_TextDisabled), customDisplayText);
+				GetWindowDrawList()->AddText(inputScaleScreenPos + GetStyle().FramePadding, GetColorU32(ImGuiCol_TextDisabled), param.CustomDisplayText);
 			}
 
-			if (valueChanged && dragRange.has_value())
-				inOutValue = std::clamp(inOutValue, dragRange->x, dragRange->y);
+			if (param.ComboboxValueCount > 0)
+			{
+				assert(param.ComboboxValues != nullptr);
+				const auto& style = GetStyle();
+				const auto& context = *GetCurrentContext();
+
+				auto* currentWindow = GetCurrentWindow();
+
+				// NOTE: Right click to avoid active item focus issues
+				const bool inputScalarClicked = IsItemClicked(1);
+				const auto inputScalarRect = currentWindow->DC.LastItemRect;
+
+				SameLine(0.0f, 0.0f);
+				const bool arrowPressed = Button("##ComboArrow", vec2(comboButtonWidth, 0.0f));
+				const auto arrowRect = currentWindow->DC.LastItemRect;
+				RenderArrow(vec2(arrowRect.Max.x - comboButtonWidth + style.FramePadding.y, arrowRect.Min.y + style.FramePadding.y), ImGuiDir_Down);
+
+				const auto id = currentWindow->GetID(StringViewStart(label), StringViewEnd(label));
+				bool popupOpen = IsPopupOpen(id);
+
+				if (((arrowPressed || inputScalarClicked) || context.NavActivateId == id) && !popupOpen)
+				{
+					if (currentWindow->DC.NavLayerCurrent == 0)
+						currentWindow->NavLastIds[0] = id;
+					OpenPopupEx(id);
+					popupOpen = true;
+				}
+
+				if (popupOpen)
+				{
+					char name[16];
+					sprintf_s(name, "##Combo_%02d", context.BeginPopupStack.Size);
+
+					if (auto* popupWindow = FindWindowByName(name); popupWindow != nullptr && popupWindow->WasActive)
+					{
+						SetNextWindowPos(FindBestWindowPosForPopupEx(inputScalarRect.GetBL(), CalcWindowExpectedSize(popupWindow), &popupWindow->AutoPosLastDirection, GetWindowAllowedExtentRect(popupWindow), inputScalarRect, ImGuiPopupPositionPolicy_ComboBox));
+						SetNextWindowSize(vec2(inputScalarRect.GetWidth() + arrowRect.GetWidth(), 0.0f));
+					}
+
+					PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(style.FramePadding.x, style.WindowPadding.y));
+					const bool popupWindowOpen = Begin(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
+					PopStyleVar();
+
+					if (popupWindowOpen)
+					{
+						for (size_t i = 0; i < param.ComboboxValueCount; i++)
+						{
+							char b[128]; sprintf_s(b, formatString, param.ComboboxValues[i]);
+
+							const bool itemSelected = (param.InOutValue == param.ComboboxValues[i]);
+							if (Selectable(b, itemSelected, ImGuiSelectableFlags_None))
+							{
+								param.InOutValue = static_cast<ValueType>(param.ComboboxValues[i]);
+								valueChanged = true;
+							}
+
+							if (itemSelected)
+								SetItemDefaultFocus();
+						}
+
+						EndPopup();
+					}
+				}
+			}
+
+			if (valueChanged && param.DragRange.has_value())
+				param.InOutValue = std::clamp(param.InOutValue, param.DragRange->x, param.DragRange->y);
 
 			return valueChanged;
 		});
@@ -196,21 +280,54 @@ namespace Comfy::Studio::Editor
 
 		f32 outIncrement = 0.0f;
 		bool changesWereMade = false;
+		bool itemIsActive = false;
 
 		if (isPropertyI32)
 		{
-			i32 commonValueI32 = static_cast<i32>(commonValue);
-			i32 outIncrementI32 = 0;
-			if (GuiProperty::InputScalarEx<i32>(label, commonValueI32, outIncrementI32, customDisplayText, dragSpeed, {}, "%d"))
+			GuiProperty::InputScalarParam<i32> param;
+			param.InOutValue = static_cast<i32>(commonValue);
+			param.OutIncrement = {};
+			param.DragSpeed = dragSpeed;
+			param.DragRange = {};
+			param.Format = "%d";
+			param.CustomDisplayText = customDisplayText;
+
+			if (GuiProperty::InputScalarEx<i32>(label, param))
 			{
-				commonValue = static_cast<f32>(commonValueI32);
-				outIncrement = static_cast<f32>(outIncrementI32);
+				commonValue = static_cast<f32>(param.InOutValue);
+				outIncrement = static_cast<f32>(param.OutIncrement);
 				changesWereMade = true;
 			}
+			itemIsActive = param.OutIsActive;
 		}
 		else
 		{
-			changesWereMade = GuiProperty::InputScalarEx<f32>(label, commonValue, outIncrement, customDisplayText, dragSpeed, {}, degreeUnits ? ("%.2f" DEGREE_SIGN) : "%.2f");
+			GuiProperty::InputScalarParam<f32> param;
+			param.InOutValue = commonValue;
+			param.OutIncrement = {};
+			param.DragSpeed = dragSpeed;
+			param.DragRange = {};
+			param.Format = degreeUnits ? ("%.2f" DEGREE_SIGN) : "%.2f";
+			param.CustomDisplayText = customDisplayText;
+
+			if (property == TargetPropertyType_Amplitude)
+			{
+				param.ComboboxValueCount = Rules::CommonAmplitudes.size();
+				param.ComboboxValues = Rules::CommonAmplitudes.data();
+			}
+			else if (property == TargetPropertyType_Distance)
+			{
+				param.ComboboxValueCount = Rules::CommonDistances.size();
+				param.ComboboxValues = Rules::CommonDistances.data();
+			}
+
+			if (GuiProperty::InputScalarEx<f32>(label, param))
+			{
+				commonValue = param.InOutValue;
+				outIncrement = param.OutIncrement;
+				changesWereMade = true;
+			}
+			itemIsActive = param.OutIsActive;
 		}
 
 		if (changesWereMade)
@@ -246,7 +363,7 @@ namespace Comfy::Studio::Editor
 			undoManager.Execute<ChangeTargetListProperties>(chart, std::move(targetData), static_cast<TargetPropertyFlags>(1 << property));
 		}
 
-		propertyInputWidgetActiveStates[property] = Gui::IsItemActive();
+		propertyInputWidgetActiveStates[property] = itemIsActive;
 	}
 
 	i32 TargetInspector::GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const

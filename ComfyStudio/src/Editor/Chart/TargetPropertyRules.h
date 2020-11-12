@@ -109,6 +109,11 @@ namespace Comfy::Studio::Editor
 		static_assert(DistanceToTick(TickToDistance(TimelineTick::FromBeats(1))) == TimelineTick::FromBeats(1));
 		static_assert(DistanceToTick(TickToDistance(TimelineTick::FromBars(1))) == TimelineTick::FromBars(1));
 
+		// TODO: Eventually make user configurable (?)
+		constexpr std::array CommonAmplitudes = { 450.0f, 500.0f, 600.0f, 750.0f, 800.0f, 1250.0f, 1500.0f, };
+
+		constexpr std::array CommonDistances = { 880.0f, 960.0f, 1200.0f, 1212.0f, 1440.0f, };
+
 		enum class AngleCorner : u8
 		{
 			TopRight,
