@@ -41,6 +41,12 @@ namespace Comfy::Studio::Editor
 
 	void TimelineRenderHelper::DrawButtonIcon(ImDrawList* drawList, const TimelineTarget& target, vec2 position, f32 scale, f32 transparency) const
 	{
+		if (target.Flags.SameTypeSyncCount > 1)
+		{
+			scale *= sameTypeSyncStackScale;
+			position += (target.Flags.SameTypeSyncIndex == 0) ? +sameTypeSyncStackOffset : -sameTypeSyncStackOffset;
+		}
+
 		const auto radius = buttonIconWidth * scale;
 
 		const auto topLeft = position - (radius * 0.5f);

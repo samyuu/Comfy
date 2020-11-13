@@ -18,8 +18,11 @@ namespace Comfy::Studio::Editor
 
 	private:
 		static constexpr f32 buttonIconWidth = 52;
+		static constexpr f32 sameTypeSyncStackScale = 0.8f;
+		static constexpr vec2 sameTypeSyncStackOffset = vec2(4.0f);
+
 		const Graphics::SprSet* editorSprites = nullptr;
-		
+
 		struct SpriteCache
 		{
 			std::array<const Graphics::Spr*, EnumCount<ButtonType>()>
