@@ -86,10 +86,10 @@ namespace Comfy::Studio::Editor
 	{
 		if (targets.empty())
 			return;
-		
-		if (startIndex <= -1) 
+
+		if (startIndex <= -1)
 			startIndex = 0;
-		if (endIndex <= -1) 
+		if (endIndex <= -1)
 			endIndex = static_cast<i32>(targets.size());
 
 		// TODO: Is this how this should work (?)
@@ -97,7 +97,7 @@ namespace Comfy::Studio::Editor
 			std::clamp(targets.begin() + startIndex, targets.begin(), targets.end()),
 			std::clamp(targets.begin() + endIndex, targets.begin(), targets.end()),
 			[&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
-		
+
 		UpdateTargetInternalFlagsInRange(startIndex, endIndex);
 	}
 
@@ -172,7 +172,7 @@ namespace Comfy::Studio::Editor
 		return syncPairEndIndex;
 	}
 
-	i32 SortedTargetList::FindSyncPairCountAt(i32 startIndex) const
+	i32 SortedTargetList::CountConsecutiveSyncTargets(i32 startIndex) const
 	{
 		for (i32 i = startIndex; i < static_cast<i32>(targets.size()); i++)
 		{
@@ -186,11 +186,26 @@ namespace Comfy::Studio::Editor
 		return 1;
 	}
 
+	i32 SortedTargetList::CountConsecutiveSameTypeSyncTargets(i32 startIndex) const
+	{
+		for (i32 i = startIndex; i < static_cast<i32>(targets.size()); i++)
+		{
+			const auto& target = targets[i];
+			const auto* nextTarget = IndexOrNull(i + 1, targets);
+
+			if (nextTarget == nullptr || target.Tick != nextTarget->Tick || target.Type != nextTarget->Type)
+				return (i - startIndex) + 1;
+		}
+
+		return 1;
+	}
+
 	void SortedTargetList::UpdateSyncPairFlagsInRange(i32 startIndex, i32 endIndex)
 	{
 		for (i32 i = startIndex; i < endIndex;)
 		{
-			const auto pairCount = FindSyncPairCountAt(i);
+			const auto pairStartIndex = i;
+			const auto pairCount = CountConsecutiveSyncTargets(i);
 			assert(pairCount > 0);
 
 			for (i32 pairIndex = 0; pairIndex < pairCount; pairIndex++)
@@ -199,6 +214,20 @@ namespace Comfy::Studio::Editor
 				target.Flags.IsSync = (pairCount > 1);
 				target.Flags.IndexWithinSyncPair = pairIndex;
 				target.Flags.SyncPairCount = pairCount;
+			}
+
+			for (i32 pairIndex = 0; pairIndex < pairCount;)
+			{
+				const auto sameTypeCount = CountConsecutiveSameTypeSyncTargets(pairStartIndex + pairIndex);
+				assert(sameTypeCount > 0);
+
+				for (i32 sameTypeIndex = 0; sameTypeIndex < sameTypeCount; sameTypeIndex++)
+				{
+					auto& thisTarget = targets[pairStartIndex + pairIndex + sameTypeIndex];
+					thisTarget.Flags.SameTypeSyncIndex = sameTypeIndex;
+					thisTarget.Flags.SameTypeSyncCount = sameTypeCount;
+				}
+				pairIndex += sameTypeCount;
 			}
 		}
 	}

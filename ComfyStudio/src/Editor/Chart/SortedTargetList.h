@@ -61,6 +61,8 @@ namespace Comfy::Studio::Editor
 
 	struct TargetFlags
 	{
+		// NOTE: Use u16 instead of u32 to allow for implicit signed int conversion
+
 		// NOTE: Publicly set flags:
 		u16 HasProperties : 1;
 		u16 IsHold : 1;
@@ -71,12 +73,18 @@ namespace Comfy::Studio::Editor
 		u16 IsSync : 1;
 		u16 IsChainStart : 1;
 		u16 IsChainEnd : 1;
-		u16 /* SyncPairHasDuplicate */ : 1;
+		u16 /* Reserved */ : 1;
+
 		u16 IndexWithinSyncPair : 4;
 		u16 SyncPairCount : 4;
+
+		u16 SameTypeSyncIndex : 4;
+		u16 SameTypeSyncCount : 4;
+
+		u16 /* Reserved */ : 8;
 	};
 
-	static_assert(sizeof(TargetFlags) == sizeof(u16));
+	static_assert(sizeof(TargetFlags) == sizeof(u32));
 
 	struct TimelineTarget
 	{
@@ -89,6 +97,8 @@ namespace Comfy::Studio::Editor
 		TargetFlags Flags = {};
 		TargetProperties Properties = {};
 	};
+
+	static_assert(sizeof(TimelineTarget) == 36);
 
 	class SortedTargetList : NonCopyable
 	{
@@ -139,7 +149,9 @@ namespace Comfy::Studio::Editor
 
 		i32 FloorIndexToSyncPairStart(i32 index) const;
 		i32 CeilIndexToSyncPairEnd(i32 index) const;
-		i32 FindSyncPairCountAt(i32 startIndex) const;
+		i32 CountConsecutiveSyncTargets(i32 startIndex) const;
+		i32 CountConsecutiveSameTypeSyncTargets(i32 startIndex) const;
+
 		void UpdateSyncPairFlagsInRange(i32 startIndex, i32 endIndex);
 
 		void UpdateChainFlagsInRange(i32 startIndex, i32 endIndex);
