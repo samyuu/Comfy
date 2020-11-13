@@ -1597,22 +1597,36 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)
 	{
 		const auto existingTargetIndex = workingChart->Targets.FindIndex(tick, type);
-		const bool targetExists = (existingTargetIndex > -1);
+		const auto* existingTarget = IndexOrNull(existingTargetIndex, workingChart->Targets);
 
 		// NOTE: Double hit sound if a target gets placed in front of the cursor position.
 		//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
 		if (!buttonSoundOnSuccessfulPlacementOnly)
 			PlayTargetButtonTypeSound(type);
 
-		if (targetExists)
+		auto isSlide = [](const auto& target) { return IsSlideButtonType(target.Type) && !target.Flags.IsChain; };
+		auto isDoubleSync = [](const auto& target) { return (target.Flags.SameTypeSyncCount > 1); };
+		
+		if (existingTarget != nullptr && (!isSlide(*existingTarget) || isDoubleSync(*existingTarget)))
 		{
 			if (!GetIsPlayback())
 			{
 				if (buttonSoundOnSuccessfulPlacementOnly)
 					PlayTargetButtonTypeSound(type);
 
-				const auto existingTarget = workingChart->Targets[existingTargetIndex];
-				undoManager.Execute<RemoveTarget>(*workingChart, existingTarget);
+				if (existingTarget->Flags.SameTypeSyncCount == 1)
+				{
+					undoManager.Execute<RemoveTarget>(*workingChart, *existingTarget);
+				}
+				else
+				{
+					std::vector<TimelineTarget> sameTypeSyncTargets;
+					sameTypeSyncTargets.reserve(existingTarget->Flags.SameTypeSyncCount);
+					for (size_t i = 0; i < existingTarget->Flags.SameTypeSyncCount; i++)
+						sameTypeSyncTargets.push_back(existingTarget[i]);
+
+					undoManager.Execute<RemoveTargetList>(*workingChart, std::move(sameTypeSyncTargets));
+				}
 			}
 		}
 		else
