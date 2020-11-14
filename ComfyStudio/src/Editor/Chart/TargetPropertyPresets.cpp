@@ -165,8 +165,7 @@ namespace Comfy::Studio::Editor
 			case DynamicSyncPreset::HorizontalUp:
 			case DynamicSyncPreset::HorizontalDown:
 			{
-				// TODO: Should steep angles also be applied here and if so to what extend?
-				const f32 rightAngle = (settings.SteepAngles ? 20.0f : 20.0f);
+				const f32 rightAngle = (settings.SteepAngles ? 10.0f : 20.0f);
 				const f32 leftAngle = -rightAngle;
 
 				const bool useSingleDirection = (masterTarget.Flags.SameTypeSyncCount > 1);
@@ -202,7 +201,7 @@ namespace Comfy::Studio::Editor
 					if (useSingleDirection)
 						slaveProperties.Angle = singleDirectionLeft ? leftAngle : rightAngle;
 					else if (useDynamicSlides)
-						slaveProperties.Angle = (slaveProperties.Position.x <= PlacementAreaCenter.x) ? leftAngle : rightAngle;
+						slaveProperties.Angle = (slaveTarget.Type == ButtonType::SlideR) ? leftAngle : rightAngle;
 					else
 						slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? leftAngle : rightAngle;
 
