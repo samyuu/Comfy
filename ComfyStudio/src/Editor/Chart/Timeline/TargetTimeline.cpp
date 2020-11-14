@@ -1606,7 +1606,7 @@ namespace Comfy::Studio::Editor
 
 		auto isSlide = [](const auto& target) { return IsSlideButtonType(target.Type) && !target.Flags.IsChain; };
 		auto isDoubleSync = [](const auto& target) { return (target.Flags.SameTypeSyncCount > 1); };
-		
+
 		if (existingTarget != nullptr && (!isSlide(*existingTarget) || isDoubleSync(*existingTarget)))
 		{
 			if (!GetIsPlayback())
@@ -1834,6 +1834,7 @@ namespace Comfy::Studio::Editor
 		lastFrameButtonSoundCursorTime = thisFrameButtonSoundCursorTime = (newCursorTime - buttonSoundFutureOffset);
 		buttonSoundController.PauseAllNegativeVoices();
 		buttonSoundController.PauseAllChainSounds();
+		metronome.PauseAllNegativeVoices();
 	}
 
 	f32 TargetTimeline::GetTimelineSize() const

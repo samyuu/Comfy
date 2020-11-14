@@ -85,6 +85,18 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
+	void TimelineMetronome::PauseAllNegativeVoices()
+	{
+		for (auto& voice : voicePool)
+		{
+			if (voice.GetIsPlaying() && voice.GetPosition() < TimeSpan::Zero())
+			{
+				voice.SetIsPlaying(false);
+				voice.SetPosition(voice.GetDuration());
+			}
+		}
+	}
+
 	f32 TimelineMetronome::GetVolume() const
 	{
 		return volume;

@@ -15,6 +15,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void UpdatePlaySounds(const Chart& chart, TimeSpan timeThisFrame, TimeSpan timeLastFrame, TimeSpan futureOffset);
+		void PauseAllNegativeVoices();
 
 		f32 GetVolume() const;
 		void SetVolume(f32 value);
