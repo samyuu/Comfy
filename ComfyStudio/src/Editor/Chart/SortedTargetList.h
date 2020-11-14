@@ -43,7 +43,20 @@ namespace Comfy::Studio::Editor
 		TargetPropertyFlags_All = (TargetPropertyFlags_PositionXY | TargetPropertyFlags_Angle | TargetPropertyFlags_Frequency | TargetPropertyFlags_Amplitude | TargetPropertyFlags_Distance),
 	};
 
-	constexpr bool IsSlideButtonType(ButtonType type) { return type == ButtonType::SlideL || type == ButtonType::SlideR; }
+	constexpr bool IsSlideButtonType(ButtonType type) 
+	{ 
+		return (type == ButtonType::SlideL || type == ButtonType::SlideR); 
+	}
+
+	constexpr ButtonType FlipSlideButtonType(ButtonType type)
+	{
+		switch (type)
+		{
+		case ButtonType::SlideL: return ButtonType::SlideR;
+		case ButtonType::SlideR: return ButtonType::SlideL;
+		default: return type;
+		}
+	}
 
 	struct TargetProperties
 	{

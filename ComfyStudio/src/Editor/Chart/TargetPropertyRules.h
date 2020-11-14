@@ -169,13 +169,30 @@ namespace Comfy::Studio::Editor
 				VerticalSyncPairPlacementDistance * -0.0f,
 			};
 
+			constexpr ButtonType AdjustSameTypeSyncButtonType(ButtonType type, TargetFlags flags)
+			{
+				if (flags.SameTypeSyncCount > 1)
+				{
+					switch (type)
+					{
+					case ButtonType::Circle: if (flags.SameTypeSyncIndex == 0) return ButtonType::Triangle; break;
+					case ButtonType::Cross: if (flags.SameTypeSyncIndex == 0) return ButtonType::Square; break;
+					case ButtonType::Square: if (flags.SameTypeSyncIndex == 1) return ButtonType::Cross; break;
+					case ButtonType::Triangle: if (flags.SameTypeSyncIndex == 1) return ButtonType::Circle; break;
+					case ButtonType::SlideL: if (flags.SameTypeSyncIndex == 1) return ButtonType::SlideR; break;
+					case ButtonType::SlideR: if (flags.SameTypeSyncIndex == 0) return ButtonType::SlideL; break;
+					}
+				}
+				return type;
+			}
+
 			constexpr vec2 PresetTargetPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
 			{
 				constexpr auto baselineX = TickToDistance(TimelineTick::FromBars(1) / 4);
 				constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
 
 				const auto x = TickToDistance((TimelineTick::FromBars(1) + tick) % TimelineTick::FromBars(2));
-				const auto y = flags.IsSync ? VerticalSyncPairTypeHeightOffsets[static_cast<size_t>(type)] : 0.0f;
+				const auto y = flags.IsSync ? VerticalSyncPairTypeHeightOffsets[static_cast<u8>(AdjustSameTypeSyncButtonType(type, flags))] : 0.0f;
 
 				return vec2(baselineX + x, baselineY + y);
 			}
