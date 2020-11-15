@@ -8,6 +8,7 @@ namespace ImGui
 		ImGuiStyle* style = dst ? dst : &GetStyle();
 		style->WindowPadding = ImVec2(2.0f, 2.0f);
 		style->WindowRounding = 0.0f;
+		style->WindowBorderSize = 0.0f;
 		style->FrameBorderSize = 0.0f;
 		style->ItemSpacing = ImVec2(8.0f, 2.0f);
 		style->ItemInnerSpacing = ImVec2(2.0f, 4.0f);
