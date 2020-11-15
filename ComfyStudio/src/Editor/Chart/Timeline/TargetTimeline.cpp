@@ -1300,6 +1300,14 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
+			// TODO: Move somewhere else and implement different sound source options stored in chart
+			if (Gui::BeginMenu("Button Sounds"))
+			{
+				if (auto v = (buttonSoundController.GetVolume() * 100.0f); Gui::SliderFloat("##ButtonSoundVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Volume"))
+					buttonSoundController.SetVolume(v / 100.0f);
+				Gui::EndMenu();
+			}
+
 			if (Gui::MenuItem("Set Song End", "", nullptr, true))
 				undoManager.Execute<ChangeSongDuration>(*workingChart, GetCursorTime());
 

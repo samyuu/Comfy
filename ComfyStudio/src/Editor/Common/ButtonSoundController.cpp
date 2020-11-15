@@ -87,6 +87,16 @@ namespace Comfy::Studio::Editor
 		soundTimings = {};
 	}
 
+	f32 ButtonSoundController::GetVolume() const
+	{
+		return masterSoundVolume;
+	}
+
+	void ButtonSoundController::SetVolume(f32 value)
+	{
+		masterSoundVolume = value;
+	}
+
 	void ButtonSoundController::InitializeVoicePools()
 	{
 		auto& audioEngine = Audio::AudioEngine::GetInstance();

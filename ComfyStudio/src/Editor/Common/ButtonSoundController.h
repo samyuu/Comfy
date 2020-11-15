@@ -48,6 +48,9 @@ namespace Comfy::Studio::Editor
 		void PauseAllChainSounds();
 		void PauseAllNegativeVoices();
 
+		f32 GetVolume() const;
+		void SetVolume(f32 value);
+
 	private:
 		void InitializeVoicePools();
 		void UnloadVoicePools();
@@ -56,7 +59,7 @@ namespace Comfy::Studio::Editor
 		void PlayButtonSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock);
 
 	private:
-		float masterSoundVolume = 1.0f;
+		f32 masterSoundVolume = 1.0f;
 
 		struct AsyncSoundSource
 		{
