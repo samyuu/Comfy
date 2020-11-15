@@ -1343,8 +1343,9 @@ namespace Comfy::Studio::Editor
 				if (Gui::MenuItem("Shift Selection Left")) ShiftTargetSelection(*workingChart, -1);
 				if (Gui::MenuItem("Shift Selection Right")) ShiftTargetSelection(*workingChart, +1);
 				Gui::Separator();
-				if (Gui::MenuItem("Select All Single Targets")) RefineTargetSelectionBySingleTargetsOnly(*workingChart);
-				if (Gui::MenuItem("Select All Sync Targets")) RefineTargetSelectionBySyncPairsOnly(*workingChart);
+				if (Gui::MenuItem("Select all Single Targets")) RefineTargetSelectionBySingleTargetsOnly(*workingChart);
+				if (Gui::MenuItem("Select all Sync Targets")) RefineTargetSelectionBySyncPairsOnly(*workingChart);
+				if (Gui::MenuItem("Select all partially selected Sync Pairs")) SelectAllParticallySelectedSyncPairs(*workingChart);
 				Gui::EndMenu();
 			}
 
@@ -1510,6 +1511,31 @@ namespace Comfy::Studio::Editor
 		{
 			if (target.IsSelected && !target.Flags.IsSync)
 				target.IsSelected = false;
+		}
+	}
+
+	void TargetTimeline::SelectAllParticallySelectedSyncPairs(Chart& chart)
+	{
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size());)
+		{
+			const auto& target = chart.Targets[i];
+
+			const bool anyWithinPairSelected = [&]()
+			{
+				for (i32 j = i; j < (i + target.Flags.SyncPairCount); j++)
+					if (chart.Targets[j].IsSelected)
+						return true;
+				return false;
+			}();
+
+			if (anyWithinPairSelected)
+			{
+				for (i32 j = i; j < (i + target.Flags.SyncPairCount); j++)
+					chart.Targets[j].IsSelected = true;
+			}
+
+			assert(target.Flags.SyncPairCount > 0);
+			i += target.Flags.SyncPairCount;
 		}
 	}
 
