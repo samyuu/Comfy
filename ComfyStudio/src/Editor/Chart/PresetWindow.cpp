@@ -21,7 +21,7 @@ namespace Comfy::Studio::Editor
 
 		std::vector<StaticSyncPreset> GetTestStaticSyncPresets()
 		{
-			constexpr size_t testPresetCount = 9;
+			constexpr size_t testPresetCount = 8;
 
 			std::vector<StaticSyncPreset> presets;
 			presets.reserve(testPresetCount);
@@ -87,7 +87,7 @@ namespace Comfy::Studio::Editor
 				}));
 
 			// TEMP: To avoid any potential confusion for now...
-			presets.push_back(ConstructStaticSyncPreset<0>("(Presets will be customizable in the future)", {}));
+			// presets.push_back(ConstructStaticSyncPreset<0>("(Presets will be customizable in the future)", {}));
 
 			assert(presets.size() == testPresetCount);
 			return presets;
@@ -274,8 +274,10 @@ namespace Comfy::Studio::Editor
 		Gui::TextDisabled("TODO:");
 	}
 
-	void PresetWindow::OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer, TargetRenderHelper& renderHelper)
+	void PresetWindow::OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer)
 	{
+		auto& renderHelper = renderWindow.GetRenderHelper();
+
 		if (const auto dimness = GetPresetPreviewDimness(false); dimness > 0.0f)
 			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, dimness)));
 
@@ -341,6 +343,7 @@ namespace Comfy::Studio::Editor
 
 	f32 PresetWindow::GetPresetPreviewDimness(bool overlayPass) const
 	{
+		// TODO: Rework this to avoid annoying accidental fades
 		constexpr f32 maxDimRender = 0.15f, maxDimOverlay = 0.45f, transitionMS = 75.0f;
 		const auto max = overlayPass ? maxDimOverlay : maxDimRender;
 

@@ -20,7 +20,7 @@ namespace Comfy::Studio::Editor
 		void SyncGui(Chart& chart);
 		void SequenceGui(Chart& chart);
 
-		void OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer, TargetRenderHelper& renderHelper);
+		void OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer);
 		void OnRenderWindowOverlayGui(Chart& chart, TargetRenderWindow& renderWindow, ImDrawList& drawList);
 
 		void OnEditorSpritesLoaded(const Graphics::SprSet* sprSet);

@@ -76,6 +76,12 @@ namespace Comfy::Studio::Editor
 		return camera;
 	}
 
+	TargetRenderHelper& TargetRenderWindow::GetRenderHelper()
+	{
+		assert(renderHelper != nullptr);
+		return *renderHelper;
+	}
+
 	ImGuiWindowFlags TargetRenderWindow::GetRenderTextureChildWindowFlags() const
 	{
 		return ImGuiWindowFlags_None;
@@ -163,7 +169,7 @@ namespace Comfy::Studio::Editor
 				selectedTool->PostRender(*workingChart, renderer);
 
 			if (onRenderCallback)
-				onRenderCallback(*this, renderer, *renderHelper);
+				onRenderCallback(*this, renderer);
 		}
 		renderer.End();
 	}

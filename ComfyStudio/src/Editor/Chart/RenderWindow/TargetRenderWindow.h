@@ -16,8 +16,9 @@ namespace Comfy::Studio::Editor
 {
 	class ChartEditor;
 	class TargetTimeline;
+	class TargetRenderWindow;
 
-	using TargetRenderWindowRenderCallback = std::function<void(TargetRenderWindow&, Render::Renderer2D&, TargetRenderHelper&)>;
+	using TargetRenderWindowRenderCallback = std::function<void(TargetRenderWindow&, Render::Renderer2D&)>;
 	using TargetRenderWindowOverlayGuiCallback = std::function<void(TargetRenderWindow&, ImDrawList&)>;
 
 	class TargetRenderWindow : public RenderWindow
@@ -44,6 +45,7 @@ namespace Comfy::Studio::Editor
 		vec2 ScreenToTargetAreaSpace(const vec2 screenSpace) const;
 
 		const Render::Camera2D& GetCamera() const;
+		TargetRenderHelper& GetRenderHelper();
 
 	protected:
 		ImGuiWindowFlags GetRenderTextureChildWindowFlags() const override;

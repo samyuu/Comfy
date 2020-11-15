@@ -44,7 +44,7 @@ namespace Comfy::Studio::Editor
 
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
 		renderWindow->SetWorkingChart(chart.get());
-		renderWindow->RegisterRenderCallback([this](auto& renderWindow, auto& renderer, auto& renderHelper) { presetWindow.OnRenderWindowRender(*chart, renderWindow, renderer, renderHelper); });
+		renderWindow->RegisterRenderCallback([this](auto& renderWindow, auto& renderer) { presetWindow.OnRenderWindowRender(*chart, renderWindow, renderer); });
 		renderWindow->RegisterOverlayGuiCallback([this](auto& renderWindow, auto& drawList) { presetWindow.OnRenderWindowOverlayGui(*chart, renderWindow, drawList); });
 
 		presetWindow.OnEditorSpritesLoaded(editorSprites.get());
