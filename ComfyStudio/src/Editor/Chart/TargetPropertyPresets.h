@@ -22,6 +22,7 @@ namespace Comfy::Studio::Editor
 	{
 		// NOTE: Vertical and Horizontal
 		bool SteepAngles = false;
+		bool SameDirectionAngles = false;
 
 		// NOTE: Square and Triangle
 		bool InsideOutAngles = false;

@@ -156,7 +156,11 @@ namespace Comfy::Studio::Editor
 						slaveProperties.Position.y = masterProperties.Position.y - heightDistanceToMaster;
 					}
 
-					slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTargetType, slaveTarget.Flags) ? upperAngle : lowerAngle;
+					if (settings.SameDirectionAngles)
+						slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(masterTargetType, masterTarget.Flags) ? upperAngle : lowerAngle;
+					else
+						slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTargetType, slaveTarget.Flags) ? upperAngle : lowerAngle;
+
 					if (preset == DynamicSyncPreset::VerticalLeft)
 						slaveProperties.Angle *= -1.0f;
 				}
@@ -203,7 +207,12 @@ namespace Comfy::Studio::Editor
 					else if (useDynamicSlides)
 						slaveProperties.Angle = (slaveTarget.Type == ButtonType::SlideR) ? leftAngle : rightAngle;
 					else
-						slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? leftAngle : rightAngle;
+					{
+						if (settings.SameDirectionAngles)
+							slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(masterTarget.Type, masterTarget.Flags) ? leftAngle : rightAngle;
+						else
+							slaveProperties.Angle = Detail::IsUpperPartOfSyncPair(slaveTarget.Type, slaveTarget.Flags) ? leftAngle : rightAngle;
+					}
 
 					if (preset == DynamicSyncPreset::HorizontalDown)
 						slaveProperties.Angle = NormalizeAngle(180.0f - slaveProperties.Angle);

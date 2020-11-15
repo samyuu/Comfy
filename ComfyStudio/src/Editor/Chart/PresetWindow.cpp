@@ -236,11 +236,18 @@ namespace Comfy::Studio::Editor
 
 			Gui::Checkbox("Steep Angles", &dynamicSyncPresetSettings.SteepAngles);
 			Gui::ComfySameLineHelpMarker(
-				"Applies to left / right vertical sync presets\n"
-				"- Use steeper 35 instead of 45 degree angles\n"
-				"Intended for:\n"
+				"Applies to vertical and horizontal sync presets\n"
+				"- Use steeper 35 instead of 45 degree vertical angles\n"
+				"- Use steeper 10 instead of 20 degree horizontal angles\n"
+				"Intended for\n"
 				"- Sync pairs placed in quick succession\n"
 				"- Sync pairs positioned closely to the top / bottom edge of the screen"
+			);
+
+			Gui::Checkbox("Same Direction Angles", &dynamicSyncPresetSettings.SameDirectionAngles);
+			Gui::ComfySameLineHelpMarker(
+				"Applies to vertical and horizontal sync presets\n"
+				"- Set all angles to the same direction"
 			);
 
 			Gui::Separator();
