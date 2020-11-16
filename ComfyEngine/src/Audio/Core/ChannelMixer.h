@@ -10,7 +10,10 @@ namespace Comfy::Audio
 	public:
 		enum class MixingBehavior
 		{
-			Ignore, Combine, Count
+			IgnoreTrailing,
+			IgnoreLeading,
+			Combine, 
+			Count
 		};
 
 	public:
@@ -26,7 +29,7 @@ namespace Comfy::Audio
 		void SetTargetChannels(u32 value);
 
 	private:
-		MixingBehavior mixingBehavior = MixingBehavior::Ignore;
+		MixingBehavior mixingBehavior = MixingBehavior::IgnoreTrailing;
 		std::vector<i16> sampleMixBuffer;
 
 		u32 targetChannels = 0;

@@ -39,28 +39,34 @@ namespace Comfy::Audio
 
 			switch (mixingBehavior)
 			{
-			case MixingBehavior::Ignore:
+			case MixingBehavior::IgnoreTrailing:
 			{
-				// NOTE: Remove extra channel(s)
 				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
 					bufferToFill[i++] = mixBuffer[swapBufferIndex + 0];
 					bufferToFill[i++] = mixBuffer[swapBufferIndex + 1];
 					swapBufferIndex += sourceChannels;
 				}
-
+				break;
+			}
+			case MixingBehavior::IgnoreLeading:
+			{
+				for (i64 i = 0; i < framesRead * targetChannels;)
+				{
+					bufferToFill[i++] = mixBuffer[swapBufferIndex + 2];
+					bufferToFill[i++] = mixBuffer[swapBufferIndex + 3];
+					swapBufferIndex += sourceChannels;
+				}
 				break;
 			}
 			case MixingBehavior::Combine:
 			{
-				// NOTE: Mix extra channel(s)
 				for (i64 i = 0; i < framesRead * targetChannels;)
 				{
 					bufferToFill[i++] = MixSamples(mixBuffer[swapBufferIndex + 0], mixBuffer[swapBufferIndex + 2]);
 					bufferToFill[i++] = MixSamples(mixBuffer[swapBufferIndex + 1], mixBuffer[swapBufferIndex + 3]);
 					swapBufferIndex += sourceChannels;
 				}
-
 				break;
 			}
 

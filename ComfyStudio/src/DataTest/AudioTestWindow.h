@@ -44,7 +44,8 @@ namespace Comfy::Studio::DataTest
 
 		static constexpr std::array<const char*, EnumCount<Audio::ChannelMixer::MixingBehavior>()> mixingBehaviorNames =
 		{
-			"ChannelMixer::MixingBehavior::Ignore",
+			"ChannelMixer::MixingBehavior::IgnoreTrailing",
+			"ChannelMixer::MixingBehavior::IgnoreLeading",
 			"ChannelMixer::MixingBehavior::Combine",
 		};
 

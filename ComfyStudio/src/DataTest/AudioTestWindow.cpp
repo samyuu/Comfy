@@ -176,7 +176,7 @@ namespace Comfy::Studio::DataTest
 			if (selectedAudioBackend == Audio::AudioBackend::Invalid)
 				selectedAudioBackend = engine.GetAudioBackend();
 
-			if (Gui::BeginCombo("Audio API##Combo", getBackendName(selectedAudioBackend)))
+			if (Gui::BeginCombo("Audio Backend##Combo", getBackendName(selectedAudioBackend)))
 			{
 				for (size_t i = 0; i < EnumCount<Audio::AudioBackend>(); i++)
 				{
