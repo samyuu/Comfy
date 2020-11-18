@@ -434,13 +434,13 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Interpolate Target Angles"; }
 	};
 
-	class ApplyTargetListAngleVarations : public ChangeTargetListAngles
+	class ApplyTargetListAngleIncrements : public ChangeTargetListAngles
 	{
 	public:
 		using ChangeTargetListAngles::ChangeTargetListAngles;
 
 	public:
-		std::string_view GetName() const override { return "Apply Target Angle Variations"; }
+		std::string_view GetName() const override { return "Apply Target Angle Increments"; }
 	};
 
 	class InvertTargetListFrequencies : public ChangeTargetListProperties

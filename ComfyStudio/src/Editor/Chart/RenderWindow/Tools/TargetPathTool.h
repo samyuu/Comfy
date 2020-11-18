@@ -41,7 +41,7 @@ namespace Comfy::Studio::Editor
 		void InvertSelectedTargetFrequencies(Undo::UndoManager& undoManager, Chart& chart);
 		void InterpolateSelectedTargetAngles(Undo::UndoManager& undoManager, Chart& chart, bool clockwise);
 
-		void ApplySelectedTargetAngleVariations(Undo::UndoManager& undoManager, Chart& chart, f32 direction);
+		void ApplySelectedTargetAngleIncrements(Undo::UndoManager& undoManager, Chart& chart, f32 direction);
 
 	private:
 		struct AngleScrollData
@@ -67,14 +67,16 @@ namespace Comfy::Studio::Editor
 			i32 TargetIndex = -1;
 		} angleDrag = {};
 
-		struct AngleVariationData
+		struct AngleIncrementData
 		{
 			f32 IncrementPerBeat = 2.0f;
 			f32 IncrementPerBeatSlope = 10.0f;
+			f32 FixedStepIncrementPerTarget = 2.0f;
+			bool UseFixedStepIncrement = false;
 			bool ApplyToChainSlides = false;
 
-			bool operator==(const AngleVariationData& other) const { return (IncrementPerBeat == other.IncrementPerBeat) && (IncrementPerBeatSlope == other.IncrementPerBeatSlope) && (ApplyToChainSlides == other.ApplyToChainSlides); }
-			bool operator!=(const AngleVariationData& other) const { return !(*this == other); }
-		} angleVariation = {};
+			bool operator==(const AngleIncrementData& other) const;
+			bool operator!=(const AngleIncrementData& other) const;
+		} angleIncrement = {};
 	};
 }

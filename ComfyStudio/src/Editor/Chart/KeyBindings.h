@@ -74,7 +74,7 @@ namespace Comfy::Studio::Editor
 		constexpr Input::KeyCode PathToolInterpolateClockwise = Input::KeyCode_U;
 		constexpr Input::KeyCode PathToolInterpolateCounterclockwise = Input::KeyCode_I;
 
-		constexpr Input::KeyCode PathToolApplyAngleVariationsPositive = Input::KeyCode_F;
-		constexpr Input::KeyCode PathToolApplyAngleVariationsNegative = Input::KeyCode_V;
+		constexpr Input::KeyCode PathToolApplyAngleIncrementsPositive = Input::KeyCode_F;
+		constexpr Input::KeyCode PathToolApplyAngleIncrementsNegative = Input::KeyCode_V;
 	}
 }

@@ -35,28 +35,53 @@ namespace Comfy::Studio::Editor
 		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateCounterclockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, false);
 
-		if (Gui::BeginMenu("Angle Variation Settings"))
+		if (Gui::BeginMenu("Angle Increment Settings"))
 		{
-			constexpr auto formatString = ("%.2f" DEGREE_SIGN);
-			Gui::InputFloat("Increment per Beat", &angleVariation.IncrementPerBeat, 1.0f, 5.0f, formatString);
-			Gui::InputFloat("Increment per Beat (Slope)", &angleVariation.IncrementPerBeatSlope, 1.0f, 5.0f, formatString);
-			Gui::Checkbox("Apply to Chain Slide Fragments", &angleVariation.ApplyToChainSlides);
+			Gui::Checkbox("Fixed Step Increment", &angleIncrement.UseFixedStepIncrement);
+			Gui::SameLineHelpMarkerRightAlign(
+				"Instead of scaling the angle increment by the beat time distance,\n"
+				"increment angles per target regardless of their time difference\n"
+				"(Use with caution!)"
+			);
 
-			constexpr auto defaultVariation = AngleVariationData {};
-			const bool isDefault = (angleVariation == defaultVariation);
+			Gui::Checkbox("Apply to Chain Slide Fragments", &angleIncrement.ApplyToChainSlides);
+			Gui::SameLineHelpMarkerRightAlign(
+				"Increment angle with each chain slide fragment instead of only the starting piece.\n"
+				"In most cases chain slides should make use of uniform angles\n"
+				"(Use with caution!)"
+			);
+
+			constexpr auto min = 0.0f, max = 90.0f;
+			if (angleIncrement.UseFixedStepIncrement)
+			{
+				Gui::SliderFloat("##IncrementPerTarget", &angleIncrement.FixedStepIncrementPerTarget, min, max, ("%.2f" DEGREE_SIGN " per Target"));
+			}
+			else
+			{
+				Gui::SliderFloat("##IncrementPerBeat", &angleIncrement.IncrementPerBeat, min, max, ("%.2f" DEGREE_SIGN " per Beat"));
+				Gui::SliderFloat("##IncrementPerBeatSlope", &angleIncrement.IncrementPerBeatSlope, min, max, ("%.2f" DEGREE_SIGN " per Beat (Slope)"));
+			}
+
+			static constexpr AngleIncrementData defaultIncrementData = { 2.0f, 10.0f }, defaultIncrementDataSmall = { 1.0f, 8.0f };
+			const bool isDefault = (angleIncrement == defaultIncrementData), isDefaultSmall = (angleIncrement == defaultIncrementDataSmall);
 
 			Gui::PushItemDisabledAndTextColorIf(isDefault);
-			if (Gui::Button("Set Default", vec2(Gui::GetContentRegionAvailWidth() * 0.645f, 0.0f)))
-				angleVariation = defaultVariation;
+			if (Gui::Button("Set Default", vec2(Gui::GetContentRegionAvailWidth() * 0.5f, 0.0f))) angleIncrement = defaultIncrementData;
 			Gui::PopItemDisabledAndTextColorIf(isDefault);
+
+			Gui::SameLine(0.0f, 2.0f);
+
+			Gui::PushItemDisabledAndTextColorIf(isDefaultSmall);
+			if (Gui::Button("Set Default Small", vec2(Gui::GetContentRegionAvailWidth(), 0.0f))) angleIncrement = defaultIncrementDataSmall;
+			Gui::PopItemDisabledAndTextColorIf(isDefaultSmall);
 
 			Gui::EndMenu();
 		}
 
-		if (Gui::MenuItem("Apply Angle Variations Positive", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleVariationsPositive), false, (selectionCount > 0)))
-			ApplySelectedTargetAngleVariations(undoManager, chart, +1.0f);
-		if (Gui::MenuItem("Apply Angle Variations Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleVariationsNegative), false, (selectionCount > 0)))
-			ApplySelectedTargetAngleVariations(undoManager, chart, -1.0f);
+		if (Gui::MenuItem("Apply Angle Increment Positive", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsPositive), false, (selectionCount > 0)))
+			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f);
+		if (Gui::MenuItem("Apply Angle Increment Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsNegative), false, (selectionCount > 0)))
+			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f);
 
 		Gui::Separator();
 	}
@@ -159,6 +184,7 @@ namespace Comfy::Studio::Editor
 		const auto textPos = renderWindow.TargetAreaToScreenSpace(
 			targetProperties.Position + vec2(Rules::TickToDistance(TimelineTick::FromBars(1) / 10)) * vec2(1.0f, -1.0f)) - (textSize / 2.0f);
 
+		// TODO: Turn into tooltip (?) just like for the Position Tool
 		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);
 		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
 		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
@@ -174,10 +200,10 @@ namespace Comfy::Studio::Editor
 				InterpolateSelectedTargetAngles(undoManager, chart, true);
 			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateCounterclockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, false);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleVariationsPositive, false))
-				ApplySelectedTargetAngleVariations(undoManager, chart, +1.0f);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleVariationsNegative, false))
-				ApplySelectedTargetAngleVariations(undoManager, chart, -1.0f);
+			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleIncrementsPositive, false))
+				ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f);
+			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleIncrementsNegative, false))
+				ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f);
 		}
 	}
 
@@ -370,7 +396,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<InterpolateTargetListAngles>(chart, std::move(targetData));
 	}
 
-	void TargetPathTool::ApplySelectedTargetAngleVariations(Undo::UndoManager& undoManager, Chart& chart, f32 direction)
+	void TargetPathTool::ApplySelectedTargetAngleIncrements(Undo::UndoManager& undoManager, Chart& chart, f32 direction)
 	{
 		assert(std::isnormal(direction));
 
@@ -391,28 +417,61 @@ namespace Comfy::Studio::Editor
 			data.NewValue = Rules::TryGetProperties(chart.Targets[i]);
 		}
 
-		for (size_t i = 1; i < targetData.size(); i++)
+		if (angleIncrement.UseFixedStepIncrement)
 		{
-			auto& prevData = targetData[i - 1];
-			auto& thisData = targetData[i];
+			for (size_t i = 1; i < targetData.size(); i++)
+			{
+				auto& prevData = targetData[i - 1];
+				auto& thisData = targetData[i];
 
-			const auto& prevTarget = chart.Targets[prevData.TargetIndex];
-			const auto& thisTarget = chart.Targets[thisData.TargetIndex];
+				const auto& thisTarget = chart.Targets[thisData.TargetIndex];
 
-			const auto tickDifference = (prevTarget.Tick - thisTarget.Tick);
+				const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
+					0.0f : (-angleIncrement.FixedStepIncrementPerTarget * direction);
 
-			const auto directionToLastTarget = glm::normalize(prevData.NewValue.Position - thisData.NewValue.Position);
-			const auto angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
-			const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
+				thisData.NewValue.Angle = Rules::NormalizeAngle(prevData.NewValue.Angle + finalIncrement);
+			}
+		}
+		else
+		{
+			for (size_t i = 1; i < targetData.size(); i++)
+			{
+				auto& prevData = targetData[i - 1];
+				auto& thisData = targetData[i];
 
-			const auto incrementPerBeat = (isSlope ? angleVariation.IncrementPerBeatSlope : angleVariation.IncrementPerBeat);
-			const auto angleIncrement = (!angleVariation.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ? 
-				0.0f : (tickDifference.BeatsFraction() * incrementPerBeat * direction);
+				const auto& prevTarget = chart.Targets[prevData.TargetIndex];
+				const auto& thisTarget = chart.Targets[thisData.TargetIndex];
 
-			thisData.NewValue.Angle = Rules::NormalizeAngle(prevData.NewValue.Angle + angleIncrement);
+				const auto tickDifference = (prevTarget.Tick - thisTarget.Tick);
+
+				const auto directionToLastTarget = glm::normalize(prevData.NewValue.Position - thisData.NewValue.Position);
+				const auto angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
+				const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
+
+				const auto incrementPerBeat = (isSlope ? angleIncrement.IncrementPerBeatSlope : angleIncrement.IncrementPerBeat);
+				const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
+					0.0f : (tickDifference.BeatsFraction() * incrementPerBeat * direction);
+
+				thisData.NewValue.Angle = Rules::NormalizeAngle(prevData.NewValue.Angle + finalIncrement);
+			}
 		}
 
 		undoManager.DisallowMergeForLastCommand();
-		undoManager.Execute<ApplyTargetListAngleVarations>(chart, std::move(targetData));
+		undoManager.Execute<ApplyTargetListAngleIncrements>(chart, std::move(targetData));
+	}
+
+	bool TargetPathTool::AngleIncrementData::operator==(const AngleIncrementData& other) const
+	{
+		return
+			(IncrementPerBeat == other.IncrementPerBeat) &&
+			(IncrementPerBeatSlope == other.IncrementPerBeatSlope) &&
+			(FixedStepIncrementPerTarget == other.FixedStepIncrementPerTarget) &&
+			(UseFixedStepIncrement == other.UseFixedStepIncrement) &&
+			(ApplyToChainSlides == other.ApplyToChainSlides);
+	}
+
+	bool TargetPathTool::AngleIncrementData::operator!=(const AngleIncrementData& other) const
+	{
+		return !(*this == other);
 	}
 }
