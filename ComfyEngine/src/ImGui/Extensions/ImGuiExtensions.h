@@ -97,6 +97,11 @@ namespace ImGui
 	void WideSetTooltip(const char* fmt, ...);
 	void WideTooltip(const std::function<void(void)>& func);
 
+	void HelpMarker(std::string_view description);
+	void SameLineHelpMarker(std::string_view description);
+	void SameLineHelpMarker(float localPosX, float spacingWidth, std::string_view description);
+	void SameLineHelpMarkerRightAlign(std::string_view description);
+
 	// TODO: Use templates instead of std::function wherever possible
 	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
 	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func);

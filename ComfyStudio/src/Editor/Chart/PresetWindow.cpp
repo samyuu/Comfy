@@ -235,7 +235,7 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 
 			Gui::Checkbox("Steep Angles", &dynamicSyncPresetSettings.SteepAngles);
-			Gui::ComfySameLineHelpMarker(
+			Gui::SameLineHelpMarker(
 				"Applies to vertical and horizontal sync presets\n"
 				"- Use steeper 35 instead of 45 degree vertical angles\n"
 				"- Use steeper 10 instead of 20 degree horizontal angles\n"
@@ -245,7 +245,7 @@ namespace Comfy::Studio::Editor
 			);
 
 			Gui::Checkbox("Same Direction Angles", &dynamicSyncPresetSettings.SameDirectionAngles);
-			Gui::ComfySameLineHelpMarker(
+			Gui::SameLineHelpMarker(
 				"Applies to vertical and horizontal sync presets\n"
 				"- Set all angles to the same direction"
 			);
@@ -253,14 +253,14 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 
 			Gui::Checkbox("Inside Out Angles", &dynamicSyncPresetSettings.InsideOutAngles);
-			Gui::ComfySameLineHelpMarker(
+			Gui::SameLineHelpMarker(
 				"Applies to square and triangle sync presets\n"
 				"- Flip angles by 180 degrees\n"
 				"- Increase button distances"
 			);
 
 			Gui::Checkbox("Elevate Bottom Row", &dynamicSyncPresetSettings.ElevateBottomRow);
-			Gui::ComfySameLineHelpMarker(
+			Gui::SameLineHelpMarker(
 				"Applies to square and triangle sync presets\n"
 				"- Raise position height of bottom row targets by one 1/8th step"
 			);

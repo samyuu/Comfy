@@ -235,7 +235,7 @@ namespace ImGui
 		{
 			float* component = &value[i];
 			PushID(component);
-			
+
 			const bool textDisabled = (disabledText != nullptr && disabledText[i]);
 			if (textDisabled)
 				PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
@@ -345,25 +345,6 @@ namespace ImGui
 	void ComfyEndCombo()
 	{
 		EndCombo();
-	}
-
-	void ComfyHelpMarker(const char* description)
-	{
-		TextDisabled("(?)");
-		if (IsItemHovered())
-		{
-			BeginTooltip();
-			PushTextWrapPos(GetFontSize() * 35.0f);
-			TextUnformatted(description);
-			PopTextWrapPos();
-			EndTooltip();
-		}
-	}
-
-	void ComfySameLineHelpMarker(const char* description)
-	{
-		SameLine();
-		ComfyHelpMarker(description);
 	}
 
 	bool ComfyInputFloat(const char* label, float* value, float speed, float min, float max, const char* format, bool disabled)

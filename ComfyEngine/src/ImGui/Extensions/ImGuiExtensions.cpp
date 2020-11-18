@@ -572,6 +572,37 @@ namespace ImGui
 		EndTooltip();
 	}
 
+	void HelpMarker(std::string_view description)
+	{
+		TextDisabled("(?)");
+		if (IsItemHovered())
+		{
+			BeginTooltip();
+			PushTextWrapPos(GetFontSize() * 35.0f);
+			TextUnformatted(StringViewStart(description), StringViewEnd(description));
+			PopTextWrapPos();
+			EndTooltip();
+		}
+	}
+
+	void SameLineHelpMarker(std::string_view description)
+	{
+		SameLine();
+		HelpMarker(description);
+	}
+
+	void SameLineHelpMarker(float localPosX, float spacingWidth, std::string_view description)
+	{
+		SameLine(localPosX, spacingWidth);
+		HelpMarker(description);
+	}
+
+	void SameLineHelpMarkerRightAlign(std::string_view description)
+	{
+		SameLine(GetWindowWidth() - (GetFontSize() + 2.0f), 0.0f);
+		HelpMarker(description);
+	}
+
 	constexpr int ContextMenuMouseButton_button = 1;
 
 	static bool GetIsMouseSteady()
