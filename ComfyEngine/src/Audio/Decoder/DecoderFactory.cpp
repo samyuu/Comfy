@@ -77,20 +77,18 @@ namespace Comfy::Audio
 
 	std::unique_ptr<ISampleProvider> DecoderFactory::DecodeAndProcess(IDecoder& decoder, const void* fileContent, size_t fileSize)
 	{
-		auto resultSampleProvider = std::make_unique<MemorySampleProvider>();
-
-		DecoderOutputData outputData;
-		outputData.ChannelCount = &resultSampleProvider->channelCount;
-		outputData.SampleRate = &resultSampleProvider->sampleRate;
-		outputData.SampleCount = &resultSampleProvider->sampleCount;
-		outputData.SampleData = &resultSampleProvider->sampleData;
-
-		if (decoder.DecodeParseAudio(fileContent, fileSize, &outputData) == DecoderResult::Failure)
+		DecoderOutputData outputData = {};
+		if (decoder.DecodeParseAudio(fileContent, fileSize, outputData) == DecoderResult::Failure)
 			return nullptr;
 
-		if (*outputData.SampleRate != AudioEngine::OutputSampleRate)
-			Resample<i16>(*outputData.SampleData, *outputData.SampleCount, *outputData.SampleRate, AudioEngine::OutputSampleRate, *outputData.ChannelCount);
+		if (outputData.SampleRate != AudioEngine::OutputSampleRate)
+			Resample<i16>(outputData.SampleData, outputData.SampleCount, outputData.SampleRate, AudioEngine::OutputSampleRate, outputData.ChannelCount);
 
+		auto resultSampleProvider = std::make_unique<MemorySampleProvider>();
+		resultSampleProvider->channelCount = outputData.ChannelCount;
+		resultSampleProvider->sampleRate = outputData.SampleRate;
+		resultSampleProvider->sampleCount = outputData.SampleCount;
+		resultSampleProvider->sampleData = std::move(outputData.SampleData);
 		return resultSampleProvider;
 	}
 }

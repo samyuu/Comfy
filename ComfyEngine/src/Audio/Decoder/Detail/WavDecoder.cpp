@@ -9,7 +9,7 @@ namespace Comfy::Audio
 		return ".wav";
 	}
 
-	DecoderResult WavDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
+	DecoderResult WavDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData)
 	{
 		u32 channels, sampleRate;
 		u64 sampleCount;
@@ -21,14 +21,14 @@ namespace Comfy::Audio
 		if (data == nullptr)
 			return DecoderResult::Failure;
 
-		*outputData->ChannelCount = channels;
-		*outputData->SampleRate = sampleRate;
-		*outputData->SampleCount = sampleCount;
+		outputData.ChannelCount = channels;
+		outputData.SampleRate = sampleRate;
+		outputData.SampleCount = sampleCount;
 
 		// TEMP:
 		{
-			*outputData->SampleData = std::make_unique<i16[]>(sampleCount);
-			std::copy(data, data + sampleCount, outputData->SampleData->get());
+			outputData.SampleData = std::make_unique<i16[]>(sampleCount);
+			std::copy(data, data + sampleCount, outputData.SampleData.get());
 		}
 
 		return DecoderResult::Success;

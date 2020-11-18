@@ -10,7 +10,7 @@ namespace Comfy::Audio
 		return ".mp3";
 	}
 
-	DecoderResult Mp3Decoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
+	DecoderResult Mp3Decoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData)
 	{
 		drmp3_config config;
 		config.outputChannels = AudioEngine::GetInstance().GetChannelCount();
@@ -23,16 +23,16 @@ namespace Comfy::Audio
 		if (data == nullptr)
 			return DecoderResult::Failure;
 
-		*outputData->ChannelCount = config.outputChannels;
-		*outputData->SampleRate = config.outputSampleRate;
+		outputData.ChannelCount = config.outputChannels;
+		outputData.SampleRate = config.outputSampleRate;
 
 		const auto sampleCount = (frameCount * config.outputChannels);
-		*outputData->SampleCount = sampleCount;
+		outputData.SampleCount = sampleCount;
 
 		// TEMP:
 		{
-			*outputData->SampleData = std::make_unique<i16[]>(sampleCount);
-			std::copy(data, data + sampleCount, outputData->SampleData->get());
+			outputData.SampleData = std::make_unique<i16[]>(sampleCount);
+			std::copy(data, data + sampleCount, outputData.SampleData.get());
 		}
 
 		return DecoderResult::Success;

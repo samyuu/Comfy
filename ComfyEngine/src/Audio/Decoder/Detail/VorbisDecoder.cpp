@@ -8,7 +8,7 @@ namespace Comfy::Audio
 		return ".ogg";
 	}
 
-	DecoderResult VorbisDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
+	DecoderResult VorbisDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData)
 	{
 		i32 channels, sampleRate;
 		i16* sampleData;
@@ -20,14 +20,14 @@ namespace Comfy::Audio
 			return DecoderResult::Failure;
 
 		const i32 sampleCount = frameCount * channels;
-		*outputData->ChannelCount = channels;
-		*outputData->SampleRate = sampleRate;
-		*outputData->SampleCount = sampleCount;
+		outputData.ChannelCount = channels;
+		outputData.SampleRate = sampleRate;
+		outputData.SampleCount = sampleCount;
 
 		// TEMP:
 		{
-			*outputData->SampleData = std::make_unique<i16[]>(sampleCount);
-			std::copy(sampleData, sampleData + sampleCount, outputData->SampleData->get());
+			outputData.SampleData = std::make_unique<i16[]>(sampleCount);
+			std::copy(sampleData, sampleData + sampleCount, outputData.SampleData.get());
 		}
 
 		return DecoderResult::Success;

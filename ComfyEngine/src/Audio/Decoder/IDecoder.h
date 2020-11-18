@@ -12,10 +12,10 @@ namespace Comfy::Audio
 
 	struct DecoderOutputData
 	{
-		u32* ChannelCount;
-		u32* SampleRate;
-		size_t* SampleCount;
-		std::unique_ptr<i16[]>* SampleData;
+		u32 ChannelCount;
+		u32 SampleRate;
+		size_t SampleCount;
+		std::unique_ptr<i16[]> SampleData;
 	};
 
 	class IDecoder
@@ -24,6 +24,6 @@ namespace Comfy::Audio
 		virtual ~IDecoder() = default;
 
 		virtual const char* GetFileExtensions() const = 0;
-		virtual DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData) = 0;
+		virtual DecoderResult DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData) = 0;
 	};
 }

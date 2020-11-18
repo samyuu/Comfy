@@ -118,7 +118,7 @@ namespace Comfy::Audio
 		return ".vag";
 	}
 
-	DecoderResult HevagDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData* outputData)
+	DecoderResult HevagDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData)
 	{
 		constexpr size_t headerByteSize = 48;
 		if (fileSize < headerByteSize)
@@ -152,10 +152,10 @@ namespace Comfy::Audio
 
 		DecodeAllADPCMBlocks(samples.get(), channelCount, (waveformDataSize / sizeof(ADPCMDataBlock)), reinterpret_cast<const ADPCMDataBlock*>(fileStream));
 
-		*outputData->ChannelCount = channelCount;
-		*outputData->SampleRate = sampleRate;
-		*outputData->SampleCount = sampleCount;
-		*outputData->SampleData = std::move(samples);
+		outputData.ChannelCount = channelCount;
+		outputData.SampleRate = sampleRate;
+		outputData.SampleCount = sampleCount;
+		outputData.SampleData = std::move(samples);
 
 		return DecoderResult::Success;
 	}
