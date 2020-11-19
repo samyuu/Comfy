@@ -50,12 +50,20 @@ namespace Comfy::Audio
 		return nullptr;
 	}
 
-	std::unique_ptr<ISampleProvider> DecoderFactory::DecodeFileContentWAV(const void* fileContent, size_t fileSize)
+	std::unique_ptr<ISampleProvider> DecoderFactory::DecodeFile(std::string_view fileName, const void* fileContent, size_t fileSize)
 	{
-		assert(wavDecoder != nullptr);
-		assert(fileContent != nullptr && fileSize > 0);
+		if (fileContent == nullptr || fileSize == 0)
+			return nullptr;
 
-		return DecodeAndProcess(*wavDecoder, fileContent, fileSize);
+		const auto extension = IO::Path::GetExtension(fileName);
+		for (auto& decoder : availableDecoders)
+		{
+			if (IO::Path::DoesAnyPackedExtensionMatch(extension, decoder->GetFileExtensions()))
+				return DecodeAndProcess(*decoder, fileContent, fileSize);
+		}
+
+		Logger::LogErrorLine(__FUNCTION__"(): No compatible IDecoder found for the input file %.*s", fileName.size(), fileName.data());
+		return nullptr;
 	}
 
 	template <typename T>

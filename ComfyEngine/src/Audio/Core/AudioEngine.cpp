@@ -525,10 +525,15 @@ namespace Comfy::Audio
 
 	SourceHandle AudioEngine::LoadAudioSource(std::string_view filePath)
 	{
-		return LoadAudioSource(DecoderFactory::GetInstance().DecodeFile(filePath));
+		return RegisterAudioSource(DecoderFactory::GetInstance().DecodeFile(filePath));
 	}
 
-	SourceHandle AudioEngine::LoadAudioSource(std::shared_ptr<ISampleProvider> sampleProvider)
+	SourceHandle AudioEngine::LoadAudioSource(std::string_view fileName, const void* fileContent, size_t fileSize)
+	{
+		return RegisterAudioSource(DecoderFactory::GetInstance().DecodeFile(fileName, fileContent, fileSize));
+	}
+
+	SourceHandle AudioEngine::RegisterAudioSource(std::shared_ptr<ISampleProvider> sampleProvider)
 	{
 		if (sampleProvider == nullptr)
 			return SourceHandle::Invalid;
@@ -545,14 +550,6 @@ namespace Comfy::Audio
 
 		impl->LoadedSources.push_back(std::move(sampleProvider));
 		return static_cast<SourceHandle>(impl->LoadedSources.size() - 1);
-	}
-
-	SourceHandle AudioEngine::LoadAudioSourceFromWAV(const void* fileContent, size_t fileSize)
-	{
-		if (fileContent == nullptr || fileSize == 0)
-			return SourceHandle::Invalid;
-
-		return LoadAudioSource(DecoderFactory::GetInstance().DecodeFileContentWAV(fileContent, fileSize));
 	}
 
 	void AudioEngine::UnloadSource(SourceHandle source)

@@ -57,7 +57,7 @@ namespace Comfy::Audio
 
 		bool GetRemoveOnEnd() const;
 		void SetRemoveOnEnd(bool value);
-		
+
 		bool GetPauseOnEnd() const;
 		void SetPauseOnEnd(bool value);
 
@@ -135,8 +135,8 @@ namespace Comfy::Audio
 	public:
 		COMFY_NODISCARD std::future<SourceHandle> LoadAudioSourceAsync(std::string_view filePath);
 		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view filePath);
-		COMFY_NODISCARD SourceHandle LoadAudioSource(std::shared_ptr<ISampleProvider> sampleProvider);
-		COMFY_NODISCARD SourceHandle LoadAudioSourceFromWAV(const void* fileContent, size_t fileSize);
+		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view fileName, const void* fileContent, size_t fileSize);
+		COMFY_NODISCARD SourceHandle RegisterAudioSource(std::shared_ptr<ISampleProvider> sampleProvider);
 		void UnloadSource(SourceHandle source);
 
 		// NOTE: Add a voice and keep a handle to it

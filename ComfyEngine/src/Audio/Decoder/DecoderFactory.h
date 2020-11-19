@@ -14,7 +14,7 @@ namespace Comfy::Audio
 
 	public:
 		std::unique_ptr<ISampleProvider> DecodeFile(std::string_view filePath);
-		std::unique_ptr<ISampleProvider> DecodeFileContentWAV(const void* fileContent, size_t fileSize);
+		std::unique_ptr<ISampleProvider> DecodeFile(std::string_view fileName, const void* fileContent, size_t fileSize);
 
 	public:
 		static DecoderFactory& GetInstance();

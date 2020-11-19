@@ -15,7 +15,7 @@ namespace Comfy::Studio::Editor
 			if (!System::Data.ReadFileIntoBuffer(file, fileContent.get()))
 				return Audio::SourceHandle::Invalid;
 
-			return Audio::AudioEngine::GetInstance().LoadAudioSourceFromWAV(fileContent.get(), file->Size);
+			return Audio::AudioEngine::GetInstance().LoadAudioSource(file->Name, fileContent.get(), file->Size);
 		}
 	}
 
