@@ -83,9 +83,13 @@ namespace Comfy::Studio::Editor
 
 	const Graphics::Spr* TimelineRenderHelper::GetButtonSpriteForTarget(const TimelineTarget& target) const
 	{
-		const auto typeIndex = static_cast<size_t>(target.Type);
+		const auto typeIndex = static_cast<u8>(target.Type);
 		const bool isSync = target.Flags.IsSync;
-		const bool isFrag = (target.Flags.IsChain && !target.Flags.IsChainStart);
+		bool isFrag = (target.Flags.IsChain && !target.Flags.IsChainStart);
+
+		// NOTE: This does not match the correct behavior as used in the render window but should avoid confusion between single fragment chains and normal slides
+		if (target.Flags.IsChainStart && target.Flags.IsChainEnd)
+			isFrag = true;
 
 		const auto& typesArray =
 			isFrag ? isSync ? sprites.ButtonIconsFragSync : sprites.ButtonIconsFrag :
