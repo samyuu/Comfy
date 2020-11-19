@@ -958,6 +958,45 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	namespace
+	{
+		constexpr ButtonType GetNextClampedButtonType(const TimelineTarget& target, i32 incrementDirection)
+		{
+			const auto[min, max] =
+				(target.Flags.IsChain || target.Flags.SameTypeSyncCount > 1) ? std::array { ButtonType::SlideL, ButtonType::SlideR } :
+				(target.Flags.IsHold) ? std::array { ButtonType::Triangle, ButtonType::Circle } :
+				std::array { ButtonType::Triangle, ButtonType::SlideR };
+
+			return static_cast<ButtonType>(std::clamp(static_cast<i32>(target.Type) + incrementDirection, static_cast<i32>(min), static_cast<i32>(max)));
+		}
+
+		const TimelineTarget* RecursiveFindBlockingTargetForChangedType(const SortedTargetList& targets, TimelineTick tick, ButtonType type, i32 incrementDirection, const TimelineTarget* syncPairBaseTarget)
+		{
+			const TimelineTarget* blockingTarget = nullptr;
+			for (i32 i = 0; i < syncPairBaseTarget->Flags.SyncPairCount; i++)
+			{
+				if (syncPairBaseTarget[i].Tick == tick && syncPairBaseTarget[i].Type == type)
+					blockingTarget = &syncPairBaseTarget[i];
+			}
+
+			if (blockingTarget == nullptr || !blockingTarget->IsSelected)
+				return blockingTarget;
+
+			if (const auto newType = GetNextClampedButtonType(*blockingTarget, incrementDirection); newType == type)
+				return blockingTarget;
+			else
+				return RecursiveFindBlockingTargetForChangedType(targets, tick, newType, incrementDirection, syncPairBaseTarget);
+		}
+
+		bool IsChangedTargetButtonTypeNotBlocked(const SortedTargetList& targets, const TimelineTarget& target, ButtonType newType, i32 incrementDirection)
+		{
+			const auto& syncPairBaseTarget = (&target)[-target.Flags.IndexWithinSyncPair];
+			assert(syncPairBaseTarget.Flags.IndexWithinSyncPair == 0);
+
+			return (RecursiveFindBlockingTargetForChangedType(targets, target.Tick, newType, incrementDirection, &syncPairBaseTarget) == nullptr);
+		}
+	}
+
 	void TargetTimeline::UpdateInputSelectionDragging()
 	{
 		if (!selectionDrag.IsDragging)
@@ -1026,45 +1065,34 @@ namespace Comfy::Studio::Editor
 			if (selectionDrag.ChangeType)
 			{
 				const auto heightPerType = (rowHeight - 2.0f);
-				const auto buttonTypesToIncrement = static_cast<i32>(selectionDrag.VerticalDistanceMovedSoFar / heightPerType);
-				selectionDrag.VerticalDistanceMovedSoFar -= (buttonTypesToIncrement * heightPerType);
+				const auto typeIncrementDirection = std::clamp(static_cast<i32>(selectionDrag.VerticalDistanceMovedSoFar / heightPerType), -1, +1);
+				selectionDrag.VerticalDistanceMovedSoFar -= (typeIncrementDirection * heightPerType);
 
-				if (buttonTypesToIncrement != 0)
+				if (typeIncrementDirection != 0)
 				{
+					const auto selectedTargetCount = CountSelectedTargets();
+
 					std::vector<ChangeTargetListTypes::Data> targetTypeData;
-					targetTypeData.reserve(CountSelectedTargets());
+					targetTypeData.reserve(selectedTargetCount);
 
 					for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
 					{
-						const auto& target = workingChart->Targets[i];
+						auto& target = workingChart->Targets[i];
 						if (!target.IsSelected)
 							continue;
 
 						auto& data = targetTypeData.emplace_back();
 						data.TargetIndex = i;
 
-						const auto newTypeIndex = std::clamp(static_cast<i32>(target.Type) + buttonTypesToIncrement, 0, static_cast<i32>(ButtonType::Count) - 1);
-						const auto newType = static_cast<ButtonType>(newTypeIndex);
-
-						// TODO: Instead of searching the entire list, check if IsSync then check surrounding pair... or only clamp in second loop (?)
-						const auto existingTargetWithType = std::find_if(
-							workingChart->Targets.begin(),
-							workingChart->Targets.end(),
-							[&](auto& t) { return (t.Tick == target.Tick) && (t.Type == newType); });
-
-						const bool newTypeIsSlide = IsSlideButtonType(newType);
-
-						// BUG: Moving sync pairs
-						if (existingTargetWithType != workingChart->Targets.end() || (target.Flags.IsChain && !newTypeIsSlide) || (target.Flags.IsHold && newTypeIsSlide))
-							data.NewValue = target.Type;
-						else
-							data.NewValue = newType;
+						const auto newType = GetNextClampedButtonType(target, typeIncrementDirection);
+						data.NewValue = IsChangedTargetButtonTypeNotBlocked(workingChart->Targets, target, newType, typeIncrementDirection) ? newType : target.Type;
 
 						if (target.Tick == cursorTick && data.NewValue != target.Type)
 							PlaySingleTargetButtonSoundAndAnimation(data.NewValue, target.Tick);
 					}
 
-					undoManager.Execute<ChangeTargetListTypes>(*workingChart, std::move(targetTypeData));
+					if (!targetTypeData.empty())
+						undoManager.Execute<ChangeTargetListTypes>(*workingChart, std::move(targetTypeData));
 				}
 			}
 			else
