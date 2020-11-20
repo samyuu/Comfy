@@ -926,17 +926,15 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		constexpr bool allowRepeat = true;
 		const bool useBeatStep = Gui::GetIO().KeyShift;
-
-		if (Gui::IsKeyPressed(KeyBindings::MoveCursorLeft, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::MoveCursorLeft, true))
 			AdvanceCursorByGridDivisionTick(-1, useBeatStep);
-		if (Gui::IsKeyPressed(KeyBindings::MoveCursorRight, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::MoveCursorRight, true))
 			AdvanceCursorByGridDivisionTick(+1, useBeatStep);
 
-		if (Gui::IsKeyPressed(KeyBindings::IncreaseGridPrecision, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::IncreaseGridPrecision, true))
 			SelectNextPresetGridDivision(-1);
-		if (Gui::IsKeyPressed(KeyBindings::DecreaseGridPrecision, allowRepeat))
+		if (Gui::IsKeyPressed(KeyBindings::DecreaseGridPrecision, true))
 			SelectNextPresetGridDivision(+1);
 
 		if (Gui::IsKeyPressed(KeyBindings::RangeSelection, false))
@@ -956,6 +954,12 @@ namespace Comfy::Studio::Editor
 					rangeSelection = {};
 			}
 		}
+
+		auto songVoice = chartEditor.GetSongVoice();
+		if (Gui::IsKeyPressed(KeyBindings::DecreasePlaybackSpeed, true))
+			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+		if (Gui::IsKeyPressed(KeyBindings::IncreasePlaybackSpeed, true))
+			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 	}
 
 	namespace
@@ -1299,7 +1303,7 @@ namespace Comfy::Studio::Editor
 				auto songVoice = chartEditor.GetSongVoice();
 				f32 songPlaybackSpeed = songVoice.GetPlaybackSpeed();
 
-				for (const auto presetSpeed : std::array { 1.00f, 0.75f, 0.50f, 0.25f, })
+				for (const auto presetSpeed : { 1.00f, 0.75f, 0.50f, 0.25f, })
 				{
 					char b[64]; sprintf_s(b, "Set %3.0f%%", presetSpeed * 100.0f);
 
@@ -1313,6 +1317,12 @@ namespace Comfy::Studio::Editor
 						songVoice.SetPlaybackSpeed(s / 100.0f);
 					Gui::EndMenu();
 				}
+
+				Gui::Separator();
+				if (Gui::MenuItem("Speed Down", Input::GetKeyCodeName(KeyBindings::DecreasePlaybackSpeed), nullptr, (songPlaybackSpeed > playbackSpeedStepMin)))
+					songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+				if (Gui::MenuItem("Speed Up", Input::GetKeyCodeName(KeyBindings::IncreasePlaybackSpeed), nullptr, (songPlaybackSpeed < playbackSpeedStepMax)))
+					songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 
 				Gui::EndMenu();
 			}

@@ -25,6 +25,9 @@ namespace Comfy::Studio::Editor
 		constexpr Input::KeyCode RangeSelection = Input::KeyCode_Tab;
 		constexpr Input::KeyCode DeleteSelection = Input::KeyCode_Delete;
 
+		constexpr Input::KeyCode IncreasePlaybackSpeed = Input::KeyCode_OEMPeriod;
+		constexpr Input::KeyCode DecreasePlaybackSpeed = Input::KeyCode_OEMComma;
+
 		constexpr Input::KeyCode JumpToPreviousTarget = Input::KeyCode_Q;
 		constexpr Input::KeyCode JumpToNextTarget = Input::KeyCode_E;
 

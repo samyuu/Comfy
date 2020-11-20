@@ -209,6 +209,9 @@ namespace Comfy::Studio::Editor
 		i32 activeBarGridDivision = 16;
 		i32 activeBarChainSlideDivision = 32;
 
+		f32 playbackSpeedStepMin = 0.25f, playbackSpeedStepMax = 1.0f;
+		f32 playbackSpeedStep = 0.25f;
+
 	private:
 		const f32 iconScale = 1.0f;
 		const f32 rowHeight = 36.0f;
