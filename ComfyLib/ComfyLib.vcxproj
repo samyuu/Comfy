@@ -17,6 +17,7 @@
     <ClInclude Include="src\Core\Hacks.h" />
     <ClInclude Include="src\Core\ScopeExitFunc.h" />
     <ClInclude Include="src\Core\StartupFuncWrapper.h" />
+    <ClInclude Include="src\Database\Game\GmBtnSfxDB.h" />
     <ClInclude Include="src\Database\SfxDB.h" />
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetUtil.h" />
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetSet.h" />
@@ -88,6 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
+    <ClCompile Include="src\Database\Game\GmBtnSfxDB.cpp" />
     <ClCompile Include="src\Database\SfxDB.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetUtil.cpp" />
     <ClCompile Include="src\Graphics\Auth2D\Aet\AetSet.cpp" />
