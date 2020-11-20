@@ -23,6 +23,11 @@ namespace Comfy::Studio::Editor
 			chart->Properties.Difficulty.Type = static_cast<Difficulty>(difficulty);
 			chart->Properties.Difficulty.Level = static_cast<DifficultyLevel>(pvLevel + 1);
 
+			chart->Properties.ButtonSound.ButtonID = buttonSound;
+			chart->Properties.ButtonSound.SlideID = slideSound;
+			chart->Properties.ButtonSound.ChainSlideID = chainSound;
+			chart->Properties.ButtonSound.SliderTouchID = touchSound;
+
 			chart->StartOffset = songOffset;
 			chart->Duration = TimeSpan::Zero();
 
@@ -328,10 +333,12 @@ namespace Comfy::Studio::Editor
 		void PJEFile::FromChart(const Chart& sourceChart)
 		{
 			beatsPerBar = 192;
-			buttonSound = 0;
-			slideSound = 0;
-			chainSound = 0;
-			touchSound = 0;
+
+			buttonSound = static_cast<i16>(sourceChart.Properties.ButtonSound.ButtonID);
+			slideSound = static_cast<i16>(sourceChart.Properties.ButtonSound.SlideID);
+			chainSound = static_cast<i16>(sourceChart.Properties.ButtonSound.ChainSlideID);
+			touchSound = static_cast<i16>(sourceChart.Properties.ButtonSound.SliderTouchID);
+
 			pvID = 999;
 			difficulty = static_cast<u8>(sourceChart.Properties.Difficulty.Type);
 			pvLevel = std::clamp(static_cast<u8>(sourceChart.Properties.Difficulty.Level), static_cast<u8>(1), static_cast<u8>(20)) - 1;

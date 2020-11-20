@@ -94,6 +94,7 @@ namespace Comfy::Studio::Editor
 			i16 slideSound;
 			i16 chainSound;
 			i16 touchSound;
+
 			u32 pvID;
 			u8 difficulty;
 			u8 pvLevel;
