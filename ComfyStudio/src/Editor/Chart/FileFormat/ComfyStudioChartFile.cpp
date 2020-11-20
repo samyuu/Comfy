@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	namespace ChartFileFormat
 	{
 		// NOTE: Increment major version for breaking changes and minor version for backwards and forward compatible additions
-		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 2, };
+		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 3, };
 		enum class Endianness : u16 { Little = 'L', Big = 'B' };
 		enum class PointerSize : u16 { Bit32 = 32, Bit64 = 64 };
 		enum class HeaderFlags : u32 { None = 0xFFFFFFFF };
@@ -70,6 +70,8 @@ namespace Comfy::Studio::Editor
 		constexpr std::string_view SectionIDMetadataDiskNumber = "Disk Number";
 		constexpr std::string_view SectionIDMetadataCreatorName = "Creator Name";
 		constexpr std::string_view SectionIDMetadataCreatorComment = "Creator Comment";
+		constexpr std::string_view SectionIDMetadataExtraInfoKeyFmt = "Extra Info Key %zu";
+		constexpr std::string_view SectionIDMetadataExtraInfoValueFmt = "Extra Info Value %zu";
 
 		constexpr std::string_view SectionIDChart = "Chart";
 		constexpr std::string_view SectionIDChartSectionIDScale = "Scale";
@@ -78,14 +80,7 @@ namespace Comfy::Studio::Editor
 		constexpr std::string_view SectionIDChartSectionIDTimeDuration = "Duration";
 		constexpr std::string_view SectionIDChartSectionIDTargets = "Targets";
 		constexpr std::string_view SectionIDChartSectionIDTempoMap = "Tempo Map";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffects = "Sound Effects";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffectsButton = "Button";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffectsSlide = "Slide";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffectsChainSlide = "Chain Slide";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffectsChainSlideSub = "Chain Slide Sub";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffectsChainSlideSuccess = "Chain Slide Success";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffectsChainSlideFailure = "Chain Slide Failure";
-		constexpr std::string_view SectionIDChartSectionIDSoundEffectsSlideTouch = "Slide Touch";
+		constexpr std::string_view SectionIDChartSectionIDButtonSounds = "Button Sounds";
 		constexpr std::string_view SectionIDChartSectionIDDifficulty = "Difficulty";
 
 		constexpr std::string_view SectionIDDebug = "Debug";
@@ -154,20 +149,23 @@ namespace Comfy::Studio::Editor
 		findMetadataStr(SectionIDMetadataCreatorName, outChart->Properties.Creator.Name);
 		findMetadataStr(SectionIDMetadataCreatorComment, outChart->Properties.Creator.Comment);
 
+		for (size_t i = 0; i < outChart->Properties.Song.ExtraInfo.size(); i++)
+		{
+			char buffer[32];
+			findMetadataStr(std::string_view(buffer, sprintf_s(buffer, SectionIDMetadataExtraInfoKeyFmt.data(), i)), outChart->Properties.Song.ExtraInfo[i].Key);
+			findMetadataStr(std::string_view(buffer, sprintf_s(buffer, SectionIDMetadataExtraInfoValueFmt.data(), i)), outChart->Properties.Song.ExtraInfo[i].Value);
+		}
+
 		outChart->StartOffset = chart.Time.SongOffset;
 		outChart->Duration = chart.Time.Duration;
 
 		outChart->TempoMap = std::move(chart.TempoMap);
 		outChart->Targets = std::move(chart.Targets);
 
-		auto findSoundEffectStr = [this](std::string_view key, std::string& outValue) { outValue = chart.SoundEffects.Find(key); };
-		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsButton, outChart->Properties.SoundEffect.ButtonName);
-		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsSlide, outChart->Properties.SoundEffect.SlideName);
-		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsChainSlide, outChart->Properties.SoundEffect.ChainSlideFirstName);
-		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsChainSlideSub, outChart->Properties.SoundEffect.ChainSlideSubName);
-		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsChainSlideSuccess, outChart->Properties.SoundEffect.ChainSlideSuccessName);
-		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsChainSlideFailure, outChart->Properties.SoundEffect.ChainSlideFailureName);
-		findSoundEffectStr(SectionIDChartSectionIDSoundEffectsSlideTouch, outChart->Properties.SoundEffect.SlideTouchName);
+		outChart->Properties.ButtonSound.ButtonID = chart.ButtonSound.ButtonID;
+		outChart->Properties.ButtonSound.SlideID = chart.ButtonSound.SlideID;
+		outChart->Properties.ButtonSound.ChainSlideID = chart.ButtonSound.ChainSlideID;
+		outChart->Properties.ButtonSound.SliderTouchID = chart.ButtonSound.SliderTouchID;
 
 		const bool isOriginalVersion = (chart.Difficulty.Version == ChartData::DifficultyVersion::Original);
 		switch (chart.Difficulty.Type)
@@ -420,27 +418,23 @@ namespace Comfy::Studio::Editor
 											});
 										}
 									}
-									else if (chartSectionNameID == SectionIDChartSectionIDSoundEffects)
+									else if (chartSectionNameID == SectionIDChartSectionIDButtonSounds)
 									{
-										const auto entryCount = reader.ReadSize();
-										const auto entriesOffset = reader.ReadPtr();
+										const auto buttonIDCount = reader.ReadSize();
+										const auto buttonIDsOffset = reader.ReadPtr();
 										reader.ReadU64();
 										reader.ReadU64();
 
-										if (reader.IsValidPointer(entriesOffset))
+										if (reader.IsValidPointer(buttonIDsOffset) && buttonIDCount >= 4)
 										{
-											reader.ReadAt(entriesOffset, [&](IO::StreamReader& reader)
+											reader.ReadAt(buttonIDsOffset, [&](IO::StreamReader& reader)
 											{
-												chart.SoundEffects.Items.reserve(entryCount);
-												for (size_t i = 0; i < entryCount; i++)
-												{
-													auto key = reader.ReadStrPtrOffsetAware();
-													auto value = reader.ReadStrPtrOffsetAware();
-													reader.ReadU64();
-													reader.ReadU64();
-
-													chart.SoundEffects.Add(std::move(key), std::move(value));
-												}
+												chart.ButtonSound.ButtonID = reader.ReadU32();
+												chart.ButtonSound.SlideID = reader.ReadU32();
+												chart.ButtonSound.ChainSlideID = reader.ReadU32();
+												chart.ButtonSound.SliderTouchID = reader.ReadU32();
+												reader.ReadU64();
+												reader.ReadU64();
 											});
 										}
 									}
@@ -653,19 +647,19 @@ namespace Comfy::Studio::Editor
 								}
 								else if (chartSectionIndex == 4)
 								{
-									writer.WriteStrPtr(SectionIDChartSectionIDSoundEffects);
+									writer.WriteStrPtr(SectionIDChartSectionIDButtonSounds);
 									writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 									{
-										writer.WriteSize(chart.SoundEffects.Items.size());
+										constexpr auto buttonSoundIDCount = 4;
+										writer.WriteSize(buttonSoundIDCount);
 										writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 										{
-											for (const auto& item : chart.SoundEffects.Items)
-											{
-												writer.WriteStrPtr(item.Key);
-												writer.WriteStrPtr(item.Value);
-												writer.WriteU64(0);
-												writer.WriteU64(0);
-											}
+											writer.WriteU32(chart.ButtonSound.ButtonID);
+											writer.WriteU32(chart.ButtonSound.SlideID);
+											writer.WriteU32(chart.ButtonSound.ChainSlideID);
+											writer.WriteU32(chart.ButtonSound.SliderTouchID);
+											writer.WriteU64(0);
+											writer.WriteU64(0);
 											writer.WriteAlignmentPadding(16);
 										});
 										writer.WriteU64(0);
@@ -713,7 +707,7 @@ namespace Comfy::Studio::Editor
 					writer.WriteStrPtr(SectionIDDebug);
 					writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 					{
-						writer.WriteU32_BE('dbg\0');
+						writer.WriteStr("Reserved");
 						writer.WriteAlignmentPadding(16);
 					});
 					writer.WriteU64(0);
@@ -762,6 +756,17 @@ namespace Comfy::Studio::Editor
 		addMetadata(SectionIDMetadataCreatorName, sourceChart.Properties.Creator.Name);
 		addMetadata(SectionIDMetadataCreatorComment, sourceChart.Properties.Creator.Comment);
 
+		for (size_t i = 0; i < sourceChart.Properties.Song.ExtraInfo.size(); i++)
+		{
+			char buffer[32];
+			const auto& extraInfo = sourceChart.Properties.Song.ExtraInfo[i];
+
+			if (!extraInfo.Key.empty())
+				addMetadata(std::string_view(buffer, sprintf_s(buffer, SectionIDMetadataExtraInfoKeyFmt.data(), i)), extraInfo.Key);
+			if (!extraInfo.Value.empty())
+				addMetadata(std::string_view(buffer, sprintf_s(buffer, SectionIDMetadataExtraInfoValueFmt.data(), i)), extraInfo.Value);
+		}
+
 		chart.Scale.ButtonTypeNames.reserve(EnumCount<ButtonType>());
 		static_assert(static_cast<u8>(ButtonType::Triangle) == 0);
 		chart.Scale.ButtonTypeNames.emplace_back("Triangle");
@@ -798,13 +803,9 @@ namespace Comfy::Studio::Editor
 		chart.Difficulty.LevelWhole = static_cast<ChartData::DifficultyLevelWhole>(static_cast<u8>(sourceChart.Properties.Difficulty.Level) / 2);
 		chart.Difficulty.LevelFraction = (static_cast<u8>(sourceChart.Properties.Difficulty.Level) % 2 == 0) ? ChartData::DifficultyLevelFraction::Zero : ChartData::DifficultyLevelFraction::Half;
 
-		auto addSoundEffect = [this](std::string_view key, std::string_view value) { if (!value.empty()) { chart.SoundEffects.Add(std::string(key), std::string(value)); } };
-		addSoundEffect(SectionIDChartSectionIDSoundEffectsButton, sourceChart.Properties.SoundEffect.ButtonName);
-		addSoundEffect(SectionIDChartSectionIDSoundEffectsSlide, sourceChart.Properties.SoundEffect.SlideName);
-		addSoundEffect(SectionIDChartSectionIDSoundEffectsChainSlide, sourceChart.Properties.SoundEffect.ChainSlideFirstName);
-		addSoundEffect(SectionIDChartSectionIDSoundEffectsChainSlideSub, sourceChart.Properties.SoundEffect.ChainSlideSubName);
-		addSoundEffect(SectionIDChartSectionIDSoundEffectsChainSlideSuccess, sourceChart.Properties.SoundEffect.ChainSlideSuccessName);
-		addSoundEffect(SectionIDChartSectionIDSoundEffectsChainSlideFailure, sourceChart.Properties.SoundEffect.ChainSlideFailureName);
-		addSoundEffect(SectionIDChartSectionIDSoundEffectsSlideTouch, sourceChart.Properties.SoundEffect.SlideTouchName);
+		chart.ButtonSound.ButtonID = sourceChart.Properties.ButtonSound.ButtonID;
+		chart.ButtonSound.SlideID = sourceChart.Properties.ButtonSound.SlideID;
+		chart.ButtonSound.ChainSlideID = sourceChart.Properties.ButtonSound.ChainSlideID;
+		chart.ButtonSound.SliderTouchID = sourceChart.Properties.ButtonSound.SliderTouchID;
 	}
 }

@@ -62,7 +62,10 @@ namespace Comfy::Studio::Editor
 			std::vector<TimelineTarget> Targets;
 			std::vector<TempoChange> TempoMap;
 
-			SmallKeyValueMap SoundEffects;
+			struct ButtonSoundData
+			{
+				u32 ButtonID, SlideID, ChainSlideID, SliderTouchID;
+			} ButtonSound;
 
 			enum class DifficultyType : u8 { Easy, Normal, Hard, Extreme };
 			enum class DifficultyVersion : u8 { Original, Extra };
