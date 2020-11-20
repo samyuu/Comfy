@@ -133,8 +133,54 @@ namespace Comfy::Input
 		KeyCode_RightControl = 0xA3,
 		KeyCode_LeftAlt = 0xA4,
 		KeyCode_RightAlt = 0xA5,
+		KeyCode_BrowserBack = 0xA6,
+		KeyCode_BrowserForward = 0xA7,
+		KeyCode_BrowserRefresh = 0xA8,
+		KeyCode_BrowserStop = 0xA9,
+		KeyCode_BrowserSearch = 0xAA,
+		KeyCode_BrowserFavorites = 0xAB,
+		KeyCode_BrowserHome = 0xAC,
+		KeyCode_VolumeMute = 0xAD,
+		KeyCode_VolumeDown = 0xAE,
+		KeyCode_VolumeUp = 0xAF,
+		KeyCode_MediaNextTrack = 0xB0,
+		KeyCode_MediaPrevTrack = 0xB1,
+		KeyCode_MediaStop = 0xB2,
+		KeyCode_MediaPlayPause = 0xB3,
+		KeyCode_LaunchMail = 0xB4,
+		KeyCode_LaunchMediaSelect = 0xB5,
+		KeyCode_LaunchApp1 = 0xB6,
+		KeyCode_LaunchApp2 = 0xB7,
+		KeyCode_OEM1 = 0xBA,
+		KeyCode_OEMPlus = 0xBB,
+		KeyCode_OEMComma = 0xBC,
+		KeyCode_OEMMinus = 0xBD,
+		KeyCode_OEMPeriod = 0xBE,
+		KeyCode_OEM2 = 0xBF,
+		KeyCode_OEM3 = 0xC0,
+		KeyCode_OEM4 = 0xDB,
+		KeyCode_OEM5 = 0xDC,
+		KeyCode_OEM6 = 0xDD,
+		KeyCode_OEM7 = 0xDE,
+		KeyCode_OEM8 = 0xDF,
+		KeyCode_OEM102 = 0xE2,
+		KeyCode_IMEProcessKey = 0xE5,
+		KeyCode_Packet = 0xE7,
+		KeyCode_Attn = 0xF6,
+		KeyCode_CrSel = 0xF7,
+		KeyCode_ExSel = 0xF8,
+		KeyCode_EraseEOF = 0xF9,
+		KeyCode_Play = 0xFA,
+		KeyCode_Zoom = 0xFB,
+		KeyCode_NoName = 0xFC,
+		KeyCode_PA1 = 0xFD,
+		KeyCode_OEMClear = 0xFE,
 
-		KeyCode_Count
+		KeyCode_Count,
+		KeyCode_MouseFirst = KeyCode_MouseLeft,
+		KeyCode_MouseLast = KeyCode_MouseX2,
+		KeyCode_KeyboardFirst = KeyCode_Backspace,
+		KeyCode_KeyboardLast = KeyCode_Count,
 	};
 
 	constexpr const char* GetKeyCodeName(const KeyCode keyCode)
@@ -262,6 +308,48 @@ namespace Comfy::Input
 		case KeyCode_RightControl: return "Right Control";
 		case KeyCode_LeftAlt: return "Left Alt";
 		case KeyCode_RightAlt: return "Right Alt";
+		case KeyCode_BrowserBack: return "Browser Back";
+		case KeyCode_BrowserForward: return "Browser Forward";
+		case KeyCode_BrowserRefresh: return "Browser Refresh";
+		case KeyCode_BrowserStop: return "Browser Stop";
+		case KeyCode_BrowserSearch: return "Browser Search";
+		case KeyCode_BrowserFavorites: return "Browser Favorite";
+		case KeyCode_BrowserHome: return "Browser Home";
+		case KeyCode_VolumeMute: return "Volume Mute";
+		case KeyCode_VolumeDown: return "Volume Down";
+		case KeyCode_VolumeUp: return "Volume Up";
+		case KeyCode_MediaNextTrack: return "Media Next Track";
+		case KeyCode_MediaPrevTrack: return "Media Prev Track";
+		case KeyCode_MediaStop: return "Media Stop";
+		case KeyCode_MediaPlayPause: return "Media Play Pause";
+		case KeyCode_LaunchMail: return "Launch Mail";
+		case KeyCode_LaunchMediaSelect: return "Launch Media Select";
+		case KeyCode_LaunchApp1: return "Launch App 1";
+		case KeyCode_LaunchApp2: return "Launch App 2";
+		case KeyCode_OEM1: return "OEM 1";
+		case KeyCode_OEMPlus: return "Plus";
+		case KeyCode_OEMComma: return "Comma";
+		case KeyCode_OEMMinus: return "Minus";
+		case KeyCode_OEMPeriod: return "Period";
+		case KeyCode_OEM2: return "OEM 2";
+		case KeyCode_OEM3: return "OEM 3";
+		case KeyCode_OEM4: return "OEM 4";
+		case KeyCode_OEM5: return "OEM 5";
+		case KeyCode_OEM6: return "OEM 6";
+		case KeyCode_OEM7: return "OEM 7";
+		case KeyCode_OEM8: return "OEM 8";
+		case KeyCode_OEM102: return "OEM 102";
+		case KeyCode_IMEProcessKey: return "IME Process Key";
+		case KeyCode_Packet: return "Packet";
+		case KeyCode_Attn: return "Attn";
+		case KeyCode_CrSel: return "CrSel";
+		case KeyCode_ExSel: return "ExSel";
+		case KeyCode_EraseEOF: return "Erase EOF";
+		case KeyCode_Play: return "Play";
+		case KeyCode_Zoom: return "Zoom";
+		case KeyCode_NoName: return "No Name";
+		case KeyCode_PA1: return "PA1";
+		case KeyCode_OEMClear: return "OEM Clear";
 
 		default:
 			assert(keyCode < KeyCode_Unknown);

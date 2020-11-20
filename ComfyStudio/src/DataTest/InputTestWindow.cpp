@@ -21,8 +21,8 @@ namespace Comfy::Studio::DataTest
 
 	void InputTestWindow::Gui()
 	{
-		static const ImVec4 onColor = ImVec4(0.14f, 0.78f, 0.21f, 1.00f);
-		static const ImVec4 offColor = ImVec4(0.95f, 0.12f, 0.12f, 1.00f);
+		static constexpr auto onColor = vec4(0.14f, 0.78f, 0.21f, 1.00f);
+		static constexpr auto offColor = vec4(0.95f, 0.12f, 0.12f, 1.00f);
 
 		auto boolColoredText = [](const char* label, const char* trueText, const char* falseText, bool condition)
 		{
@@ -40,21 +40,19 @@ namespace Comfy::Studio::DataTest
 
 		if (Gui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			Input::Keyboard* keyboard = Input::Keyboard::GetInstance();
-
-			bool initialized = Input::Keyboard::GetInstanceInitialized();
+			const bool initialized = Input::Keyboard::GetInstanceInitialized();
 			boolColoredText("KEYBOARD : ", "OK", "NG", initialized);
 
 			if (initialized)
 			{
-				constexpr auto firstKeyboardKey = Input::KeyCode_Backspace;
-				for (Input::KeyCode key = firstKeyboardKey; key < Input::KeyCode_Count; key++)
+				for (Input::KeyCode key = Input::KeyCode_KeyboardFirst; key < Input::KeyCode_KeyboardLast; key++)
 				{
-					if (keyboard->IsDown(key))
+					if (Input::Keyboard::IsDown(key))
 					{
-						const char* keyName = Input::GetKeyCodeName(key);
-						if (keyName != nullptr)
+						if (const char* keyName = Input::GetKeyCodeName(key); keyName != nullptr)
 							Gui::BulletText(keyName);
+						else
+							Gui::BulletText("Unknown Key 0x%02X", key);
 					}
 				}
 			}
@@ -63,16 +61,14 @@ namespace Comfy::Studio::DataTest
 
 		if (Gui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			Input::DualShock4* ds4 = Input::DualShock4::GetInstance();
-
-			bool initialized = Input::DualShock4::GetInstanceInitialized();
+			const bool initialized = Input::DualShock4::GetInstanceInitialized();
 			boolColoredText("DUALSHOCK4 : ", "OK", "NG", initialized);
 
 			if (initialized)
 			{
 				for (size_t button = 0; button < EnumCount<Input::DS4Button>(); button++)
 				{
-					if (ds4->IsDown(static_cast<Input::DS4Button>(button)))
+					if (Input::DualShock4::IsDown(static_cast<Input::DS4Button>(button)))
 						Gui::BulletText(ds4ButtonNames[button]);
 				}
 			}
