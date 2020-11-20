@@ -60,7 +60,19 @@ namespace Comfy::Studio::Editor
 				changesMade |= GuiProperty::InputWithHint("Arranger", defaultHint, chart.Properties.Song.Arranger);
 			});
 
-			GuiProperty::TreeNode("Creator", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			GuiProperty::TreeNode("Extra Info", ImGuiTreeNodeFlags_None, [&]
+			{
+				auto& extraInfo = chart.Properties.Song.ExtraInfo;
+				for (size_t i = 0; i < extraInfo.size(); i++)
+				{
+					GuiPropertyRAII::ID id(&extraInfo[i]);
+					changesMade |= GuiProperty::PropertyFuncValueFunc(
+						[&] { GuiPropertyRAII::ItemWidth width(-1.0f); return Gui::InputTextWithHint("##Key", "Property", &extraInfo[i].Key); },
+						[&] { GuiPropertyRAII::ItemWidth width(-1.0f); return Gui::InputTextWithHint("##Value", defaultHint, &extraInfo[i].Value); });
+				}
+			});
+
+			GuiProperty::TreeNode("Chart Creator", ImGuiTreeNodeFlags_DefaultOpen, [&]
 			{
 				changesMade |= GuiProperty::InputWithHint("Name", defaultHint, chart.Properties.Creator.Name);
 				changesMade |= GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment, vec2(0.0f, 66.0f));
