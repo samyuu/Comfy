@@ -3,7 +3,7 @@
 
 namespace Comfy::Database
 {
-	enum class GmButtonSfxType
+	enum class GmBtnSfxType
 	{
 		Button,
 		Slide,
@@ -31,7 +31,7 @@ namespace Comfy::Database
 	{
 	public:
 		std::vector<GmBtnSfxEntry> Entries;
-		GmButtonSfxType Type;
+		GmBtnSfxType Type;
 
 	public:
 		void Parse(const u8* buffer, size_t bufferSize) override;

@@ -17,7 +17,7 @@ namespace Comfy::Database
 				bool isChainSlide = false;
 
 				if (CompareProperty("kind"))
-					btnSfxDB.Type = ParseEnumValueString<GmButtonSfxType>();
+					btnSfxDB.Type = ParseEnumValueString<GmBtnSfxType>();
 				else if (CompareProperty("btn_se") || CompareProperty("slide_se") || (isChainSlide = CompareProperty("chainslide_se")) || CompareProperty("slidertouch_se"))
 				{
 					if (CompareProperty("data_list"))
