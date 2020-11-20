@@ -100,16 +100,13 @@ namespace Comfy::Studio::Editor
 				std::string Comment;
 			} Creator;
 
-			struct SoundEffectInfo
+			struct ButtonSoundData
 			{
-				std::string ButtonName;
-				std::string SlideName;
-				std::string ChainSlideFirstName;
-				std::string ChainSlideSubName;
-				std::string ChainSlideSuccessName;
-				std::string ChainSlideFailureName;
-				std::string SlideTouchName;
-			} SoundEffect;
+				u32 ButtonID;
+				u32 SlideID;
+				u32 ChainSlideID;
+				u32 SliderTouchID;
+			} ButtonSound;
 
 			struct DifficultyInfo
 			{
