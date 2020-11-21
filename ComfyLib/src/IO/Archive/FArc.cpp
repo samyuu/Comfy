@@ -2,6 +2,7 @@
 #include "Core/Logger.h"
 #include "Misc/EndianHelper.h"
 #include "IO/Crypto/Crypto.h"
+#include "Misc/StringUtil.h"
 #include <zlib.h>
 
 namespace Comfy::IO
@@ -46,15 +47,11 @@ namespace Comfy::IO
 		return entries;
 	}
 
-	const FArcEntry* FArc::FindFile(std::string_view name)
+	const FArcEntry* FArc::FindFile(std::string_view name, bool caseSensitive)
 	{
-		const auto foundEntry = std::find_if(entries.begin(), entries.end(), [&](const auto& entry)
-		{
-			// NOTE: Should this be case insensitive? Maybe...
-			return entry.Name == name;
-		});
-
-		return (foundEntry != entries.end()) ? &(*foundEntry) : nullptr;
+		return (caseSensitive) ?
+			FindIfOrNull(entries, [&](auto& e) { return (e.Name == name); }) :
+			FindIfOrNull(entries, [&](auto& e) { return Util::MatchesInsensitive(e.Name, name); });
 	}
 
 	bool FArc::OpenStream(std::string_view filePath)

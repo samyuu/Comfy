@@ -82,7 +82,7 @@ namespace Comfy::IO
 
 	public:
 		std::vector<FArcEntry>& GetEntries();
-		const FArcEntry* FindFile(std::string_view name);
+		const FArcEntry* FindFile(std::string_view name, bool caseSensitive = false);
 
 	protected:
 		FileStream stream = {};
