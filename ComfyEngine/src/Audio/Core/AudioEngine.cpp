@@ -255,13 +255,16 @@ namespace Comfy::Audio
 				if (!(voiceData.Flags & VoiceFlags_Alive))
 					continue;
 
-				auto sampleProvider = GetSource(voiceData.Source);
+				auto* sampleProvider = GetSource(voiceData.Source);
 
 				const bool variablePlaybackSpeed = (voiceData.Flags & VoiceFlags_VariablePlaybackSpeed);
 				const bool playPastEnd = (voiceData.Flags & VoiceFlags_PlayPastEnd);
-				const bool hasReachedEnd = (sampleProvider == nullptr) ? false :
+				bool hasReachedEnd = (sampleProvider == nullptr) ? false :
 					(variablePlaybackSpeed ? (voiceData.TimePositionSeconds >= FramesToTimeSpan(sampleProvider->GetFrameCount(), sampleProvider->GetSampleRate()).TotalSeconds()) :
 					(voiceData.FramePosition >= sampleProvider->GetFrameCount()));
+
+				if (sampleProvider == nullptr && (voiceData.Flags & VoiceFlags_RemoveOnEnd))
+					hasReachedEnd = true;
 
 				if (hasReachedEnd)
 				{

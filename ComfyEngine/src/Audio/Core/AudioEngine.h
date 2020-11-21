@@ -100,7 +100,7 @@ namespace Comfy::Audio
 
 	public:
 		static constexpr f32 MinVolume = 0.0f, MaxVolume = 1.0f;
-		static constexpr size_t MaxSimultaneousVoices = 88;
+		static constexpr size_t MaxSimultaneousVoices = 128;
 
 		static constexpr u32 OutputChannelCount = 2;
 		static constexpr u32 OutputSampleRate = 44100;
