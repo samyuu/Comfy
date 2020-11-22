@@ -107,7 +107,22 @@ namespace Comfy::Audio
 		std::array<VoiceData, MaxSimultaneousVoices> VoicePool;
 
 		// NOTE: Indexed into by SourceHandle, nullptr = free space
-		std::vector<std::shared_ptr<ISampleProvider>> LoadedSources;
+		struct SourceData
+		{
+			SourceData() = default;
+			SourceData(std::shared_ptr<ISampleProvider> provider, f32 volume) : SampleProvider(std::move(provider)), BaseVolume(volume) {}
+			SourceData(const SourceData& other) { *this = other; }
+			SourceData(SourceData&& other) { *this = std::move(other); }
+			~SourceData() = default;
+
+			std::shared_ptr<ISampleProvider> SampleProvider = nullptr;
+			std::atomic<f32> BaseVolume = 0.0f;
+
+			SourceData& operator=(const SourceData& other) { SampleProvider = other.SampleProvider; BaseVolume = other.BaseVolume.load(); return *this; }
+			SourceData& operator=(SourceData&& other) { SampleProvider = std::move(other.SampleProvider); BaseVolume = other.BaseVolume.load(); return *this; }
+		};
+
+		std::vector<SourceData> LoadedSources;
 
 	public:
 		static constexpr size_t TempOutputBufferSize = (MaxBufferSampleCount * OutputChannelCount);
@@ -157,14 +172,27 @@ namespace Comfy::Audio
 
 		ISampleProvider* GetSource(SourceHandle handle)
 		{
-			auto sourcePtr = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
-			return (sourcePtr != nullptr && *sourcePtr != nullptr) ? sourcePtr->get() : nullptr;
+			auto sourceData = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
+			return (sourceData != nullptr && sourceData->SampleProvider != nullptr) ? sourceData->SampleProvider.get() : nullptr;
+		}
+
+		f32 GetSourceBaseVolume(SourceHandle handle)
+		{
+			auto sourceData = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
+			return (sourceData != nullptr && sourceData->SampleProvider != nullptr) ? sourceData->BaseVolume.load() : 1.0f;
+		}
+
+		void SetSourceBaseVolume(SourceHandle handle, f32 value)
+		{
+			auto sourceData = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
+			if (sourceData != nullptr && sourceData->SampleProvider != nullptr)
+				sourceData->BaseVolume.store(value);
 		}
 
 		std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle)
 		{
-			auto sourcePtr = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
-			return (sourcePtr != nullptr && *sourcePtr != nullptr) ? *sourcePtr : nullptr;
+			auto sourceData = IndexOrNull(static_cast<HandleBaseType>(handle), LoadedSources);
+			return (sourceData != nullptr && sourceData->SampleProvider != nullptr) ? sourceData->SampleProvider : nullptr;
 		}
 
 		void CallbackNotifyCallbackReceivers()
@@ -197,7 +225,7 @@ namespace Comfy::Audio
 
 		void CallbackApplyVoiceVolumeAndMixTempBufferIntoOutput(i16* outputBuffer, const i64 frameCount, const VoiceData& voiceData, const u32 sampleRate)
 		{
-			const f32 voiceVolume = voiceData.Volume;
+			const f32 voiceVolume = voiceData.Volume * GetSourceBaseVolume(voiceData.Source);
 			const f32 startVolume = voiceData.VolumeMap.StartVolume;
 			const f32 endVolume = voiceData.VolumeMap.EndVolume;
 
@@ -428,7 +456,7 @@ namespace Comfy::Audio
 		impl->ChannelMixer.SetTargetChannels(OutputChannelCount);
 		impl->ChannelMixer.SetMixingBehavior(ChannelMixer::MixingBehavior::Combine);
 
-		constexpr size_t reasonableInitialSourceCapacity = 64;
+		constexpr size_t reasonableInitialSourceCapacity = 256;
 		impl->LoadedSources.reserve(reasonableInitialSourceCapacity);
 
 		constexpr size_t reasonableInitialCallbackReceiverCapacity = 4;
@@ -518,25 +546,25 @@ namespace Comfy::Audio
 		}
 	}
 
-	std::future<SourceHandle> AudioEngine::LoadAudioSourceAsync(std::string_view filePath)
+	std::future<SourceHandle> AudioEngine::LoadSourceAsync(std::string_view filePath)
 	{
 		return std::async(std::launch::async, [this, path = std::string(filePath)]()
 		{
-			return LoadAudioSource(path);
+			return LoadSource(path);
 		});
 	}
 
-	SourceHandle AudioEngine::LoadAudioSource(std::string_view filePath)
+	SourceHandle AudioEngine::LoadSource(std::string_view filePath)
 	{
-		return RegisterAudioSource(DecoderFactory::GetInstance().DecodeFile(filePath));
+		return RegisterSource(DecoderFactory::GetInstance().DecodeFile(filePath));
 	}
 
-	SourceHandle AudioEngine::LoadAudioSource(std::string_view fileName, const void* fileContent, size_t fileSize)
+	SourceHandle AudioEngine::LoadSource(std::string_view fileName, const void* fileContent, size_t fileSize)
 	{
-		return RegisterAudioSource(DecoderFactory::GetInstance().DecodeFile(fileName, fileContent, fileSize));
+		return RegisterSource(DecoderFactory::GetInstance().DecodeFile(fileName, fileContent, fileSize));
 	}
 
-	SourceHandle AudioEngine::RegisterAudioSource(std::shared_ptr<ISampleProvider> sampleProvider)
+	SourceHandle AudioEngine::RegisterSource(std::shared_ptr<ISampleProvider> sampleProvider)
 	{
 		if (sampleProvider == nullptr)
 			return SourceHandle::Invalid;
@@ -544,14 +572,17 @@ namespace Comfy::Audio
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 		for (size_t i = 0; i < impl->LoadedSources.size(); i++)
 		{
-			if (impl->LoadedSources[i] != nullptr)
+			auto& sourceData = impl->LoadedSources[i];
+			if (sourceData.SampleProvider != nullptr)
 				continue;
 
-			impl->LoadedSources[i] = std::move(sampleProvider);
+			sourceData.SampleProvider = std::move(sampleProvider);
+			sourceData.BaseVolume = 1.0f;
+
 			return static_cast<SourceHandle>(i);
 		}
 
-		impl->LoadedSources.push_back(std::move(sampleProvider));
+		impl->LoadedSources.push_back(Impl::SourceData { std::move(sampleProvider), 1.0f });
 		return static_cast<SourceHandle>(impl->LoadedSources.size() - 1);
 	}
 
@@ -566,7 +597,7 @@ namespace Comfy::Audio
 		if (sourcePtr == nullptr)
 			return;
 
-		*sourcePtr = nullptr;
+		sourcePtr->SampleProvider = nullptr;
 
 		for (auto& voice : impl->VoicePool)
 		{
@@ -613,8 +644,11 @@ namespace Comfy::Audio
 			voicePtr->Flags = VoiceFlags_Dead;
 	}
 
-	void AudioEngine::PlaySound(SourceHandle source, std::string_view name, f32 volume)
+	void AudioEngine::PlayOneShotSound(SourceHandle source, std::string_view name, f32 volume)
 	{
+		if (source == SourceHandle::Invalid)
+			return;
+
 		const auto lock = std::scoped_lock(impl->CallbackMutex);
 
 		for (auto& voiceToUpdate : impl->VoicePool)
@@ -634,6 +668,16 @@ namespace Comfy::Audio
 	std::shared_ptr<ISampleProvider> AudioEngine::GetSharedSource(SourceHandle handle)
 	{
 		return impl->GetSharedSource(handle);
+	}
+
+	f32 AudioEngine::GetSourceBaseVolume(SourceHandle handle)
+	{
+		return impl->GetSourceBaseVolume(handle);
+	}
+
+	void AudioEngine::SetSourceBaseVolume(SourceHandle handle, f32 value)
+	{
+		return impl->SetSourceBaseVolume(handle, value);
 	}
 
 	AudioBackend AudioEngine::GetAudioBackend() const

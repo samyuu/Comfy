@@ -133,10 +133,10 @@ namespace Comfy::Audio
 		void EnsureStreamRunning();
 
 	public:
-		COMFY_NODISCARD std::future<SourceHandle> LoadAudioSourceAsync(std::string_view filePath);
-		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view filePath);
-		COMFY_NODISCARD SourceHandle LoadAudioSource(std::string_view fileName, const void* fileContent, size_t fileSize);
-		COMFY_NODISCARD SourceHandle RegisterAudioSource(std::shared_ptr<ISampleProvider> sampleProvider);
+		COMFY_NODISCARD std::future<SourceHandle> LoadSourceAsync(std::string_view filePath);
+		COMFY_NODISCARD SourceHandle LoadSource(std::string_view filePath);
+		COMFY_NODISCARD SourceHandle LoadSource(std::string_view fileName, const void* fileContent, size_t fileSize);
+		COMFY_NODISCARD SourceHandle RegisterSource(std::shared_ptr<ISampleProvider> sampleProvider);
 		void UnloadSource(SourceHandle source);
 
 		// NOTE: Add a voice and keep a handle to it
@@ -144,9 +144,12 @@ namespace Comfy::Audio
 		void RemoveVoice(VoiceHandle voice);
 
 		// NOTE: Add a voice, play it once then discard
-		void PlaySound(SourceHandle source, std::string_view name, f32 volume = MaxVolume);
+		void PlayOneShotSound(SourceHandle source, std::string_view name, f32 volume = MaxVolume);
 
 		COMFY_NODISCARD std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle);
+
+		f32 GetSourceBaseVolume(SourceHandle handle);
+		void SetSourceBaseVolume(SourceHandle handle, f32 value);
 
 	public:
 		AudioBackend GetAudioBackend() const;
