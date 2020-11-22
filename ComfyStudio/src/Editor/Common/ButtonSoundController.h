@@ -89,5 +89,6 @@ namespace Comfy::Studio::Editor
 
 		std::array<Audio::Voice, ButtonVoicePoolSize> buttonVoicePool;
 		std::array<std::array<Audio::Voice, PerSlotChainVoicePoolSize>, EnumCount<ChainSoundSlot>()> chainStartVoicePools, chainEndVoicePools;
+		std::array<Audio::Voice, EnumCount<ChainSoundSlot>()> perSlotChainSubVoices;
 	};
 }

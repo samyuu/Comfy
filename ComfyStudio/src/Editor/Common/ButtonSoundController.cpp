@@ -62,6 +62,17 @@ namespace Comfy::Studio::Editor
 
 		const auto voicePosition = voice.GetPosition();
 		voice.SetVolumeMap(voicePosition, voicePosition + chainFadeOutDuration, 1.0f, 0.0f);
+
+		auto& subVoice = perSlotChainSubVoices[slotIndex];
+		if (subVoice.GetPosition() < TimeSpan::Zero())
+		{
+			subVoice.SetIsPlaying(false);
+		}
+		else
+		{
+			subVoice.SetIsLooping(false);
+			subVoice.SetPauseOnEnd(true);
+		}
 	}
 
 	void ButtonSoundController::PauseAllChainSounds()
@@ -71,6 +82,9 @@ namespace Comfy::Studio::Editor
 			for (auto& voice : voicePool)
 				voice.SetIsPlaying(false);
 		}
+
+		for (auto& voice : perSlotChainSubVoices)
+			voice.SetIsPlaying(false);
 	}
 
 	void ButtonSoundController::PauseAllNegativeVoices()
@@ -132,6 +146,13 @@ namespace Comfy::Studio::Editor
 				slotVoicePool[i].SetPauseOnEnd(true);
 			}
 		}
+
+		for (size_t slotIndex = 0; slotIndex < EnumCount<ChainSoundSlot>(); slotIndex++)
+		{
+			auto& voice = perSlotChainSubVoices[slotIndex];
+			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundController::ChainSubVoice[%c]", getSlotCharID(slotIndex)));
+			voice = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameView, false);
+		}
 	}
 
 	void ButtonSoundController::UnloadVoicePools()
@@ -152,6 +173,9 @@ namespace Comfy::Studio::Editor
 			for (auto& voice : voices)
 				audioEngine.RemoveVoice(voice);
 		}
+
+		for (auto& voice : perSlotChainSubVoices)
+			audioEngine.RemoveVoice(voice);
 
 		for (auto& sources : loadedSources)
 		{
@@ -226,6 +250,19 @@ namespace Comfy::Studio::Editor
 		voice->SetVolume(masterSoundVolume * source.Volume * soundTimings[typeIndex].GetVolumeFactor());
 		voice->SetPosition(startTime);
 		voice->SetIsPlaying(true);
+
+		if (type == ButtonSoundType::ChainSlideFirst)
+		{
+			// NOTE: Or maybe instead of a fixed loop these should be played every n-th chain fragment past the end of the first chain sound (?)
+			auto& subSource = loadedSources[static_cast<u8>(ButtonSoundType::ChainSlideSub)][0];
+			auto& subVoice = perSlotChainSubVoices[slotIndex];
+			subVoice.SetSource(subSource.Get());
+			subVoice.SetVolume(masterSoundVolume * subSource.Volume);
+			subVoice.SetPosition(startTime - voice->GetDuration());
+			subVoice.SetIsPlaying(true);
+			subVoice.SetIsLooping(true);
+			subVoice.SetPauseOnEnd(false);
+		}
 	}
 
 	ButtonSoundController::AsyncSoundSource::AsyncSoundSource(std::string_view filePath, f32 volume) :
