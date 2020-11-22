@@ -17,7 +17,7 @@ namespace Comfy::Sandbox::Tests
 				Input::KeyCode_W, Input::KeyCode_A, Input::KeyCode_S, Input::KeyCode_D,
 				Input::KeyCode_I, Input::KeyCode_J, Input::KeyCode_K, Input::KeyCode_L, })
 				if (Gui::IsKeyPressed(keyCode, false))
-					Audio::AudioEngine::GetInstance().PlaySound(buttonSound, "TestSound");
+					Audio::AudioEngine::GetInstance().PlayOneShotSound(buttonSound, "TestSound");
 
 			if (Gui::Begin("Test Audio Control"))
 			{
@@ -28,6 +28,6 @@ namespace Comfy::Sandbox::Tests
 		}
 
 	private:
-		Audio::SourceHandle buttonSound = Audio::AudioEngine::GetInstance().LoadAudioSource("dev_ram/sound/button/01_button1.wav");
+		Audio::SourceHandle buttonSound = Audio::AudioEngine::GetInstance().LoadSource("dev_ram/sound/button/01_button1.wav");
 	};
 }

@@ -278,6 +278,7 @@
     <ClInclude Include="src\Editor\Common\ButtonSoundController.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />
     <ClInclude Include="src\Editor\Common\CheckerboardGrid.h" />
+    <ClInclude Include="src\Editor\Common\SfxArchive.h" />
     <ClInclude Include="src\Editor\Common\UndoHistoryWindow.h" />
     <ClInclude Include="src\Editor\Core\EditorManager.h" />
     <ClInclude Include="src\Editor\Core\IEditorComponent.h" />

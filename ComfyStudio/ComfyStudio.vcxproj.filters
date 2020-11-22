@@ -461,6 +461,9 @@
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\Common\SfxArchive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc">

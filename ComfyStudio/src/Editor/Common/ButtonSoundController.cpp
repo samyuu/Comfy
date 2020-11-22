@@ -229,7 +229,7 @@ namespace Comfy::Studio::Editor
 	}
 
 	ButtonSoundController::AsyncSoundSource::AsyncSoundSource(std::string_view filePath, f32 volume) :
-		Handle(Audio::SourceHandle::Invalid), FutureHandle(Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(filePath)), Volume(volume)
+		Handle(Audio::SourceHandle::Invalid), FutureHandle(Audio::AudioEngine::GetInstance().LoadSourceAsync(filePath)), Volume(volume)
 	{
 	}
 

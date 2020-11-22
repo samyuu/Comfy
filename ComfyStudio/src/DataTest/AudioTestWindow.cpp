@@ -243,7 +243,7 @@ namespace Comfy::Studio::DataTest
 			checkStartStream();
 
 			if (testSongSource == Audio::SourceHandle::Invalid)
-				testSongSource = engine.LoadAudioSource(testSongPath);
+				testSongSource = engine.LoadSource(testSongPath);
 
 			if (Gui::Button("AddVoice()"))
 			{
@@ -299,10 +299,9 @@ namespace Comfy::Studio::DataTest
 			checkStartStream();
 
 			if (buttonTestSource == Audio::SourceHandle::Invalid)
-				buttonTestSource = engine.LoadAudioSource(testButtonSoundPath);
+				buttonTestSource = engine.LoadSource(testButtonSoundPath);
 
-			Gui::Button("PlaySound(TestButtonSource)");
-			bool addButtonSound = Gui::IsItemHovered() && Gui::IsMouseClicked(0);
+			bool playButtonSound = Gui::ButtonEx("PlayOneShotSound(TestButtonSource)", {}, ImGuiButtonFlags_PressedOnClick);
 
 			Gui::SliderFloat("Button Volume", &testButtonVolume, Audio::AudioEngine::MinVolume, Audio::AudioEngine::MaxVolume);
 
@@ -322,7 +321,7 @@ namespace Comfy::Studio::DataTest
 				};
 
 				for (const auto& keyCode : keys)
-					addButtonSound |= Input::Keyboard::IsTapped(keyCode);
+					playButtonSound |= Input::Keyboard::IsTapped(keyCode);
 
 				static constexpr std::array buttons =
 				{
@@ -339,11 +338,11 @@ namespace Comfy::Studio::DataTest
 				};
 
 				for (const auto& button : buttons)
-					addButtonSound |= Input::DualShock4::IsTapped(button);
+					playButtonSound |= Input::DualShock4::IsTapped(button);
 			}
 
-			if (addButtonSound)
-				engine.PlaySound(buttonTestSource, "AudioTestWindow::TestButtonSound", testButtonVolume);
+			if (playButtonSound)
+				engine.PlayOneShotSound(buttonTestSource, "AudioTestWindow::TestButtonSound", testButtonVolume);
 		}
 		Gui::Separator();
 	}

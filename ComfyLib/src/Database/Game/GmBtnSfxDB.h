@@ -3,7 +3,7 @@
 
 namespace Comfy::Database
 {
-	enum class GmBtnSfxType
+	enum class GmBtnSfxType : u8
 	{
 		Button,
 		Slide,

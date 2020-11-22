@@ -32,7 +32,6 @@ namespace Comfy::Audio
 		}
 
 		return std::make_pair(SourceHandle::Invalid, nullptr);
-
 	}
 
 	const std::vector<Database::SfxEntry>& SfxArchive::GetEntries() const
@@ -75,10 +74,13 @@ namespace Comfy::Audio
 			loadedSources.reserve(sfxDB.Entries.size());
 			for (size_t i = 0; i < sfxDB.Entries.size(); i++)
 			{
-				if (const auto* sfxFile = farc->FindFile(sfxDB.Entries[i].FileName))
+				const auto& sfxDBEntry = sfxDB.Entries[i];
+				if (const auto* sfxFile = farc->FindFile(sfxDBEntry.FileName))
 				{
 					sfxFile->ReadIntoBuffer(fileContentBuffer.get());
-					loadedSources.push_back(engine.LoadAudioSource(sfxFile->Name, fileContentBuffer.get(), sfxFile->OriginalSize));
+
+					loadedSources.push_back(engine.LoadSource(sfxFile->Name, fileContentBuffer.get(), sfxFile->OriginalSize));
+					engine.SetSourceBaseVolume(loadedSources.back(), sfxDBEntry.Volume);
 				}
 				else
 				{

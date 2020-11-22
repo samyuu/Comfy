@@ -223,7 +223,7 @@ namespace Comfy::Studio::Editor
 		else
 			songSourceFilePath = filePath;
 
-		songSourceFuture = Audio::AudioEngine::GetInstance().LoadAudioSourceAsync(songSourceFilePath);
+		songSourceFuture = Audio::AudioEngine::GetInstance().LoadSourceAsync(songSourceFilePath);
 
 		// NOTE: Clear file name here so the chart properties window help loading text is displayed
 		//		 then set again once the song audio file has finished loading
