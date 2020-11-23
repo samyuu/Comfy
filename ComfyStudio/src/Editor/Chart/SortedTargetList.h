@@ -16,6 +16,22 @@ namespace Comfy::Studio::Editor
 		Count
 	};
 
+	using ButtonTypeFlags = u8;
+	enum ButtonTypeFlagsEnum : ButtonTypeFlags
+	{
+		ButtonTypeFlags_None = 0,
+		ButtonTypeFlags_Triangle = 1 << static_cast<u8>(ButtonType::Triangle),
+		ButtonTypeFlags_Square = 1 << static_cast<u8>(ButtonType::Square),
+		ButtonTypeFlags_Cross = 1 << static_cast<u8>(ButtonType::Cross),
+		ButtonTypeFlags_Circle = 1 << static_cast<u8>(ButtonType::Circle),
+		ButtonTypeFlags_SlideL = 1 << static_cast<u8>(ButtonType::SlideL),
+		ButtonTypeFlags_SlideR = 1 << static_cast<u8>(ButtonType::SlideR),
+
+		ButtonTypeFlags_NormalAll = (ButtonTypeFlags_Triangle | ButtonTypeFlags_Square | ButtonTypeFlags_Cross | ButtonTypeFlags_Circle),
+		ButtonTypeFlags_SlideAll = (ButtonTypeFlags_SlideL | ButtonTypeFlags_SlideR),
+		ButtonTypeFlags_All = (ButtonTypeFlags_NormalAll | ButtonTypeFlags_SlideAll),
+	};
+
 	using TargetPropertyType = u8;
 	enum TargetPropertyTypeEnum : TargetPropertyType
 	{
@@ -43,9 +59,9 @@ namespace Comfy::Studio::Editor
 		TargetPropertyFlags_All = (TargetPropertyFlags_PositionXY | TargetPropertyFlags_Angle | TargetPropertyFlags_Frequency | TargetPropertyFlags_Amplitude | TargetPropertyFlags_Distance),
 	};
 
-	constexpr bool IsSlideButtonType(ButtonType type) 
-	{ 
-		return (type == ButtonType::SlideL || type == ButtonType::SlideR); 
+	constexpr bool IsSlideButtonType(ButtonType type)
+	{
+		return (type == ButtonType::SlideL || type == ButtonType::SlideR);
 	}
 
 	constexpr ButtonType FlipSlideButtonType(ButtonType type)
@@ -130,7 +146,7 @@ namespace Comfy::Studio::Editor
 		void Clear();
 
 		void ExplicitlyUpdateFlagsAndSort(i32 startIndex = -1, i32 endIndex = -1);
-		
+
 	public:
 		auto begin() { return targets.begin(); }
 		auto end() { return targets.end(); }
