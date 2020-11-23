@@ -36,31 +36,31 @@ namespace Comfy::Studio::Editor
 		void OnEditorSpritesLoaded(const Graphics::SprSet* sprSet);
 
 	public:
-		TimelineTick GridDivisionTick() const;
-		TimelineTick ChainSlideDivisionTick() const;
+		BeatTick GridDivisionTick() const;
+		BeatTick ChainSlideDivisionTick() const;
 
-		TimelineTick FloorTickToGrid(TimelineTick tick) const;
-		TimelineTick RoundTickToGrid(TimelineTick tick) const;
+		BeatTick FloorTickToGrid(BeatTick tick) const;
+		BeatTick RoundTickToGrid(BeatTick tick) const;
 
 		f32 GetTimelinePosition(TimeSpan time) const override;
-		f32 GetTimelinePosition(TimelineTick tick) const;
+		f32 GetTimelinePosition(BeatTick tick) const;
 
-		TimelineTick TimeToTick(TimeSpan time) const;
-		TimelineTick TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const;
+		BeatTick TimeToTick(TimeSpan time) const;
+		BeatTick TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const;
 
-		TimelineTick GetTimelineTick(f32 position) const;
+		BeatTick GetBeatTick(f32 position) const;
 
-		TimeSpan TickToTime(TimelineTick tick) const;
+		TimeSpan TickToTime(BeatTick tick) const;
 		TimeSpan GetTimelineTime(f32 position) const override;
 
-		TimelineTick GetCursorMouseXTick(bool floorToGrid = true) const;
+		BeatTick GetCursorMouseXTick(bool floorToGrid = true) const;
 
 	public:
 		TimeSpan GetCursorTime() const override;
 		void SetCursorTime(const TimeSpan newTime);
 
-		TimelineTick GetCursorTick() const;
-		void SetCursorTick(const TimelineTick newTick);
+		BeatTick GetCursorTick() const;
+		void SetCursorTick(const BeatTick newTick);
 
 		bool GetIsPlayback() const override;
 		void PausePlayback() override;
@@ -112,7 +112,7 @@ namespace Comfy::Studio::Editor
 
 		void UpdateInputSelectionDragging();
 		bool CheckIsAnySyncPairPartiallySelected() const;
-		bool CheckIsSelectionNotBlocked(TimelineTick increment) const;
+		bool CheckIsSelectionNotBlocked(BeatTick increment) const;
 
 		void UpdateInputCursorClick();
 		void UpdateInputCursorScrubbing();
@@ -136,17 +136,17 @@ namespace Comfy::Studio::Editor
 		void ClipboardPasteSelection();
 
 		void FillInRangeSelectionTargets(ButtonType type);
-		void PlaceOrRemoveTarget(TimelineTick tick, ButtonType type);
+		void PlaceOrRemoveTarget(BeatTick tick, ButtonType type);
 
 		void RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount = {});
 
 	private:
 		void PlayTargetButtonTypeSound(ButtonType type);
 
-		void PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick);
+		void PlayCursorButtonSoundsAndAnimation(BeatTick cursorTick);
 
 		void PlaySingleTargetButtonSoundAndAnimation(const TimelineTarget& target);
-		void PlaySingleTargetButtonSoundAndAnimation(ButtonType buttonType, TimelineTick buttonTick);
+		void PlaySingleTargetButtonSoundAndAnimation(ButtonType buttonType, BeatTick buttonTick);
 
 		void PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime);
 
@@ -165,10 +165,10 @@ namespace Comfy::Studio::Editor
 
 		bool isCursorScrubbing = false;
 
-		// NOTE: Store cursor time as TimelineTick while paused to avoid floating point precision issues,
+		// NOTE: Store cursor time as BeatTick while paused to avoid floating point precision issues,
 		//		 automatically move the cursor while editing the tempo map and to make sure 
 		//		 "SetCursorTick(tick); GetCursorTick() == tick;" is always the case
-		TimelineTick pausedCursorTick = TimelineTick::Zero();
+		BeatTick pausedCursorTick = BeatTick::Zero();
 
 	private:
 		TimeSpan lastFrameStartOffset = {}, thisFrameStartOffset = {};
@@ -228,10 +228,10 @@ namespace Comfy::Studio::Editor
 	private:
 		struct SelectionDragData
 		{
-			TimelineTick TickOnPress;
-			TimelineTick LastFrameMouseTick, ThisFrameMouseTick;
+			BeatTick TickOnPress;
+			BeatTick LastFrameMouseTick, ThisFrameMouseTick;
 
-			TimelineTick TicksMovedSoFar;
+			BeatTick TicksMovedSoFar;
 			f32 VerticalDistanceMovedSoFar;
 
 			bool IsDragging;
@@ -243,7 +243,7 @@ namespace Comfy::Studio::Editor
 		{
 			enum class ActionType : u8 { Clean, Add, Remove };
 
-			TimelineTick StartTick, EndTick;
+			BeatTick StartTick, EndTick;
 			vec2 StartMouse, EndMouse;
 
 			ActionType Action;
@@ -253,7 +253,7 @@ namespace Comfy::Studio::Editor
 
 		struct RangeSelectionData
 		{
-			TimelineTick StartTick, EndTick;
+			BeatTick StartTick, EndTick;
 			bool HasEnd;
 			bool IsActive;
 		} rangeSelection = {};
@@ -266,7 +266,7 @@ namespace Comfy::Studio::Editor
 
 		const f32 buttonAnimationScaleStart = 1.5f, buttonAnimationScaleEnd = 1.0f;
 
-		struct ButtonAnimationData { TimelineTick Tick; TimeSpan ElapsedTime; };
+		struct ButtonAnimationData { BeatTick Tick; TimeSpan ElapsedTime; };
 		std::array<ButtonAnimationData, EnumCount<ButtonType>()> buttonAnimations = {};
 	};
 }

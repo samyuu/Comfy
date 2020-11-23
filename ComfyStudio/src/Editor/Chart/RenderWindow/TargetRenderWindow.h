@@ -103,7 +103,7 @@ namespace Comfy::Studio::Editor
 			TargetRenderHelper::BackgroundData Data = {};
 		} practiceBackground;
 
-		TimelineTick targetPostHitLingerDuration = TimelineTick::FromBeats(1);
+		BeatTick targetPostHitLingerDuration = BeatTick::FromBeats(1);
 
 		TargetBoxSelectionTool boxSelectionTool = { *this };
 

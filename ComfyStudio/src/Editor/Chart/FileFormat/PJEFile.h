@@ -59,8 +59,8 @@ namespace Comfy::Studio::Editor
 				i32 Bar, Beat;
 
 				TimelineIndex() = default;
-				TimelineIndex(TimelineTick);
-				operator TimelineTick() const;
+				TimelineIndex(BeatTick);
+				operator BeatTick() const;
 			};
 
 			struct BPMChange

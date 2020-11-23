@@ -166,11 +166,11 @@ namespace Comfy::Studio::Editor
 
 		drawList.AddLine(
 			screenPosition,
-			screenPosition + vec2(0.0f, -Rules::TickToDistance(TimelineTick::FromBars(1) / 6) * cameraZoom),
+			screenPosition + vec2(0.0f, -Rules::TickToDistance(BeatTick::FromBars(1) / 6) * cameraZoom),
 			buttonTypeColor,
 			2.0f);
 
-		const auto radius = Rules::TickToDistance(TimelineTick::FromBars(1) / 8) * cameraZoom;
+		const auto radius = Rules::TickToDistance(BeatTick::FromBars(1) / 8) * cameraZoom;
 		const auto angle = Rules::NormalizeAngle(targetProperties.Angle) - 90.0f;
 
 		drawList.PathArcTo(screenPosition, radius - 0.5f, glm::radians(-90.0f), glm::radians(angle), 32);
@@ -182,7 +182,7 @@ namespace Comfy::Studio::Editor
 		const auto textPadding = vec2(3.0f, 1.0f);
 		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView)) + textPadding;
 		const auto textPos = renderWindow.TargetAreaToScreenSpace(
-			targetProperties.Position + vec2(Rules::TickToDistance(TimelineTick::FromBars(1) / 10)) * vec2(1.0f, -1.0f)) - (textSize / 2.0f);
+			targetProperties.Position + vec2(Rules::TickToDistance(BeatTick::FromBars(1) / 10)) * vec2(1.0f, -1.0f)) - (textSize / 2.0f);
 
 		// TODO: Turn into tooltip (?) just like for the Position Tool
 		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);

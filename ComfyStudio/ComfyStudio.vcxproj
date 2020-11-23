@@ -274,7 +274,7 @@
     <ClInclude Include="src\Editor\Chart\SortedTempoMap.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TargetTimeline.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineMap.h" />
-    <ClInclude Include="src\Editor\Chart\Timeline\TimelineTick.h" />
+    <ClInclude Include="src\Editor\Chart\BeatTick.h" />
     <ClInclude Include="src\Editor\Common\ButtonSoundController.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />
     <ClInclude Include="src\Editor\Common\CheckerboardGrid.h" />

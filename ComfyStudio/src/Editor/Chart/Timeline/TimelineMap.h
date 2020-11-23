@@ -11,11 +11,11 @@ namespace Comfy::Studio::Editor
 		~TimelineMap() = default;
 
 	public:
-		TimeSpan GetTimeAt(TimelineTick tick) const;
+		TimeSpan GetTimeAt(BeatTick tick) const;
 		TimeSpan GetLastCalculatedTime() const;
 
-		TimelineTick GetTickAt(TimeSpan time) const;
-		TimelineTick GetTickAtFixedTempo(TimeSpan time, Tempo tempo) const;
+		BeatTick GetTickAt(TimeSpan time) const;
+		BeatTick GetTickAtFixedTempo(TimeSpan time, Tempo tempo) const;
 
 		void CalculateMapTimes(SortedTempoMap& tempoMap);
 

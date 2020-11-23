@@ -5,10 +5,10 @@ namespace Comfy::Studio::Editor
 {
 	SortedTempoMap::SortedTempoMap()
 	{
-		tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+		tempoChanges.emplace_back(BeatTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
-	void SortedTempoMap::SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature)
+	void SortedTempoMap::SetTempoChange(BeatTick tick, Tempo tempo, TimeSignature signature)
 	{
 		assert(tick.Ticks() >= 0);
 		assert(signature.Numerator > 0 && signature.Denominator > 0);
@@ -34,7 +34,7 @@ namespace Comfy::Studio::Editor
 		assert(std::is_sorted(tempoChanges.begin(), tempoChanges.end(), [](const auto& a, const auto& b) { return a.Tick < b.Tick; }));
 	}
 
-	void SortedTempoMap::RemoveTempoChange(TimelineTick tick)
+	void SortedTempoMap::RemoveTempoChange(BeatTick tick)
 	{
 		const auto foundChange = std::find_if(tempoChanges.begin(), tempoChanges.end(), [&](auto& tempoChange) { return tempoChange.Tick == tick; });
 		if (foundChange != tempoChanges.end())
@@ -42,7 +42,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Always keep at least one TempoChange because the TimelineMap relies on it
 		if (tempoChanges.empty())
-			tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+			tempoChanges.emplace_back(BeatTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
 	const TempoChange& SortedTempoMap::GetTempoChangeAt(size_t index) const
@@ -50,7 +50,7 @@ namespace Comfy::Studio::Editor
 		return tempoChanges.at(index);
 	}
 
-	TempoChange& SortedTempoMap::FindTempoChangeAtTick(TimelineTick tick)
+	TempoChange& SortedTempoMap::FindTempoChangeAtTick(BeatTick tick)
 	{
 		assert(!tempoChanges.empty());
 
@@ -77,16 +77,16 @@ namespace Comfy::Studio::Editor
 	void SortedTempoMap::Clear()
 	{
 		tempoChanges.clear();
-		tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+		tempoChanges.emplace_back(BeatTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 	}
 
 	void SortedTempoMap::operator=(std::vector<TempoChange>&& newTempoChanges)
 	{
 		tempoChanges = std::move(newTempoChanges);
 		if (tempoChanges.empty())
-			tempoChanges.emplace_back(TimelineTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
+			tempoChanges.emplace_back(BeatTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature);
 		else
-			tempoChanges.front().Tick = TimelineTick(0);
+			tempoChanges.front().Tick = BeatTick(0);
 
 		for (auto& tempoChange : tempoChanges)
 		{
@@ -97,7 +97,7 @@ namespace Comfy::Studio::Editor
 		std::sort(tempoChanges.begin(), tempoChanges.end(), [](const auto& a, const auto& b) { return a.Tick < b.Tick; });
 	}
 
-	size_t SortedTempoMap::FindSortedInsertionIndex(TimelineTick tick) const
+	size_t SortedTempoMap::FindSortedInsertionIndex(BeatTick tick) const
 	{
 		for (size_t i = 0; i < tempoChanges.size(); i++)
 		{

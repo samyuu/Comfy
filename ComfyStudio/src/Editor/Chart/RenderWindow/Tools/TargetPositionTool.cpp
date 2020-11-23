@@ -13,7 +13,7 @@ namespace Comfy::Studio::Editor
 		constexpr size_t MaxDistanceGuideCirclesToRender = 64;
 
 		constexpr auto PreciseStepDistance = 1.0f;
-		constexpr auto GridStepDistance = Rules::TickToDistance(TimelineTick::FromBars(1) / 16);
+		constexpr auto GridStepDistance = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
 
 		constexpr vec2 SnapPositionToGrid(vec2 position)
 		{
@@ -158,7 +158,7 @@ namespace Comfy::Studio::Editor
 		const auto dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
 		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.75f);
 
-		constexpr auto guideRadius = Rules::TickToDistance(TimelineTick::FromBars(1) / 16);
+		constexpr auto guideRadius = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
 		drawList.AddCircleFilled(row.Start, guideRadius, dimColor, 32);
 		drawList.AddCircle(row.Start, guideRadius, whiteColor, 32);
 
@@ -350,7 +350,7 @@ namespace Comfy::Studio::Editor
 
 		const auto horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal, useStairDistance);
 
-		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, TimelineTick tickDistance, bool chain, bool chainEnd) -> vec2
+		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, BeatTick tickDistance, bool chain, bool chainEnd) -> vec2
 		{
 			auto distance = (chain && !chainEnd) ? Rules::ChainFragmentPlacementDistance :
 				(useStairDistance && !chainEnd) ? Rules::TickToDistanceStair(tickDistance) : Rules::TickToDistance(tickDistance);

@@ -17,26 +17,26 @@ namespace Comfy::Studio::Editor
 		infoColumnWidth = 210.0f;
 	}
 
-	TimelineTick TargetTimeline::GridDivisionTick() const
+	BeatTick TargetTimeline::GridDivisionTick() const
 	{
-		return TimelineTick::FromBars(1) / activeBarGridDivision;
+		return BeatTick::FromBars(1) / activeBarGridDivision;
 	}
 
-	TimelineTick TargetTimeline::ChainSlideDivisionTick() const
+	BeatTick TargetTimeline::ChainSlideDivisionTick() const
 	{
-		return TimelineTick::FromBars(1) / activeBarChainSlideDivision;
+		return BeatTick::FromBars(1) / activeBarChainSlideDivision;
 	}
 
-	TimelineTick TargetTimeline::FloorTickToGrid(TimelineTick tick) const
+	BeatTick TargetTimeline::FloorTickToGrid(BeatTick tick) const
 	{
 		const auto gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
-		return TimelineTick::FromTicks(static_cast<i32>(glm::floor(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
+		return BeatTick::FromTicks(static_cast<i32>(glm::floor(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
 	}
 
-	TimelineTick TargetTimeline::RoundTickToGrid(TimelineTick tick) const
+	BeatTick TargetTimeline::RoundTickToGrid(BeatTick tick) const
 	{
 		const auto gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
-		return TimelineTick::FromTicks(static_cast<i32>(glm::round(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
+		return BeatTick::FromTicks(static_cast<i32>(glm::round(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
 	}
 
 	// TODO: Rename all of these to contain their conversion types in the name and remove Get prefix
@@ -45,27 +45,27 @@ namespace Comfy::Studio::Editor
 		return TimelineBase::GetTimelinePosition(time);
 	}
 
-	f32 TargetTimeline::GetTimelinePosition(TimelineTick tick) const
+	f32 TargetTimeline::GetTimelinePosition(BeatTick tick) const
 	{
 		return GetTimelinePosition(TickToTime(tick));
 	}
 
-	TimelineTick TargetTimeline::TimeToTick(TimeSpan time) const
+	BeatTick TargetTimeline::TimeToTick(TimeSpan time) const
 	{
 		return workingChart->TimelineMap.GetTickAt(time);
 	}
 
-	TimelineTick TargetTimeline::TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const
+	BeatTick TargetTimeline::TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const
 	{
 		return workingChart->TimelineMap.GetTickAtFixedTempo(time, tempo);
 	}
 
-	TimelineTick TargetTimeline::GetTimelineTick(f32 position) const
+	BeatTick TargetTimeline::GetBeatTick(f32 position) const
 	{
 		return TimeToTick(GetTimelineTime(position));
 	}
 
-	TimeSpan TargetTimeline::TickToTime(TimelineTick tick) const
+	TimeSpan TargetTimeline::TickToTime(BeatTick tick) const
 	{
 		return workingChart->TimelineMap.GetTimeAt(tick);
 	}
@@ -75,13 +75,13 @@ namespace Comfy::Studio::Editor
 		return TimelineBase::GetTimelineTime(position);
 	}
 
-	TimelineTick TargetTimeline::GetCursorMouseXTick(bool floorToGrid) const
+	BeatTick TargetTimeline::GetCursorMouseXTick(bool floorToGrid) const
 	{
-		const auto tickAtMousePosition = GetTimelineTick(ScreenToTimelinePosition(Gui::GetMousePos().x));
+		const auto tickAtMousePosition = GetBeatTick(ScreenToTimelinePosition(Gui::GetMousePos().x));
 		const auto gridAdjusted = floorToGrid ? FloorTickToGrid(tickAtMousePosition) : tickAtMousePosition;
 
 		// NOTE: There should never be a need to click before the start of the timeline
-		const auto clamped = std::max(TimelineTick::Zero(), gridAdjusted);
+		const auto clamped = std::max(BeatTick::Zero(), gridAdjusted);
 
 		return clamped;
 	}
@@ -379,7 +379,7 @@ namespace Comfy::Studio::Editor
 
 		for (size_t row = 0; row < iconCenters.size(); row++)
 		{
-			const auto tempTarget = TimelineTarget(TimelineTick::Zero(), static_cast<ButtonType>(row));
+			const auto tempTarget = TimelineTarget(BeatTick::Zero(), static_cast<ButtonType>(row));
 			renderHelper.DrawButtonIcon(drawList, tempTarget, iconCenters[row], iconScale);
 		}
 	}
@@ -417,7 +417,7 @@ namespace Comfy::Studio::Editor
 		auto lastBeatTimelineX = -beatSpacingThreshold;
 		for (i32 tick = 0, divisions = 0; tick < songDurationTicks; tick += gridTickStep, divisions++)
 		{
-			const auto timelineX = GetTimelinePosition(TimelineTick(tick));
+			const auto timelineX = GetTimelinePosition(BeatTick(tick));
 			if (const auto lastDrawnDistance = (timelineX - lastBeatTimelineX); lastDrawnDistance < beatSpacingThreshold)
 				continue;
 			lastBeatTimelineX = timelineX;
@@ -436,7 +436,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		auto lastBarTimelineX = -barSpacingThreshold;
-		workingChart->TempoMap.ForEachBar([&](const TimelineTick barTick, const size_t barIndex)
+		workingChart->TempoMap.ForEachBar([&](const BeatTick barTick, const size_t barIndex)
 		{
 			const auto timelineX = GetTimelinePosition(barTick);
 			if (const auto lastDrawnDistance = (timelineX - lastBarTimelineX); lastDrawnDistance < barSpacingThreshold)
@@ -484,7 +484,7 @@ namespace Comfy::Studio::Editor
 			auto cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
 
 			if (Gui::ComfyDragText("TimeDragText::TargetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
-				SetCursorTick(std::max(TimelineTick::Zero(), RoundTickToGrid(TimelineTick::FromTicks(static_cast<i32>(cursorDragTicks)))));
+				SetCursorTick(std::max(BeatTick::Zero(), RoundTickToGrid(BeatTick::FromTicks(static_cast<i32>(cursorDragTicks)))));
 		}
 
 		{
@@ -507,7 +507,7 @@ namespace Comfy::Studio::Editor
 		const auto scrollX = GetScrollX();
 
 		const auto preStart = timelineContentRegion.GetTL();
-		const auto preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(TimelineTick::FromBars(1)) - scrollX), 0.0f);
+		const auto preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(BeatTick::FromBars(1)) - scrollX), 0.0f);
 		if (preEnd.x - preStart.x > 0.0f)
 			baseDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
 
@@ -563,7 +563,7 @@ namespace Comfy::Studio::Editor
 	{
 		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
 
-		const auto leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(TimelineTick(0)));
+		const auto leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(BeatTick(0)));
 		const auto rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(timelineContentRegion.GetWidth());
 		const auto waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
 
@@ -754,7 +754,7 @@ namespace Comfy::Studio::Editor
 			const auto scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
 
 			// TODO: Come up with a better visualization ... (?)
-			const bool tooEarly = (target.Tick < TimelineTick::FromBars(1));
+			const bool tooEarly = (target.Tick < BeatTick::FromBars(1));
 			constexpr auto tooEarlyOpacity = 0.5f;
 
 			renderHelper.DrawButtonIcon(windowDrawList, target, center, scale, tooEarly ? tooEarlyOpacity : GetButtonEdgeFadeOpacity(screenX));
@@ -974,7 +974,7 @@ namespace Comfy::Studio::Editor
 			return static_cast<ButtonType>(std::clamp(static_cast<i32>(target.Type) + incrementDirection, static_cast<i32>(min), static_cast<i32>(max)));
 		}
 
-		const TimelineTarget* RecursiveFindBlockingTargetForChangedType(const SortedTargetList& targets, TimelineTick tick, ButtonType type, i32 incrementDirection, const TimelineTarget* syncPairBaseTarget)
+		const TimelineTarget* RecursiveFindBlockingTargetForChangedType(const SortedTargetList& targets, BeatTick tick, ButtonType type, i32 incrementDirection, const TimelineTarget* syncPairBaseTarget)
 		{
 			const TimelineTarget* blockingTarget = nullptr;
 			for (i32 i = 0; i < syncPairBaseTarget->Flags.SyncPairCount; i++)
@@ -1102,7 +1102,7 @@ namespace Comfy::Studio::Editor
 			else
 			{
 				const auto dragTickIncrement = FloorTickToGrid(selectionDrag.TicksMovedSoFar);
-				if (dragTickIncrement != TimelineTick::Zero() && !CheckIsAnySyncPairPartiallySelected() && CheckIsSelectionNotBlocked(dragTickIncrement))
+				if (dragTickIncrement != BeatTick::Zero() && !CheckIsAnySyncPairPartiallySelected() && CheckIsSelectionNotBlocked(dragTickIncrement))
 				{
 					selectionDrag.TicksMovedSoFar -= dragTickIncrement;
 
@@ -1145,9 +1145,9 @@ namespace Comfy::Studio::Editor
 		return false;
 	}
 
-	bool TargetTimeline::CheckIsSelectionNotBlocked(TimelineTick increment) const
+	bool TargetTimeline::CheckIsSelectionNotBlocked(BeatTick increment) const
 	{
-		if (increment > TimelineTick::Zero())
+		if (increment > BeatTick::Zero())
 		{
 			for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
 			{
@@ -1168,7 +1168,7 @@ namespace Comfy::Studio::Editor
 				auto& target = workingChart->Targets[i];
 				auto* prevTarget = IndexOrNull(i - 1, workingChart->Targets);
 
-				if (target.Tick + increment < TimelineTick::Zero())
+				if (target.Tick + increment < BeatTick::Zero())
 					return false;
 
 				if (target.IsSelected && prevTarget != nullptr && !prevTarget->IsSelected)
@@ -1405,7 +1405,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::IsMouseClicked(boxSelectionButton))
 			{
 				boxSelection.StartMouse = Gui::GetMousePos();
-				boxSelection.StartTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.StartMouse.x));
+				boxSelection.StartTick = GetBeatTick(ScreenToTimelinePosition(boxSelection.StartMouse.x));
 				boxSelection.IsActive = true;
 			}
 		}
@@ -1413,7 +1413,7 @@ namespace Comfy::Studio::Editor
 		if (boxSelection.IsActive && Gui::IsMouseDown(boxSelectionButton))
 		{
 			boxSelection.EndMouse = Gui::GetMousePos();
-			boxSelection.EndTick = GetTimelineTick(ScreenToTimelinePosition(boxSelection.EndMouse.x));
+			boxSelection.EndTick = GetBeatTick(ScreenToTimelinePosition(boxSelection.EndMouse.x));
 
 			const auto& io = Gui::GetIO();
 			boxSelection.Action = io.KeyShift ? BoxSelectionData::ActionType::Add : io.KeyAlt ? BoxSelectionData::ActionType::Remove : BoxSelectionData::ActionType::Clean;
@@ -1649,7 +1649,7 @@ namespace Comfy::Studio::Editor
 
 		for (i32 i = 0; i < targetCount; i++)
 		{
-			const auto tick = TimelineTick(startTick.Ticks() + (i * divisionTick.Ticks()));
+			const auto tick = BeatTick(startTick.Ticks() + (i * divisionTick.Ticks()));
 			if (workingChart->Targets.FindIndex(tick, type) <= -1)
 			{
 				auto& target = targets.emplace_back(tick, type);
@@ -1666,7 +1666,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetTimeline::PlaceOrRemoveTarget(TimelineTick tick, ButtonType type)
+	void TargetTimeline::PlaceOrRemoveTarget(BeatTick tick, ButtonType type)
 	{
 		const auto existingTargetIndex = workingChart->Targets.FindIndex(tick, type);
 		const auto* existingTarget = IndexOrNull(existingTargetIndex, workingChart->Targets);
@@ -1742,7 +1742,7 @@ namespace Comfy::Studio::Editor
 			buttonSoundController.PlayButtonSound();
 	}
 
-	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(TimelineTick cursorTick)
+	void TargetTimeline::PlayCursorButtonSoundsAndAnimation(BeatTick cursorTick)
 	{
 		for (const auto& target : workingChart->Targets)
 		{
@@ -1756,7 +1756,7 @@ namespace Comfy::Studio::Editor
 		PlaySingleTargetButtonSoundAndAnimation(target.Type, target.Tick);
 	}
 
-	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(ButtonType buttonType, TimelineTick buttonTick)
+	void TargetTimeline::PlaySingleTargetButtonSoundAndAnimation(ButtonType buttonType, BeatTick buttonTick)
 	{
 		// NOTE: During playback the sound will be handled automatically already
 		if (!GetIsPlayback())
@@ -1783,7 +1783,7 @@ namespace Comfy::Studio::Editor
 		PlaybackStateChangeSyncButtonSoundCursorTime(newTime);
 	}
 
-	TimelineTick TargetTimeline::GetCursorTick() const
+	BeatTick TargetTimeline::GetCursorTick() const
 	{
 		if (chartEditor.GetIsPlayback())
 			return TimeToTick(chartEditor.GetPlaybackTimeAsync());
@@ -1791,7 +1791,7 @@ namespace Comfy::Studio::Editor
 			return pausedCursorTick;
 	}
 
-	void TargetTimeline::SetCursorTick(const TimelineTick newTick)
+	void TargetTimeline::SetCursorTick(const BeatTick newTick)
 	{
 		const auto newTime = TickToTime(newTick);
 
@@ -1856,13 +1856,13 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep)
 	{
-		const auto beatIncrement = TimelineTick::FromBeats(1);
+		const auto beatIncrement = BeatTick::FromBeats(1);
 		const auto gridIncrement = GridDivisionTick();
 
 		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement);
 
 		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
-		const auto clampedCursorTick = std::max(newCursorTick, TimelineTick::Zero());
+		const auto clampedCursorTick = std::max(newCursorTick, BeatTick::Zero());
 
 		const auto preCursorX = GetCursorTimelinePosition();
 
@@ -1918,11 +1918,11 @@ namespace Comfy::Studio::Editor
 	{
 		const auto& io = Gui::GetIO();
 
-		const auto beatIncrement = TimelineTick::FromBeats(1);
+		const auto beatIncrement = BeatTick::FromBeats(1);
 		const auto gridIncrement = GridDivisionTick();
 
 		const auto scrollTickIncrement = (io.KeyShift ? std::max(beatIncrement, gridIncrement) : gridIncrement) * static_cast<i32>(io.MouseWheel);
-		const auto newCursorTick = std::max(TimelineTick::Zero(), GetCursorTick() + scrollTickIncrement);
+		const auto newCursorTick = std::max(BeatTick::Zero(), GetCursorTick() + scrollTickIncrement);
 
 		if (const bool seekThroughSong = GetIsPlayback(); seekThroughSong)
 		{

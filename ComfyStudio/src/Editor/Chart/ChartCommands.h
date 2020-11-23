@@ -236,7 +236,7 @@ namespace Comfy::Studio::Editor
 	class MoveTargetListTicks : public Undo::Command
 	{
 	public:
-		MoveTargetListTicks(Chart& chart, std::vector<i32> indices, TimelineTick tickIncrement)
+		MoveTargetListTicks(Chart& chart, std::vector<i32> indices, BeatTick tickIncrement)
 			: chart(chart), targetIndices(std::move(indices)), tickIncrement(tickIncrement)
 		{
 			minIndex = targetIndices.empty() ? 0 : *std::min_element(targetIndices.begin(), targetIndices.end()) - 1;
@@ -279,7 +279,7 @@ namespace Comfy::Studio::Editor
 	private:
 		Chart& chart;
 		std::vector<i32> targetIndices;
-		TimelineTick tickIncrement;
+		BeatTick tickIncrement;
 		i32 minIndex, maxIndex;
 	};
 
@@ -604,7 +604,7 @@ namespace Comfy::Studio::Editor
 	class RemoveTempoChange : public Undo::Command
 	{
 	public:
-		RemoveTempoChange(Chart& chart, TimelineTick tick)
+		RemoveTempoChange(Chart& chart, BeatTick tick)
 			: chart(chart), oldValue(chart.TempoMap.FindTempoChangeAtTick(tick))
 		{
 			assert(oldValue.Tick == tick);

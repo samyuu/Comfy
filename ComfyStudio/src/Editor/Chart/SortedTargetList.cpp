@@ -5,7 +5,7 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		constexpr u64 GetTargetSortWeight(const TimelineTick tick, const ButtonType type)
+		constexpr u64 GetTargetSortWeight(const BeatTick tick, const ButtonType type)
 		{
 			static_assert(sizeof(tick) == sizeof(i32));
 			static_assert(sizeof(type) == sizeof(u8));
@@ -63,14 +63,14 @@ namespace Comfy::Studio::Editor
 		UpdateTargetInternalFlagsAround(index);
 	}
 
-	i32 SortedTargetList::FindIndex(TimelineTick tick) const
+	i32 SortedTargetList::FindIndex(BeatTick tick) const
 	{
 		// TODO: Binary search
 		const auto foundIndex = FindIndexOf(targets, [&](const auto& target) { return (target.Tick == tick); });
 		return InBounds(foundIndex, targets) ? static_cast<i32>(foundIndex) : -1;
 	}
 
-	i32 SortedTargetList::FindIndex(TimelineTick tick, ButtonType type) const
+	i32 SortedTargetList::FindIndex(BeatTick tick, ButtonType type) const
 	{
 		// TODO: Binary search
 		const auto foundIndex = FindIndexOf(targets, [&](const auto& target) { return (target.Tick == tick) && (target.Type == type); });
@@ -109,7 +109,7 @@ namespace Comfy::Studio::Editor
 		UpdateTargetInternalFlagsInRange();
 	}
 
-	size_t SortedTargetList::FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const
+	size_t SortedTargetList::FindSortedInsertionIndex(BeatTick tick, ButtonType type) const
 	{
 		const auto inputSortWeight = GetTargetSortWeight(tick, type);
 
@@ -271,7 +271,7 @@ namespace Comfy::Studio::Editor
 			{
 				// HACK: Not sure if there exists a better solution. If the threshold is determined by time instead
 				//		 then each target will need to store a cached time tick field that has to be kept in sync with the tempo map
-				constexpr auto chainFragThreshold = (TimelineTick::FromBars(1) / 12);
+				constexpr auto chainFragThreshold = (BeatTick::FromBars(1) / 12);
 				const auto tickDistToLast = (target.Tick - prevTarget->Tick);
 
 				if ((tickDistToLast > chainFragThreshold) || (prevTarget->Flags.IsChain != target.Flags.IsChain))

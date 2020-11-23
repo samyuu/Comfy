@@ -19,7 +19,7 @@ namespace Comfy::Studio::Editor
 	private:
 		Undo::UndoManager& undoManager;
 
-		TimelineTick thisFrameCursorTick, lastFrameCursorTick;
+		BeatTick thisFrameCursorTick, lastFrameCursorTick;
 
 		Tempo newTempo = TempoChange::DefaultTempo;
 		TimeSignature newSignature = TempoChange::DefaultSignature;

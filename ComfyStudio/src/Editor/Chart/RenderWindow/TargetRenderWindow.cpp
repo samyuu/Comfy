@@ -248,8 +248,8 @@ namespace Comfy::Studio::Editor
 					if (auto p = (backgroundDim * 100.0f); Gui::SliderFloat("##BackgroundDimSlider", &p, 0.0f, 100.0f, "Background Dim: %.f%%"))
 						backgroundDim = (p / 100.0f);
 
-					if (auto t = targetPostHitLingerDuration.Ticks(); Gui::SliderInt("##PostHitLingerSlider", &t, 0, TimelineTick::TicksPerBeat * 8, "Post Hit Linger: %d Ticks"))
-						targetPostHitLingerDuration = TimelineTick::FromTicks(t);
+					if (auto t = targetPostHitLingerDuration.Ticks(); Gui::SliderInt("##PostHitLingerSlider", &t, 0, BeatTick::TicksPerBeat * 8, "Post Hit Linger: %d Ticks"))
+						targetPostHitLingerDuration = BeatTick::FromTicks(t);
 
 					Gui::EndMenu();
 				}
@@ -336,7 +336,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::AddVisibleTargetsToDrawBuffers()
 	{
-		constexpr auto chainHitTickThreshold = (TimelineTick::FromBars(1) / 16);
+		constexpr auto chainHitTickThreshold = (BeatTick::FromBars(1) / 16);
 
 		const auto& targets = workingChart->Targets;
 		const bool isPlayback = chartEditor.GetIsPlayback();
@@ -354,7 +354,7 @@ namespace Comfy::Studio::Editor
 			const auto endTick = buttonTick + targetPostHitLingerDuration;
 			const auto endTime = workingChart->TimelineMap.GetTimeAt(endTick);
 
-			const auto targetTick = target.Tick - TimelineTick::FromBars(1);
+			const auto targetTick = target.Tick - BeatTick::FromBars(1);
 			const auto targetTime = workingChart->TimelineMap.GetTimeAt(targetTick);
 
 			if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))

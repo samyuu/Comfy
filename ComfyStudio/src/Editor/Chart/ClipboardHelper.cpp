@@ -91,7 +91,7 @@ namespace Comfy::Studio::Editor
 				auto parseF32 = [&] { return Util::StringParsing::ParseType<f32>(word = Util::StringParsing::GetWord(line.data())); };
 
 				auto& newTarget = pasteTargets.emplace_back();
-				newTarget.Tick = TimelineTick::FromTicks(parseI32()); advanceWord();
+				newTarget.Tick = BeatTick::FromTicks(parseI32()); advanceWord();
 				newTarget.Type = static_cast<ButtonType>(parseI32()); advanceWord();
 				newTarget.Flags.HasProperties = parseI32(); advanceWord();
 				newTarget.Flags.IsHold = parseI32(); advanceWord();

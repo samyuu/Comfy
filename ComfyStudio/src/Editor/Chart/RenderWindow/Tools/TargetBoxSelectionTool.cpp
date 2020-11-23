@@ -8,7 +8,7 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	void TargetBoxSelectionTool::UpdateInput(Chart& chart, const TimelineTick cursorTick, const TimelineTick postHitLingerDuration)
+	void TargetBoxSelectionTool::UpdateInput(Chart& chart, const BeatTick cursorTick, const BeatTick postHitLingerDuration)
 	{
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
 		{
@@ -49,7 +49,7 @@ namespace Comfy::Studio::Editor
 
 				auto isTargetInSelectionRange = [&](const TimelineTarget& target) -> bool
 				{
-					const auto targetTick = target.Tick - TimelineTick::FromBars(1);
+					const auto targetTick = target.Tick - BeatTick::FromBars(1);
 					const auto endTick = target.Tick + postHitLingerDuration;
 					if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))
 					{

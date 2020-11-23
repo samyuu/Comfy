@@ -1,7 +1,7 @@
 #include "SyncWindow.h"
+#include "BeatTick.h"
 #include "SortedTempoMap.h"
 #include "Editor/Chart/ChartCommands.h"
-#include "Timeline/TimelineTick.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 
@@ -38,7 +38,7 @@ namespace Comfy::Studio::Editor
 				{
 					if (Gui::Button(label, vec2(buttonWidth, 0.0f)))
 					{
-						const auto firstTempo = chart.TempoMap.FindTempoChangeAtTick(TimelineTick::Zero()).Tempo;
+						const auto firstTempo = chart.TempoMap.FindTempoChangeAtTick(BeatTick::Zero()).Tempo;
 						const auto beatDuration = TimeSpan::FromSeconds(60.0 / firstTempo.BeatsPerMinute);
 
 						undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS) + (beatDuration * factor));

@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
-#include "Timeline/TimelineTick.h"
+#include "BeatTick.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -118,9 +118,9 @@ namespace Comfy::Studio::Editor
 	struct TimelineTarget
 	{
 		TimelineTarget() = default;
-		TimelineTarget(TimelineTick tick, ButtonType type) : Tick(tick), Type(type) {}
+		TimelineTarget(BeatTick tick, ButtonType type) : Tick(tick), Type(type) {}
 
-		TimelineTick Tick = {};
+		BeatTick Tick = {};
 		ButtonType Type = {};
 		bool IsSelected = false;
 		TargetFlags Flags = {};
@@ -141,8 +141,8 @@ namespace Comfy::Studio::Editor
 		void Remove(TimelineTarget target);
 		void RemoveAt(i32 index);
 
-		i32 FindIndex(TimelineTick tick) const;
-		i32 FindIndex(TimelineTick tick, ButtonType type) const;
+		i32 FindIndex(BeatTick tick) const;
+		i32 FindIndex(BeatTick tick, ButtonType type) const;
 		void Clear();
 
 		void ExplicitlyUpdateFlagsAndSort(i32 startIndex = -1, i32 endIndex = -1);
@@ -171,7 +171,7 @@ namespace Comfy::Studio::Editor
 		std::vector<TimelineTarget> targets;
 		std::vector<TimelineTarget*> slideTargetBuffer;
 
-		size_t FindSortedInsertionIndex(TimelineTick tick, ButtonType type) const;
+		size_t FindSortedInsertionIndex(BeatTick tick, ButtonType type) const;
 
 		void UpdateTargetInternalFlagsAround(i32 index);
 		void UpdateTargetInternalFlagsInRange(i32 startIndex = -1, i32 endIndex = -1);

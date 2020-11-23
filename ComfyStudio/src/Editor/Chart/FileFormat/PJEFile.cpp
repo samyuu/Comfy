@@ -34,9 +34,9 @@ namespace Comfy::Studio::Editor
 			std::vector<TempoChange> newTempoChanges;
 			newTempoChanges.reserve(bpmChanges.size());
 			for (const auto& bpmChange : bpmChanges)
-				newTempoChanges.emplace_back(TimelineTick(bpmChange.Index), bpmChange.BPM, TempoChange::DefaultSignature);
+				newTempoChanges.emplace_back(BeatTick(bpmChange.Index), bpmChange.BPM, TempoChange::DefaultSignature);
 
-			auto findMatchingTempoChange = [&](TimelineTick tick) -> TempoChange&
+			auto findMatchingTempoChange = [&](BeatTick tick) -> TempoChange&
 			{
 				if (newTempoChanges.size() == 1)
 					return newTempoChanges.front();
@@ -55,13 +55,13 @@ namespace Comfy::Studio::Editor
 
 			for (const auto& pjeSigChange : sigChanges)
 			{
-				auto& matchingTempoChange = findMatchingTempoChange(TimelineTick(pjeSigChange.Index));
+				auto& matchingTempoChange = findMatchingTempoChange(BeatTick(pjeSigChange.Index));
 				auto signature = TimeSignature(pjeSigChange.Numerator, pjeSigChange.Denominator);
 
-				if (matchingTempoChange.Tick == TimelineTick(pjeSigChange.Index))
+				if (matchingTempoChange.Tick == BeatTick(pjeSigChange.Index))
 					matchingTempoChange.Signature = signature;
 				else
-					newTempoChanges.emplace_back(TimelineTick(pjeSigChange.Index), matchingTempoChange.Tempo, signature);
+					newTempoChanges.emplace_back(BeatTick(pjeSigChange.Index), matchingTempoChange.Tempo, signature);
 			}
 
 			std::vector<TimelineTarget> newTargets;
@@ -69,7 +69,7 @@ namespace Comfy::Studio::Editor
 			for (const auto& pjeTarget : targets)
 			{
 				const auto targetTypeData = PJEFile::ConverTargetType(pjeTarget.Type);
-				auto& newTarget = newTargets.emplace_back(TimelineTick(pjeTarget.Index), targetTypeData.Type);
+				auto& newTarget = newTargets.emplace_back(BeatTick(pjeTarget.Index), targetTypeData.Type);
 				newTarget.Flags.HasProperties = true;
 				newTarget.Flags.IsHold = targetTypeData.IsHold;
 				newTarget.Flags.IsChain = targetTypeData.IsChain;
@@ -85,7 +85,7 @@ namespace Comfy::Studio::Editor
 			chart->Targets = std::move(newTargets);
 
 			chart->UpdateMapTimes();
-			chart->Duration = chart->TimelineMap.GetTimeAt(TimelineTick(songEnd));
+			chart->Duration = chart->TimelineMap.GetTimeAt(BeatTick(songEnd));
 
 			return chart;
 		}
@@ -377,7 +377,7 @@ namespace Comfy::Studio::Editor
 				newTarget.Frequency = properties.Frequency;
 				newTarget.Amplitude = properties.Amplitude;
 				newTarget.Distance = properties.Distance;
-				newTarget.FlyTime = static_cast<f32>((sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick) - sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick - TimelineTick::FromBars(1))).TotalMilliseconds());
+				newTarget.FlyTime = static_cast<f32>((sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick) - sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick - BeatTick::FromBars(1))).TotalMilliseconds());
 			}
 		}
 
@@ -421,20 +421,20 @@ namespace Comfy::Studio::Editor
 			return TargetType::Circle;
 		}
 
-		PJEFile::TimelineIndex::TimelineIndex(TimelineTick tick)
+		PJEFile::TimelineIndex::TimelineIndex(BeatTick tick)
 		{
 			// TODO: Scale correctly
-			static_assert(TimelineTick::TicksPerBeat * 4 == 192);
+			static_assert(BeatTick::TicksPerBeat * 4 == 192);
 			Bar = (tick.Ticks() / (tick.TicksPerBeat * 4));
 			Beat = (tick.Ticks() % (tick.TicksPerBeat * 4));
 
-			assert(TimelineTick(*this) == tick);
+			assert(BeatTick(*this) == tick);
 		}
 
-		PJEFile::TimelineIndex::operator TimelineTick() const
+		PJEFile::TimelineIndex::operator BeatTick() const
 		{
-			constexpr auto beatTickScale = (static_cast<f64>(TimelineTick::TicksPerBeat) * 4.0) / 192.0;
-			return TimelineTick::FromBars(Bar, 4) + TimelineTick::FromTicks(static_cast<i32>(static_cast<f64>(Beat) * beatTickScale));
+			constexpr auto beatTickScale = (static_cast<f64>(BeatTick::TicksPerBeat) * 4.0) / 192.0;
+			return BeatTick::FromBars(Bar, 4) + BeatTick::FromTicks(static_cast<i32>(static_cast<f64>(Beat) * beatTickScale));
 		}
 	}
 }

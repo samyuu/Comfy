@@ -47,67 +47,67 @@ namespace Comfy::Studio::Editor
 		constexpr vec2 PlacementStairDirection = (vec2(5.0f, 3.0f) / 5.83095169f);
 		constexpr vec2 PlacementStairSteepDirection = vec2(PlacementStairDirection.y, PlacementStairDirection.x);
 
-		constexpr f32 TickToDistance(const TimelineTick tick)
+		constexpr f32 TickToDistance(const BeatTick tick)
 		{
-			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);
+			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(BeatTick::TicksPerBeat);
 			const auto beatDistanceRatio = static_cast<f64>(PlacementDistancePerBeat);
 
 			return static_cast<f32>(beats * beatDistanceRatio);
 		}
 
-		constexpr TimelineTick DistanceToTick(const f32 distance)
+		constexpr BeatTick DistanceToTick(const f32 distance)
 		{
 			const auto beats = static_cast<f64>(distance) / static_cast<f64>(PlacementDistancePerBeat);
-			const auto ticks = beats * static_cast<f64>(TimelineTick::TicksPerBeat);
+			const auto ticks = beats * static_cast<f64>(BeatTick::TicksPerBeat);
 
-			return TimelineTick::FromTicks(static_cast<i32>(ticks));
+			return BeatTick::FromTicks(static_cast<i32>(ticks));
 		}
 
-		constexpr f32 TickToDistanceStair(const TimelineTick tick)
+		constexpr f32 TickToDistanceStair(const BeatTick tick)
 		{
-			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);
+			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(BeatTick::TicksPerBeat);
 			const auto beatDistanceRatio = static_cast<f32>(PlacementDistancePerBeatStair);
 
 			return static_cast<f32>(beats * beatDistanceRatio);
 		}
 
-		constexpr f32 TickToDistanceChain(const TimelineTick tick)
+		constexpr f32 TickToDistanceChain(const BeatTick tick)
 		{
-			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(TimelineTick::TicksPerBeat);
+			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(BeatTick::TicksPerBeat);
 			const auto beatDistanceRatio = static_cast<f32>(PlacementDistancePerBeatChain);
 
 			return static_cast<f32>(beats * beatDistanceRatio);
 		}
 
-		constexpr f32 ChainFragmentPlacementDistance = TickToDistanceChain(TimelineTick::FromBars(1) / 32);
+		constexpr f32 ChainFragmentPlacementDistance = TickToDistanceChain(BeatTick::FromBars(1) / 32);
 		constexpr f32 ChainFragmentStartEndOffsetDistance = 32.0f;
 
 		constexpr vec2 RecommendedPlacementAreaMin =
 		{
-			TickToDistance(TimelineTick::FromBars(1) / 8),
-			TickToDistance(TimelineTick::FromBars(1) / 4),
+			TickToDistance(BeatTick::FromBars(1) / 8),
+			TickToDistance(BeatTick::FromBars(1) / 4),
 		};
 
 		constexpr vec2 RecommendedPlacementAreaMax =
 		{
-			PlacementAreaSize.x - TickToDistance((TimelineTick::FromBars(1) / 8)),
-			PlacementAreaSize.y - TickToDistance((TimelineTick::FromBars(1) / 4) + (TimelineTick::FromBars(1) / 32)),
+			PlacementAreaSize.x - TickToDistance((BeatTick::FromBars(1) / 8)),
+			PlacementAreaSize.y - TickToDistance((BeatTick::FromBars(1) / 4) + (BeatTick::FromBars(1) / 32)),
 		};
 
-		constexpr f32 VerticalSyncPairPlacementDistance = TickToDistance(TimelineTick::FromBars(1) / 8);
+		constexpr f32 VerticalSyncPairPlacementDistance = TickToDistance(BeatTick::FromBars(1) / 8);
 
-		constexpr f32 SyncFormationHeightOffset = TickToDistance(TimelineTick::FromBars(1) / 32);
-		constexpr f32 SyncFormationHeightOffsetAlt = TickToDistance(TimelineTick::FromBars(1) / 8 + TimelineTick::FromBars(1) / 32);
+		constexpr f32 SyncFormationHeightOffset = TickToDistance(BeatTick::FromBars(1) / 32);
+		constexpr f32 SyncFormationHeightOffsetAlt = TickToDistance(BeatTick::FromBars(1) / 8 + BeatTick::FromBars(1) / 32);
 
 		static_assert(RecommendedPlacementAreaMin == vec2(96.0f, 192.0f));
 		static_assert(RecommendedPlacementAreaMax == vec2(1824.0f, 864.0f));
 
-		static_assert(TickToDistance(TimelineTick::FromBeats(1)) == PlacementDistancePerBeat);
-		static_assert(DistanceToTick(PlacementDistancePerBeat) == TimelineTick::FromBeats(1));
-		static_assert(DistanceToTick(PlacementDistancePerBeat / 4.0f) == (TimelineTick::FromBeats(1) / 4));
-		static_assert(DistanceToTick(TickToDistance(TimelineTick::FromTicks(1))) == TimelineTick::FromTicks(1));
-		static_assert(DistanceToTick(TickToDistance(TimelineTick::FromBeats(1))) == TimelineTick::FromBeats(1));
-		static_assert(DistanceToTick(TickToDistance(TimelineTick::FromBars(1))) == TimelineTick::FromBars(1));
+		static_assert(TickToDistance(BeatTick::FromBeats(1)) == PlacementDistancePerBeat);
+		static_assert(DistanceToTick(PlacementDistancePerBeat) == BeatTick::FromBeats(1));
+		static_assert(DistanceToTick(PlacementDistancePerBeat / 4.0f) == (BeatTick::FromBeats(1) / 4));
+		static_assert(DistanceToTick(TickToDistance(BeatTick::FromTicks(1))) == BeatTick::FromTicks(1));
+		static_assert(DistanceToTick(TickToDistance(BeatTick::FromBeats(1))) == BeatTick::FromBeats(1));
+		static_assert(DistanceToTick(TickToDistance(BeatTick::FromBars(1))) == BeatTick::FromBars(1));
 
 		// TODO: Eventually make user configurable (?)
 		constexpr std::array CommonAmplitudes = { 450.0f, 500.0f, 600.0f, 750.0f, 800.0f, 1250.0f, 1500.0f, };
@@ -186,28 +186,28 @@ namespace Comfy::Studio::Editor
 				return type;
 			}
 
-			constexpr vec2 PresetTargetPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
+			constexpr vec2 PresetTargetPosition(ButtonType type, BeatTick tick, TargetFlags flags)
 			{
-				constexpr auto baselineX = TickToDistance(TimelineTick::FromBars(1) / 4);
-				constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
+				constexpr auto baselineX = TickToDistance(BeatTick::FromBars(1) / 4);
+				constexpr auto baselineY = TickToDistance(BeatTick::FromBars(1));
 
-				const auto x = TickToDistance((TimelineTick::FromBars(1) + tick) % TimelineTick::FromBars(2));
+				const auto x = TickToDistance((BeatTick::FromBars(1) + tick) % BeatTick::FromBars(2));
 				const auto y = flags.IsSync ? VerticalSyncPairTypeHeightOffsets[static_cast<u8>(AdjustSameTypeSyncButtonType(type, flags))] : 0.0f;
 
 				return vec2(baselineX + x, baselineY + y);
 			}
 
-			constexpr vec2 PresetTargetChainPosition(ButtonType type, TimelineTick tick, TargetFlags flags)
+			constexpr vec2 PresetTargetChainPosition(ButtonType type, BeatTick tick, TargetFlags flags)
 			{
 				const bool isLeft = (type == ButtonType::SlideL);
-				const bool evenBar = (tick % TimelineTick::FromBars(2)) < TimelineTick::FromBars(1);
+				const bool evenBar = (tick % BeatTick::FromBars(2)) < BeatTick::FromBars(1);
 
-				constexpr auto baselineXOdd = TickToDistance(TimelineTick::FromBeats(1) / 2);
-				constexpr auto baselineXEven = TickToDistance(TimelineTick::FromBars(1) - TimelineTick::FromBars(1) / 8);
+				constexpr auto baselineXOdd = TickToDistance(BeatTick::FromBeats(1) / 2);
+				constexpr auto baselineXEven = TickToDistance(BeatTick::FromBars(1) - BeatTick::FromBars(1) / 8);
 
-				constexpr auto baselineY = TickToDistance(TimelineTick::FromBars(1));
+				constexpr auto baselineY = TickToDistance(BeatTick::FromBars(1));
 
-				const auto x = (evenBar ? baselineXEven : baselineXOdd) + (TickToDistanceChain(tick % TimelineTick::FromBars(1)));
+				const auto x = (evenBar ? baselineXEven : baselineXOdd) + (TickToDistanceChain(tick % BeatTick::FromBars(1)));
 				const auto y = (VerticalSyncPairPlacementDistance * (evenBar ? -2.0f : -1.0f));
 
 				return vec2(isLeft ? (PlacementAreaSize.x - x) : x, baselineY + y);
@@ -229,7 +229,7 @@ namespace Comfy::Studio::Editor
 				return false;
 			}
 
-			constexpr TargetProperties PresetTargetProperties(ButtonType type, TimelineTick tick, TargetFlags flags)
+			constexpr TargetProperties PresetTargetProperties(ButtonType type, BeatTick tick, TargetFlags flags)
 			{
 				if (flags.IsChain)
 					return { Detail::PresetTargetChainPosition(type, tick, flags), 0.0f, (type == ButtonType::SlideL) ? +2.0f : -2.0f, 500.0f, 1200.0f, };

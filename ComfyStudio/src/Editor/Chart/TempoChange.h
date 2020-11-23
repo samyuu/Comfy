@@ -1,5 +1,6 @@
 #pragma once
-#include "Timeline/TimelineTick.h"
+#include "Types.h"
+#include "BeatTick.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -29,12 +30,12 @@ namespace Comfy::Studio::Editor
 		i16 Denominator = MinValue;
 	};
 
-	struct DecomposedTimeSignature { TimelineTick TicksPerBeat; i32 BeatsPerBar; };
+	struct DecomposedTimeSignature { BeatTick TicksPerBeat; i32 BeatsPerBar; };
 
 	constexpr DecomposedTimeSignature DecomposeTimeSignature(TimeSignature signature)
 	{
 		DecomposedTimeSignature result;
-		result.TicksPerBeat = TimelineTick::FromBars(1) / signature.Denominator;
+		result.TicksPerBeat = BeatTick::FromBars(1) / signature.Denominator;
 		result.BeatsPerBar = signature.Numerator;
 		return result;
 	}
@@ -45,14 +46,14 @@ namespace Comfy::Studio::Editor
 		static constexpr auto DefaultSignature = TimeSignature(4, 4);
 
 		TempoChange() = default;
-		TempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature) : Tick(tick), Tempo(tempo), Signature(signature) {}
+		TempoChange(BeatTick tick, Tempo tempo, TimeSignature signature) : Tick(tick), Tempo(tempo), Signature(signature) {}
 
 		constexpr bool operator==(const TempoChange& other) const { return (Tick == other.Tick); }
 		constexpr bool operator!=(const TempoChange& other) const { return (Tick != other.Tick); }
 		constexpr bool operator<(const TempoChange& other) const { return (Tick < other.Tick); }
 		constexpr bool operator>(const TempoChange& other) const { return (Tick > other.Tick); }
 
-		TimelineTick Tick = {};
+		BeatTick Tick = {};
 		Tempo Tempo = DefaultTempo;
 		TimeSignature Signature = DefaultSignature;
 	};

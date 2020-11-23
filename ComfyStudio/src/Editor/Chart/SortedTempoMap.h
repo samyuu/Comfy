@@ -11,12 +11,12 @@ namespace Comfy::Studio::Editor
 		~SortedTempoMap() = default;
 
 	public:
-		void SetTempoChange(TimelineTick tick, Tempo tempo, TimeSignature signature);
-		void RemoveTempoChange(TimelineTick tick);
+		void SetTempoChange(BeatTick tick, Tempo tempo, TimeSignature signature);
+		void RemoveTempoChange(BeatTick tick);
 
 		const TempoChange& GetTempoChangeAt(size_t index) const;
 
-		TempoChange& FindTempoChangeAtTick(TimelineTick tick);
+		TempoChange& FindTempoChangeAtTick(BeatTick tick);
 
 		template <typename Func>
 		void ForEachBar(Func perBarFunc) const;
@@ -37,7 +37,7 @@ namespace Comfy::Studio::Editor
 		const std::vector<TempoChange>& GetRawView() const { return tempoChanges; }
 
 	private:
-		size_t FindSortedInsertionIndex(TimelineTick tick) const;
+		size_t FindSortedInsertionIndex(BeatTick tick) const;
 
 	private:
 		std::vector<TempoChange> tempoChanges;
@@ -52,7 +52,7 @@ namespace Comfy::Studio::Editor
 			const auto* nextTempoChange = IndexOrNull(i + 1, tempoChanges);
 
 			const auto startTick = tempoChange.Tick;
-			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : TimelineTick::FromTicks(std::numeric_limits<i32>::max());
+			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : BeatTick::FromTicks(std::numeric_limits<i32>::max());
 
 			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(tempoChange.Signature);
 			for (auto barTick = startTick; barTick < endTick; barTick += (ticksPerBeat * beatsPerBar))
@@ -72,7 +72,7 @@ namespace Comfy::Studio::Editor
 			const auto* nextTempoChange = IndexOrNull(i + 1, tempoChanges);
 
 			const auto startTick = tempoChange.Tick;
-			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : TimelineTick::FromTicks(std::numeric_limits<i32>::max());
+			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : BeatTick::FromTicks(std::numeric_limits<i32>::max());
 
 			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(tempoChange.Signature);
 			for (auto beatTick = startTick; beatTick < endTick; beatTick += ticksPerBeat)

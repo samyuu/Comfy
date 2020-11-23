@@ -58,9 +58,9 @@ namespace Comfy::Studio::Editor
 		lastProvidedFrameTime = timeThisFrame;
 
 		const auto cursorTick = chart.TimelineMap.GetTickAt(timeThisFrame);
-		const auto cursorEndTick = cursorTick + TimelineTick::FromBars(1);
+		const auto cursorEndTick = cursorTick + BeatTick::FromBars(1);
 
-		chart.TempoMap.ForEachBeatBar([&](const TimelineTick beatTick, const size_t barIndex, const bool isBar)
+		chart.TempoMap.ForEachBeatBar([&](const BeatTick beatTick, const size_t barIndex, const bool isBar)
 		{
 			if (beatTick >= cursorEndTick)
 				return true;

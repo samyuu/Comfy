@@ -19,7 +19,7 @@ namespace Comfy::Studio::Editor
 		~TargetBoxSelectionTool() = default;
 
 	public:
-		void UpdateInput(Chart& chart, const TimelineTick cursorTick, const TimelineTick postHitLingerDuration);
+		void UpdateInput(Chart& chart, const BeatTick cursorTick, const BeatTick postHitLingerDuration);
 		void DrawSelection(ImDrawList& drawList);
 
 	private:

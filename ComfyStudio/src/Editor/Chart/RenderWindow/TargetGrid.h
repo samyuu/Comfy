@@ -33,8 +33,8 @@ namespace Comfy::Studio::Editor
 			vertices[i].Color = GridColorSub;
 
 		constexpr auto min = Rules::RecommendedPlacementAreaMin, max = Rules::RecommendedPlacementAreaMax;
-		constexpr auto gridStep = Rules::TickToDistance((TimelineTick::FromBars(1) / 8));
-		constexpr auto gridStepSub = Rules::TickToDistance((TimelineTick::FromBars(1) / 8)) / static_cast<f32>(GridSubDivisions);
+		constexpr auto gridStep = Rules::TickToDistance((BeatTick::FromBars(1) / 8));
+		constexpr auto gridStepSub = Rules::TickToDistance((BeatTick::FromBars(1) / 8)) / static_cast<f32>(GridSubDivisions);
 
 		size_t v = 0;
 		for (i32 x = 0; x < GridLineCount.x; x++)

@@ -95,7 +95,7 @@ namespace Comfy::Studio::Editor
 
 		constexpr std::array<TargetField, 11> TargetFields =
 		{
-			TargetField { "Tick", sizeof(i32), [](IO::StreamReader& r, TimelineTarget& t) { t.Tick = TimelineTick(r.ReadI32()); }, [](IO::StreamWriter& writer, const TimelineTarget& target) { writer.WriteI32(target.Tick.Ticks()); } },
+			TargetField { "Tick", sizeof(i32), [](IO::StreamReader& r, TimelineTarget& t) { t.Tick = BeatTick(r.ReadI32()); }, [](IO::StreamWriter& writer, const TimelineTarget& target) { writer.WriteI32(target.Tick.Ticks()); } },
 			TargetField { "Type", sizeof(u8), [](IO::StreamReader& r, TimelineTarget& t) { t.Type = static_cast<ButtonType>(r.ReadU8()); }, [](IO::StreamWriter& w, const TimelineTarget& t) { w.WriteU8(static_cast<u8>(t.Type)); } },
 			TargetField { "Properties", sizeof(u8), [](IO::StreamReader& r, TimelineTarget& t) { t.Flags.HasProperties = r.ReadU8(); }, [](IO::StreamWriter& w, const TimelineTarget& t) { w.WriteU8(t.Flags.HasProperties); } },
 			TargetField { "Hold", sizeof(u8), [](IO::StreamReader& r, TimelineTarget& t) { t.Flags.IsHold = r.ReadU8(); }, [](IO::StreamWriter& w, const TimelineTarget& t) { w.WriteU8(t.Flags.IsHold); } },
@@ -118,7 +118,7 @@ namespace Comfy::Studio::Editor
 
 		constexpr std::array<TempoField, 3> TempoMapFields =
 		{
-			TempoField { "Tick", sizeof(i32), [](IO::StreamReader& r, TempoChange& t) { t.Tick = TimelineTick(r.ReadI32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteI32(t.Tick.Ticks()); } },
+			TempoField { "Tick", sizeof(i32), [](IO::StreamReader& r, TempoChange& t) { t.Tick = BeatTick(r.ReadI32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteI32(t.Tick.Ticks()); } },
 			TempoField { "Tempo", sizeof(f32), [](IO::StreamReader& r, TempoChange& t) { t.Tempo = Tempo(r.ReadF32()); },[](IO::StreamWriter& w, const TempoChange& t) { w.WriteF32(t.Tempo.BeatsPerMinute); } },
 			TempoField { "Time Signature", sizeof(i16) * 2, [](IO::StreamReader& r, TempoChange& t) { t.Signature.Numerator = r.ReadI16(); t.Signature.Denominator = r.ReadI16(); },[](IO::StreamWriter& w, const TempoChange& t) { w.WriteI16(t.Signature.Numerator); w.WriteI16(t.Signature.Denominator); } },
 		};
@@ -782,7 +782,7 @@ namespace Comfy::Studio::Editor
 		chart.Scale.ButtonTypeNames.emplace_back("SlideR");
 		static_assert(static_cast<u8>(EnumCount<ButtonType>()) == 6);
 
-		chart.Scale.TicksPerBeat = TimelineTick::TicksPerBeat;
+		chart.Scale.TicksPerBeat = BeatTick::TicksPerBeat;
 		chart.Scale.PlacementAreaSize = Rules::PlacementAreaSize;
 		chart.Scale.FullAngleRotation = 360.0f;
 
