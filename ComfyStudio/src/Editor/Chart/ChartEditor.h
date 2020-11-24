@@ -13,6 +13,7 @@
 #include "Undo/Undo.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include "Editor/Common/UndoHistoryWindow.h"
+#include "Editor/Common/SoundEffectManager.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -71,6 +72,8 @@ namespace Comfy::Studio::Editor
 
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
+		SoundEffectManager& GetSoundEffectManager();
+
 	private:
 		void UpdateApplicationClosingRequest();
 		void UpdateGlobalControlInput();
@@ -88,6 +91,8 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Render::Renderer2D> renderer = nullptr;
 
 		std::unique_ptr<Graphics::SprSet> editorSprites = nullptr;
+
+		SoundEffectManager soundEffectManager;
 
 	private:
 		Undo::UndoManager undoManager = {};

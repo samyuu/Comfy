@@ -452,6 +452,11 @@ namespace Comfy::Studio::Editor
 		return playbackTimeOnPlaybackStart;
 	}
 
+	SoundEffectManager& Comfy::Studio::Editor::ChartEditor::GetSoundEffectManager()
+	{
+		return soundEffectManager;
+	}
+
 	void ChartEditor::UpdateApplicationClosingRequest()
 	{
 		if (!applicationExitRequested)
