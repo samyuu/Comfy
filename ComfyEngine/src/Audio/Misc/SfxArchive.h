@@ -14,10 +14,13 @@ namespace Comfy::Audio
 		~SfxArchive();
 
 	public:
-		std::pair<SourceHandle, const Database::SfxEntry*> FindSource(std::string_view name) const;
+		std::pair<SourceHandle, const Database::SfxEntry*> Find(std::string_view name) const;
+		SourceHandle GetSource(const Database::SfxEntry& entry) const;
+
 		const std::vector<Database::SfxEntry>& GetEntries() const;
 
-		bool IsLoaded() const;
+		bool IsAsyncLoaded() const;
+		void WaitUntilAsyncLoaded();
 
 	private:
 		void ParseLoadFArc(std::string_view farcPath);

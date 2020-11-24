@@ -20,7 +20,7 @@ namespace Comfy::Audio
 			engine.UnloadSource(loadedSource);
 	}
 
-	std::pair<SourceHandle, const Database::SfxEntry*> SfxArchive::FindSource(std::string_view name) const
+	std::pair<SourceHandle, const Database::SfxEntry*> SfxArchive::Find(std::string_view name) const
 	{
 		if (loadFuture.valid())
 			loadFuture.get();
@@ -34,6 +34,18 @@ namespace Comfy::Audio
 		return std::make_pair(SourceHandle::Invalid, nullptr);
 	}
 
+	SourceHandle SfxArchive::GetSource(const Database::SfxEntry& entry) const
+	{
+		if (loadFuture.valid())
+			loadFuture.get();
+
+		if (&entry < &sfxDB.Entries.front() || &entry > &sfxDB.Entries.back())
+			return SourceHandle::Invalid;
+
+		const auto index = std::distance(&sfxDB.Entries.front(), &entry);
+		return loadedSources[index];
+	}
+
 	const std::vector<Database::SfxEntry>& SfxArchive::GetEntries() const
 	{
 		if (loadFuture.valid())
@@ -42,9 +54,15 @@ namespace Comfy::Audio
 		return sfxDB.Entries;
 	}
 
-	bool SfxArchive::IsLoaded() const
+	bool SfxArchive::IsAsyncLoaded() const
 	{
 		return (!loadFuture.valid() || loadFuture._Is_ready());
+	}
+
+	void SfxArchive::WaitUntilAsyncLoaded()
+	{
+		if (loadFuture.valid())
+			loadFuture.get();
 	}
 
 	void SfxArchive::ParseLoadFArc(std::string_view farcPath)
