@@ -22,6 +22,8 @@ namespace Comfy::Studio::Editor
 		virtual void OnEditorComponentMadeActive() {}
 		virtual ApplicationHostCloseResponse OnApplicationClosing() { return ApplicationHostCloseResponse::Exit; }
 
+		virtual void OnExclusiveGui() {}
+
 	protected:
 		EditorManager& parentEditor;
 	};

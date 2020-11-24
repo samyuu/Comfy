@@ -136,6 +136,12 @@ namespace Comfy::Studio::Editor
 		DrawGui();
 	}
 
+	void EditorManager::GuiExclusiveFullscreen()
+	{
+		if (auto* component = TryGetActiveComponent(); component != nullptr)
+			component->OnExclusiveGui();
+	}
+
 	ApplicationHostCloseResponse EditorManager::OnApplicationClosing()
 	{
 		auto activeComponent = TryGetActiveComponent(false);

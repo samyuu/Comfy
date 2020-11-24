@@ -88,6 +88,16 @@ namespace Comfy::Studio
 		host->SetWindowTitle(formattedTitle);
 	}
 
+	bool Application::GetExclusiveFullscreenGui() const
+	{
+		return exclusiveFullscreenGui;
+	}
+
+	void Application::SetExclusiveFullscreenGui(bool value)
+	{
+		exclusiveFullscreenGui = value;
+	}
+
 	void* Application::GetGlobalWindowFocusHandle()
 	{
 		return (GlobalLastCreatedApplication != nullptr) ? GlobalLastCreatedApplication->GetHost().GetWindowHandle() : nullptr;
@@ -146,43 +156,46 @@ namespace Comfy::Studio
 	{
 		const auto& io = Gui::GetIO();
 
-		if (io.KeyCtrl && io.KeyAlt && Gui::IsKeyPressed(Input::KeyCode_B, false))
+#if COMFY_DEBUG && 1
+		if (io.KeyCtrl && io.KeyShift && Gui::IsKeyPressed(Input::KeyCode_B, false))
 			showMainMenuBar ^= true;
 
 		if (Gui::IsKeyPressed(Input::KeyCode_F10))
-		{
-			exclusiveAppEngineWindow ^= true;
-			showMainAppEngineWindow = exclusiveAppEngineWindow;
-		}
+			exclusiveFullscreenGui ^= true;
+#endif
 
-		const bool menuBarVisible = showMainMenuBar && !exclusiveAppEngineWindow;
+		const bool menuBarVisible = (showMainMenuBar && !exclusiveFullscreenGui);
 
 		if (menuBarVisible)
 			GuiMainMenuBar();
 
 		host->GuiMainDockspace(menuBarVisible);
 
-		if (exclusiveAppEngineWindow)
+		if (exclusiveFullscreenGui)
 		{
-			ImGuiViewport* viewport = Gui::GetMainViewport();
+			const auto* viewport = Gui::GetMainViewport();
 			Gui::SetNextWindowPos(viewport->Pos);
 			Gui::SetNextWindowSize(viewport->Size);
 			Gui::SetNextWindowViewport(viewport->ID);
 
-			ImGuiWindowFlags engineWindowFlags = ImGuiWindowFlags_None;
-			engineWindowFlags |= ImGuiWindowFlags_NoDocking;
-			engineWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			engineWindowFlags |= ImGuiWindowFlags_NoNavFocus;
-			engineWindowFlags |= ImGuiWindowFlags_NoSavedSettings;
+			constexpr ImGuiWindowFlags fullscreenWindowFlags = ImGuiWindowFlags_None
+				| ImGuiWindowFlags_NoDocking
+				| ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+				| ImGuiWindowFlags_NoNavFocus
+				| ImGuiWindowFlags_NoBackground
+				| ImGuiWindowFlags_NoSavedSettings;
 
-			if (showMainAppEngineWindow)
-				GuiAppEngineWindow();
+			Gui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
+			const bool fullscreenWindowOpen = Gui::Begin("##ExclusiveWindow", nullptr, fullscreenWindowFlags);
+			Gui::PopStyleVar(2);
+
+			if (fullscreenWindowOpen)
+				editorManager->GuiExclusiveFullscreen();
+			Gui::End();
 		}
 		else
 		{
-			if (showMainAppEngineWindow)
-				GuiAppEngineWindow();
-
 			if (showStyleEditor)
 			{
 				if (Gui::Begin("Style Editor##Application", &showStyleEditor))
@@ -196,7 +209,6 @@ namespace Comfy::Studio
 			editorManager->GuiWindows();
 			GuiTestWindowWindows();
 		}
-
 	}
 
 	void Application::UpdateWindowFocusAudioEngineResponse()
@@ -229,7 +241,6 @@ namespace Comfy::Studio
 			editorManager->GuiComponentMenu();
 			GuiApplicationWindowMenu();
 			editorManager->GuiWorkSpaceMenu();
-			GuiAppEngineMenus();
 			GuiTestWindowMenus();
 			GuiHelpMenus();
 			GuiMenuBarAudioAndPerformanceDisplay();
@@ -271,28 +282,6 @@ namespace Comfy::Studio
 
 			Gui::EndMenu();
 		}
-	}
-
-	void Application::GuiAppEngineWindow()
-	{
-#if 0
-		if (appEngine == nullptr)
-			appEngine = std::make_unique<App::Engine>();
-
-		appEngine->BeginEndGui();
-		appEngine->Tick();
-#endif
-	}
-
-	void Application::GuiAppEngineMenus()
-	{
-#if 0
-		if (Gui::BeginMenu("Engine", false))
-		{
-			Gui::MenuItem("Engine Window", nullptr, &showMainAppEngineWindow);
-			Gui::EndMenu();
-		}
-#endif
 	}
 
 	void Application::GuiTestWindowMenus()

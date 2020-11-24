@@ -16,20 +16,21 @@ namespace Comfy::Studio::Editor
 		void GuiComponentMenu();
 		void GuiWorkSpaceMenu();
 		void GuiWindows();
+		void GuiExclusiveFullscreen();
 
 		ApplicationHostCloseResponse OnApplicationClosing();
 
 	private:
 		Application& parent;
 
-		struct EditorComponent
+		struct EditorComponentData
 		{
 			std::string Name;
 			std::unique_ptr<IEditorComponent> Component;
 			std::function<std::unique_ptr<IEditorComponent>()> ComponentInitializer;
 		};
 
-		std::vector<EditorComponent> registeredEditors;
+		std::vector<EditorComponentData> registeredEditors;
 		size_t activeEditorIndex = std::numeric_limits<size_t>::max();
 
 	private:

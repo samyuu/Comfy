@@ -29,6 +29,9 @@ namespace Comfy::Studio
 
 		void SetFormattedWindowTitle(std::string_view subTitle);
 
+		bool GetExclusiveFullscreenGui() const;
+		void SetExclusiveFullscreenGui(bool value);
+
 		// NOTE: Specifically to be used as a parent for file dialogs, dialog boxes etc.
 		static void* GetGlobalWindowFocusHandle();
 
@@ -45,8 +48,6 @@ namespace Comfy::Studio
 
 		void GuiMainMenuBar();
 		void GuiApplicationWindowMenu();
-		void GuiAppEngineWindow();
-		void GuiAppEngineMenus();
 
 		void GuiTestWindowMenus();
 		void GuiTestWindowWindows();
@@ -71,8 +72,7 @@ namespace Comfy::Studio
 		// NOTE: Specifically to avoid exclusive mode taking over all system sounds while idle
 		bool audioEngineRunningIdleOnFocusLost = false;
 
-		bool showMainAppEngineWindow = false;
-		bool exclusiveAppEngineWindow = false;
+		bool exclusiveFullscreenGui = false;
 		bool showMainMenuBar = true;
 
 		bool showStyleEditor = false;
