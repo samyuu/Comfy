@@ -13,6 +13,18 @@ namespace Comfy::Studio::Editor
 		});
 	}
 
+	SoundEffectManager::~SoundEffectManager()
+	{
+		if (loadFuture.valid())
+			loadFuture.get();
+
+		for (const auto& sfxArchive : sfxArchives)
+		{
+			if (sfxArchive != nullptr)
+				sfxArchive->WaitUntilAsyncLoaded();
+		}
+	}
+
 	Audio::SourceHandle SoundEffectManager::GetButtonSound(u32 id) const
 	{
 		if (loadFuture.valid()) loadFuture.get();
@@ -54,9 +66,10 @@ namespace Comfy::Studio::Editor
 		return (found != sfxNameMap.end()) ? found->second.first : Audio::SourceHandle::Invalid;
 	}
 
-	const Database::GmBtnSfxDB& SoundEffectManager::ViewBtnSfxDB(Database::GmBtnSfxType type) const
+	const std::vector<const Database::GmBtnSfxEntry*>& SoundEffectManager::ViewSortedBtnSfxDB(Database::GmBtnSfxType type) const
 	{
-		return btnSfxDBs[static_cast<u8>(type)];
+		if (loadFuture.valid()) loadFuture.get();
+		return sortedBtnSfxDBs[static_cast<u8>(type)];
 	}
 
 	bool SoundEffectManager::IsAsyncLoaded() const
@@ -90,10 +103,18 @@ namespace Comfy::Studio::Editor
 		auto readPaseBtnSfxDB = [this](Database::GmBtnSfxType type, std::string_view filePath)
 		{
 			auto& outDB = btnSfxDBs[static_cast<u8>(type)];
-			assert(outDB.Entries.empty());
+			auto& outSorted = sortedBtnSfxDBs[static_cast<u8>(type)];
+			assert(outDB.Entries.empty() && outSorted.empty());
 
 			if (const auto[fileContent, fileSize] = IO::File::ReadAllBytes(filePath); fileContent != nullptr && fileSize > 0)
+			{
 				outDB.Parse(fileContent.get(), fileSize);
+				
+				outSorted.reserve(outDB.Entries.size());
+				for (const auto& entry : outDB.Entries)
+					outSorted.push_back(&entry);
+				std::sort(outSorted.begin(), outSorted.end(), [](auto* a, auto* b) { return (a->SortIndex < b->SortIndex); });
+			}
 		};
 
 		readPaseBtnSfxDB(Database::GmBtnSfxType::Button, "dev_rom/gm_btn_se_tbl.farc<gm_btn_se_id.bin>");
@@ -117,9 +138,11 @@ namespace Comfy::Studio::Editor
 
 	void SoundEffectManager::InitializeButtonIDLookupTables()
 	{
+		// NOTE: Can't call public methods here because of the async load future
+
 		auto findIDCount = [this](Database::GmBtnSfxType type)
 		{
-			const auto& dbEntries = ViewBtnSfxDB(type).Entries;
+			const auto& dbEntries = btnSfxDBs[static_cast<u8>(type)].Entries;
 			return dbEntries.empty() ? 0 : std::max_element(dbEntries.begin(), dbEntries.end(), [](auto& a, auto& b) { return (a.ID < b.ID); })->ID + 1;
 		};
 
@@ -130,14 +153,14 @@ namespace Comfy::Studio::Editor
 
 		auto tryFindByID = [this](Database::GmBtnSfxType type, u32 id) -> const Database::GmBtnSfxEntry*
 		{
-			const auto& db = ViewBtnSfxDB(type);
+			const auto& db = btnSfxDBs[static_cast<u8>(type)];
 			if (InBounds(id, db.Entries) && db.Entries[id].ID == id)
 				return &db.Entries[id];
 			else
 				return FindIfOrNull(db.Entries, [id](const auto& e) { return (e.ID == id); });
 		};
 
-		auto findSfx = [&](std::string_view name) // NOTE: Can't call public find method because of the async load future
+		auto findSfx = [&](std::string_view name)
 		{
 			const auto found = sfxNameMap.find(name);
 			return (found != sfxNameMap.end()) ? found->second.first : Audio::SourceHandle::Invalid;
