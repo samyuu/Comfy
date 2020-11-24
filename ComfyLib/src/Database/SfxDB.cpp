@@ -30,6 +30,12 @@ namespace Comfy::Database
 						entry.Name = ParseValueString();
 					else if (CompareProperty("volume"))
 						entry.Volume = ParseValueString<f32>();
+					else if (CompareProperty("loop_start"))
+						entry.LoopStartFrame = ParseValueString<i32>();
+					else if (CompareProperty("loop_end"))
+						entry.LoopEndFrame = ParseValueString<i32>();
+					else if (CompareProperty("release_time"))
+						entry.ReleaseFrame = ParseValueString<i32>();
 				}
 			}
 

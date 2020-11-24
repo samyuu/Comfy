@@ -8,6 +8,9 @@ namespace Comfy::Database
 		std::string FileName;
 		std::string Name;
 		f32 Volume;
+		i32 LoopStartFrame;
+		i32 LoopEndFrame;
+		i32 ReleaseFrame;
 	};
 
 	// NOTE: Sound Effect FArc property.txt index file
