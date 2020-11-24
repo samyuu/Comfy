@@ -6,6 +6,131 @@
 
 namespace Comfy::Studio::Editor
 {
+	namespace
+	{
+		bool GuiPropertyButtonSoundCombo(std::string_view label, u32& inOutID, Database::GmBtnSfxType btnSfxDBType, SoundEffectManager& soundEffectManager)
+		{
+			auto entryToCStr = [&](const Database::GmBtnSfxEntry* entry)
+			{
+				if (entry == nullptr)
+					return "None";
+
+#if COMFY_DEBUG // DEBUG: In case of the full font character set not having been loaded
+				return (btnSfxDBType == Database::GmBtnSfxType::ChainSlide) ? entry->Chain.SfxNameFirst.c_str() : entry->SfxName.c_str();
+#else
+				return entry->DisplayName.c_str();
+#endif
+			};
+
+			auto previewButtonSound = [&](const Database::GmBtnSfxEntry& entry)
+			{
+				auto& engine = Audio::AudioEngine::GetInstance();
+				engine.EnsureStreamRunning();
+
+				switch (btnSfxDBType)
+				{
+				case Database::GmBtnSfxType::Button:
+					engine.PlayOneShotSound(soundEffectManager.GetButtonSound(entry.ID), entry.SfxName);
+					break;
+
+				case Database::GmBtnSfxType::Slide:
+					engine.PlayOneShotSound(soundEffectManager.GetSlideSound(entry.ID), entry.SfxName);
+					break;
+
+				case Database::GmBtnSfxType::ChainSlide:
+				{
+					constexpr auto fadeOutDuration = TimeSpan::FromMilliseconds(40.0);
+					constexpr auto startDuration = TimeSpan::FromSeconds(1.0);
+					const auto[firstSource, subSource, successSource, failureSource] = soundEffectManager.GetChainSlideSound(entry.ID);
+
+					Audio::Voice startVoice = engine.AddVoice(firstSource, entry.Chain.SfxNameFirst, true);
+					startVoice.SetRemoveOnEnd(true);
+					startVoice.SetVolumeMap(startDuration, startDuration + fadeOutDuration, 1.0f, 0.0f);
+
+					Audio::Voice endVoice = engine.AddVoice(successSource, entry.Chain.SfxNameSuccess, true);
+					endVoice.SetRemoveOnEnd(true);
+					endVoice.SetPosition(-startDuration);
+					break;
+				}
+
+				case Database::GmBtnSfxType::SliderTouch:
+				{
+					constexpr size_t voicesToPlay = 16;
+					constexpr auto voiceInterval = TimeSpan::FromSeconds(1.0 / 32.0);
+
+					auto startOffset = TimeSpan::Zero();
+					auto sources = soundEffectManager.GetSliderTouchSound(entry.ID);
+
+					for (size_t i = 0; i < voicesToPlay; i++)
+					{
+						Audio::Voice voice = engine.AddVoice(sources[(sources.size() / voicesToPlay) * i], entry.SfxName, true);
+						voice.SetRemoveOnEnd(true);
+						voice.SetPosition(startOffset);
+						startOffset -= voiceInterval;
+					}
+					break;
+				}
+				}
+			};
+
+			return GuiProperty::PropertyLabelValueFunc(label, [&]()
+			{
+				bool valueChanged = false;
+
+				if (!soundEffectManager.IsAsyncLoaded())
+				{
+					Gui::PushItemDisabledAndTextColor();
+					if (Gui::InternalVariableWidthBeginCombo("##DummyCombo", "Loading...", ImGuiComboFlags_None, Gui::GetContentRegionAvailWidth()))
+						Gui::EndCombo();
+					Gui::PopItemDisabledAndTextColor();
+					return valueChanged;
+				}
+
+				constexpr u32 buttonIgnoreID = 0;
+				if (btnSfxDBType == Database::GmBtnSfxType::Button && inOutID == buttonIgnoreID)
+					inOutID = 1;
+
+				const auto& sortedEntries = soundEffectManager.ViewSortedBtnSfxDB(btnSfxDBType);
+				const auto* previewEntry = FindIfOrNull(sortedEntries, [&](auto* e) { return (e->ID == inOutID); });
+
+				const bool comboBoxOpen = Gui::InternalVariableWidthBeginCombo(GuiProperty::Detail::DummyLabel, entryToCStr((previewEntry != nullptr) ? *previewEntry : nullptr), ImGuiComboFlags_HeightLarge, Gui::GetContentRegionAvailWidth());
+				if (Gui::IsItemHovered() && Gui::IsMouseClicked(1) && previewEntry != nullptr)
+					previewButtonSound(**previewEntry);
+
+				if (comboBoxOpen)
+				{
+					if (Gui::Selectable(entryToCStr(nullptr), (inOutID == -1)))
+					{
+						inOutID = -1;
+						valueChanged = true;
+					}
+
+					for (const auto* entry : sortedEntries)
+					{
+						if (btnSfxDBType == Database::GmBtnSfxType::Button && entry->ID == buttonIgnoreID)
+							continue;
+
+						const bool isSelected = (entry->ID == inOutID);
+						if (Gui::Selectable(entryToCStr(entry), isSelected))
+						{
+							inOutID = entry->ID;
+							valueChanged = true;
+						}
+
+						if (Gui::IsItemHovered() && Gui::IsMouseClicked(1))
+							previewButtonSound(*entry);
+
+						if (isSelected)
+							Gui::SetItemDefaultFocus();
+					}
+					Gui::EndCombo();
+				}
+
+				return valueChanged;
+			});
+		}
+	}
+
 	ChartPropertiesWindow::ChartPropertiesWindow(ChartEditor& parent, Undo::UndoManager& undoManager) : chartEditor(parent), undoManager(undoManager)
 	{
 	}
@@ -82,6 +207,16 @@ namespace Comfy::Studio::Editor
 			{
 				changesMade |= GuiProperty::Combo("Type", chart.Properties.Difficulty.Type, DifficultyNames);
 				changesMade |= GuiProperty::Combo("Level", chart.Properties.Difficulty.Level, DifficultyLevelNames, ImGuiComboFlags_HeightLarge, static_cast<i32>(DifficultyLevel::StarMin), static_cast<i32>(DifficultyLevel::StarMax) + 1);
+			});
+
+			// NOTE: Don't open by default to avoid loading the full font character set for as long as possible
+			GuiProperty::TreeNode("Button Sounds", ImGuiTreeNodeFlags_None, [&]
+			{
+				auto& soundEffectManager = chartEditor.GetSoundEffectManager();
+				changesMade |= GuiPropertyButtonSoundCombo("Button", chart.Properties.ButtonSound.ButtonID, Database::GmBtnSfxType::Button, soundEffectManager);
+				changesMade |= GuiPropertyButtonSoundCombo("Slide", chart.Properties.ButtonSound.SlideID, Database::GmBtnSfxType::Slide, soundEffectManager);
+				changesMade |= GuiPropertyButtonSoundCombo("Chain Slide", chart.Properties.ButtonSound.ChainSlideID, Database::GmBtnSfxType::ChainSlide, soundEffectManager);
+				changesMade |= GuiPropertyButtonSoundCombo("Slider Touch", chart.Properties.ButtonSound.SliderTouchID, Database::GmBtnSfxType::SliderTouch, soundEffectManager);
 			});
 
 			if (changesMade)
