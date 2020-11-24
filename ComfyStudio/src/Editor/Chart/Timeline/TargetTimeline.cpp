@@ -9,7 +9,8 @@
 
 namespace Comfy::Studio::Editor
 {
-	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager) : chartEditor(parent), undoManager(undoManager)
+	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager)
+		: chartEditor(parent), undoManager(undoManager), buttonSoundController(parent.GetSoundEffectManager())
 	{
 		scrollSpeed = 2.5f;
 		scrollSpeedFast = 5.5f;
@@ -113,6 +114,9 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdate()
 	{
+		const auto& buttonIDs = workingChart->Properties.ButtonSound;
+		buttonSoundController.SetIDs(buttonIDs.ButtonID, buttonIDs.SlideID, buttonIDs.ChainSlideID, buttonIDs.SliderTouchID);
+
 		UpdateOffsetChangeCursorTimeAdjustment();
 
 		if (GetIsPlayback())
@@ -1341,8 +1345,8 @@ namespace Comfy::Studio::Editor
 			// TODO: Move somewhere else and implement different sound source options stored in chart
 			if (Gui::BeginMenu("Button Sounds"))
 			{
-				if (auto v = (buttonSoundController.GetVolume() * 100.0f); Gui::SliderFloat("##ButtonSoundVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Volume"))
-					buttonSoundController.SetVolume(v / 100.0f);
+				if (auto v = (buttonSoundController.GetMasterVolume() * 100.0f); Gui::SliderFloat("##ButtonSoundVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Volume"))
+					buttonSoundController.SetMasterVolume(v / 100.0f);
 				Gui::EndMenu();
 			}
 

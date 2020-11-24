@@ -2,7 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Time/TimeSpan.h"
-#include "Audio/Audio.h"
+#include "SoundEffectManager.h"
 #include <optional>
 
 namespace Comfy::Studio::Editor
@@ -33,10 +33,12 @@ namespace Comfy::Studio::Editor
 		static constexpr size_t PerSlotChainVoicePoolSize = 12;
 
 	public:
-		ButtonSoundController();
+		ButtonSoundController(SoundEffectManager& soundEffectManager);
 		~ButtonSoundController();
 
 	public:
+		void SetIDs(u32 buttonID, u32 slideID, u32 chainSlideID, u32 sliderTouchID);
+
 		void PlayButtonSound(TimeSpan startTime = TimeSpan::Zero(), std::optional<TimeSpan> externalClock = {});
 		void PlaySlideSound(TimeSpan startTime = TimeSpan::Zero(), std::optional<TimeSpan> externalClock = {});
 
@@ -48,29 +50,26 @@ namespace Comfy::Studio::Editor
 		void PauseAllChainSounds();
 		void PauseAllNegativeVoices();
 
-		f32 GetVolume() const;
-		void SetVolume(f32 value);
+		f32 GetMasterVolume() const;
+		void SetMasterVolume(f32 value);
 
 	private:
 		void InitializeVoicePools();
 		void UnloadVoicePools();
-		void InitializeSoundSources();
 
 		void PlayButtonSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock);
 
+		Audio::SourceHandle GetSource(ButtonSoundType type, i32 sliderTouchIndex = 0) const;
+
 	private:
-		f32 masterSoundVolume = 1.0f;
+		SoundEffectManager& soundEffectManager;
 
-		struct AsyncSoundSource
+		f32 masterVolume = 1.0f;
+
+		struct ButtonSoundIDs
 		{
-			Audio::SourceHandle Handle;
-			std::future<Audio::SourceHandle> FutureHandle;
-			f32 Volume;
-
-			AsyncSoundSource(std::string_view filePath, f32 volume = 1.0f);
-			Audio::SourceHandle Get();
-		};
-		std::array<std::vector<AsyncSoundSource>, EnumCount<ButtonSoundType>()> loadedSources;
+			u32 Button, Slide, ChainSlide, SliderTouch;
+		} buttonIDs = {};
 
 		struct SoundTypeTimeData
 		{

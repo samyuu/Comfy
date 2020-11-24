@@ -179,7 +179,7 @@ namespace Comfy::Studio::Editor
 		//		 to prevent artifacts when quickly changing the song tempo or offset during playback.
 		TimeSpan buttonSoundFutureOffset = TimeSpan::FromSeconds(1.0 / 25.0);
 
-		ButtonSoundController buttonSoundController = {};
+		ButtonSoundController buttonSoundController;
 		TimeSpan lastFrameButtonSoundCursorTime = {}, thisFrameButtonSoundCursorTime = {};
 
 		// NOTE: Having this enabled should *discourage* realtime target placement without an accurate tempo map / offset set

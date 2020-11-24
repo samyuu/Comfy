@@ -19,15 +19,22 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	ButtonSoundController::ButtonSoundController()
+	ButtonSoundController::ButtonSoundController(SoundEffectManager& soundEffectManager) : soundEffectManager(soundEffectManager)
 	{
 		InitializeVoicePools();
-		InitializeSoundSources();
 	}
 
 	ButtonSoundController::~ButtonSoundController()
 	{
 		UnloadVoicePools();
+	}
+
+	void ButtonSoundController::SetIDs(u32 buttonID, u32 slideID, u32 chainSlideID, u32 sliderTouchID)
+	{
+		buttonIDs.Button = buttonID;
+		buttonIDs.Slide = slideID;
+		buttonIDs.ChainSlide = chainSlideID;
+		buttonIDs.SliderTouch = sliderTouchID;
 	}
 
 	void ButtonSoundController::PlayButtonSound(TimeSpan startTime, std::optional<TimeSpan> externalClock)
@@ -101,14 +108,14 @@ namespace Comfy::Studio::Editor
 		soundTimings = {};
 	}
 
-	f32 ButtonSoundController::GetVolume() const
+	f32 ButtonSoundController::GetMasterVolume() const
 	{
-		return masterSoundVolume;
+		return masterVolume;
 	}
 
-	void ButtonSoundController::SetVolume(f32 value)
+	void ButtonSoundController::SetMasterVolume(f32 value)
 	{
-		masterSoundVolume = value;
+		masterVolume = value;
 	}
 
 	void ButtonSoundController::InitializeVoicePools()
@@ -176,41 +183,6 @@ namespace Comfy::Studio::Editor
 
 		for (auto& voice : perSlotChainSubVoices)
 			audioEngine.RemoveVoice(voice);
-
-		for (auto& sources : loadedSources)
-		{
-			for (auto& source : sources)
-				audioEngine.UnloadSource(source.Get());
-		}
-	}
-
-	void ButtonSoundController::InitializeSoundSources()
-	{
-		// NOTE: Only load the default sounds for now
-
-		auto& buttonSources = loadedSources[static_cast<u8>(ButtonSoundType::Button)];
-		buttonSources.reserve(1);
-		buttonSources.emplace_back("dev_rom/sound/button/01_button1.wav", 0.6f);
-
-		auto& slideSources = loadedSources[static_cast<u8>(ButtonSoundType::Slide)];
-		slideSources.reserve(1);
-		slideSources.emplace_back("dev_rom/sound/slide_se/slide_se13.wav", 0.26f);
-
-		auto& chainFirstSources = loadedSources[static_cast<u8>(ButtonSoundType::ChainSlideFirst)];
-		chainFirstSources.reserve(1);
-		chainFirstSources.emplace_back("dev_rom/sound/slide_long/slide_long02a.wav", 0.62f);
-
-		auto& chainSubSources = loadedSources[static_cast<u8>(ButtonSoundType::ChainSlideSub)];
-		chainSubSources.reserve(1);
-		chainSubSources.emplace_back("dev_rom/sound/slide_long/slide_button08.wav", 0.09f);
-
-		auto& chainSuccessSources = loadedSources[static_cast<u8>(ButtonSoundType::ChainSlideSuccess)];
-		chainSuccessSources.reserve(1);
-		chainSuccessSources.emplace_back("dev_rom/sound/slide_long/slide_ok03.wav", 0.7f);
-
-		auto& chainFailureSources = loadedSources[static_cast<u8>(ButtonSoundType::ChainSlideFailure)];
-		chainFailureSources.reserve(1);
-		chainFailureSources.emplace_back("dev_rom/sound/slide_long/slide_ng03.wav", 0.44f);
 	}
 
 	void ButtonSoundController::PlayButtonSoundType(ButtonSoundType type, ChainSoundSlot slot, TimeSpan startTime, std::optional<TimeSpan> externalClock)
@@ -219,7 +191,6 @@ namespace Comfy::Studio::Editor
 		const auto slotIndex = static_cast<u8>(slot);
 
 		soundTimings[typeIndex].Update(externalClock);
-		auto& source = loadedSources[typeIndex][0];
 
 		Audio::Voice* voice = nullptr;
 		if (type == ButtonSoundType::Button || type == ButtonSoundType::Slide)
@@ -246,18 +217,17 @@ namespace Comfy::Studio::Editor
 		}
 
 		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
-		voice->SetSource(source.Get());
-		voice->SetVolume(masterSoundVolume * source.Volume * soundTimings[typeIndex].GetVolumeFactor());
+		voice->SetSource(GetSource(type));
+		voice->SetVolume(masterVolume * soundTimings[typeIndex].GetVolumeFactor());
 		voice->SetPosition(startTime);
 		voice->SetIsPlaying(true);
 
 		if (type == ButtonSoundType::ChainSlideFirst)
 		{
 			// NOTE: Or maybe instead of a fixed loop these should be played every n-th chain fragment past the end of the first chain sound (?)
-			auto& subSource = loadedSources[static_cast<u8>(ButtonSoundType::ChainSlideSub)][0];
 			auto& subVoice = perSlotChainSubVoices[slotIndex];
-			subVoice.SetSource(subSource.Get());
-			subVoice.SetVolume(masterSoundVolume * subSource.Volume);
+			subVoice.SetSource(GetSource(ButtonSoundType::ChainSlideSub));
+			subVoice.SetVolume(masterVolume);
 			subVoice.SetPosition(startTime - voice->GetDuration());
 			subVoice.SetIsPlaying(true);
 			subVoice.SetIsLooping(true);
@@ -265,17 +235,30 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	ButtonSoundController::AsyncSoundSource::AsyncSoundSource(std::string_view filePath, f32 volume) :
-		Handle(Audio::SourceHandle::Invalid), FutureHandle(Audio::AudioEngine::GetInstance().LoadSourceAsync(filePath)), Volume(volume)
+	Audio::SourceHandle ButtonSoundController::GetSource(ButtonSoundType type, i32 sliderTouchIndex) const
 	{
-	}
+		if (!soundEffectManager.IsAsyncLoaded())
+			return Audio::SourceHandle::Invalid;
 
-	Audio::SourceHandle ButtonSoundController::AsyncSoundSource::Get()
-	{
-		if (FutureHandle.valid())
-			Handle = FutureHandle.get();
+		switch (type)
+		{
+		case ButtonSoundType::Button:
+			return soundEffectManager.GetButtonSound(buttonIDs.Button);
+		case ButtonSoundType::Slide:
+			return soundEffectManager.GetSlideSound(buttonIDs.Slide);
+		case ButtonSoundType::ChainSlideFirst:
+			return soundEffectManager.GetChainSlideSound(buttonIDs.ChainSlide)[0];
+		case ButtonSoundType::ChainSlideSub:
+			return soundEffectManager.GetChainSlideSound(buttonIDs.ChainSlide)[1];
+		case ButtonSoundType::ChainSlideSuccess:
+			return soundEffectManager.GetChainSlideSound(buttonIDs.ChainSlide)[2];
+		case ButtonSoundType::ChainSlideFailure:
+			return soundEffectManager.GetChainSlideSound(buttonIDs.ChainSlide)[3];
+		case ButtonSoundType::SlideTouch:
+			return soundEffectManager.GetSliderTouchSound(buttonIDs.SliderTouch)[std::clamp(sliderTouchIndex, 0, 31)];
+		}
 
-		return Handle;
+		return Audio::SourceHandle::Invalid;
 	}
 
 	void ButtonSoundController::SoundTypeTimeData::Update(std::optional<TimeSpan> externalClock)
