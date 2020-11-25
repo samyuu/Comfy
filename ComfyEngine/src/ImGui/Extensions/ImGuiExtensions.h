@@ -15,6 +15,9 @@ namespace Comfy::Graphics
 
 #define BeginMenu WideBeginMenu
 
+inline bool operator==(const ImRect& a, const ImRect& b) { return (a.Min.x == b.Min.x && a.Min.y == b.Min.y && a.Max.x == b.Max.x && a.Max.y == b.Max.y); }
+inline bool operator!=(const ImRect& a, const ImRect& b) { return !(a == b); }
+
 namespace ImGui
 {
 	constexpr vec2 UV0 = vec2(0.0f, 0.0f), UV1 = vec2(1.0f, 1.0f);
