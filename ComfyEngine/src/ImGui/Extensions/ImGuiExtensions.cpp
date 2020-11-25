@@ -20,12 +20,14 @@ namespace ImGui
 
 	ImRect FitFixedAspectRatio(ImRect sourceRegion, float targetAspectRatio)
 	{
+		constexpr f32 roundingAdd = 0.0f; // 0.5f;
+
 		const auto sourceSize = vec2(sourceRegion.GetSize());
 		const auto sourceAspectRatio = sourceSize.x / sourceSize.y;
 
 		if (sourceAspectRatio <= targetAspectRatio) // NOTE: Taller than wide, bars on top / bottom
 		{
-			const auto presentHeight = glm::round((sourceSize.x / targetAspectRatio) + 0.5f);
+			const auto presentHeight = glm::round((sourceSize.x / targetAspectRatio) + roundingAdd);
 			const auto barHeight = glm::round((sourceSize.y - presentHeight) / 2.0f);
 
 			sourceRegion.Min.y += barHeight;
@@ -34,7 +36,7 @@ namespace ImGui
 		}
 		else // NOTE: Wider than tall, bars on left / right
 		{
-			const auto presentWidth = static_cast<int>((sourceSize.y * targetAspectRatio) + 0.5f);
+			const auto presentWidth = static_cast<int>((sourceSize.y * targetAspectRatio) + roundingAdd);
 			const auto barWidth = static_cast<int>((sourceSize.x - presentWidth) / 2.0f);
 
 			sourceRegion.Min.x += barWidth;
@@ -138,7 +140,7 @@ namespace ImGui
 	{
 		if (!Comfy::InBounds(spr.TextureIndex, sprSet.TexSet.Textures))
 			return;
-		
+
 		const auto& tex = sprSet.TexSet.Textures[spr.TextureIndex];
 		const auto uv0 = vec2(spr.TexelRegion.x, 1.0f - spr.TexelRegion.y);
 		const auto uv1 = vec2(spr.TexelRegion.x + spr.TexelRegion.z, 1.0f - (spr.TexelRegion.y + spr.TexelRegion.w));
