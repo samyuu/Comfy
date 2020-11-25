@@ -34,20 +34,18 @@ namespace Comfy::Studio::Editor
 		chart->UpdateMapTimes();
 
 		renderer = std::make_unique<Render::Renderer2D>();
-
-		// TODO: Load async (?)
-		editorSprites = System::Data.Load<Graphics::SprSet>(System::Data.FindFile("sprite/spr_chart_editor.bin"));
-
-		timeline = std::make_unique<TargetTimeline>(*this, undoManager);
-		timeline->SetWorkingChart(chart.get());
-		timeline->OnEditorSpritesLoaded(editorSprites.get());
+		timeline = std::make_unique<TargetTimeline>(*this, undoManager, buttonSoundController);
 
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
-		renderWindow->SetWorkingChart(chart.get());
 		renderWindow->RegisterRenderCallback([this](auto& renderWindow, auto& renderer) { presetWindow.OnRenderWindowRender(*chart, renderWindow, renderer); });
 		renderWindow->RegisterOverlayGuiCallback([this](auto& renderWindow, auto& drawList) { presetWindow.OnRenderWindowOverlayGui(*chart, renderWindow, drawList); });
 
+		// TODO: Load async (?)
+		editorSprites = System::Data.Load<Graphics::SprSet>(System::Data.FindFile("sprite/spr_chart_editor.bin"));
+		timeline->OnEditorSpritesLoaded(editorSprites.get());
 		presetWindow.OnEditorSpritesLoaded(editorSprites.get());
+
+		SyncWorkingChartPointers();
 
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
@@ -69,6 +67,9 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::Gui()
 	{
 		Gui::GetCurrentWindow()->Hidden = true;
+
+		const auto& buttonIDs = chart->Properties.ButtonSound;
+		buttonSoundController.SetIDs(buttonIDs.ButtonID, buttonIDs.SlideID, buttonIDs.ChainSlideID, buttonIDs.SliderTouchID);
 
 		UpdateApplicationClosingRequest();
 		UpdateGlobalControlInput();
@@ -253,8 +254,7 @@ namespace Comfy::Studio::Editor
 		chart->UpdateMapTimes();
 		UnloadSong();
 
-		timeline->SetWorkingChart(chart.get());
-		renderWindow->SetWorkingChart(chart.get());
+		SyncWorkingChartPointers();
 	}
 
 	void ChartEditor::LoadChartFileSync(std::string_view filePath)
@@ -277,8 +277,7 @@ namespace Comfy::Studio::Editor
 		else
 			UnloadSong();
 
-		timeline->SetWorkingChart(chart.get());
-		renderWindow->SetWorkingChart(chart.get());
+		SyncWorkingChartPointers();
 	}
 
 	void ChartEditor::SaveChartFileAsync(std::string_view filePath)
@@ -373,8 +372,7 @@ namespace Comfy::Studio::Editor
 		// NOTE: Unable to use relative file path because imported chart data don't and shouldn't set a working directory
 		LoadSongAsync((pjeFile != nullptr) ? pjeFile->TryFindSongFilePath(filePath) : "");
 
-		timeline->SetWorkingChart(chart.get());
-		renderWindow->SetWorkingChart(chart.get());
+		SyncWorkingChartPointers();
 	}
 
 	void ChartEditor::ExportChartFileSync(std::string_view filePath)
@@ -654,6 +652,15 @@ namespace Comfy::Studio::Editor
 
 			Gui::EndPopup();
 		}
+	}
+
+	void ChartEditor::SyncWorkingChartPointers()
+	{
+		if (timeline != nullptr)
+			timeline->SetWorkingChart(chart.get());
+
+		if (renderWindow != nullptr)
+			renderWindow->SetWorkingChart(chart.get());
 	}
 
 	bool ChartEditor::GetIsPlayback() const

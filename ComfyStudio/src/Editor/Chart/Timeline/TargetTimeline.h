@@ -21,7 +21,7 @@ namespace Comfy::Studio::Editor
 	class TargetTimeline final : public TimelineBase
 	{
 	public:
-		TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager);
+		TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager, ButtonSoundController& buttonSoundController);
 		~TargetTimeline() = default;
 
 	public:
@@ -160,6 +160,7 @@ namespace Comfy::Studio::Editor
 
 		ChartEditor& chartEditor;
 		Undo::UndoManager& undoManager;
+		ButtonSoundController& buttonSoundController;
 
 		ClipboardHelper clipboardHelper = {};
 
@@ -179,7 +180,6 @@ namespace Comfy::Studio::Editor
 		//		 to prevent artifacts when quickly changing the song tempo or offset during playback.
 		TimeSpan buttonSoundFutureOffset = TimeSpan::FromSeconds(1.0 / 25.0);
 
-		ButtonSoundController buttonSoundController;
 		TimeSpan lastFrameButtonSoundCursorTime = {}, thisFrameButtonSoundCursorTime = {};
 
 		// NOTE: Having this enabled should *discourage* realtime target placement without an accurate tempo map / offset set

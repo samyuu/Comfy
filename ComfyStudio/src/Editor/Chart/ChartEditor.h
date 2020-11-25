@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "Chart.h"
 #include "SyncWindow.h"
@@ -10,10 +11,10 @@
 #include "FileFormat/ComfyStudioChartFile.h"
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
-#include "Undo/Undo.h"
-#include "ImGui/Widgets/FileViewer.h"
 #include "Editor/Common/UndoHistoryWindow.h"
 #include "Editor/Common/SoundEffectManager.h"
+#include "ImGui/Widgets/FileViewer.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -83,6 +84,8 @@ namespace Comfy::Studio::Editor
 		void GuiSubWindows();
 		void GuiSaveConfirmationPopup();
 
+		void SyncWorkingChartPointers();
+
 	private:
 		bool applicationExitRequested = false;
 		std::string windowTitle, lastSetWindowTitle;
@@ -93,6 +96,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Graphics::SprSet> editorSprites = nullptr;
 
 		SoundEffectManager soundEffectManager;
+		ButtonSoundController buttonSoundController = { soundEffectManager };
 
 	private:
 		Undo::UndoManager undoManager = {};

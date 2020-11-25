@@ -9,8 +9,8 @@
 
 namespace Comfy::Studio::Editor
 {
-	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager)
-		: chartEditor(parent), undoManager(undoManager), buttonSoundController(parent.GetSoundEffectManager())
+	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager, ButtonSoundController& buttonSoundController)
+		: chartEditor(parent), undoManager(undoManager), buttonSoundController(buttonSoundController)
 	{
 		scrollSpeed = 2.5f;
 		scrollSpeedFast = 5.5f;
@@ -114,9 +114,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdate()
 	{
-		const auto& buttonIDs = workingChart->Properties.ButtonSound;
-		buttonSoundController.SetIDs(buttonIDs.ButtonID, buttonIDs.SlideID, buttonIDs.ChainSlideID, buttonIDs.SliderTouchID);
-
 		UpdateOffsetChangeCursorTimeAdjustment();
 
 		if (GetIsPlayback())
