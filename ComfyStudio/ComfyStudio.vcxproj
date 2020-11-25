@@ -183,6 +183,7 @@
     <ClCompile Include="src\Editor\Chart\PresetWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
+    <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelperEx.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetBoxSelectionTool.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetPositionTool.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\Tools\TargetPathTool.cpp" />
@@ -255,6 +256,7 @@
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGrid.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />
+    <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelperEx.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\CardinalDirection.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetBoxSelectionTool.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\Tools\TargetPathTool.h" />

@@ -3,6 +3,7 @@
 #include "Tools/TargetBoxSelectionTool.h"
 #include "Tools/TargetTool.h"
 #include "TargetRenderHelper.h"
+#include "TargetRenderHelperEx.h"
 #include "TargetGuiDrawUtil.h"
 #include "Editor/Chart/Chart.h"
 #include "Editor/Chart/TargetPropertyRules.h"
@@ -69,7 +70,6 @@ namespace Comfy::Studio::Editor
 		void RenderHUDBackground();
 		void RenderAllVisibleTargets();
 		void AddVisibleTargetsToDrawBuffers();
-		void FlushRenderTargetsDrawBuffers();
 
 	private:
 		Chart* workingChart = nullptr;
@@ -114,13 +114,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<TargetRenderHelper> renderHelper = nullptr;
 		std::unique_ptr<Render::RenderTarget2D> renderTarget = nullptr;
 
-		struct DrawBufferData
-		{
-			std::vector<TargetRenderHelper::TargetData> Targets;
-			std::vector<TargetRenderHelper::ButtonData> Buttons;
-			std::vector<TargetRenderHelper::ButtonTrailData> Trails;
-			std::vector<TargetRenderHelper::ButtonSyncLineData> SyncLines;
-			std::vector<std::pair<vec2, u32>> CenterMarkers;
-		} drawBuffers;
+		TargetRenderHelperEx renderHelperEx = {};
+		std::vector<std::pair<vec2, u32>> centerMarkersBuffer;
 	};
 }

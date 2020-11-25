@@ -117,18 +117,18 @@ namespace Comfy::Studio::Editor
 			drawList->AddRectFilled(tl, br, GetColor(EditorColor_TimelineSelection));
 			drawList->AddRect(tl, br, GetColor(EditorColor_TimelineSelectionBorder));
 
-			drawBuffers.CenterMarkers.push_back({ TargetAreaToScreenSpace(position), GetButtonTypeColorU32(target.Type) });
+			centerMarkersBuffer.push_back({ TargetAreaToScreenSpace(position), GetButtonTypeColorU32(target.Type) });
 			if (selectionDrawCount++ >= maxSelectionToDraw)
 				break;
 		}
 
 		const auto markerScreenSize = (camera.Zoom * SelectionCenterMarkerSize);
-		for (const auto[center, color] : drawBuffers.CenterMarkers)
+		for (const auto[center, color] : centerMarkersBuffer)
 		{
 			drawList->AddLine(center + vec2(-markerScreenSize, -markerScreenSize), center + vec2(+markerScreenSize, +markerScreenSize), color);
 			drawList->AddLine(center + vec2(-markerScreenSize, +markerScreenSize), center + vec2(+markerScreenSize, -markerScreenSize), color);
 		}
-		drawBuffers.CenterMarkers.clear();
+		centerMarkersBuffer.clear();
 
 		boxSelectionTool.DrawSelection(*drawList);
 
@@ -331,7 +331,13 @@ namespace Comfy::Studio::Editor
 	void TargetRenderWindow::RenderAllVisibleTargets()
 	{
 		AddVisibleTargetsToDrawBuffers();
-		FlushRenderTargetsDrawBuffers();
+
+		TargetRenderHelperExFlushFlags flags = TargetRenderHelperExFlushFlags_None;
+		if (!layers.DrawButtons)
+			flags |= TargetRenderHelperExFlushFlags_NoButtons;
+		if (!layers.DrawTargets)
+			flags |= TargetRenderHelperExFlushFlags_NoTargets;
+		renderHelperEx.Flush(renderer, *renderHelper, flags);
 	}
 
 	void TargetRenderWindow::AddVisibleTargetsToDrawBuffers()
@@ -343,8 +349,6 @@ namespace Comfy::Studio::Editor
 
 		const auto cursorTime = timeline.GetCursorTime();
 		const auto cursorTick = timeline.GetCursorTick();
-
-		const TimelineTarget* lastTarget = nullptr;
 
 		for (const auto& target : targets)
 		{
@@ -369,7 +373,7 @@ namespace Comfy::Studio::Editor
 
 				const bool inCursorBarRange = (cursorTick >= targetTick && cursorTick <= buttonTick);
 
-				auto& targetData = drawBuffers.Targets.emplace_back();
+				auto& targetData = renderHelperEx.EmplaceTarget();
 				targetData.Type = target.Type;
 				targetData.NoHand = (!layers.DrawTargetHands || !inCursorBarRange);
 				// NOTE: Transparent to make the background grid visible and make pre-, post- and cursor bar targets look more uniform
@@ -386,7 +390,7 @@ namespace Comfy::Studio::Editor
 
 				if (inCursorBarRange)
 				{
-					auto& buttonData = drawBuffers.Buttons.emplace_back();
+					auto& buttonData = renderHelperEx.EmplaceButton();
 					buttonData.Type = targetData.Type;
 					buttonData.Sync = targetData.Sync;
 					buttonData.Chain = targetData.Chain;
@@ -398,22 +402,12 @@ namespace Comfy::Studio::Editor
 					if (!buttonData.Sync)
 					{
 						const auto flyDuration = (buttonTime - targetTime);
-
-						auto& trailData = drawBuffers.Trails.emplace_back();
-						constexpr f32 trailFactor = 2.55f;
-						const f32 pixelLength = (properties.Distance / 1000.0f) * (240.0f / static_cast<f32>(flyDuration.TotalSeconds()) * trailFactor);
-						const f32 normalizedLength = pixelLength / properties.Distance;
-						trailData.Type = target.Type;
-						trailData.Chance = false;
-						trailData.Properties = properties;
-						trailData.Progress = static_cast<f32>(flyDuration.TotalSeconds()) * progressUnbound;
-						trailData.ProgressStart = progress;
-						trailData.ProgressEnd = glm::max(0.0f, (progress - normalizedLength));
+						renderHelperEx.ConstructButtonTrail(renderHelperEx.EmplaceButtonTrail(), target.Type, progress, progressUnbound, properties, flyDuration);
 					}
 
 					if (target.Flags.IsSync && target.Flags.IndexWithinSyncPair == 0)
 					{
-						auto& syncLineData = drawBuffers.SyncLines.emplace_back();
+						auto& syncLineData = renderHelperEx.EmplaceSyncLine();
 						syncLineData.SyncPairCount = target.Flags.SyncPairCount;
 						syncLineData.Progress = progressUnbound;
 
@@ -429,47 +423,6 @@ namespace Comfy::Studio::Editor
 					}
 				}
 			}
-
-			lastTarget = &target;
 		}
-	}
-
-	void TargetRenderWindow::FlushRenderTargetsDrawBuffers()
-	{
-		if (layers.DrawButtons)
-		{
-			for (const auto& data : drawBuffers.Trails)
-				renderHelper->DrawButtonTrail(renderer, data);
-
-			for (const auto& data : drawBuffers.Buttons)
-				if (data.Shadow != TargetRenderHelper::ButtonShadowType::None) { renderHelper->DrawButtonShadow(renderer, data); }
-		}
-
-		if (layers.DrawTargets)
-		{
-			// NOTE: Draw chain starts on top of child fragments to make sure the target hand is always fully visible
-			for (const auto& data : drawBuffers.Targets)
-				if (!data.ChainHit && !data.ChainStart) { renderHelper->DrawTarget(renderer, data); }
-
-			for (const auto& data : drawBuffers.Targets)
-				if (!data.ChainHit && data.ChainStart) { renderHelper->DrawTarget(renderer, data); }
-
-			for (const auto& data : drawBuffers.Targets)
-				if (data.ChainHit) { renderHelper->DrawTarget(renderer, data); }
-		}
-
-		if (layers.DrawButtons)
-		{
-			for (const auto& data : drawBuffers.SyncLines)
-				renderHelper->DrawButtonPairSyncLines(renderer, data);
-
-			for (const auto& data : drawBuffers.Buttons)
-				renderHelper->DrawButton(renderer, data);
-		}
-
-		drawBuffers.Targets.clear();
-		drawBuffers.Buttons.clear();
-		drawBuffers.Trails.clear();
-		drawBuffers.SyncLines.clear();
 	}
 }
