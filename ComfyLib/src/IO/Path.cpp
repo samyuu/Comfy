@@ -1,4 +1,5 @@
 #include "Path.h"
+#include "Directory.h"
 #include "Misc/UTF8.h"
 #include "Misc/StringUtil.h"
 #include <Shlwapi.h>
@@ -50,6 +51,33 @@ namespace Comfy::IO
 		bool IsDirectory(std::string_view filePath)
 		{
 			return ::PathIsDirectoryW(UTF8::WideArg(filePath).c_str());
+		}
+
+		std::string ResolveRelative(std::string_view relativePath)
+		{
+			if (relativePath.empty() || !IsRelative(relativePath))
+				return std::string(relativePath);
+
+			return Combine(Directory::GetWorkingDirectory(), relativePath);
+		}
+
+		std::string ResolveRelativeTo(std::string_view relativePath, std::string_view baseFileOrDirectory)
+		{
+			if (relativePath.empty() || baseFileOrDirectory.empty() || !IsRelative(relativePath))
+				return std::string(relativePath);
+
+			const auto baseDirectory = IsDirectory(baseFileOrDirectory) ? baseFileOrDirectory : GetDirectoryName(baseFileOrDirectory);
+			return Combine(baseDirectory, relativePath);
+		}
+
+		std::string TryMakeRelative(std::string_view absolutePath, std::string_view baseFileOrDirectory)
+		{
+			if (absolutePath.empty() || baseFileOrDirectory.empty())
+				return std::string(absolutePath);
+
+			const auto baseDirectory = Normalize(IsDirectory(baseFileOrDirectory) ? baseFileOrDirectory : GetDirectoryName(baseFileOrDirectory));
+			const auto absoluteDirectory = Normalize(GetDirectoryName(absolutePath));
+			return std::string((baseDirectory == absoluteDirectory) ? GetFileName(absolutePath) : absolutePath);
 		}
 
 		std::string ChangeExtension(std::string_view filePath, std::string_view newExtension)

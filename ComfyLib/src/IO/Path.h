@@ -82,6 +82,11 @@ namespace Comfy::IO
 
 		COMFY_NODISCARD bool IsDirectory(std::string_view filePath);
 
+		COMFY_NODISCARD std::string ResolveRelative(std::string_view relativePath);
+		COMFY_NODISCARD std::string ResolveRelativeTo(std::string_view relativePath, std::string_view baseFileOrDirectory);
+		
+		COMFY_NODISCARD std::string TryMakeRelative(std::string_view absolutePath, std::string_view baseFileOrDirectory);
+
 		// NOTE: New extension should contain a '.' character
 		COMFY_NODISCARD std::string ChangeExtension(std::string_view filePath, std::string_view newExtension);
 
