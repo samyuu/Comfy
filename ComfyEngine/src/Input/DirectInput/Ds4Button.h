@@ -21,7 +21,7 @@ namespace Comfy::Input
 		Triangle = 3,
 
 		L1 = 4,
-		R2 = 5,
+		R1 = 5,
 
 		L_Trigger = 6,
 		R_Trigger = 7,
