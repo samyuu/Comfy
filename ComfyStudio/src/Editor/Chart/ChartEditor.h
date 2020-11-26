@@ -121,7 +121,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<ComfyStudioChartFile> lastSavedChartFile;
 
 	private:
-		std::string songSourceFilePath;
+		std::string songSourceFilePathAbsolute;
 		std::future<Audio::SourceHandle> songSourceFuture;
 
 		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;

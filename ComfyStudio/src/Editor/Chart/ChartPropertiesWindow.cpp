@@ -156,11 +156,18 @@ namespace Comfy::Studio::Editor
 				Gui::PushItemDisabledAndTextColorIf(songIsLoading);
 
 				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvailWidth() - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
-				if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, (songIsLoading ? "Loading..." : defaultHint), &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
+
+				if (songIsLoading)
+				{
+					char readOnlyBuffer[1] = { '\0' };
+					Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", readOnlyBuffer, sizeof(readOnlyBuffer), ImGuiInputTextFlags_ReadOnly);
+				}
+				else if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, defaultHint, &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
 					chartEditor.LoadSongAsync(chart.SongFileName);
 					changesMade = true;
 				}
+
 				Gui::PopItemWidth();
 
 				Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(style.FramePadding.y));

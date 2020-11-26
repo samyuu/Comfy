@@ -219,16 +219,10 @@ namespace Comfy::Studio::Editor
 	{
 		UnloadSong();
 
-		if (!chart->ChartFilePath.empty() && IO::Path::IsRelative(filePath))
-			songSourceFilePath = IO::Path::Combine(IO::Path::GetDirectoryName(chart->ChartFilePath), chart->SongFileName);
-		else
-			songSourceFilePath = filePath;
+		songSourceFilePathAbsolute = IO::Path::ResolveRelativeTo(filePath, chart->ChartFilePath);
+		songSourceFuture = Audio::AudioEngine::GetInstance().LoadSourceAsync(songSourceFilePathAbsolute);
 
-		songSourceFuture = Audio::AudioEngine::GetInstance().LoadSourceAsync(songSourceFilePath);
-
-		// NOTE: Clear file name here so the chart properties window help loading text is displayed
-		//		 then set again once the song audio file has finished loading
-		chart->SongFileName.clear();
+		chart->SongFileName = IO::Path::TryMakeRelative(songSourceFilePathAbsolute, chart->ChartFilePath);
 	}
 
 	void ChartEditor::UnloadSong()
@@ -239,7 +233,7 @@ namespace Comfy::Studio::Editor
 
 		Audio::AudioEngine::GetInstance().UnloadSource(songSource);
 		songSource = Audio::SourceHandle::Invalid;
-		songSourceFilePath.clear();
+		songSourceFilePathAbsolute.clear();
 
 		if (isPlaying)
 			PausePlayback();
@@ -287,6 +281,9 @@ namespace Comfy::Studio::Editor
 
 		if (!chart->ChartFilePath.empty())
 		{
+			if (!chart->SongFileName.empty() && !songSourceFilePathAbsolute.empty())
+				chart->SongFileName = IO::Path::TryMakeRelative(songSourceFilePathAbsolute, chart->ChartFilePath);
+
 			if (chartSaveFileFuture.valid())
 				chartSaveFileFuture.get();
 
@@ -320,7 +317,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
 
-		const bool songFileIsAbsolute = !chart->SongFileName.empty() && !IO::Path::IsRelative(chart->SongFileName);
+		const bool songFileIsAbsolute = (!chart->SongFileName.empty() && !IO::Path::IsRelative(chart->SongFileName));
 		const bool copySongFileDefaultValue = false;
 
 		bool copySongFile = copySongFileDefaultValue;
@@ -333,15 +330,14 @@ namespace Comfy::Studio::Editor
 
 		if (copySongFile && songFileIsAbsolute)
 		{
-			const auto songFileName = IO::Path::GetFileName(chart->SongFileName);
-			const auto chartDirectory = IO::Path::GetDirectoryName(fileDialog.OutFilePath);
-			const auto chartDirectorySongPath = IO::Path::Combine(chartDirectory, songFileName);
+			const auto relativeSongFileName = IO::Path::GetFileName(chart->SongFileName);
+			const auto newChartDirectory = IO::Path::GetDirectoryName(fileDialog.OutFilePath);
+			const auto newAbsoulteSongPath = IO::Path::Combine(newChartDirectory, relativeSongFileName);
 
-			// TODO: Consider doing this async although since this only happens *once* in the save *dialog* it shouldn't be too noticable
-			if (IO::File::Copy(chart->SongFileName, chartDirectorySongPath))
+			if (IO::File::Copy(chart->SongFileName, newAbsoulteSongPath))
 			{
-				chart->SongFileName = songFileName;
-				songSourceFilePath = chartDirectorySongPath;
+				chart->SongFileName = relativeSongFileName;
+				songSourceFilePathAbsolute = newAbsoulteSongPath;
 			}
 		}
 
@@ -380,7 +376,6 @@ namespace Comfy::Studio::Editor
 		// TODO: Implement different export options
 		if (Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension))
 		{
-			// TODO: Implement IStreamWritable interface for PJEFile and FromChart constructor
 			auto pjeFile = Legacy::PJEFile(*chart);
 			IO::File::Save(filePath, pjeFile);
 		}
@@ -472,7 +467,6 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::UpdateGlobalControlInput()
 	{
-		// TODO: Undo / redo controls for all child windows
 		// TODO: Move all keycodes into KeyBindings header and implement modifier + keycode string format helper
 
 		// HACK: Works for now I guess...
@@ -528,17 +522,6 @@ namespace Comfy::Studio::Editor
 		songVoice.SetSource(newSongSource);
 		songSource = newSongSource;
 
-		if (chart->SongFileName.empty())
-		{
-			const auto chartDirectory = IO::Path::Normalize(IO::Path::GetDirectoryName(chart->ChartFilePath));
-			const auto songDirectory = IO::Path::Normalize(IO::Path::GetDirectoryName(songSourceFilePath));
-
-			chart->SongFileName = (!chartDirectory.empty() && chartDirectory == songDirectory) ? IO::Path::GetFileName(songSourceFilePath, true) : songSourceFilePath;
-
-			// NOTE: Should already set by the properties window on user interaction
-			// undoManager.SetChangesWereMade();
-		}
-
 		if (chart->Duration <= TimeSpan::Zero())
 		{
 			chart->Duration = songVoice.GetDuration();
@@ -550,7 +533,7 @@ namespace Comfy::Studio::Editor
 			// TODO: Extract metadata from audio file
 			if (songInfo.Title.empty())
 			{
-				songInfo.Title = IO::Path::GetFileName(songSourceFilePath, false);
+				songInfo.Title = IO::Path::GetFileName(songSourceFilePathAbsolute, false);
 				undoManager.SetChangesWereMade();
 			}
 
