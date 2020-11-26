@@ -27,6 +27,24 @@ namespace Comfy::Render
 
 			bool Clear = true;
 			vec4 ClearColor = { 0.84, 0.67, 0.41, 1.0f };
+
+			bool PostProcessingEnabled = false;
+			struct PostProcessingData
+			{
+				// NOTE: Usually in range 2.0f to 3.0f
+				f32 Saturation = 2.8f;
+
+				// NOTE: Usually in range 0.35f to 0.80f
+				f32 Brightness = 0.455f;
+
+				std::array<vec3, 3> ColorCoefficientsRGB =
+				{
+					vec3(1.0f, 0.0f, 0.0f),
+					vec3(0.0f, 1.0f, 0.0f),
+					vec3(0.0f, 0.0f, 1.0f),
+				};
+			} PostProcessing;
+
 		} Param;
 	};
 }

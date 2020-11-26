@@ -16,6 +16,8 @@ SpriteSingleTextureCheckerboard_PS
 SpriteSingleTextureFont_PS
 SpriteSingleTextureMask_PS
 SpriteSingleTextureMaskBlend_PS
+SpriteFullscreenQuad_VS
+SpriteColorCorrection_PS
 DebugMaterial_VS
 DebugMaterial_PS
 FullscreenQuad_VS

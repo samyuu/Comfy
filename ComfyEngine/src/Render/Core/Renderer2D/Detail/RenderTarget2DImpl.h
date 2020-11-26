@@ -12,19 +12,13 @@ namespace Comfy::Render::Detail
 		~RenderTarget2DImpl() = default;
 
 	public:
-		ComfyTextureID GetTextureID() const override
-		{
-			return (Main.GetMultiSampleCount() > 1) ? ResolvedMain : Main;
-		}
+		ComfyTextureID GetTextureID() const override { return Output; }
 
 	public:
-		std::unique_ptr<u8[]> TakeScreenshot() override
-		{
-			return (Main.GetMultiSampleCount() > 1) ? ResolvedMain.StageAndCopyBackBuffer() : Main.StageAndCopyBackBuffer();
-		}
+		std::unique_ptr<u8[]> TakeScreenshot() override { return Output.StageAndCopyBackBuffer(); }
 
 	public:
 		D3D11::RenderTarget Main = D3D11::RenderTarget(Param.Resolution);
-		D3D11::RenderTarget ResolvedMain = D3D11::RenderTarget(Param.Resolution);
+		D3D11::RenderTarget Output = D3D11::RenderTarget(Param.Resolution);
 	};
 }

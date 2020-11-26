@@ -595,5 +595,7 @@
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Multi\SpriteMultiTextureBatch_07_PS.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Uber\SpriteMultiTexture_Uber.hlsl" />
     <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\Uber\SpriteSingleTexture_Uber.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\PostProcessing\SpriteFullscreenQuad_VS.hlsl" />
+    <FxCompile Include="src\Render\D3D11\Shader\Source\Renderer2D\PostProcessing\SpriteColorCorrection_PS.hlsl" />
   </ItemGroup>
 </Project>

@@ -46,6 +46,12 @@ namespace Comfy::Render
 			vec4 CheckerboardSize;
 		};
 
+		struct PostProcessData
+		{
+			vec4 PostProcessParam;
+			vec4 PostProcessCoefficients[4];
+		};
+
 		static_assert(MaxSpriteTextureSlots <= (sizeof(SpriteConstantData::FormatFlags) * CHAR_BIT));
 
 	public:
@@ -80,10 +86,16 @@ namespace Comfy::Render
 				D3D11::ShaderPair TextureMask = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMask_PS(), "Renderer2D::SpriteSingleTextureMask" };
 				D3D11::ShaderPair TextureMaskMultiply = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMaskBlend_PS(), "Renderer2D::SpriteSingleTextureMaskBlend" };
 			} Single;
+
+			struct PostProcessingShaders
+			{
+				D3D11::ShaderPair ColorCorrection = { D3D11::SpriteFullscreenQuad_VS(), D3D11::SpriteColorCorrection_PS(), "Renderer2D::SpriteColorCorrection" };
+			} PostProcessing;
 		} Shaders;
 
 		D3D11::DefaultConstantBufferTemplate<CameraConstantData> CameraConstantBuffer = { 0 };
 		D3D11::DynamicConstantBufferTemplate<SpriteConstantData> SpriteConstantBuffer = { 0 };
+		D3D11::DynamicConstantBufferTemplate<PostProcessData> PostProcessConstantBuffer = { 1 };
 
 		std::unique_ptr<D3D11::StaticIndexBuffer> SpriteQuadIndexBuffer = nullptr;
 		std::unique_ptr<D3D11::DynamicVertexBuffer> SpriteQuadVertexBuffer = nullptr;
@@ -138,6 +150,7 @@ namespace Comfy::Render
 		{
 			D3D11_SetObjectDebugName(CameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
 			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
+			D3D11_SetObjectDebugName(PostProcessConstantBuffer.Buffer.GetBuffer(), "Renderer2D::PostProcessConstantBuffer");
 
 			D3D11_SetObjectDebugName(RasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
 
@@ -477,6 +490,8 @@ namespace Comfy::Render
 			RenderTarget->Main.SetMultiSampleCountIfDifferent(RenderTarget->Param.MultiSampleCount);
 			RenderTarget->Main.BindSetViewport();
 
+			RenderTarget->Output.ResizeIfDifferent(RenderTarget->Param.Resolution);
+
 			if (RenderTarget->Param.Clear)
 				RenderTarget->Main.Clear(RenderTarget->Param.ClearColor);
 
@@ -486,27 +501,57 @@ namespace Comfy::Render
 
 			CameraConstantBuffer.BindVertexShader();
 			SpriteConstantBuffer.BindPixelShader();
+			PostProcessConstantBuffer.BindPixelShader();
 			D3D11_EndDebugEvent();
 		}
 
 		void InternalSetEndState()
 		{
 			D3D11_BeginDebugEvent("Set End State");
+			RenderTarget->Main.UnBind();
+
+			if (RenderTarget->Param.MultiSampleCount > 1)
+			{
+				// TODO: Allow both MSAA and PP
+				D3D11::D3D.Context->ResolveSubresource(RenderTarget->Output.GetResource(), 0, RenderTarget->Main.GetResource(), 0, RenderTarget->Main.GetBackBufferDescription().Format);
+			}
+			else if (RenderTarget->Param.PostProcessingEnabled)
+			{
+				PostProcessConstantBuffer.Data.PostProcessParam[0] = RenderTarget->Param.PostProcessing.Saturation;
+				PostProcessConstantBuffer.Data.PostProcessParam[1] = RenderTarget->Param.PostProcessing.Brightness;
+				PostProcessConstantBuffer.Data.PostProcessCoefficients[0] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[0], 0.0f);
+				PostProcessConstantBuffer.Data.PostProcessCoefficients[1] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[1], 0.0f);
+				PostProcessConstantBuffer.Data.PostProcessCoefficients[2] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[2], 0.0f);
+				PostProcessConstantBuffer.UploadData();
+
+				Shaders.PostProcessing.ColorCorrection.Bind();
+
+				RenderTarget->Output.Bind();
+				D3D11::TextureResource::BindArray<1>(0, { &RenderTarget->Main });
+				D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+
+				D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				D3D11::D3D.Context->Draw(6, 0);
+
+				D3D11::TextureResource::BindArray<1>(0, { nullptr });
+				RenderTarget->Output.UnBind();
+
+				Shaders.PostProcessing.ColorCorrection.UnBind();
+			}
+			else
+			{
+				D3D11::D3D.Context->CopyResource(RenderTarget->Output.GetResource(), RenderTarget->Main.GetResource());
+			}
+
+			PostProcessConstantBuffer.UnBindPixelShader();
 			SpriteConstantBuffer.UnBindPixelShader();
 			CameraConstantBuffer.UnBindVertexShader();
 
 			SpriteQuadIndexBuffer->UnBind();
 			SpriteQuadVertexBuffer->UnBind();
 			InputLayout->UnBind();
-
 			RasterizerState.UnBind();
-			RenderTarget->Main.UnBind();
 
-			if (RenderTarget->Param.MultiSampleCount > 1)
-			{
-				RenderTarget->ResolvedMain.ResizeIfDifferent(RenderTarget->Param.Resolution);
-				D3D11::D3D.Context->ResolveSubresource(RenderTarget->ResolvedMain.GetResource(), 0, RenderTarget->Main.GetResource(), 0, RenderTarget->Main.GetBackBufferDescription().Format);
-			}
 			D3D11_EndDebugEvent();
 		}
 
