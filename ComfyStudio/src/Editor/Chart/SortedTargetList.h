@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "BeatTick.h"
+#include "Time/TimeSpan.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -87,6 +88,8 @@ namespace Comfy::Studio::Editor
 	};
 
 	static_assert(sizeof(TargetProperties) == (sizeof(f32) * TargetPropertyType_Count));
+
+	constexpr TimeSpan MaxTargetHoldDuration = TimeSpan::FromSeconds(5.0);
 
 	struct TargetFlags
 	{
