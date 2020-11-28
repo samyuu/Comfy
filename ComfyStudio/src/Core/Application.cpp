@@ -156,7 +156,7 @@ namespace Comfy::Studio
 	{
 		const auto& io = Gui::GetIO();
 
-#if COMFY_DEBUG && 1
+#if COMFY_DEBUG || 1 // TEMP:
 		if (io.KeyCtrl && io.KeyShift && Gui::IsKeyPressed(Input::KeyCode_B, false))
 			showMainMenuBar ^= true;
 
