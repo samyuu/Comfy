@@ -4,7 +4,15 @@ namespace Comfy::Graphics::Aet
 {
 	namespace Util
 	{
-		void CombineTransforms(const Transform2D& input, Transform2D & inOutput)
+		namespace
+		{
+			const LayerVideo& GetLayerVideo(const Layer& layer)
+			{
+				return layer.RenderOverride.UseLayerVideo ? layer.RenderOverride.LayerVideo : *layer.LayerVideo;
+			}
+		}
+
+		void CombineTransforms(const Transform2D& input, Transform2D& inOutput)
 		{
 			// BUG: This is still not 100% accurate (?)
 			inOutput.Position -= input.Origin;
@@ -215,7 +223,9 @@ namespace Comfy::Graphics::Aet
 			const Layer* parentParent = parent->GetRefParentLayer();
 			assert(parentParent != parent);
 
-			const Transform2D parentTransform = GetTransformAt(*parent->LayerVideo, frame);
+			const auto& parentLayerVideo = (parent->RenderOverride.LayerVideoNoParentTransform) ? *parent->LayerVideo : GetLayerVideo(*parent);
+
+			const Transform2D parentTransform = GetTransformAt(parentLayerVideo, frame);
 			outTransform.Position += parentTransform.Position - parentTransform.Origin;
 			outTransform.Rotation += parentTransform.Rotation;
 			outTransform.Scale *= parentTransform.Scale;
@@ -239,12 +249,13 @@ namespace Comfy::Graphics::Aet
 				if (frame < layer.StartFrame || frame >= layer.EndFrame)
 					return;
 
+				const auto& layerVideo = GetLayerVideo(layer);
 				Obj& objCache = outObjs.emplace_back();
 				objCache.FirstParent = nullptr;
 				objCache.SourceLayer = &layer;
 				objCache.Video = layer.GetVideoItem();
-				objCache.BlendMode = layer.LayerVideo->TransferMode.BlendMode;
-				objCache.UseTrackMatte = layer.LayerVideo->TransferMode.TrackMatte == TrackMatte::Alpha;
+				objCache.BlendMode = layerVideo.TransferMode.BlendMode;
+				objCache.UseTrackMatte = layerVideo.TransferMode.TrackMatte == TrackMatte::Alpha;
 				objCache.IsVisible = layer.GetIsVisible();
 
 				if (objCache.Video != nullptr && objCache.Video->Sources.size() > 1)
@@ -257,7 +268,7 @@ namespace Comfy::Graphics::Aet
 					objCache.SpriteFrame = 0;
 				}
 
-				objCache.Transform = GetTransformAt(*layer.LayerVideo, frame);
+				objCache.Transform = GetTransformAt(layerVideo, frame);
 
 				i32 recursionCount = 0;
 				ApplyParentTransform(objCache.Transform, layer.GetRefParentLayer(), frame, recursionCount);
@@ -273,7 +284,8 @@ namespace Comfy::Graphics::Aet
 				if (comp == nullptr)
 					return;
 
-				Transform2D transform = GetTransformAt(*layer.LayerVideo, frame);
+				const auto& layerVideo = GetLayerVideo(layer);
+				Transform2D transform = GetTransformAt(layerVideo, frame);
 
 				i32 recursionCount = 0;
 				ApplyParentTransform(transform, layer.GetRefParentLayer(), frame, recursionCount);

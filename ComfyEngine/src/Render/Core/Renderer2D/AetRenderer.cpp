@@ -65,6 +65,12 @@ namespace Comfy::Render
 			return;
 
 		auto[tex, spr] = GetSprite(obj.Video, obj.SpriteFrame);
+		if (obj.SourceLayer->RenderOverride.UseTexSpr)
+		{
+			tex = obj.SourceLayer->RenderOverride.Tex;
+			spr = obj.SourceLayer->RenderOverride.Spr;
+		}
+
 		const auto objTransform = AetUtil::CombineTransformsCopy(obj.Transform, transform);
 
 		if (tex != nullptr && spr != nullptr)
@@ -105,7 +111,18 @@ namespace Comfy::Render
 			return;
 
 		auto[maskTex, maskSpr] = GetSprite(maskObj.Video, maskObj.SpriteFrame);
+		if (maskObj.SourceLayer->RenderOverride.UseTexSpr)
+		{
+			maskTex = maskObj.SourceLayer->RenderOverride.Tex;
+			maskSpr = maskObj.SourceLayer->RenderOverride.Spr;
+		}
+
 		auto[tex, spr] = GetSprite(obj.Video, obj.SpriteFrame);
+		if (obj.SourceLayer->RenderOverride.UseTexSpr)
+		{
+			tex = obj.SourceLayer->RenderOverride.Tex;
+			spr = obj.SourceLayer->RenderOverride.Spr;
+		}
 
 		const auto objTransform = AetUtil::CombineTransformsCopy(obj.Transform, transform);
 		const auto maskTransform = AetUtil::CombineTransformsCopy(maskObj.Transform, transform);

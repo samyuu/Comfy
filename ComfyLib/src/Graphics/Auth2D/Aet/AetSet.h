@@ -25,6 +25,7 @@ namespace Comfy
 
 	namespace Graphics
 	{
+		class Tex;
 		struct Spr;
 		class SprSet;
 	}
@@ -283,6 +284,16 @@ namespace Comfy::Graphics::Aet
 		std::vector<std::shared_ptr<Marker>> Markers;
 		std::shared_ptr<LayerVideo> LayerVideo;
 		std::shared_ptr<LayerAudio> LayerAudio;
+
+		mutable struct
+		{
+			bool UseLayerVideo;
+			bool LayerVideoNoParentTransform;
+			bool UseTexSpr;
+			Aet::LayerVideo LayerVideo;
+			const Graphics::Tex* Tex;
+			const Graphics::Spr* Spr;
+		} RenderOverride;
 
 	public:
 		const std::string& GetName() const;
