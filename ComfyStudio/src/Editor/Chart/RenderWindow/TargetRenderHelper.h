@@ -26,6 +26,7 @@ namespace Comfy::Studio::Editor
 			bool DrawCover;
 			bool DrawBackground;
 			TimeSpan PlaybackTime;
+			Render::TexSprView CoverSprite, LogoSprite, BackgroundSprite;
 		};
 
 		void DrawBackground(Render::Renderer2D& renderer, const BackgroundData& background) const;

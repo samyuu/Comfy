@@ -212,6 +212,25 @@ namespace Comfy::Studio::Editor
 				videos.PracticeCoverDummy = findVideo(*aetGame, "PS4_GAME_SONG_JK_DUMMY");
 				videos.PracticeCoverShadow = findVideo(*aetGame, "PS4_GAME_SONG_JK_SDW");
 				videos.PracticeBackgroundDummy = findVideo(*aetGame, "PS4_GAME_SONG_BG_DUMMY");
+
+				if (const auto& compItem = layers.PracticeBackground->GetCompItem(); compItem != nullptr)
+				{
+					for (auto& layer : compItem->GetLayers())
+					{
+						const auto* videoItem = layer->GetVideoItem().get();
+						if (videoItem == videos.PracticeLogoDummy.get())
+							videos.PracticeLogoDummyParentLayer = layer;
+						else if (videoItem == videos.PracticeCoverDummy.get())
+							videos.PracticeCoverDummyParentLayer = layer;
+						else if (videoItem == videos.PracticeBackgroundDummy.get())
+							videos.PracticeBackgroundDummyParentLayer = layer;
+					}
+
+					auto copyLayerVideoToRenderOverride = [](auto& layer) { if (layer != nullptr) { layer->RenderOverride.LayerVideo = *layer->LayerVideo; } };
+					copyLayerVideoToRenderOverride(videos.PracticeLogoDummyParentLayer);
+					copyLayerVideoToRenderOverride(videos.PracticeCoverDummyParentLayer);
+					copyLayerVideoToRenderOverride(videos.PracticeBackgroundDummyParentLayer);
+				}
 			}
 
 			if (GetFutureIfReady(sprGameFuture, sprGame) && sprGame != nullptr)
@@ -265,6 +284,36 @@ namespace Comfy::Studio::Editor
 			});
 		}
 
+		void SetCenteredScaledRenderOverrideIf(const Aet::Layer& layer, const Aet::Video& videoItem, Render::TexSprView texSpr) const
+		{
+			if (texSpr)
+			{
+				layer.RenderOverride.UseLayerVideo = true;
+				layer.RenderOverride.LayerVideoNoParentTransform = true;
+				layer.RenderOverride.UseTexSpr = true;
+
+				layer.RenderOverride.Tex = texSpr.Tex;
+				layer.RenderOverride.Spr = texSpr.Spr;
+
+				auto& oldTransform2D = layer.LayerVideo->Transform;
+				auto& newTransform2D = layer.RenderOverride.LayerVideo.Transform;
+
+				const auto oldSprSize = vec2(texSpr.Spr->GetSize());
+				const auto newSprSize = vec2(videoItem.Size) * vec2(oldTransform2D.Scale.X.Keys[0].Value, oldTransform2D.Scale.Y.Keys[0].Value);
+
+				newTransform2D.Origin.X.Keys[0].Value = (oldSprSize.x * 0.5f);
+				newTransform2D.Origin.Y.Keys[0].Value = (oldSprSize.y * 0.5f);
+
+				newTransform2D.Scale.X.Keys[0].Value = (newSprSize.x / oldSprSize.x);
+				newTransform2D.Scale.Y.Keys[0].Value = (newSprSize.y / oldSprSize.y);
+			}
+			else
+			{
+				layer.RenderOverride.UseLayerVideo = false;
+				layer.RenderOverride.UseTexSpr = false;
+			}
+		}
+
 		void DrawBackground(Render::Renderer2D& renderer, const BackgroundData& background) const
 		{
 			if (aetGame == nullptr || sprGame == nullptr)
@@ -284,11 +333,22 @@ namespace Comfy::Studio::Editor
 					else if (videoItem == videos.PracticeColorBlack.get())
 						layer->SetIsVisible(background.DrawDim);
 					else if (videoItem == videos.PracticeLogoDummy.get())
+					{
 						layer->SetIsVisible(background.DrawLogo);
-					else if (videoItem == videos.PracticeCoverDummy.get() || videoItem == videos.PracticeCoverShadow.get())
+						SetCenteredScaledRenderOverrideIf(*layer, *videoItem, background.LogoSprite);
+					}
+					else if (videoItem == videos.PracticeCoverDummy.get())
+					{
+						layer->SetIsVisible(background.DrawCover);
+						SetCenteredScaledRenderOverrideIf(*layer, *videoItem, background.CoverSprite);
+					}
+					else if (videoItem == videos.PracticeCoverShadow.get())
 						layer->SetIsVisible(background.DrawCover);
 					else if (videoItem == videos.PracticeBackgroundDummy.get())
+					{
 						layer->SetIsVisible(background.DrawBackground);
+						SetCenteredScaledRenderOverrideIf(*layer, *videoItem, background.BackgroundSprite);
+					}
 				}
 			}
 
@@ -839,6 +899,11 @@ namespace Comfy::Studio::Editor
 				PracticeCoverDummy,
 				PracticeCoverShadow,
 				PracticeBackgroundDummy;
+
+			std::shared_ptr<Aet::Layer>
+				PracticeLogoDummyParentLayer,
+				PracticeCoverDummyParentLayer,
+				PracticeBackgroundDummyParentLayer;
 
 		} videos;
 
