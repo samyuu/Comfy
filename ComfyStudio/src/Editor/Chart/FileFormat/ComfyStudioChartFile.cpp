@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	namespace ChartFileFormat
 	{
 		// NOTE: Increment major version for breaking changes and minor version for backwards and forward compatible additions
-		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 3, };
+		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 4, };
 		enum class Endianness : u16 { Little = 'L', Big = 'B' };
 		enum class PointerSize : u16 { Bit32 = 32, Bit64 = 64 };
 		enum class HeaderFlags : u32 { None = 0xFFFFFFFF };
@@ -72,6 +72,9 @@ namespace Comfy::Studio::Editor
 		constexpr std::string_view SectionIDMetadataCreatorComment = "Creator Comment";
 		constexpr std::string_view SectionIDMetadataExtraInfoKeyFmt = "Extra Info Key %zu";
 		constexpr std::string_view SectionIDMetadataExtraInfoValueFmt = "Extra Info Value %zu";
+		constexpr std::string_view SectionIDMetadataImageCoverFileName = "Cover File Name";
+		constexpr std::string_view SectionIDMetadataImageLogoFileName = "Logo File Name";
+		constexpr std::string_view SectionIDMetadataImageBackgroundFileName = "Background File Name";
 
 		constexpr std::string_view SectionIDChart = "Chart";
 		constexpr std::string_view SectionIDChartSectionIDScale = "Scale";
@@ -148,6 +151,9 @@ namespace Comfy::Studio::Editor
 		findMetadataI32(SectionIDMetadataDiskNumber, outChart->Properties.Song.DiskNumber);
 		findMetadataStr(SectionIDMetadataCreatorName, outChart->Properties.Creator.Name);
 		findMetadataStr(SectionIDMetadataCreatorComment, outChart->Properties.Creator.Comment);
+		findMetadataStr(SectionIDMetadataImageCoverFileName, outChart->Properties.Image.CoverFileName);
+		findMetadataStr(SectionIDMetadataImageLogoFileName, outChart->Properties.Image.LogoFileName);
+		findMetadataStr(SectionIDMetadataImageBackgroundFileName, outChart->Properties.Image.BackgroundFileName);
 
 		for (size_t i = 0; i < outChart->Properties.Song.ExtraInfo.size(); i++)
 		{
@@ -755,6 +761,9 @@ namespace Comfy::Studio::Editor
 		addMetadata(SectionIDMetadataDiskNumber, std::to_string(sourceChart.Properties.Song.DiskNumber));
 		addMetadata(SectionIDMetadataCreatorName, sourceChart.Properties.Creator.Name);
 		addMetadata(SectionIDMetadataCreatorComment, sourceChart.Properties.Creator.Comment);
+		addMetadata(SectionIDMetadataImageCoverFileName, sourceChart.Properties.Image.CoverFileName);
+		addMetadata(SectionIDMetadataImageLogoFileName, sourceChart.Properties.Image.LogoFileName);
+		addMetadata(SectionIDMetadataImageBackgroundFileName, sourceChart.Properties.Image.BackgroundFileName);
 
 		for (size_t i = 0; i < sourceChart.Properties.Song.ExtraInfo.size(); i++)
 		{
