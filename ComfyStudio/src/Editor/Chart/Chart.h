@@ -94,6 +94,13 @@ namespace Comfy::Studio::Editor
 				std::array<KeyValue, 4> ExtraInfo;
 			} Song;
 
+			struct ImageData
+			{
+				std::string CoverFileName;
+				std::string LogoFileName;
+				std::string BackgroundFileName;
+			} Image;
+
 			struct CreatorInfo
 			{
 				std::string Name;
