@@ -201,6 +201,9 @@
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelperEx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Common\AsyncLoadedImageFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -474,6 +477,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelperEx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Common\AsyncLoadedImageFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

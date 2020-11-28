@@ -192,6 +192,7 @@
     <ClCompile Include="src\Editor\Chart\TargetPropertyPresets.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMetronome.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineRenderHelper.cpp" />
+    <ClCompile Include="src\Editor\Common\AsyncLoadedImageFile.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController3D.cpp" />
     <ClCompile Include="src\Editor\Chart\ChartEditor.cpp" />
     <ClCompile Include="src\Editor\Chart\SyncWindow.cpp" />
@@ -267,6 +268,7 @@
     <ClInclude Include="src\Editor\Chart\TargetPropertyRules.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineMetronome.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineRenderHelper.h" />
+    <ClInclude Include="src\Editor\Common\AsyncLoadedImageFile.h" />
     <ClInclude Include="src\Editor\Common\CameraController3D.h" />
     <ClInclude Include="src\Editor\Chart\Chart.h" />
     <ClInclude Include="src\Editor\Chart\ChartEditor.h" />
