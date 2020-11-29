@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 #include "SortedTargetList.h"
 #include "SortedTempoMap.h"
+#include "Editor/Common/AsyncLoadedImageFile.h"
 #include "Timeline/TimelineMap.h"
 #include "Time/TimeSpan.h"
 
@@ -99,6 +100,10 @@ namespace Comfy::Studio::Editor
 				std::string CoverFileName;
 				std::string LogoFileName;
 				std::string BackgroundFileName;
+
+				AsyncLoadedImageFile Cover = { AsyncImageFileFlags_FlipY | AsyncImageFileFlags_TransparentBorder | AsyncImageFileFlags_TransparentBorderNoSprAdjust };
+				AsyncLoadedImageFile Logo = { AsyncImageFileFlags_FlipY };
+				AsyncLoadedImageFile Background = { AsyncImageFileFlags_FlipY };
 			} Image;
 
 			struct CreatorInfo
