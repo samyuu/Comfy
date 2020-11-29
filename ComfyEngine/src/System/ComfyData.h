@@ -4,8 +4,8 @@
 
 namespace Comfy::System
 {
-	constexpr std::string_view DataFileName = "ComfyData.bin";
-	constexpr std::string_view ConfigFileName = "ComfyConfig.bin";
+	constexpr std::string_view DataFileName = "ComfyData.dat";
+	constexpr std::string_view ConfigFileName = "config.bin";
 
 	// TODO: Make sure the program is able ot start without any of these present even if that means it is rendered unusable
 	extern IO::ComfyArchive Data;
