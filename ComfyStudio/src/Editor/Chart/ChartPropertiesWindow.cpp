@@ -222,7 +222,7 @@ namespace Comfy::Studio::Editor
 					char readOnlyBuffer[1] = { '\0' };
 					Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", readOnlyBuffer, sizeof(readOnlyBuffer), ImGuiInputTextFlags_ReadOnly);
 				}
-				else if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, defaultHint, &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
+				else if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, "song.ogg", &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
 					chartEditor.LoadSongAsync(chart.SongFileName);
 					changesMade = true;
