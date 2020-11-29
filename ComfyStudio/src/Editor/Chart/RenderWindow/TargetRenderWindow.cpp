@@ -260,11 +260,30 @@ namespace Comfy::Studio::Editor
 					Gui::PushItemDisabledAndTextColorIf(!practiceBackground.Enabled);
 					Gui::Checkbox("Grid", &practiceBackground.Data.DrawGrid);
 					Gui::Checkbox("Dim", &practiceBackground.Data.DrawDim);
-					Gui::Checkbox("Logo", &practiceBackground.Data.DrawLogo);
 					Gui::Checkbox("Cover", &practiceBackground.Data.DrawCover);
+					Gui::Checkbox("Logo", &practiceBackground.Data.DrawLogo);
 					Gui::Checkbox("Background", &practiceBackground.Data.DrawBackground);
 					Gui::PopItemDisabledAndTextColorIf(!practiceBackground.Enabled);
 					Gui::EndMenu();
+				}
+
+				if (Gui::MenuItem("Set Default Editor View"))
+				{
+					backgroundDim = 0.35f;
+					drawTargetGrid = true;
+					practiceBackground.Enabled = false;
+				}
+
+				if (Gui::MenuItem("Set Default Practice View"))
+				{
+					backgroundDim = 0.0f;
+					drawTargetGrid = false;
+					practiceBackground.Enabled = true;
+					practiceBackground.Data.DrawGrid = true;
+					practiceBackground.Data.DrawDim = true;
+					practiceBackground.Data.DrawCover = true;
+					practiceBackground.Data.DrawLogo = true;
+					practiceBackground.Data.DrawBackground = true;
 				}
 
 				Gui::EndMenu();
@@ -305,7 +324,10 @@ namespace Comfy::Studio::Editor
 
 		if (practiceBackground.Enabled)
 		{
-			practiceBackground.Data.PlaybackTime = timeline.GetCursorTime();;
+			practiceBackground.Data.PlaybackTime = timeline.GetCursorTime();
+			practiceBackground.Data.CoverSprite = workingChart->Properties.Image.Cover.GetTexSprView();
+			practiceBackground.Data.LogoSprite = workingChart->Properties.Image.Logo.GetTexSprView();
+			practiceBackground.Data.BackgroundSprite = workingChart->Properties.Image.Background.GetTexSprView();
 			renderHelper->DrawBackground(renderer, practiceBackground.Data);
 		}
 

@@ -33,7 +33,6 @@ namespace Comfy::Studio::Editor
 		ApplicationHostCloseResponse OnApplicationClosing() override;
 
 	public:
-		bool IsAudioFile(std::string_view filePath);
 		bool OpenLoadAudioFileDialog();
 
 		bool OnFileDropped(std::string_view filePath) override;
@@ -56,6 +55,8 @@ namespace Comfy::Studio::Editor
 		bool OpenSaveExportChartFileDialog();
 
 		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
+
+		std::string GetOpenReadImageFileDialogPath() const;
 
 		bool IsSongAsyncLoading() const;
 

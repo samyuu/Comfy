@@ -169,11 +169,6 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	bool ChartEditor::IsAudioFile(std::string_view filePath)
-	{
-		return IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".flac;.ogg;.mp3;.wav");
-	}
-
 	bool ChartEditor::OpenLoadAudioFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
@@ -206,10 +201,34 @@ namespace Comfy::Studio::Editor
 			return true;
 		}
 
-		if (IsAudioFile(filePath))
+		if (IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".flac;.ogg;.mp3;.wav"))
 		{
 			LoadSongAsync(filePath);
 			return true;
+		}
+
+		if (IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".png;.jpg;.jpeg;.bmp;.gif"))
+		{
+			const auto lowerCaseFileName = Util::ToLowerCopy(std::string(IO::Path::GetFileName(filePath)));
+			auto fileNameContains = [&lowerCaseFileName](std::string_view subString)
+			{
+				return Util::Contains(lowerCaseFileName, subString);
+			};
+
+			auto setAndLoad = [&](std::string& outFileName, AsyncLoadedImageFile& image)
+			{
+				image.TryLoad(filePath);
+				outFileName = IO::Path::TryMakeRelative(filePath, chart->ChartFilePath);
+				undoManager.SetChangesWereMade();
+				return true;
+			};
+
+			if (fileNameContains("cover") || fileNameContains("jacket") || fileNameContains("song_jk"))
+				return setAndLoad(chart->Properties.Image.CoverFileName, chart->Properties.Image.Cover);
+			else if (fileNameContains("logo"))
+				return setAndLoad(chart->Properties.Image.LogoFileName, chart->Properties.Image.Logo);
+			else if (fileNameContains("background") || fileNameContains("song_bg") || fileNameContains("haikei"))
+				return setAndLoad(chart->Properties.Image.BackgroundFileName, chart->Properties.Image.Background);
 		}
 
 		return false;
@@ -270,6 +289,10 @@ namespace Comfy::Studio::Editor
 			LoadSongAsync(chart->SongFileName);
 		else
 			UnloadSong();
+
+		chart->Properties.Image.Cover.TryLoad(chart->Properties.Image.CoverFileName, chart->ChartFilePath);
+		chart->Properties.Image.Logo.TryLoad(chart->Properties.Image.LogoFileName, chart->ChartFilePath);
+		chart->Properties.Image.Background.TryLoad(chart->Properties.Image.BackgroundFileName, chart->ChartFilePath);
 
 		SyncWorkingChartPointers();
 	}
@@ -425,6 +448,29 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	std::string ChartEditor::GetOpenReadImageFileDialogPath() const
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Open Image File";
+		fileDialog.FileName;
+		fileDialog.DefaultExtension = ".png";
+		fileDialog.Filters =
+		{
+			{ "Image Files (*.png;*.jpg;*.jpeg;.bmp;.gif)", "*.png;*.jpg;*.jpeg;.bmp;.gif" },
+			{ "PNG Files (*.png)", "*.png" },
+			{ "JPEG Files (*.jpg;*.jpeg)", "*.jpg;*.jpeg" },
+			{ "BMP Files (*.bmp)", "*.bmp" },
+			{ "GIF Files (*.gif)", "*.gif" },
+			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
+		};
+		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+		if (fileDialog.OpenRead())
+			return std::move(fileDialog.OutFilePath);
+		else
+			return "";
+	}
+
 	bool ChartEditor::IsSongAsyncLoading() const
 	{
 		return (songSourceFuture.valid() && !songSourceFuture._Is_ready());
@@ -445,7 +491,7 @@ namespace Comfy::Studio::Editor
 		return playbackTimeOnPlaybackStart;
 	}
 
-	SoundEffectManager& Comfy::Studio::Editor::ChartEditor::GetSoundEffectManager()
+	SoundEffectManager& ChartEditor::GetSoundEffectManager()
 	{
 		return soundEffectManager;
 	}

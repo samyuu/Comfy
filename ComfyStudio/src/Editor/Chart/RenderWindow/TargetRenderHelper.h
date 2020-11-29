@@ -22,8 +22,8 @@ namespace Comfy::Studio::Editor
 		{
 			bool DrawGrid;
 			bool DrawDim;
-			bool DrawLogo;
 			bool DrawCover;
+			bool DrawLogo;
 			bool DrawBackground;
 			TimeSpan PlaybackTime;
 			Render::TexSprView CoverSprite, LogoSprite, BackgroundSprite;

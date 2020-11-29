@@ -3,6 +3,7 @@
 #include "ChartCommands.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/PropertyEditor.h"
+#include "IO/Path.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -129,6 +130,65 @@ namespace Comfy::Studio::Editor
 				return valueChanged;
 			});
 		}
+
+		bool GuiPropertyImageFileName(std::string_view label, const char* helpText, std::string& inOutPath, AsyncLoadedImageFile& asyncImage, std::string_view basePath, ChartEditor& chartEditor)
+		{
+			return GuiProperty::PropertyLabelValueFunc(label, [&]
+			{
+				const auto& style = Gui::GetStyle();
+				const auto buttonSize = Gui::GetFrameHeight();
+
+				bool changesMade = false;
+
+				const bool isLoading = asyncImage.IsAsyncLoading();
+				Gui::PushItemDisabledAndTextColorIf(isLoading);
+
+				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvailWidth() - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+
+				if (isLoading)
+				{
+					char readOnlyBuffer[1] = { '\0' };
+					Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", readOnlyBuffer, sizeof(readOnlyBuffer), ImGuiInputTextFlags_ReadOnly);
+				}
+				else if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, helpText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					inOutPath = IO::Path::TryMakeRelative(inOutPath, basePath);
+					asyncImage.TryLoad(inOutPath, basePath);
+					changesMade = true;
+				}
+
+				Gui::PopItemWidth();
+
+				Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(style.FramePadding.y));
+				Gui::SameLine(0, style.ItemInnerSpacing.x);
+				if (Gui::Button("...", vec2(buttonSize)))
+				{
+					const auto fileDialogFilePath = chartEditor.GetOpenReadImageFileDialogPath();
+					if (!fileDialogFilePath.empty())
+					{
+						inOutPath = IO::Path::TryMakeRelative(fileDialogFilePath, basePath);
+						asyncImage.TryLoad(inOutPath, basePath);
+						changesMade = true;
+					}
+				}
+				Gui::PopStyleVar();
+
+				if (Gui::IsItemHovered())
+				{
+					if (const auto image = asyncImage.GetTexSprView(); image)
+					{
+						const auto fixedRect = Gui::FitFixedAspectRatioImage(ImRect(0.0f, 0.0f, 320.0f, 320.0f), image.Tex->GetSize());
+						Gui::BeginTooltip();
+						Gui::Image(*image.Tex, fixedRect.GetSize(), Gui::UV0_R, Gui::UV1_R);
+						Gui::EndTooltip();
+					}
+				}
+
+				Gui::PopItemDisabledAndTextColorIf(isLoading);
+
+				return changesMade;
+			});
+		}
 	}
 
 	ChartPropertiesWindow::ChartPropertiesWindow(ChartEditor& parent, Undo::UndoManager& undoManager) : chartEditor(parent), undoManager(undoManager)
@@ -208,6 +268,13 @@ namespace Comfy::Studio::Editor
 			{
 				changesMade |= GuiProperty::InputWithHint("Name", defaultHint, chart.Properties.Creator.Name);
 				changesMade |= GuiProperty::InputMultiline("Comment", chart.Properties.Creator.Comment, vec2(0.0f, 66.0f));
+			});
+
+			GuiProperty::TreeNode("Song Images", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			{
+				changesMade |= GuiPropertyImageFileName("Cover File Name", "song_jk.png", chart.Properties.Image.CoverFileName, chart.Properties.Image.Cover, chart.ChartFilePath, chartEditor);
+				changesMade |= GuiPropertyImageFileName("Logo File Name", "song_logo.png", chart.Properties.Image.LogoFileName, chart.Properties.Image.Logo, chart.ChartFilePath, chartEditor);
+				changesMade |= GuiPropertyImageFileName("Background File Name", "song_bg.png", chart.Properties.Image.BackgroundFileName, chart.Properties.Image.Background, chart.ChartFilePath, chartEditor);
 			});
 
 			GuiProperty::TreeNode("Difficulty", ImGuiTreeNodeFlags_DefaultOpen, [&]
