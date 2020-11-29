@@ -1,7 +1,8 @@
 #include "AsyncLoadedImageFile.h"
-#include "Misc/ImageHelper.h"
-#include "IO/Path.h"
 #include "Graphics/Utilities/TextureCompression.h"
+#include "IO/Path.h"
+#include "Misc/ImageHelper.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -132,7 +133,10 @@ namespace Comfy::Studio::Editor
 			if (flags & AsyncImageFileFlags_FlipY)
 				Graphics::Utilities::FlipTextureBufferY(imageSize, rgbaPixels.get(), Graphics::TextureFormat::RGBA8, dataByteSize);
 
+			const auto upperCaseFileName = Util::ToSnakeCaseUpperCopy(std::string(IO::Path::GetFileName(absolutePath, false)));
+
 			auto tex = std::make_unique<Graphics::Tex>();
+			tex->Name = "IMAGE_" + upperCaseFileName;
 			auto& baseMip = tex->MipMapsArray.emplace_back().emplace_back();
 			baseMip.Size = imageSize;
 			baseMip.Format = Graphics::TextureFormat::RGBA8;
@@ -142,7 +146,7 @@ namespace Comfy::Studio::Editor
 			Graphics::Spr spr = {};
 			spr.TexelRegion = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 			spr.PixelRegion = vec4(0.0f, 0.0f, imageSize.x, imageSize.y);
-			spr.Name = IO::Path::GetFileName(absolutePath, false);
+			spr.Name = "IMAGE_SPR_" + upperCaseFileName;
 			spr.Extra.ScreenMode = Graphics::ScreenMode::HDTV1080;
 
 			if ((flags & AsyncImageFileFlags_TransparentBorder) && !(flags & AsyncImageFileFlags_TransparentBorderNoSprAdjust))
