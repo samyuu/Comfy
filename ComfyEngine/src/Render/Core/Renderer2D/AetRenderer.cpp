@@ -180,6 +180,9 @@ namespace Comfy::Render
 
 	void AetRenderer::DrawLayer(const Layer& layer, frame_t frame, const Graphics::Transform2D& transform)
 	{
+		if (frame < layer.StartFrame || frame >= layer.EndFrame)
+			return;
+
 		objCache.clear();
 		AetUtil::GetAddObjectsAt(objCache, layer, frame);
 
