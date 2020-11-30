@@ -409,6 +409,7 @@ namespace Comfy::Studio::Editor
 				targetData.Chance = target.Flags.IsChance;
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
+				targetData.Scale = 1.0f;
 
 				if (inCursorBarRange)
 				{
@@ -420,6 +421,7 @@ namespace Comfy::Studio::Editor
 					buttonData.Shadow = TargetRenderHelper::ButtonShadowType::Black;
 					buttonData.Position = GetButtonPathSinePoint(progress, properties);
 					buttonData.Progress = progress;
+					buttonData.Scale = 1.0f;
 
 					if (!buttonData.Sync)
 					{
@@ -432,6 +434,8 @@ namespace Comfy::Studio::Editor
 						auto& syncLineData = renderHelperEx.EmplaceSyncLine();
 						syncLineData.SyncPairCount = target.Flags.SyncPairCount;
 						syncLineData.Progress = progressUnbound;
+						syncLineData.Scale = 1.0f;
+						syncLineData.Opacity = 1.0f;
 
 						const auto thisIndex = std::distance(&targets[0], &target);
 						for (size_t i = 0; i < std::min(4u, syncLineData.SyncPairCount); i++)

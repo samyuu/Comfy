@@ -502,6 +502,9 @@ namespace Comfy::Studio::Editor
 				return layers.Targets;
 			};
 
+			if (data.Scale <= 0.0f)
+				return;
+
 			const auto* layer = getLayerArray(data)[static_cast<size_t>(data.Type)].get();
 			if (layer == nullptr)
 				return;
@@ -510,6 +513,7 @@ namespace Comfy::Studio::Editor
 			if (data.NoHand) PushHideHandLayers(*layer);
 
 			auto transform = Transform2D(data.Position);
+			transform.Scale = vec2(data.Scale);
 			if (data.Transparent)
 				transform.Opacity = 0.5f;
 
@@ -530,16 +534,25 @@ namespace Comfy::Studio::Editor
 				return data.Sync ? layers.ButtonsSync : layers.Buttons;
 			};
 
+			if (data.Scale <= 0.0f)
+				return;
+
 			const auto* layer = getLayerArray(data)[static_cast<size_t>(data.Type)].get();
 			if (layer == nullptr)
 				return;
 
+			auto transform = Transform2D(data.Position);
+			transform.Scale = vec2(data.Scale);
+
 			constexpr auto layerFrameScale = 360.0f;
-			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), Transform2D(data.Position));
+			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), transform);
 		}
 
 		void DrawButtonShadow(Render::Renderer2D& renderer, const ButtonData& data) const
 		{
+			if (data.Scale <= 0.0f)
+				return;
+
 			const bool fragment = (data.Chain && !data.ChainStart);
 			const auto* layer =
 				(data.Shadow == ButtonShadowType::Black) ? (fragment ? layers.ButtonShadowsBlackFrag : layers.ButtonShadowsBlack)[static_cast<size_t>(data.Type)].get() :
@@ -548,12 +561,18 @@ namespace Comfy::Studio::Editor
 			if (layer == nullptr)
 				return;
 
+			auto transform = Transform2D(data.Position);
+			transform.Scale = vec2(data.Scale);
+
 			constexpr auto layerFrameScale = 360.0f;
-			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), Transform2D(data.Position));
+			renderer.Aet().DrawLayer(*layer, (data.Progress * layerFrameScale), transform);
 		}
 
 		void DrawButtonTrail(Render::Renderer2D& renderer, const ButtonTrailData& data) const
 		{
+			if (data.Opacity <= 0.0f)
+				return;
+
 			const auto trail = GetButtonTrailSprite();
 			if (!trail)
 				return;
@@ -596,7 +615,7 @@ namespace Comfy::Studio::Editor
 
 			std::array<vec2, segmentCount> segmentPositions;
 			for (i32 i = 0; i < segmentCount; i++)
-				segmentPositions[i] = GetButtonPathSinePoint(glm::min(data.ProgressStart + (static_cast<f32>(i) * progressPerSegment), 1.0f), data.Properties);
+				segmentPositions[i] = GetButtonPathSinePoint(glm::min(data.ProgressStart + (static_cast<f32>(i) * progressPerSegment), data.ProgressMax), data.Properties);
 
 			for (i32 segment = 0, vertex = 0; segment < segmentCount; segment++)
 			{
@@ -627,7 +646,7 @@ namespace Comfy::Studio::Editor
 			for (i32 segment = 0, vertex = 0; segment < segmentCount; segment++)
 			{
 				const auto segmentAlpha = trailSegmentAlphaValues[segment] * (1.0f / static_cast<f32>(std::numeric_limits<u8>::max()));
-				const auto segmentColor = vec4(buttonColor, segmentAlpha);
+				const auto segmentColor = vec4(buttonColor, segmentAlpha * data.Opacity);
 
 				vertices[vertex++].Color = segmentColor;
 				vertices[vertex++].Color = segmentColor;
@@ -643,7 +662,7 @@ namespace Comfy::Studio::Editor
 
 		void DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
 		{
-			if (data.SyncPairCount < 2)
+			if (data.SyncPairCount < 2 || data.Scale <= 0.0f || data.Opacity <= 0.0f)
 				return;
 
 			const auto syncLine = GetButtonSyncLineSprite();
@@ -652,13 +671,13 @@ namespace Comfy::Studio::Editor
 
 			if (data.SyncPairCount == 2)
 			{
-				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[0], data.ButtonPositions[1], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[0], data.ButtonPositions[1], data.Progress, data.Scale, data.Opacity);
 			}
 			else if (data.SyncPairCount == 3)
 			{
-				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[0], data.ButtonPositions[1], data.Progress);
-				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[1], data.ButtonPositions[2], data.Progress);
-				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[2], data.ButtonPositions[0], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[0], data.ButtonPositions[1], data.Progress, data.Scale, data.Opacity);
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[1], data.ButtonPositions[2], data.Progress, data.Scale, data.Opacity);
+				DrawSingleButtonSyncLine(renderer, syncLine, data.ButtonPositions[2], data.ButtonPositions[0], data.Progress, data.Scale, data.Opacity);
 			}
 			else if (data.SyncPairCount == 4)
 			{
@@ -678,14 +697,14 @@ namespace Comfy::Studio::Editor
 				for (size_t i = 0; i < 4; i++)
 					sortedButtons[i] = buttons[std::distance(&targets[0], sortedTargets[i])];
 
-				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[0], sortedButtons[1], data.Progress);
-				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[1], sortedButtons[2], data.Progress);
-				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[2], sortedButtons[3], data.Progress);
-				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[3], sortedButtons[0], data.Progress);
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[0], sortedButtons[1], data.Progress, data.Scale, data.Opacity);
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[1], sortedButtons[2], data.Progress, data.Scale, data.Opacity);
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[2], sortedButtons[3], data.Progress, data.Scale, data.Opacity);
+				DrawSingleButtonSyncLine(renderer, syncLine, sortedButtons[3], sortedButtons[0], data.Progress, data.Scale, data.Opacity);
 			}
 		}
 
-		void DrawSingleButtonSyncLine(Render::Renderer2D& renderer, Render::TexSprView syncLine, vec2 start, vec2 end, f32 progress) const
+		void DrawSingleButtonSyncLine(Render::Renderer2D& renderer, Render::TexSprView syncLine, vec2 start, vec2 end, f32 progress, f32 scale, f32 opacity) const
 		{
 			assert(syncLine);
 			std::array<Render::RenderCommand2D, 2> commands;
@@ -706,6 +725,11 @@ namespace Comfy::Studio::Editor
 			commands[1].CornerColors[1] = transparentWhite;
 			commands[1].CornerColors[3] = transparentWhite;
 
+			commands[0].CornerColors[1].a = opacity;
+			commands[0].CornerColors[3].a = opacity;
+			commands[1].CornerColors[0].a = opacity;
+			commands[1].CornerColors[2].a = opacity;
+
 			commands[0].Position = start;
 			commands[1].Position = (end + start) / 2.0f;
 
@@ -716,7 +740,7 @@ namespace Comfy::Studio::Editor
 			commands[0].Rotation = vecToAngle(end - start);
 			commands[1].Rotation = commands[0].Rotation;
 
-			commands[0].Scale = vec2((distance / spriteSize.x), -0.5f);
+			commands[0].Scale = vec2((distance / spriteSize.x), -0.5f * scale);
 			commands[1].Scale = commands[0].Scale;
 
 			constexpr auto textureWidthsToScrollPerFullProgressCycle = 1.0f;

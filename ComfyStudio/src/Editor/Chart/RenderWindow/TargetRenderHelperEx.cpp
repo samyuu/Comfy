@@ -74,5 +74,7 @@ namespace Comfy::Studio::Editor
 		outData.Progress = static_cast<f32>(flyDuration.TotalSeconds()) * progressUnbound;
 		outData.ProgressStart = progressClamped;
 		outData.ProgressEnd = glm::max(0.0f, (progressClamped - normalizedLength));
+		outData.ProgressMax = 1.0f;
+		outData.Opacity = 1.0f;
 	}
 }

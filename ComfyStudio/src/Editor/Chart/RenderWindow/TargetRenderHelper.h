@@ -57,6 +57,7 @@ namespace Comfy::Studio::Editor
 			bool Chance;
 			vec2 Position;
 			f32 Progress;
+			f32 Scale;
 		};
 
 		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const;
@@ -72,6 +73,7 @@ namespace Comfy::Studio::Editor
 			bool ChainStart;
 			vec2 Position;
 			f32 Progress;
+			f32 Scale;
 		};
 
 		void DrawButton(Render::Renderer2D& renderer, const ButtonData& data) const;
@@ -85,6 +87,8 @@ namespace Comfy::Studio::Editor
 			f32 Progress;
 			f32 ProgressStart;
 			f32 ProgressEnd;
+			f32 ProgressMax;
+			f32 Opacity;
 		};
 
 		void DrawButtonTrail(Render::Renderer2D& renderer, const ButtonTrailData& data) const;
@@ -93,6 +97,8 @@ namespace Comfy::Studio::Editor
 		{
 			u32 SyncPairCount;
 			f32 Progress;
+			f32 Scale;
+			f32 Opacity;
 			std::array<vec2, 4> TargetPositions;
 			std::array<vec2, 4> ButtonPositions;
 		};

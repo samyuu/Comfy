@@ -379,6 +379,8 @@ namespace Comfy::Studio::Editor
 
 		syncLineData.SyncPairCount = targetCount;
 		syncLineData.Progress = 0.0f;
+		syncLineData.Scale = 1.0f;
+		syncLineData.Opacity = 1.0f;
 		for (size_t i = 0; i < targetCount; i++)
 		{
 			syncLineData.TargetPositions[i] = presetTargets[i].Properties.Position;
@@ -394,6 +396,7 @@ namespace Comfy::Studio::Editor
 			targetData.Position = presetTarget.Properties.Position;
 			targetData.NoScale = true;
 			targetData.Transparent = true;
+			targetData.Scale = 1.0f;
 			renderHelper.DrawTarget(renderer, targetData);
 		}
 	}
