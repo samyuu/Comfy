@@ -43,6 +43,14 @@ namespace Comfy::Studio::Editor
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const;
 
+		struct TargetAppearData
+		{
+			vec2 Position;
+			TimeSpan Time;
+		};
+
+		void DrawTargetAppearEffect(Render::Renderer2D& renderer, const TargetAppearData& data) const;
+
 		struct TargetData
 		{
 			ButtonType Type;

@@ -73,6 +73,15 @@ namespace Comfy::Studio::Editor
 				layers.LevelInfoExExtreme = findLayer(*aetGameCommon, "level_info_extreme_extra");
 				layers.SongTitle = findLayer(*aetGameCommon, "p_song_title_lt");
 
+				layers.SyncInfoDouble = findLayer(*aetGameCommon, "sync_info_double");
+				layers.SyncInfoDoubleAdd = findLayer(*aetGameCommon, "sync_info_double_add");
+				layers.SyncInfoTriple = findLayer(*aetGameCommon, "sync_info_triple");
+				layers.SyncInfoTripleAdd = findLayer(*aetGameCommon, "sync_info_triple_add");
+				layers.SyncInfoQuadruple = findLayer(*aetGameCommon, "sync_info_quadruple");
+				layers.SyncInfoQuadrupleAdd = findLayer(*aetGameCommon, "sync_info_quadruple_add");
+				layers.SyncInfoMax = findLayer(*aetGameCommon, "sync_info_max_add");
+				layers.TargetAppearEffect = findLayer(*aetGameCommon, "target_eff");
+
 				auto registerTypeLayer = [&](ButtonType button, std::string_view layerName, auto& outArray)
 				{
 					outArray[static_cast<size_t>(button)] = findLayer(*aetGameCommon, layerName);
@@ -475,6 +484,12 @@ namespace Comfy::Studio::Editor
 			});
 		}
 
+		void DrawTargetAppearEffect(Render::Renderer2D& renderer, const TargetAppearData& data) const
+		{
+			if (layers.TargetAppearEffect != nullptr)
+				renderer.Aet().DrawLayer(*layers.TargetAppearEffect, data.Time.ToFrames(), Transform2D(data.Position));
+		}
+
 		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
 		{
 			auto getLayerArray = [this](const TargetData& data) -> auto&
@@ -871,7 +886,15 @@ namespace Comfy::Studio::Editor
 				LevelInfoHard,
 				LevelInfoExtreme,
 				LevelInfoExExtreme,
-				SongTitle;
+				SongTitle,
+				SyncInfoDouble,
+				SyncInfoDoubleAdd,
+				SyncInfoTriple,
+				SyncInfoTripleAdd,
+				SyncInfoQuadruple,
+				SyncInfoQuadrupleAdd,
+				SyncInfoMax,
+				TargetAppearEffect;
 
 			std::array<std::shared_ptr<Aet::Layer>, EnumCount<ButtonType>()>
 				Targets,
@@ -966,6 +989,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const
 	{
 		impl->DrawHUD(renderer, hud);
+	}
+
+	void TargetRenderHelper::DrawTargetAppearEffect(Render::Renderer2D& renderer, const TargetAppearData& data) const
+	{
+		impl->DrawTargetAppearEffect(renderer, data);
 	}
 
 	void TargetRenderHelper::DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
