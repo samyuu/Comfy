@@ -51,6 +51,16 @@ namespace Comfy::Studio::Editor
 
 		void DrawTargetAppearEffect(Render::Renderer2D& renderer, const TargetAppearData& data) const;
 
+		struct TargetHitData
+		{
+			vec2 Position;
+			TimeSpan Time;
+			bool SlideL, SlideR, Chain;
+			bool CoolHit, FineHit, SafeHit, SadHit;
+		};
+
+		void DrawTargetHitEffect(Render::Renderer2D& renderer, const TargetHitData& data) const;
+
 		struct TargetData
 		{
 			ButtonType Type;

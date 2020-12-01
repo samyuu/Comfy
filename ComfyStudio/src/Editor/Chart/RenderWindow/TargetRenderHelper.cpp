@@ -82,6 +82,18 @@ namespace Comfy::Studio::Editor
 				layers.SyncInfoMax = findLayer(*aetGameCommon, "sync_info_max_add");
 				layers.TargetAppearEffect = findLayer(*aetGameCommon, "target_eff");
 
+				layers.HitEffects[0] = findLayer(*aetGameCommon, "hit_eff00");
+				layers.HitEffects[1] = findLayer(*aetGameCommon, "hit_eff01");
+				layers.HitEffects[2] = findLayer(*aetGameCommon, "hit_eff02");
+				layers.HitEffects[3] = findLayer(*aetGameCommon, "hit_eff03");
+				layers.HitEffects[4] = findLayer(*aetGameCommon, "hit_eff04");
+				layers.HitEffectsSlideL[0] = findLayer(*aetGameCommon, "hit_eff00_l");
+				layers.HitEffectsSlideL[1] = findLayer(*aetGameCommon, "hit_eff01_l");
+				layers.HitEffectsSlideR[0] = findLayer(*aetGameCommon, "hit_eff00_r");
+				layers.HitEffectsSlideR[1] = findLayer(*aetGameCommon, "hit_eff01_r");
+				layers.HitEffectsChainL[0] = findLayer(*aetGameCommon, "hit_eff_slide01_l");
+				layers.HitEffectsChainR[0] = findLayer(*aetGameCommon, "hit_eff_slide01_r");
+
 				auto registerTypeLayer = [&](ButtonType button, std::string_view layerName, auto& outArray)
 				{
 					outArray[static_cast<size_t>(button)] = findLayer(*aetGameCommon, layerName);
@@ -490,6 +502,20 @@ namespace Comfy::Studio::Editor
 				renderer.Aet().DrawLayer(*layers.TargetAppearEffect, data.Time.ToFrames(), Transform2D(data.Position));
 		}
 
+		void DrawTargetHitEffect(Render::Renderer2D& renderer, const TargetHitData& data) const
+		{
+			auto getLayer = [this](const TargetHitData& data) -> auto&
+			{
+				if (data.SlideL) return data.Chain ? layers.HitEffectsChainL[0] : layers.HitEffectsSlideL[data.CoolHit ? 0 : 1];
+				if (data.SlideR) return data.Chain ? layers.HitEffectsChainR[0] : layers.HitEffectsSlideR[data.CoolHit ? 0 : 1];
+				return layers.HitEffects[data.CoolHit ? 0 : data.FineHit ? 1 : data.SafeHit ? 2 : data.SadHit ? 3 : 4];
+			};
+
+			const auto* layer = getLayer(data).get();
+			if (layer != nullptr)
+				renderer.Aet().DrawLayer(*layer, data.Time.ToFrames(), Transform2D(data.Position));
+		}
+
 		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
 		{
 			auto getLayerArray = [this](const TargetData& data) -> auto&
@@ -896,6 +922,17 @@ namespace Comfy::Studio::Editor
 				SyncInfoMax,
 				TargetAppearEffect;
 
+			std::array<std::shared_ptr<Aet::Layer>, 5>
+				HitEffects;
+
+			std::array<std::shared_ptr<Aet::Layer>, 2>
+				HitEffectsSlideL,
+				HitEffectsSlideR;
+
+			std::array<std::shared_ptr<Aet::Layer>, 1>
+				HitEffectsChainL,
+				HitEffectsChainR;
+
 			std::array<std::shared_ptr<Aet::Layer>, EnumCount<ButtonType>()>
 				Targets,
 				TargetsHit,
@@ -994,6 +1031,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawTargetAppearEffect(Render::Renderer2D& renderer, const TargetAppearData& data) const
 	{
 		impl->DrawTargetAppearEffect(renderer, data);
+	}
+
+	void TargetRenderHelper::DrawTargetHitEffect(Render::Renderer2D& renderer, const TargetHitData& data) const
+	{
+		impl->DrawTargetHitEffect(renderer, data);
 	}
 
 	void TargetRenderHelper::DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
