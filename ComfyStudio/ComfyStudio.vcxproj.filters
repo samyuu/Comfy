@@ -198,10 +198,16 @@
     <ClCompile Include="src\Editor\Common\SoundEffectManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\Gameplay\PlayTestWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelperEx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\Common\AsyncLoadedImageFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\Chart\Gameplay\PlayTestCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -476,10 +482,16 @@
     <ClInclude Include="src\Editor\Chart\BeatTick.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\Chart\Gameplay\PlayTestWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelperEx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Common\AsyncLoadedImageFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\Gameplay\PlayTestCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

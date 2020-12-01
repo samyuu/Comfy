@@ -149,6 +149,27 @@ namespace Comfy::Studio::Editor
 
 			Gui::EndMenu();
 		}
+
+#if COMFY_DEBUG || 1 // TODO:
+		static bool debugPopupPlaytestWindow = false;
+
+		if (Gui::BeginMenu("Playtest (Debug)"))
+		{
+			if (Gui::MenuItem("Start from Beginning")) { parentApplication.SetExclusiveFullscreenGui(true); }
+			if (Gui::MenuItem("Start from Cursor")) {}
+			if (Gui::MenuItem("Popout Playtest Window", nullptr, &debugPopupPlaytestWindow)) {}
+			Gui::EndMenu();
+		}
+
+		if (debugPopupPlaytestWindow)
+		{
+			if (Gui::Begin("Popout Playtest Window (Debug)", &debugPopupPlaytestWindow, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking)))
+				OnExclusiveGui();
+			Gui::End();
+
+			// Gui::DEBUG_NOSAVE_WINDOW("Popout Playtest Window (Debug)", [&] { OnExclusiveGui(); }, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+		}
+#endif
 	}
 
 	void ChartEditor::OnEditorComponentMadeActive()
@@ -166,6 +187,30 @@ namespace Comfy::Studio::Editor
 		else
 		{
 			return ApplicationHostCloseResponse::Exit;
+		}
+	}
+
+	void ChartEditor::OnExclusiveGui()
+	{
+		if (playTestWindow == nullptr)
+		{
+			PlayTestSharedContext sharedContext = {};
+			sharedContext.Renderer = renderer.get();
+			sharedContext.RenderHelper = &renderWindow->GetRenderHelper();
+			sharedContext.SoundEffectManager = &soundEffectManager;
+			sharedContext.ButtonSoundController = &buttonSoundController;
+			sharedContext.SongVoice = &songVoice;
+			sharedContext.Chart = chart.get();
+			playTestWindow = std::make_unique<PlayTestWindow>(sharedContext);
+		}
+
+		if (playTestWindow != nullptr)
+		{
+			// TODO: Implementing fade in and out
+			playTestWindow->ExclusiveGui();
+
+			if (playTestWindow->ExitRequestedThisFrame())
+				parentApplication.SetExclusiveFullscreenGui(false);
 		}
 	}
 
@@ -603,9 +648,11 @@ namespace Comfy::Studio::Editor
 			presetWindow.SyncGui(*chart);
 		Gui::End();
 
+#if 1 // TODO:
 		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sequence Target Presets", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SequenceGui(*chart);
 		Gui::End();
+#endif
 
 		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
 			timeline->DrawTimelineGui();
@@ -690,6 +737,9 @@ namespace Comfy::Studio::Editor
 
 		if (renderWindow != nullptr)
 			renderWindow->SetWorkingChart(chart.get());
+
+		if (playTestWindow != nullptr)
+			playTestWindow->SetWorkingChart(chart.get());
 	}
 
 	bool ChartEditor::GetIsPlayback() const

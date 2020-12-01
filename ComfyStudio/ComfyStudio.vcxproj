@@ -180,6 +180,8 @@
     <ClCompile Include="src\Editor\Chart\ClipboardHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.cpp" />
     <ClCompile Include="src\Editor\Chart\FileFormat\PJEFile.cpp" />
+    <ClCompile Include="src\Editor\Chart\Gameplay\PlayTestCore.cpp" />
+    <ClCompile Include="src\Editor\Chart\Gameplay\PlayTestWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\PresetWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
@@ -252,6 +254,8 @@
     <ClInclude Include="src\Editor\Chart\ClipboardHelper.h" />
     <ClInclude Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.h" />
     <ClInclude Include="src\Editor\Chart\FileFormat\PJEFile.h" />
+    <ClInclude Include="src\Editor\Chart\Gameplay\PlayTestWindow.h" />
+    <ClInclude Include="src\Editor\Chart\Gameplay\PlayTestCore.h" />
     <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
     <ClInclude Include="src\Editor\Chart\PresetWindow.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGrid.h" />

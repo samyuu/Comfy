@@ -11,6 +11,7 @@
 #include "FileFormat/ComfyStudioChartFile.h"
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
+#include "Gameplay/PlayTestWindow.h"
 #include "Editor/Common/UndoHistoryWindow.h"
 #include "Editor/Common/SoundEffectManager.h"
 #include "ImGui/Widgets/FileViewer.h"
@@ -31,6 +32,8 @@ namespace Comfy::Studio::Editor
 		void GuiMenu() override;
 		void OnEditorComponentMadeActive() override;
 		ApplicationHostCloseResponse OnApplicationClosing() override;
+
+		void OnExclusiveGui() override;
 
 	public:
 		bool OpenLoadAudioFileDialog();
@@ -98,6 +101,8 @@ namespace Comfy::Studio::Editor
 
 		SoundEffectManager soundEffectManager;
 		ButtonSoundController buttonSoundController = { soundEffectManager };
+
+		std::unique_ptr<PlayTestWindow> playTestWindow = nullptr;
 
 	private:
 		Undo::UndoManager undoManager = {};
