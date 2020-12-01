@@ -17,6 +17,8 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		TargetRenderHelper::TargetData& EmplaceTarget();
+		TargetRenderHelper::TargetAppearData& EmplaceTargetAppear();
+		TargetRenderHelper::TargetHitData& EmplaceTargetHit();
 		TargetRenderHelper::ButtonData& EmplaceButton();
 		TargetRenderHelper::ButtonTrailData& EmplaceButtonTrail();
 		TargetRenderHelper::ButtonSyncLineData& EmplaceSyncLine();
@@ -25,7 +27,14 @@ namespace Comfy::Studio::Editor
 		void ConstructButtonTrail(TargetRenderHelper::ButtonTrailData& outData, ButtonType type, f32 progressClamped, f32 progressUnbound, const TargetProperties& properties, TimeSpan flyDuration, bool chance = false);
 
 	private:
-		std::vector<TargetRenderHelper::TargetData> targets;
+		struct TargetAndAppearPair
+		{
+			TargetRenderHelper::TargetData Target;
+			std::optional<TargetRenderHelper::TargetAppearData> Appear;
+		};
+
+		std::vector<TargetAndAppearPair> targetsAndEffects;
+		std::vector<TargetRenderHelper::TargetHitData> targetHits;
 		std::vector<TargetRenderHelper::ButtonData> buttons;
 		std::vector<TargetRenderHelper::ButtonTrailData> trails;
 		std::vector<TargetRenderHelper::ButtonSyncLineData> syncLines;

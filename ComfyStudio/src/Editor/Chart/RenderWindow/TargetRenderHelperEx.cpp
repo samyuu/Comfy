@@ -4,7 +4,18 @@ namespace Comfy::Studio::Editor
 {
 	TargetRenderHelper::TargetData& TargetRenderHelperEx::EmplaceTarget()
 	{
-		return targets.emplace_back();
+		return targetsAndEffects.emplace_back().Target;
+	}
+
+	TargetRenderHelper::TargetAppearData& TargetRenderHelperEx::EmplaceTargetAppear()
+	{
+		assert(!targetsAndEffects.empty());
+		return targetsAndEffects.back().Appear.emplace();
+	}
+
+	TargetRenderHelper::TargetHitData& TargetRenderHelperEx::EmplaceTargetHit()
+	{
+		return targetHits.emplace_back();
 	}
 
 	TargetRenderHelper::ButtonData& TargetRenderHelperEx::EmplaceButton()
@@ -35,15 +46,26 @@ namespace Comfy::Studio::Editor
 
 		if (!(flags & TargetRenderHelperExFlushFlags_NoTargets))
 		{
+			auto checkDrawTargetAndAppear = [&](const TargetAndAppearPair& data)
+			{
+				renderHelper.DrawTarget(renderer, data.Target);
+
+				if (data.Appear.has_value())
+					renderHelper.DrawTargetAppearEffect(renderer, data.Appear.value());
+			};
+
 			// NOTE: Draw chain starts on top of child fragments to make sure the target hand is always fully visible
-			for (const auto& data : targets)
-				if (!data.ChainHit && !data.ChainStart) { renderHelper.DrawTarget(renderer, data); }
+			for (const auto& data : targetsAndEffects)
+				if (!data.Target.ChainHit && !data.Target.ChainStart) { checkDrawTargetAndAppear(data); }
 
-			for (const auto& data : targets)
-				if (!data.ChainHit && data.ChainStart) { renderHelper.DrawTarget(renderer, data); }
+			for (const auto& data : targetsAndEffects)
+				if (!data.Target.ChainHit && data.Target.ChainStart) { checkDrawTargetAndAppear(data); }
 
-			for (const auto& data : targets)
-				if (data.ChainHit) { renderHelper.DrawTarget(renderer, data); }
+			for (const auto& data : targetsAndEffects)
+				if (data.Target.ChainHit) { checkDrawTargetAndAppear(data); }
+
+			for (const auto& data : targetHits)
+				renderHelper.DrawTargetHitEffect(renderer, data);
 		}
 
 		if (!(flags & TargetRenderHelperExFlushFlags_NoButtons))
@@ -55,7 +77,8 @@ namespace Comfy::Studio::Editor
 				renderHelper.DrawButton(renderer, data);
 		}
 
-		targets.clear();
+		targetsAndEffects.clear();
+		targetHits.clear();
 		buttons.clear();
 		trails.clear();
 		syncLines.clear();
