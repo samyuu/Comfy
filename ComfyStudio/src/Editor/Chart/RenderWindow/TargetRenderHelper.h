@@ -4,6 +4,7 @@
 #include "Render/Render.h"
 #include "Time/TimeSpan.h"
 #include "Editor/Chart/Chart.h"
+#include "Editor/Chart/HitEvaluation.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -60,6 +61,27 @@ namespace Comfy::Studio::Editor
 		};
 
 		void DrawTargetHitEffect(Render::Renderer2D& renderer, const TargetHitData& data) const;
+
+		struct TargetComboTextData
+		{
+			vec2 Position;
+			TimeSpan Time;
+			i32 ComboCount;
+			HitEvaluation Evaluation;
+			HitPrecision Precision;
+		};
+
+		void DrawTargetComboText(Render::Renderer2D& renderer, const TargetComboTextData& data) const;
+
+		struct ChainSlidePointTextData
+		{
+			vec2 Position;
+			TimeSpan Time;
+			i32 Points;
+			bool Max;
+		};
+
+		void DrawChainSlidePointText(Render::Renderer2D& renderer, const ChainSlidePointTextData& data) const;
 
 		struct TargetData
 		{

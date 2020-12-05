@@ -26,6 +26,28 @@ namespace Comfy
 
 namespace Comfy::Studio::Editor
 {
+	enum class ComboDigitPlace : u8
+	{
+		Ones,
+		Tens,
+		Hundreds,
+		HundredsExact,
+		Thousands,
+		Count
+	};
+
+	constexpr ComboDigitPlace GetComboDigitPlace(i32 comboCount)
+	{
+		if (comboCount < 10)
+			return ComboDigitPlace::Ones;
+		else if (comboCount < 100)
+			return ComboDigitPlace::Tens;
+		else if (comboCount < 1000)
+			return ((comboCount % 100) == 0) ? ComboDigitPlace::HundredsExact : ComboDigitPlace::Hundreds;
+		else
+			return ComboDigitPlace::Thousands;
+	}
+
 	using namespace Graphics;
 
 	struct TargetRenderHelper::Impl
@@ -93,6 +115,109 @@ namespace Comfy::Studio::Editor
 				layers.HitEffectsSlideR[1] = findLayer(*aetGameCommon, "hit_eff01_r");
 				layers.HitEffectsChainL[0] = findLayer(*aetGameCommon, "hit_eff_slide01_l");
 				layers.HitEffectsChainR[0] = findLayer(*aetGameCommon, "hit_eff_slide01_r");
+
+				layers.ValueTextCool[0] = findLayer(*aetGameCommon, "value_text_cool01");
+				layers.ValueTextCool[1] = findLayer(*aetGameCommon, "value_text_cool02");
+				layers.ValueTextCool[2] = findLayer(*aetGameCommon, "value_text_cool03");
+				layers.ValueTextCool[3] = findLayer(*aetGameCommon, "value_text_cool04");
+
+				layers.ValueTextFine[0] = findLayer(*aetGameCommon, "value_text_fine01");
+				layers.ValueTextFine[1] = findLayer(*aetGameCommon, "value_text_fine02");
+				layers.ValueTextFine[2] = findLayer(*aetGameCommon, "value_text_fine03");
+
+				layers.ValueTextSad[0] = findLayer(*aetGameCommon, "value_text_sad");
+				layers.ValueTextSafe[0] = findLayer(*aetGameCommon, "value_text_safe");
+				layers.ValueTextWorst[0] = findLayer(*aetGameCommon, "value_text_worst");
+
+				layers.ValueTextWrong[0] = findLayer(*aetGameCommon, "value_text_wrong01");
+				layers.ValueTextWrong[1] = findLayer(*aetGameCommon, "value_text_wrong02");
+				layers.ValueTextWrong[2] = findLayer(*aetGameCommon, "value_text_wrong03");
+				layers.ValueTextWrong[3] = findLayer(*aetGameCommon, "value_text_wrong04");
+
+				layers.ValueTextAlmost[0] = findLayer(*aetGameCommon, "value_text_almost01");
+				layers.ValueTextAlmost[1] = findLayer(*aetGameCommon, "value_text_almost02");
+				layers.ValueTextAlmost[2] = findLayer(*aetGameCommon, "value_text_almost03");
+				layers.ValueTextAlmost[3] = findLayer(*aetGameCommon, "value_text_almost04");
+
+				auto registerComboLayer = [&](ComboDigitPlace place, std::string_view layerName, auto& outArray)
+				{
+					outArray[static_cast<size_t>(place)] = findLayer(*aetGameCommon, layerName);
+				};
+
+				registerComboLayer(ComboDigitPlace::Ones, "combo_cool001", layers.ComboCoolEarly);
+				registerComboLayer(ComboDigitPlace::Tens, "combo_cool010", layers.ComboCoolEarly);
+				registerComboLayer(ComboDigitPlace::Hundreds, "combo_cool100", layers.ComboCoolEarly);
+				registerComboLayer(ComboDigitPlace::HundredsExact, "combo_cool100_b", layers.ComboCoolEarly);
+				registerComboLayer(ComboDigitPlace::Thousands, "combo_cool1000", layers.ComboCoolEarly);
+
+				registerComboLayer(ComboDigitPlace::Ones, "combo_just_cool001", layers.ComboCoolJust);
+				registerComboLayer(ComboDigitPlace::Tens, "combo_just_cool010", layers.ComboCoolJust);
+				registerComboLayer(ComboDigitPlace::Hundreds, "combo_just_cool100", layers.ComboCoolJust);
+				registerComboLayer(ComboDigitPlace::HundredsExact, "combo_just_cool100_b", layers.ComboCoolJust);
+				registerComboLayer(ComboDigitPlace::Thousands, "combo_just_cool1000", layers.ComboCoolJust);
+
+				registerComboLayer(ComboDigitPlace::Ones, "combo_tempo_cool001", layers.ComboCoolLate);
+				registerComboLayer(ComboDigitPlace::Tens, "combo_tempo_cool010", layers.ComboCoolLate);
+				registerComboLayer(ComboDigitPlace::Hundreds, "combo_tempo_cool100", layers.ComboCoolLate);
+				registerComboLayer(ComboDigitPlace::HundredsExact, "combo_tempo_cool100_b", layers.ComboCoolLate);
+				registerComboLayer(ComboDigitPlace::Thousands, "combo_tempo_cool1000", layers.ComboCoolLate);
+
+				registerComboLayer(ComboDigitPlace::Ones, "combo_fine001", layers.ComboFineEarly);
+				registerComboLayer(ComboDigitPlace::Tens, "combo_fine010", layers.ComboFineEarly);
+				registerComboLayer(ComboDigitPlace::Hundreds, "combo_fine100", layers.ComboFineEarly);
+				registerComboLayer(ComboDigitPlace::HundredsExact, "combo_fine100_b", layers.ComboFineEarly);
+				registerComboLayer(ComboDigitPlace::Thousands, "combo_fine1000", layers.ComboFineEarly);
+
+				registerComboLayer(ComboDigitPlace::Ones, "combo_tempo_fine001", layers.ComboFineLate);
+				registerComboLayer(ComboDigitPlace::Tens, "combo_tempo_fine010", layers.ComboFineLate);
+				registerComboLayer(ComboDigitPlace::Hundreds, "combo_tempo_fine100", layers.ComboFineLate);
+				registerComboLayer(ComboDigitPlace::HundredsExact, "combo_tempo_fine100_b", layers.ComboFineLate);
+				registerComboLayer(ComboDigitPlace::Thousands, "combo_tempo_fine1000", layers.ComboFineLate);
+
+				if (auto* layer = layers.ComboCoolJust.back().get(); layer != nullptr)
+				{
+					auto findLayerVideo = [&](std::string_view layerName)
+					{
+						auto* videoLayer = layer->GetCompItem()->FindLayer(layerName).get();
+						return (videoLayer != nullptr) ? videoLayer->GetVideoItem() : nullptr;
+					};
+					videos.ComboNumberDigitPlaceholders[0] = findLayerVideo("p_combo_num001_c");
+					videos.ComboNumberDigitPlaceholders[1] = findLayerVideo("p_combo_num010_c");
+					videos.ComboNumberDigitPlaceholders[2] = findLayerVideo("p_combo_num100_c");
+					videos.ComboNumberDigitPlaceholders[3] = findLayerVideo("p_combo_num1000_c");
+				}
+
+				layers.MaxSlidePointOdd = findLayer(*aetGameCommon, "max_slide_point_odd");
+				layers.MaxSlidePointEven = findLayer(*aetGameCommon, "max_slide_point_even");
+				layers.ChancePointOdd = findLayer(*aetGameCommon, "chance_point_odd");
+				layers.ChancePointEven = findLayer(*aetGameCommon, "chance_point_even");
+				layers.MaxSlideNumbers[0] = findLayer(*aetGameCommon, "max_slide_num_00");
+				layers.MaxSlideNumbers[1] = findLayer(*aetGameCommon, "max_slide_num_01");
+				layers.MaxSlideNumbers[2] = findLayer(*aetGameCommon, "max_slide_num_02");
+				layers.MaxSlideNumbers[3] = findLayer(*aetGameCommon, "max_slide_num_03");
+				layers.MaxSlideNumbers[4] = findLayer(*aetGameCommon, "max_slide_num_04");
+				layers.MaxSlideNumbers[5] = findLayer(*aetGameCommon, "max_slide_num_05");
+				layers.MaxSlideNumbers[6] = findLayer(*aetGameCommon, "max_slide_num_06");
+				layers.MaxSlideNumbers[7] = findLayer(*aetGameCommon, "max_slide_num_07");
+				layers.MaxSlideNumbers[8] = findLayer(*aetGameCommon, "max_slide_num_08");
+				layers.MaxSlideNumbers[9] = findLayer(*aetGameCommon, "max_slide_num_09");
+				layers.MaxSlideNumbers[10] = findLayer(*aetGameCommon, "max_slide_num_plus");
+
+				if (auto* layer = layers.ChancePointOdd.get(); layer != nullptr)
+				{
+					auto findLayerVideo = [&](std::string_view layerName)
+					{
+						auto* videoLayer = layer->GetCompItem()->FindLayer(layerName).get();
+						return (videoLayer != nullptr) ? videoLayer->GetVideoItem() : nullptr;
+					};
+					videos.ChancePointDigitPlaceholders[0] = findLayerVideo("p_chance_point_num01_c");
+					videos.ChancePointDigitPlaceholders[1] = findLayerVideo("p_chance_point_num02_c");
+					videos.ChancePointDigitPlaceholders[2] = findLayerVideo("p_chance_point_num03_c");
+					videos.ChancePointDigitPlaceholders[3] = findLayerVideo("p_chance_point_num04_c");
+					videos.ChancePointDigitPlaceholders[4] = findLayerVideo("p_chance_point_num05_c");
+					videos.ChancePointDigitPlaceholders[5] = findLayerVideo("p_chance_point_num06_c");
+					videos.ChancePointDigitPlaceholders[6] = findLayerVideo("p_chance_point_num07_c");
+				}
 
 				auto registerTypeLayer = [&](ButtonType button, std::string_view layerName, auto& outArray)
 				{
@@ -202,6 +327,17 @@ namespace Comfy::Studio::Editor
 				renderer.UploadToGPUFreeCPUMemory(*sprGameCommon);
 				sprites.ButtonTrail = findSprite(*sprGameCommon, "KISEKI");
 				sprites.ButtonSyncLine = findSprite(*sprGameCommon, "KISEKI_SYNC");
+
+				sprites.ComboNumbers[0] = findSprite(*sprGameCommon, "CMB_NUM_00");
+				sprites.ComboNumbers[1] = findSprite(*sprGameCommon, "CMB_NUM_01");
+				sprites.ComboNumbers[2] = findSprite(*sprGameCommon, "CMB_NUM_02");
+				sprites.ComboNumbers[3] = findSprite(*sprGameCommon, "CMB_NUM_03");
+				sprites.ComboNumbers[4] = findSprite(*sprGameCommon, "CMB_NUM_04");
+				sprites.ComboNumbers[5] = findSprite(*sprGameCommon, "CMB_NUM_05");
+				sprites.ComboNumbers[6] = findSprite(*sprGameCommon, "CMB_NUM_06");
+				sprites.ComboNumbers[7] = findSprite(*sprGameCommon, "CMB_NUM_07");
+				sprites.ComboNumbers[8] = findSprite(*sprGameCommon, "CMB_NUM_08");
+				sprites.ComboNumbers[9] = findSprite(*sprGameCommon, "CMB_NUM_09");
 
 				for (auto& spr : sprGameCommon->Sprites)
 					spr.Name = "GAM_CMN_" + spr.Name;
@@ -514,6 +650,152 @@ namespace Comfy::Studio::Editor
 			const auto* layer = getLayer(data).get();
 			if (layer != nullptr)
 				renderer.Aet().DrawLayer(*layer, data.Time.ToFrames(), Transform2D(data.Position));
+		}
+
+		void DrawTargetComboText(Render::Renderer2D& renderer, const TargetComboTextData& data) const
+		{
+			if (data.Evaluation == HitEvaluation::None)
+				return;
+
+			auto getValueTextLayer = [this](const TargetComboTextData& data) -> auto&
+			{
+				switch (data.Evaluation)
+				{
+				case HitEvaluation::Cool:
+					return layers.ValueTextCool[(data.Precision == HitPrecision::Early) ? 0 : (data.Precision == HitPrecision::Late) ? 2 : 3];
+				case HitEvaluation::Fine:
+					return layers.ValueTextFine[(data.Precision == HitPrecision::Early) ? 0 : 2];
+				case HitEvaluation::Safe:
+					return layers.ValueTextSafe[0];
+				case HitEvaluation::Sad:
+					return layers.ValueTextSad[0];
+
+				case HitEvaluation::WrongCool:
+					return layers.ValueTextWrong[0];
+				case HitEvaluation::WrongFine:
+					return layers.ValueTextWrong[1];
+				case HitEvaluation::WrongSafe:
+					return layers.ValueTextWrong[2];
+				case HitEvaluation::WrongSad:
+					return layers.ValueTextWrong[3];
+
+				case HitEvaluation::AlmostCool:
+					return layers.ValueTextAlmost[0];
+				case HitEvaluation::AlmostFine:
+					return layers.ValueTextAlmost[1];
+				case HitEvaluation::AlmostSafe:
+					return layers.ValueTextAlmost[2];
+				case HitEvaluation::AlmostSad:
+					return layers.ValueTextAlmost[3];
+
+				case HitEvaluation::Worst:
+					return layers.ValueTextWorst[0];
+				}
+
+				return layers.ValueTextCool[0];
+			};
+
+			auto getComboLayer = [this](const TargetComboTextData& data) -> auto&
+			{
+				const auto digitPlace = GetComboDigitPlace(data.ComboCount);
+				if (data.Evaluation == HitEvaluation::Cool)
+					return (data.Precision == HitPrecision::Early ? layers.ComboCoolEarly : data.Precision == HitPrecision::Just ? layers.ComboCoolJust : layers.ComboCoolLate)[static_cast<u8>(digitPlace)];
+				else
+					return (data.Precision == HitPrecision::Early ? layers.ComboFineEarly : layers.ComboFineLate)[static_cast<u8>(digitPlace)];
+			};
+
+			if (data.ComboCount <= 1)
+			{
+				if (const auto* layer = getValueTextLayer(data).get(); layer != nullptr)
+					renderer.Aet().DrawLayer(*layer, data.Time.ToFrames(), Transform2D(data.Position));
+			}
+			else if (const auto* layer = getComboLayer(data).get(); layer != nullptr)
+			{
+				char decimalString[8] = {};
+				sprintf_s(decimalString, "%04d", std::clamp(data.ComboCount, 0, 9999));
+
+				std::array<i8, 4> decimalDigits = { 0, 0, 0, 0 };
+				for (i32 i = static_cast<i32>(decimalDigits.size()) - 1; i >= 0; i--)
+					decimalDigits[i] = (decimalString[i] >= '0' && decimalString[i] <= '9') ? (decimalString[i] - '0') : 0;
+
+				if (const auto& compItem = layer->GetCompItem(); compItem != nullptr)
+				{
+					for (auto& layer : compItem->GetLayers())
+					{
+						const auto* videoItem = layer->GetVideoItem().get();
+						for (size_t digitIndex = 0; digitIndex < videos.ComboNumberDigitPlaceholders.size(); digitIndex++)
+						{
+							auto* digitVideo = videos.ComboNumberDigitPlaceholders[digitIndex].get();
+							if (videoItem == digitVideo)
+							{
+								const auto texSpr = GetComboNumberSprite(decimalDigits[(decimalDigits.size() - 1) - digitIndex]);
+								layer->RenderOverride.UseTexSpr = true;
+								layer->RenderOverride.Tex = texSpr.Tex;
+								layer->RenderOverride.Spr = texSpr.Spr;
+							}
+						}
+					}
+				}
+
+				renderer.Aet().DrawLayer(*layer, data.Time.ToFrames(), Transform2D(data.Position));
+			}
+		}
+
+		void DrawChainSlidePointText(Render::Renderer2D& renderer, const ChainSlidePointTextData& data) const
+		{
+			auto getLayer = [this](const ChainSlidePointTextData& data) -> auto&
+			{
+				return data.Max ? layers.MaxSlidePointOdd : layers.ChancePointOdd;
+			};
+
+			const auto* layer = getLayer(data).get();
+			if (layer == nullptr)
+				return;
+
+			const auto inputFrame = data.Time.ToFrames();
+			const auto inputFrameNumber = data.Max ? inputFrame : (inputFrame + 30.0f);
+
+			const auto inputPositionTransform = Transform2D(data.Position + vec2(0.0f, +160.0f));
+
+			if (const auto& compItem = layer->GetCompItem(); compItem != nullptr)
+			{
+				auto baseLayerTransform = Aet::Util::GetTransformAt(*layer->LayerVideo, inputFrame);
+				Aet::Util::CombineTransforms(inputPositionTransform, baseLayerTransform);
+
+				char decimalString[8] = {};
+				sprintf_s(decimalString, "+%d", std::clamp(data.Points, 0, 99999));
+
+				std::array<i8, 8> decimalDigits = {};
+				for (i32 i = static_cast<i32>(decimalDigits.size()) - 1; i >= 0; i--)
+					decimalDigits[i] = (decimalString[i] >= '0' && decimalString[i] <= '9') ? (decimalString[i] - '0') : (decimalString[i] == '+') ? 10 : -1;
+
+				const auto nonNullDigitCount = std::count_if(decimalDigits.begin(), decimalDigits.end(), [](i8 d) { return (d != -1); });
+
+				for (auto& layer : compItem->GetLayers())
+				{
+					const auto* videoItem = layer->GetVideoItem().get();
+					for (i32 digitIndex = 0; digitIndex < static_cast<i32>(videos.ChancePointDigitPlaceholders.size()); digitIndex++)
+					{
+						auto* digitVideo = videos.ChancePointDigitPlaceholders[digitIndex].get();
+						if (videoItem != digitVideo || digitIndex > nonNullDigitCount)
+							continue;
+
+						const auto sliderNumberIndex = decimalDigits[nonNullDigitCount - digitIndex];
+						if (!InBounds(sliderNumberIndex, layers.MaxSlideNumbers))
+							continue;
+
+						const auto* maxSlideNumber = layers.MaxSlideNumbers[sliderNumberIndex].get();
+						if (maxSlideNumber == nullptr)
+							continue;
+
+						auto numberTransform = Aet::Util::GetPositionTransformAt(*layer->LayerVideo, inputFrame);
+						Aet::Util::CombineTransforms(baseLayerTransform, numberTransform);
+						renderer.Aet().DrawLayer(*maxSlideNumber, inputFrameNumber, numberTransform);
+					}
+				}
+			}
+
+			renderer.Aet().DrawLayer(*layer, inputFrame, inputPositionTransform);
 		}
 
 		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
@@ -859,6 +1141,14 @@ namespace Comfy::Studio::Editor
 			return (sprGame == nullptr || fontMap == nullptr) ? nullptr : IndexOrNull(fontPracticeNumIndex, fontMap->Fonts);
 		}
 
+		Render::TexSprView GetComboNumberSprite(i8 number) const
+		{
+			auto digitSprite = sprites.ComboNumbers[number];
+			return (digitSprite == nullptr) ?
+				Render::TexSprView { nullptr, nullptr } :
+				Render::TexSprView { sprGameCommon->TexSet.Textures[digitSprite->TextureIndex].get(), digitSprite };
+		}
+
 		Render::TexSprView GetButtonTrailSprite() const
 		{
 			return (sprites.ButtonTrail == nullptr) ?
@@ -933,6 +1223,34 @@ namespace Comfy::Studio::Editor
 				HitEffectsChainL,
 				HitEffectsChainR;
 
+			std::array<std::shared_ptr<Aet::Layer>, 4>
+				ValueTextCool,
+				ValueTextFine;
+
+			std::array<std::shared_ptr<Aet::Layer>, 1>
+				ValueTextSad,
+				ValueTextSafe;
+
+			std::array<std::shared_ptr<Aet::Layer>, 1>
+				ValueTextWorst;
+
+			std::array<std::shared_ptr<Aet::Layer>, 4>
+				ValueTextWrong,
+				ValueTextAlmost;
+
+			std::array<std::shared_ptr<Aet::Layer>, EnumCount<ComboDigitPlace>()>
+				ComboCoolEarly, ComboCoolJust, ComboCoolLate,
+				ComboFineEarly, ComboFineLate;
+
+			std::shared_ptr<Aet::Layer>
+				MaxSlidePointOdd,
+				MaxSlidePointEven,
+				ChancePointOdd,
+				ChancePointEven;
+
+			std::array<std::shared_ptr<Aet::Layer>, 11>
+				MaxSlideNumbers;
+
 			std::array<std::shared_ptr<Aet::Layer>, EnumCount<ButtonType>()>
 				Targets,
 				TargetsHit,
@@ -976,6 +1294,12 @@ namespace Comfy::Studio::Editor
 			std::shared_ptr<Aet::Video>
 				TargetHand;
 
+			std::array<std::shared_ptr<Aet::Video>, 4>
+				ComboNumberDigitPlaceholders;
+
+			std::array<std::shared_ptr<Aet::Video>, 7>
+				ChancePointDigitPlaceholders;
+
 			std::shared_ptr<Aet::Video>
 				PracticeBackgroundCommon,
 				PracticeColorBlack,
@@ -997,6 +1321,9 @@ namespace Comfy::Studio::Editor
 
 			Spr* ButtonTrail;
 			Spr* ButtonSyncLine;
+
+			std::array<Spr*, 10>
+				ComboNumbers;
 		} sprites = {};
 	};
 
@@ -1036,6 +1363,16 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawTargetHitEffect(Render::Renderer2D& renderer, const TargetHitData& data) const
 	{
 		impl->DrawTargetHitEffect(renderer, data);
+	}
+
+	void TargetRenderHelper::DrawTargetComboText(Render::Renderer2D& renderer, const TargetComboTextData& data) const
+	{
+		impl->DrawTargetComboText(renderer, data);
+	}
+
+	void TargetRenderHelper::DrawChainSlidePointText(Render::Renderer2D& renderer, const ChainSlidePointTextData& data) const
+	{
+		impl->DrawChainSlidePointText(renderer, data);
 	}
 
 	void TargetRenderHelper::DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const
