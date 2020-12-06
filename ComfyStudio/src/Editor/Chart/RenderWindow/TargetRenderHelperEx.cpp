@@ -54,15 +54,29 @@ namespace Comfy::Studio::Editor
 					renderHelper.DrawTargetAppearEffect(renderer, data.Appear.value());
 			};
 
-			// NOTE: Draw chain starts on top of child fragments to make sure the target hand is always fully visible
-			for (const auto& data : targetsAndEffects)
-				if (!data.Target.ChainHit && !data.Target.ChainStart) { checkDrawTargetAndAppear(data); }
+			if (std::none_of(targetsAndEffects.begin(), targetsAndEffects.end(), [&](auto& data) { return data.Target.Chain; }))
+			{
+				for (const auto& data : targetsAndEffects)
+					checkDrawTargetAndAppear(data);
+			}
+			else
+			{
+				// NOTE: Draw chain starts on top of child fragments to make sure the target hand is always fully visible
+				enum DrawOrder : i8 { OrderChain, OrderChainStart, OrderChainHit, OrderChainStartHit, OrderCount };
 
-			for (const auto& data : targetsAndEffects)
-				if (!data.Target.ChainHit && data.Target.ChainStart) { checkDrawTargetAndAppear(data); }
+				for (i8 orderPass = OrderChain; orderPass < OrderCount; orderPass++)
+				{
+					for (const auto& data : targetsAndEffects)
+					{
+						const auto targetOrder = data.Target.ChainStart ?
+							data.Target.ChainHit ? OrderChainStartHit : OrderChainStart :
+							data.Target.ChainHit ? OrderChainHit : OrderChain;
 
-			for (const auto& data : targetsAndEffects)
-				if (data.Target.ChainHit) { checkDrawTargetAndAppear(data); }
+						if (targetOrder == orderPass)
+							checkDrawTargetAndAppear(data);
+					}
+				}
+			}
 
 			for (const auto& data : targetHits)
 				renderHelper.DrawTargetHitEffect(renderer, data);
