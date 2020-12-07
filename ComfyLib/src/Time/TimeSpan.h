@@ -23,6 +23,9 @@ namespace Comfy
 		static constexpr TimeSpan FromMilliseconds(f64 value) { return TimeSpan(value / 1000.0); }
 		static constexpr TimeSpan FromFrames(frame_t frames, frame_t frameRate = DefaultFrameRate) { return FromSeconds(frames / frameRate); }
 
+		static constexpr TimeSpan FloorToSeconds(TimeSpan value) { return TimeSpan::FromSeconds(glm::floor(value.timeInSeconds)); }
+		static constexpr TimeSpan RoundToSeconds(TimeSpan value) { return TimeSpan::FromSeconds(glm::round(value.timeInSeconds)); }
+		static constexpr TimeSpan CeilToSeconds(TimeSpan value) { return TimeSpan::FromSeconds(glm::ceil(value.timeInSeconds)); }
 		static constexpr TimeSpan RoundToMilliseconds(TimeSpan value) { return TimeSpan::FromSeconds((value.timeInSeconds * 1000.0 + 0.5) * 0.001); }
 
 	public:
