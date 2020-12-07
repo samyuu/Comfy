@@ -33,6 +33,9 @@ namespace Comfy::Studio::Editor
 
 		constexpr Input::KeyCode TogglePlayback = Input::KeyCode_Space;
 
+		constexpr Input::KeyCode StartPlaytestFromStart = Input::KeyCode_F5;
+		constexpr Input::KeyCode StartPlaytestFromCursor = Input::KeyCode_F6;
+
 		constexpr std::array TargetPlacements =
 		{
 			std::make_pair(ButtonType::Triangle, Input::KeyCode_W),

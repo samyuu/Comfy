@@ -152,22 +152,31 @@ namespace Comfy::Studio::Editor
 
 #if COMFY_DEBUG || 1 // TODO:
 		static bool debugPopupPlaytestWindow = false;
-
-		if (Gui::BeginMenu("Playtest (Debug)"))
-		{
-			if (Gui::MenuItem("Start from Beginning")) { parentApplication.SetExclusiveFullscreenGui(true); }
-			if (Gui::MenuItem("Start from Cursor")) {}
-			if (Gui::MenuItem("Popout Playtest Window", nullptr, &debugPopupPlaytestWindow)) {}
-			Gui::EndMenu();
-		}
-
 		if (debugPopupPlaytestWindow)
 		{
 			if (Gui::Begin("Popout Playtest Window (Debug)", &debugPopupPlaytestWindow, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking)))
 				OnExclusiveGui();
 			Gui::End();
+		}
 
-			// Gui::DEBUG_NOSAVE_WINDOW("Popout Playtest Window (Debug)", [&] { OnExclusiveGui(); }, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+		if (Gui::BeginMenu("Playtest"))
+		{
+			if (Gui::MenuItem("Start from Beginning", Input::GetKeyCodeName(KeyBindings::StartPlaytestFromStart)))
+				StartPlaytesting(false);
+
+			if (Gui::MenuItem("Start from Cursor", Input::GetKeyCodeName(KeyBindings::StartPlaytestFromCursor)))
+				StartPlaytesting(true);
+
+			Gui::Separator();
+			bool autoplayEnabled = (playTestWindow == nullptr) ? false : playTestWindow->GetAutoplayEnabled();
+			if (Gui::MenuItem("Autoplay Enabled", nullptr, &autoplayEnabled))
+				GetOrCreatePlayTestWindow().SetAutoplayEnabled(autoplayEnabled);
+
+#if COMFY_DEBUG && 0
+			if (Gui::MenuItem("Popout Playtest Window (Debug)", nullptr, &debugPopupPlaytestWindow)) {}
+#endif
+
+			Gui::EndMenu();
 		}
 #endif
 	}
@@ -181,6 +190,9 @@ namespace Comfy::Studio::Editor
 	{
 		if (undoManager.GetHasPendingChanged())
 		{
+			if (parentApplication.GetExclusiveFullscreenGui())
+				StopPlaytesting();
+
 			applicationExitRequested = true;
 			return ApplicationHostCloseResponse::SupressExit;
 		}
@@ -192,26 +204,11 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::OnExclusiveGui()
 	{
-		if (playTestWindow == nullptr)
-		{
-			PlayTestSharedContext sharedContext = {};
-			sharedContext.Renderer = renderer.get();
-			sharedContext.RenderHelper = &renderWindow->GetRenderHelper();
-			sharedContext.SoundEffectManager = &soundEffectManager;
-			sharedContext.ButtonSoundController = &buttonSoundController;
-			sharedContext.SongVoice = &songVoice;
-			sharedContext.Chart = chart.get();
-			playTestWindow = std::make_unique<PlayTestWindow>(sharedContext);
-		}
+		auto& playTestWindow = GetOrCreatePlayTestWindow();
+		playTestWindow.ExclusiveGui();
 
-		if (playTestWindow != nullptr)
-		{
-			// TODO: Implementing fade in and out
-			playTestWindow->ExclusiveGui();
-
-			if (playTestWindow->ExitRequestedThisFrame())
-				parentApplication.SetExclusiveFullscreenGui(false);
-		}
+		if (playTestWindow.ExitRequestedThisFrame())
+			StopPlaytesting();
 	}
 
 	bool ChartEditor::OpenLoadAudioFileDialog()
@@ -561,13 +558,19 @@ namespace Comfy::Studio::Editor
 		// TODO: Move all keycodes into KeyBindings header and implement modifier + keycode string format helper
 
 		// HACK: Works for now I guess...
-		if (!parentApplication.GetHost().IsWindowFocused())
+		if (!parentApplication.GetHost().IsWindowFocused() || Gui::GetActiveID() != 0)
 			return;
 
-		if (Gui::GetIO().KeyCtrl && Gui::GetActiveID() == 0)
-		{
-			const bool shift = Gui::GetIO().KeyShift;
+		const bool shift = Gui::GetIO().KeyShift;
 
+		if (Gui::IsKeyPressed(KeyBindings::StartPlaytestFromStart, false))
+			StartPlaytesting(false);
+
+		if (Gui::IsKeyPressed(KeyBindings::StartPlaytestFromCursor, false))
+			StartPlaytesting(true);
+
+		if (Gui::GetIO().KeyCtrl)
+		{
 			if (Gui::IsKeyPressed(KeyBindings::Undo, true))
 				undoManager.Undo();
 
@@ -740,6 +743,44 @@ namespace Comfy::Studio::Editor
 
 		if (playTestWindow != nullptr)
 			playTestWindow->SetWorkingChart(chart.get());
+	}
+
+	PlayTestWindow& ChartEditor::GetOrCreatePlayTestWindow()
+	{
+		if (playTestWindow == nullptr)
+		{
+			PlayTestSharedContext sharedContext = {};
+			sharedContext.Renderer = renderer.get();
+			sharedContext.RenderHelper = &renderWindow->GetRenderHelper();
+			sharedContext.SoundEffectManager = &soundEffectManager;
+			sharedContext.ButtonSoundController = &buttonSoundController;
+			sharedContext.SongVoice = &songVoice;
+			sharedContext.Chart = chart.get();
+			playTestWindow = std::make_unique<PlayTestWindow>(sharedContext);
+		}
+
+		return *playTestWindow;
+	}
+
+	void ChartEditor::StartPlaytesting(bool startFromCursor)
+	{
+		PausePlayback();
+		playbackTimeOnPlaytestStart = GetPlaybackTimeAsync();
+
+		parentApplication.SetExclusiveFullscreenGui(true);
+		const auto cursorTime = std::max(timeline->TickToTime(timeline->TimeToTick(playbackTimeOnPlaytestStart) - BeatTick::FromBars(1)), TimeSpan::Zero());
+
+		auto& playTestWindow = GetOrCreatePlayTestWindow();
+		playTestWindow.Restart(startFromCursor ? cursorTime : TimeSpan::Zero());
+	}
+
+	void ChartEditor::StopPlaytesting()
+	{
+		parentApplication.SetExclusiveFullscreenGui(false);
+
+		// TODO: Option to continue at playtest replay point (?)
+		PausePlayback();
+		timeline->SetCursorTime(playbackTimeOnPlaytestStart);
 	}
 
 	bool ChartEditor::GetIsPlayback() const

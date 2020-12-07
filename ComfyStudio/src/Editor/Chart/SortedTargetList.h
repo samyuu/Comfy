@@ -75,6 +75,11 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	constexpr ButtonTypeFlags ButtonTypeToButtonTypeFlags(ButtonType type)
+	{
+		return static_cast<ButtonTypeFlags>(1 << static_cast<u32>(type));
+	}
+
 	struct TargetProperties
 	{
 		vec2 Position;

@@ -38,6 +38,8 @@ namespace Comfy::Studio::Editor
 		constexpr vec2 PlacementAreaSize = { 1920.0f, 1080.0f };
 		constexpr vec2 PlacementAreaCenter = (PlacementAreaSize * 0.5f);
 
+		constexpr f32 ComboTextMinHeight = 232.0f;
+
 		constexpr f32 PlacementDistancePerBeat = 192.0f;
 		constexpr f32 PlacementDistancePerBeatStair = 186.59046f;
 

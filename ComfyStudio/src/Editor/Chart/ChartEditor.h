@@ -90,6 +90,10 @@ namespace Comfy::Studio::Editor
 
 		void SyncWorkingChartPointers();
 
+		PlayTestWindow& GetOrCreatePlayTestWindow();
+		void StartPlaytesting(bool startFromCursor);
+		void StopPlaytesting();
+
 	private:
 		bool applicationExitRequested = false;
 		std::string windowTitle, lastSetWindowTitle;
@@ -136,5 +140,6 @@ namespace Comfy::Studio::Editor
 	private:
 		bool isPlaying = false;
 		TimeSpan playbackTimeOnPlaybackStart;
+		TimeSpan playbackTimeOnPlaytestStart;
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
+#include "Time/TimeSpan.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -18,6 +19,12 @@ namespace Comfy::Studio::Editor
 		void UpdateTick();
 		void OverlayGui();
 		bool ExitRequestedThisFrame();
+		void Restart(TimeSpan startTime);
+
+		bool GetAutoplayEnabled() const;
+		void SetAutoplayEnabled(bool value);
+
+		bool GetIsPlayback() const;
 
 	private:
 		struct Impl;

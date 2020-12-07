@@ -20,6 +20,15 @@ namespace Comfy::Studio::Editor
 		Render::Camera2D Camera = {};
 		std::unique_ptr<Render::RenderTarget2D> RenderTarget = Render::Renderer2D::CreateRenderTarget();
 		TargetRenderHelperEx RenderHelperEx = {};
+
+		struct ScoreData
+		{
+			i32 ComboCount;
+			i32 ChainSlideScore;
+			// TODO: Eventually (?)
+			// i32 ScoreNumber;
+			// i32 ScoreNumberRolling;
+		} Score;
 	};
 
 	struct PlayTestSharedContext
@@ -44,6 +53,12 @@ namespace Comfy::Studio::Editor
 		bool ExitRequestedThisFrame();
 
 		void SetWorkingChart(Chart* chart);
+		void Restart(TimeSpan startTime);
+
+		bool GetAutoplayEnabled() const;
+		void SetAutoplayEnabled(bool value);
+
+		bool GetIsPlayback() const;
 
 	public:
 		vec2 WorldToScreenSpace(const vec2 worldSpace) const;

@@ -45,6 +45,26 @@ namespace Comfy::Studio::Editor
 		sharedContext.Chart = chart;
 	}
 
+	void PlayTestWindow::Restart(TimeSpan startTime)
+	{
+		return core.Restart(startTime);
+	}
+
+	bool PlayTestWindow::GetAutoplayEnabled() const
+	{
+		return core.GetAutoplayEnabled();
+	}
+
+	void PlayTestWindow::SetAutoplayEnabled(bool value)
+	{
+		return core.SetAutoplayEnabled(value);
+	}
+
+	bool PlayTestWindow::GetIsPlayback() const
+	{
+		return core.GetIsPlayback();
+	}
+
 	vec2 PlayTestWindow::WorldToScreenSpace(const vec2 worldSpace) const
 	{
 		const auto scale = (renderRegionRect.GetSize() / Rules::PlacementAreaSize);
