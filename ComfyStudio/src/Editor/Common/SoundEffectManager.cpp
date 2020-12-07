@@ -91,7 +91,8 @@ namespace Comfy::Studio::Editor
 			"dev_rom/sound/slide_se.farc",
 			"dev_rom/sound/slide_long.farc",
 			"dev_rom/sound/slide_windchime.farc",
-			// "dev_rom/sound/slide_laser.farc",
+			"dev_rom/sound/slide_laser.farc",
+			"dev_rom/sound/se_ft.farc",
 		};
 
 		assert(sfxArchives.empty());
@@ -109,7 +110,7 @@ namespace Comfy::Studio::Editor
 			if (const auto[fileContent, fileSize] = IO::File::ReadAllBytes(filePath); fileContent != nullptr && fileSize > 0)
 			{
 				outDB.Parse(fileContent.get(), fileSize);
-				
+
 				outSorted.reserve(outDB.Entries.size());
 				for (const auto& entry : outDB.Entries)
 					outSorted.push_back(&entry);
