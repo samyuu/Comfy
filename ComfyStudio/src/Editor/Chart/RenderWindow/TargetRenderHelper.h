@@ -5,6 +5,7 @@
 #include "Time/TimeSpan.h"
 #include "Editor/Chart/Chart.h"
 #include "Editor/Chart/HitEvaluation.h"
+#include "Graphics/Auth2D/Font/FontMap.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -18,6 +19,9 @@ namespace Comfy::Studio::Editor
 	public:
 		void UpdateAsyncLoading(Render::Renderer2D& renderer);
 		void SetAetSprGetter(Render::Renderer2D& renderer);
+
+		template <typename Func>
+		void WithFont36(Func func) { if (const auto* font = TryGetFont36()) { func(*font); } }
 
 		struct BackgroundData
 		{
@@ -36,10 +40,10 @@ namespace Comfy::Studio::Editor
 		{
 			std::string_view SongTitle;
 			Difficulty Difficulty;
-			bool IsPlayback;
 			TimeSpan PlaybackTime;
-			TimeSpan PlaybackTimeOnStart;
+			TimeSpan RestartTime;
 			TimeSpan Duration;
+			bool DrawPracticeInfo;
 		};
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const;
@@ -144,6 +148,9 @@ namespace Comfy::Studio::Editor
 		};
 
 		void DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const;
+
+	private:
+		const Graphics::BitmapFont* TryGetFont36() const;
 
 	private:
 		struct Impl;

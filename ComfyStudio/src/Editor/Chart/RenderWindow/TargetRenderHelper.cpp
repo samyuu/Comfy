@@ -355,6 +355,7 @@ namespace Comfy::Studio::Editor
 				layers.PracticeGaugeTime = findLayer(*aetGame, "prc_gauge_time");
 				layers.PracticeGaugeBorderPlay = findLayer(*aetGame, "prc_gauge_border_play");
 				layers.PracticeGaugeBorderRestart = findLayer(*aetGame, "prc_gauge_border_restart");
+				layers.PracticeInfo = findLayer(*aetGame, "prc_info");
 
 				if (layers.PracticeGaugeBase != nullptr && layers.PracticeGaugeBase->GetCompItem() != nullptr)
 				{
@@ -538,10 +539,16 @@ namespace Comfy::Studio::Editor
 			DrawHUDPracitceTime(renderer, hud.PlaybackTime);
 
 			const auto progress = std::clamp(static_cast<f32>(hud.PlaybackTime / hud.Duration), 0.0f, 1.0f);
-			const auto progressOnStart = std::clamp(static_cast<f32>(hud.PlaybackTimeOnStart / hud.Duration), 0.0f, 1.0f);
+			const auto restartProgress = std::clamp(static_cast<f32>(hud.RestartTime / hud.Duration), 0.0f, 1.0f);
 
 			TryDrawLayer(renderer, layers.PracticeGaugeTime, progress * 100.0f);
-			TryDrawLayer(renderer, layers.PracticeGaugeBorderRestart, (hud.IsPlayback ? progressOnStart : progress) * 100.0f);
+			TryDrawLayer(renderer, layers.PracticeGaugeBorderRestart, restartProgress * 100.0f);
+
+			if (hud.DrawPracticeInfo && layers.PracticeInfo != nullptr)
+			{
+				// TODO: Make use of fade-in, -out and loop markers
+				renderer.Aet().DrawLayer(*layers.PracticeInfo, 11.0f);
+			}
 
 			if (const auto* font = GetFont36(); font != nullptr && !hud.SongTitle.empty())
 				renderer.Font().DrawBorder(*font, hud.SongTitle, TryGetTransform(layers.SongTitle, playbackFrame));
@@ -1076,6 +1083,11 @@ namespace Comfy::Studio::Editor
 				renderer.Draw(command);
 		}
 
+		BitmapFont* GetFont36() const
+		{
+			return (sprFont36 == nullptr || fontMap == nullptr) ? nullptr : IndexOrNull(font36Index, fontMap->Fonts);
+		}
+
 	private:
 		void DrawHUDPracitceTime(Render::Renderer2D& renderer, TimeSpan playbackTime) const
 		{
@@ -1129,11 +1141,6 @@ namespace Comfy::Studio::Editor
 		Transform2D TryGetTransform(const std::shared_ptr<Aet::Layer>& layer, frame_t frame) const
 		{
 			return (layer != nullptr && layer->LayerVideo != nullptr) ? Aet::Util::GetTransformAt(*layer->LayerVideo, frame) : Transform2D(vec2(0.0f));
-		}
-
-		BitmapFont* GetFont36() const
-		{
-			return (sprFont36 == nullptr || fontMap == nullptr) ? nullptr : IndexOrNull(font36Index, fontMap->Fonts);
 		}
 
 		BitmapFont* GetFontPracticeNum() const
@@ -1286,7 +1293,8 @@ namespace Comfy::Studio::Editor
 				PracticeGaugeBaseNumPointMS,
 				PracticeGaugeTime,
 				PracticeGaugeBorderPlay,
-				PracticeGaugeBorderRestart;
+				PracticeGaugeBorderRestart,
+				PracticeInfo;
 		} layers = {};
 
 		struct VideoCache
@@ -1398,5 +1406,10 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawButtonPairSyncLines(Render::Renderer2D& renderer, const ButtonSyncLineData& data) const
 	{
 		impl->DrawButtonPairSyncLines(renderer, data);
+	}
+
+	const Graphics::BitmapFont* TargetRenderHelper::TryGetFont36() const
+	{
+		return impl->GetFont36();
 	}
 }
