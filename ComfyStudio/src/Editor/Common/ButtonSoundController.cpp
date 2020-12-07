@@ -82,6 +82,18 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void ButtonSoundController::PlaySliderTouch(i32 sliderTouchIndex, f32 baseVolume)
+	{
+		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+		auto& voice = sliderTouchVoicePool[sliderTouchPoolRingIndex];
+		sliderTouchPoolRingIndex = IncrementRingIndex<SliderTouchVoicePoolSize>(sliderTouchPoolRingIndex);
+
+		voice.SetSource(GetSource(ButtonSoundType::SlideTouch, sliderTouchIndex));
+		voice.SetVolume(masterVolume * baseVolume);
+		voice.SetPosition(TimeSpan::Zero());
+		voice.SetIsPlaying(true);
+	}
+
 	void ButtonSoundController::PauseAllChainSounds()
 	{
 		for (auto& voicePool : chainStartVoicePools)
@@ -130,6 +142,13 @@ namespace Comfy::Studio::Editor
 			buttonVoicePool[i].SetPauseOnEnd(true);
 		}
 
+		for (size_t i = 0; i < SliderTouchVoicePoolSize; i++)
+		{
+			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundController::SliderTouchVoicePool[%02zu]", i));
+			sliderTouchVoicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameView, false);
+			sliderTouchVoicePool[i].SetPauseOnEnd(true);
+		}
+
 		auto getSlotCharID = [](size_t slot) -> char { assert(EnumCount<ChainSoundSlot>() == 2 && slot < 2); return std::array { 'L', 'R' }[slot]; };
 
 		for (size_t slotIndex = 0; slotIndex < EnumCount<ChainSoundSlot>(); slotIndex++)
@@ -167,6 +186,9 @@ namespace Comfy::Studio::Editor
 		auto& audioEngine = Audio::AudioEngine::GetInstance();
 
 		for (auto& voice : buttonVoicePool)
+			audioEngine.RemoveVoice(voice);
+
+		for (auto& voice : sliderTouchVoicePool)
 			audioEngine.RemoveVoice(voice);
 
 		for (auto& voices : chainStartVoicePools)
