@@ -777,10 +777,27 @@ namespace Comfy::Studio::Editor
 			if (!IsBindingPressed(binding))
 				return;
 
-			const auto playbackTime = GetPlaybackTime();
-
 			if (binding.SlideType == InputSlideType::None)
 				sharedContext.ButtonSoundController->PlayButtonSound();
+
+			const auto playbackTime = GetPlaybackTime();
+
+			PlayTestSyncPair* nextPairToHit = nullptr;
+			for (auto& onScreenPair : onScreenTargetPairs)
+			{
+				if (onScreenPair.NoLongerValid || AllInSyncPairHaveBeenHit(onScreenPair))
+					continue;
+
+				const auto remainingTime = (onScreenPair.ButtonTime - playbackTime);
+				if (remainingTime <= HitThreshold::Sad && remainingTime >= -HitThreshold::Worst)
+				{
+					nextPairToHit = &onScreenPair;
+					break;
+				}
+			}
+
+			if (nextPairToHit == nullptr)
+				return;
 
 			for (u8 buttonTypeIndex = 0; buttonTypeIndex < EnumCount<ButtonType>(); buttonTypeIndex++)
 			{
@@ -788,26 +805,24 @@ namespace Comfy::Studio::Editor
 				if ((binding.ButtonTypes & ButtonTypeToButtonTypeFlags(inputButtonType)) == 0)
 					continue;
 
-				PlayTestSyncPair* nextPairToHit = nullptr;
-				for (auto& onScreenPair : onScreenTargetPairs)
-				{
-					if (onScreenPair.NoLongerValid || AllInSyncPairHaveBeenHit(onScreenPair))
-						continue;
+				const auto remainingTime = nextPairToHit->ButtonTime - playbackTime;
 
-					const auto remainingTime = (onScreenPair.ButtonTime - playbackTime);
-					if (remainingTime <= HitThreshold::Sad && remainingTime >= -HitThreshold::Worst)
+				PlayTestTarget* firstUnhitTarget = nullptr;
+
+				if (IsSlideButtonType(inputButtonType))
+				{
+					for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
 					{
-						nextPairToHit = &onScreenPair;
-						break;
+						if (!nextPairToHit->Targets[i].HasBeenHit && !nextPairToHit->Targets[i].HasTimedOut && !nextPairToHit->Targets[i].Flags.IsChain && nextPairToHit->Targets[i].Type == inputButtonType)
+						{
+							firstUnhitTarget = &nextPairToHit->Targets[i];
+							break;
+						}
 					}
 				}
 
-				// TODO: Fix a multi bit ButtonTypeFlags binding being able to incorrectly hit more than one target
-				if (nextPairToHit != nullptr)
+				if (firstUnhitTarget == nullptr)
 				{
-					const auto remainingTime = nextPairToHit->ButtonTime - playbackTime;
-
-					PlayTestTarget* firstUnhitTarget = nullptr;
 					for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
 					{
 						if (!nextPairToHit->Targets[i].HasBeenHit && !nextPairToHit->Targets[i].HasTimedOut && !nextPairToHit->Targets[i].Flags.IsChain)
@@ -816,102 +831,102 @@ namespace Comfy::Studio::Editor
 							break;
 						}
 					}
+				}
 
-					if (firstUnhitTarget != nullptr && (IsSlideButtonType(firstUnhitTarget->Type) == IsSlideButtonType(inputButtonType)))
+				if (firstUnhitTarget != nullptr && (IsSlideButtonType(firstUnhitTarget->Type) == IsSlideButtonType(inputButtonType)))
+				{
+					// TODO: Correctly handle sync slide binding.SlideType
+					if (IsSlideButtonType(firstUnhitTarget->Type) && firstUnhitTarget->Type != inputButtonType)
 					{
-						// TODO: Correctly handle sync slides
-						if (IsSlideButtonType(firstUnhitTarget->Type) && firstUnhitTarget->Type != inputButtonType)
-						{
-							firstUnhitTarget->WrongTypeOnTimeOut = true;
-							break;
-						}
+						firstUnhitTarget->WrongTypeOnTimeOut = true;
+						break;
+					}
 
-						bool inputTypeMatchesAny = false;
+					bool inputTypeMatchesAny = false;
+					for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
+					{
+						if (nextPairToHit->Targets[i].Type == inputButtonType)
+							inputTypeMatchesAny = true;
+					}
+
+					bool matchingType = inputTypeMatchesAny || (firstUnhitTarget->Type == inputButtonType);
+
+					if (ButtonTypeToButtonTypeFlags(inputButtonType) != binding.ButtonTypes)
+					{
+						ButtonTypeFlags inputPairTypeFlags = ButtonTypeFlags_None;
+						for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
+							inputPairTypeFlags |= ButtonTypeToButtonTypeFlags(nextPairToHit->Targets[i].Type);
+
+						// TODO: Hitting a subsection should also be valid
+						if (inputPairTypeFlags != binding.ButtonTypes)
+						{
+							inputTypeMatchesAny = false;
+							matchingType = false;
+						}
+					}
+
+					const auto coolThreshold = IsSlideButtonType(firstUnhitTarget->Type) ? HitThreshold::CoolSlide : HitThreshold::Cool;
+					const auto fineThreshold = IsSlideButtonType(firstUnhitTarget->Type) ? HitThreshold::FineSlide : HitThreshold::Fine;
+
+					bool successfulHit = false;
+
+					if (matchingType && IsSlideButtonType(firstUnhitTarget->Type))
+					{
+						sharedContext.ButtonSoundController->PlaySlideSound();
+						lastSlideActionStopwatch.Restart();
+					}
+
+					firstUnhitTarget->HasBeenHit = true;
+					firstUnhitTarget->RemainingTimeOnHit = remainingTime;
+
+					if (remainingTime <= coolThreshold && remainingTime >= -coolThreshold)
+					{
+						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Cool : HitEvaluation::WrongCool;
+						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, coolThreshold);
+						successfulHit = true;
+					}
+					else if (remainingTime <= fineThreshold && remainingTime >= -fineThreshold)
+					{
+						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Fine : HitEvaluation::WrongFine;
+						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, fineThreshold);
+						successfulHit = true;
+					}
+					else if (remainingTime <= HitThreshold::Safe && remainingTime >= -HitThreshold::Safe)
+					{
+						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Safe : HitEvaluation::WrongSafe;
+						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Safe);
+					}
+					else if (remainingTime <= HitThreshold::Sad && remainingTime >= -HitThreshold::Sad)
+					{
+						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Sad : HitEvaluation::WrongSad;
+						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Sad);
+					}
+					else
+					{
+						firstUnhitTarget->HitEvaluation = HitEvaluation::Worst;
+						firstUnhitTarget->HitPrecision = HitPrecision::Late;
+					}
+
+					if (!inputTypeMatchesAny)
+					{
 						for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
 						{
-							if (nextPairToHit->Targets[i].Type == inputButtonType)
-								inputTypeMatchesAny = true;
+							auto& target = nextPairToHit->Targets[i];
+							target.HasBeenHit = true;
+							target.RemainingTimeOnHit = remainingTime;
+							target.HitEvaluation = firstUnhitTarget->HitEvaluation;
+							target.HitPrecision = firstUnhitTarget->HitPrecision;
 						}
+					}
 
-						bool matchingType = inputTypeMatchesAny || (firstUnhitTarget->Type == inputButtonType);
-
-						if (ButtonTypeToButtonTypeFlags(inputButtonType) != binding.ButtonTypes)
-						{
-							ButtonTypeFlags inputPairTypeFlags = ButtonTypeFlags_None;
-							for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
-								inputPairTypeFlags |= ButtonTypeToButtonTypeFlags(nextPairToHit->Targets[i].Type);
-
-							// TODO: Hitting a subsection should also be valid
-							if (inputPairTypeFlags != binding.ButtonTypes)
-							{
-								inputTypeMatchesAny = false;
-								matchingType = false;
-							}
-						}
-
-						const auto coolThreshold = IsSlideButtonType(firstUnhitTarget->Type) ? HitThreshold::CoolSlide : HitThreshold::Cool;
-						const auto fineThreshold = IsSlideButtonType(firstUnhitTarget->Type) ? HitThreshold::FineSlide : HitThreshold::Fine;
-
-						bool successfulHit = false;
-
-						if (matchingType && IsSlideButtonType(firstUnhitTarget->Type))
-						{
-							sharedContext.ButtonSoundController->PlaySlideSound();
-							lastSlideActionStopwatch.Restart();
-						}
-
-						firstUnhitTarget->HasBeenHit = true;
-						firstUnhitTarget->RemainingTimeOnHit = remainingTime;
-
-						if (remainingTime <= coolThreshold && remainingTime >= -coolThreshold)
-						{
-							firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Cool : HitEvaluation::WrongCool;
-							firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, coolThreshold);
-							successfulHit = true;
-						}
-						else if (remainingTime <= fineThreshold && remainingTime >= -fineThreshold)
-						{
-							firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Fine : HitEvaluation::WrongFine;
-							firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, fineThreshold);
-							successfulHit = true;
-						}
-						else if (remainingTime <= HitThreshold::Safe && remainingTime >= -HitThreshold::Safe)
-						{
-							firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Safe : HitEvaluation::WrongSafe;
-							firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Safe);
-						}
-						else if (remainingTime <= HitThreshold::Sad && remainingTime >= -HitThreshold::Sad)
-						{
-							firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Sad : HitEvaluation::WrongSad;
-							firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Sad);
-						}
-						else
-						{
-							firstUnhitTarget->HitEvaluation = HitEvaluation::Worst;
-							firstUnhitTarget->HitPrecision = HitPrecision::Late;
-						}
-
-						if (!inputTypeMatchesAny)
-						{
-							for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
-							{
-								auto& target = nextPairToHit->Targets[i];
-								target.HasBeenHit = true;
-								target.RemainingTimeOnHit = remainingTime;
-								target.HitEvaluation = firstUnhitTarget->HitEvaluation;
-								target.HitPrecision = firstUnhitTarget->HitPrecision;
-							}
-						}
-
-						if (inputTypeMatchesAny && successfulHit)
-						{
-							if (AllInSyncPairHaveBeenHit(*nextPairToHit))
-								context.Score.ComboCount++;
-						}
-						else
-						{
-							context.Score.ComboCount = 0;
-						}
+					if (inputTypeMatchesAny && successfulHit)
+					{
+						if (AllInSyncPairHaveBeenHit(*nextPairToHit))
+							context.Score.ComboCount++;
+					}
+					else
+					{
+						context.Score.ComboCount = 0;
 					}
 				}
 			}
