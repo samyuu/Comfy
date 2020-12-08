@@ -216,68 +216,179 @@ namespace Comfy::Studio::Editor
 	public:
 		void UpdateTick()
 		{
-			if (Gui::IsWindowFocused())
-			{
-				if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
-					FadeOutThenExit();
-
-				if (Gui::IsKeyPressed(Input::KeyCode_F1, false))
-					autoplayEnabled ^= true;
-
-				if (Gui::IsKeyPressed(Input::KeyCode_Space, false) || Input::DualShock4::IsTapped(Input::DS4Button::Options))
-					TogglePause();
-
-				if (Gui::IsKeyPressed(Input::KeyCode_Enter, false) || Input::DualShock4::IsTapped(Input::DS4Button::R3))
-					RestartFromRestartPoint();
-
-				if (sharedContext.SongVoice->GetIsPlaying())
-				{
-					const bool shiftDown = Gui::GetIO().KeyShift;
-
-					if ((shiftDown && Gui::IsKeyPressed(Input::KeyCode_Tab, false)) || Input::DualShock4::IsTapped(Input::DS4Button::L3))
-						MoveResetPointBackward();
-
-					if ((!shiftDown && Gui::IsKeyPressed(Input::KeyCode_Tab, false)) || Input::DualShock4::IsTapped(Input::DS4Button::Touch))
-						MoveResetPointToPlaybackTime();
-
-					if (!autoplayEnabled)
-					{
-						i32 chainSlideHoldCountL = 0, chainSlideHoldCountR = 0;
-
-						for (const auto& binding : PlayTestInputBindings)
-						{
-							UpdateInputBindingButtonInputs(binding);
-
-							if (IsBindingDown(binding))
-							{
-								chainSlideHoldCountL += ((binding.ButtonTypes & ButtonTypeFlags_SlideL) != 0);
-								chainSlideHoldCountR += ((binding.ButtonTypes & ButtonTypeFlags_SlideR) != 0);
-							}
-						}
-
-						if (chainSlideHoldCountL > 0)
-							UpdateChainSlideDirection(ButtonType::SlideL, static_cast<f32>(chainSlideHoldCountL), sliderTouchPointL);
-						else
-							sliderTouchPointL.NormalizedPosition = 0.5f;
-
-						if (chainSlideHoldCountR > 0)
-							UpdateChainSlideDirection(ButtonType::SlideR, static_cast<f32>(chainSlideHoldCountR), sliderTouchPointR);
-						else
-							sliderTouchPointR.NormalizedPosition = 0.5f;
-					}
-				}
-			}
+			UpdateUserInput();
 
 			if (sharedContext.SongVoice->GetIsPlaying() && autoplayEnabled)
 				UpdateAutoplayInput();
 
-			TargetRenderHelper::BackgroundData backgroundData = { 1, 1, 1, 1, 1 };
+			DrawBackground();
+			DrawUpdateOnScreenTargets();
+
+			context.RenderHelperEx.Flush(*sharedContext.Renderer, *sharedContext.RenderHelper);
+
+			DrawHUD();
+			DrawScoreText();
+			DrawPauseToggleFade();
+			DrawOverlayText();
+			DrawFadeInFadeOut();
+		}
+
+		void OverlayGui()
+		{
+			bool contextMenuOpen = false;
+			Gui::WindowContextMenu("PlayTestWindowContextMenu", [&]
+			{
+				contextMenuOpen = true;
+				if (Gui::MenuItem("Return to Editor", Input::GetKeyCodeName(Input::KeyCode_Escape)))
+					FadeOutThenExit();
+
+				Gui::MenuItem("Autoplay Enabled", Input::GetKeyCodeName(Input::KeyCode_F1), &autoplayEnabled);
+				Gui::Separator();
+
+				if (Gui::MenuItem(sharedContext.SongVoice->GetIsPlaying() ? "Pause" : "Resume", Input::GetKeyCodeName(Input::KeyCode_Space)))
+					TogglePause();
+
+				if (Gui::MenuItem("Restart", Input::GetKeyCodeName(Input::KeyCode_Enter)))
+					RestartFromRestartPoint();
+
+				Gui::Separator();
+				if (Gui::MenuItem("Move Reset Point Forward", "Tab"))
+					MoveResetPointToPlaybackTime();
+
+				if (Gui::MenuItem("Move Reset Point Backward", "Shift + Tab"))
+					MoveResetPointBackward();
+
+#if COMFY_DEBUG
+				Gui::Separator();
+				if (Gui::BeginMenu("Color Correction"))
+				{
+					Gui::Checkbox("Enabled", &context.RenderTarget->Param.PostProcessingEnabled);
+					Gui::SliderFloat("Saturate", &context.RenderTarget->Param.PostProcessing.Saturation, 2.0f, 3.0f);
+					Gui::SliderFloat("Brightness", &context.RenderTarget->Param.PostProcessing.Brightness, 0.35f, 0.80f);
+
+					Gui::SliderFloat3("Coefficients R", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[0]), 0.0f, 1.25f);
+					Gui::SliderFloat3("Coefficients G", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[1]), 0.0f, 1.25f);
+					Gui::SliderFloat3("Coefficients B", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[2]), 0.0f, 1.25f);
+
+					Gui::EndMenu();
+				}
+#endif
+			});
+
+			if (auto delta = Gui::GetIO().MouseDelta; delta.x != 0.0f || delta.y != 0.0f)
+				mouseHide.LastMovementStopwatch.Restart();
+
+			if (!contextMenuOpen && Gui::IsWindowHovered())
+			{
+				if (mouseHide.LastMovementStopwatch.GetElapsed() > mouseHide.AutoHideThreshold)
+					Gui::SetMouseCursor(ImGuiMouseCursor_None);
+			}
+		}
+
+		bool ExitRequestedThisFrame()
+		{
+			const bool result = exitRequestedThisFrame;
+			exitRequestedThisFrame = false;
+			return result;
+		}
+
+		void Restart(TimeSpan startTime)
+		{
+			restartPoint = startTime;
+			fadeInOut.InStopwatch = {};
+			RestartFromRestartPoint();
+		}
+
+		bool GetAutoplayEnabled() const
+		{
+			return autoplayEnabled;
+		}
+
+		void SetAutoplayEnabled(bool value)
+		{
+			autoplayEnabled = value;
+		}
+
+		bool GetIsPlayback() const
+		{
+			return sharedContext.SongVoice->GetIsPlaying();
+		}
+
+	private:
+		void UpdateUserInput()
+		{
+			if (!Gui::IsWindowFocused())
+				return;
+
+			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
+				FadeOutThenExit();
+
+			if (Gui::IsKeyPressed(Input::KeyCode_F1, false))
+				autoplayEnabled ^= true;
+
+			if (Gui::IsKeyPressed(Input::KeyCode_Space, false) || Input::DualShock4::IsTapped(Input::DS4Button::Options))
+				TogglePause();
+
+			if (Gui::IsKeyPressed(Input::KeyCode_Enter, false) || Input::DualShock4::IsTapped(Input::DS4Button::R3))
+				RestartFromRestartPoint();
+
+			if (sharedContext.SongVoice->GetIsPlaying())
+			{
+				const bool shiftDown = Gui::GetIO().KeyShift;
+
+				if ((shiftDown && Gui::IsKeyPressed(Input::KeyCode_Tab, false)) || Input::DualShock4::IsTapped(Input::DS4Button::L3))
+					MoveResetPointBackward();
+
+				if ((!shiftDown && Gui::IsKeyPressed(Input::KeyCode_Tab, false)) || Input::DualShock4::IsTapped(Input::DS4Button::Touch))
+					MoveResetPointToPlaybackTime();
+
+				if (!autoplayEnabled)
+				{
+					i32 chainSlideHoldCountL = 0, chainSlideHoldCountR = 0;
+
+					for (const auto& binding : PlayTestInputBindings)
+					{
+						UpdateInputBindingButtonInputs(binding);
+
+						if (IsBindingDown(binding))
+						{
+							chainSlideHoldCountL += ((binding.ButtonTypes & ButtonTypeFlags_SlideL) != 0);
+							chainSlideHoldCountR += ((binding.ButtonTypes & ButtonTypeFlags_SlideR) != 0);
+						}
+					}
+
+					if (chainSlideHoldCountL > 0)
+						UpdateChainSlideDirection(ButtonType::SlideL, static_cast<f32>(chainSlideHoldCountL), sliderTouchPointL);
+					else
+						sliderTouchPointL.NormalizedPosition = 0.5f;
+
+					if (chainSlideHoldCountR > 0)
+						UpdateChainSlideDirection(ButtonType::SlideR, static_cast<f32>(chainSlideHoldCountR), sliderTouchPointR);
+					else
+						sliderTouchPointR.NormalizedPosition = 0.5f;
+				}
+			}
+		}
+
+		void DrawBackground()
+		{
+			TargetRenderHelper::BackgroundData backgroundData = {};
+			backgroundData.DrawGrid = true;
+			backgroundData.DrawDim = true;
+			backgroundData.DrawCover = true;
+			backgroundData.DrawLogo = true;
+			backgroundData.DrawBackground = true;
+			backgroundData.PlaybackTime = GetPlaybackTime();
 			backgroundData.CoverSprite = sharedContext.Chart->Properties.Image.Cover.GetTexSprView();
 			backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
 			backgroundData.BackgroundSprite = sharedContext.Chart->Properties.Image.Background.GetTexSprView();
 			sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
+		}
 
+		void DrawUpdateOnScreenTargets()
+		{
 			const auto playbackTime = GetPlaybackTime();
+
 			for (auto& availablePair : availableTargetPairs)
 			{
 				if (availablePair.HasBeenAdded)
@@ -458,9 +569,10 @@ namespace Comfy::Studio::Editor
 					}
 				}
 			}
+		}
 
-			context.RenderHelperEx.Flush(*sharedContext.Renderer, *sharedContext.RenderHelper);
-
+		void DrawHUD()
+		{
 			TargetRenderHelper::HUDData hudData = {};
 			hudData.SongTitle = sharedContext.Chart->SongTitleOrDefault();
 			hudData.Difficulty = sharedContext.Chart->Properties.Difficulty.Type;
@@ -469,8 +581,15 @@ namespace Comfy::Studio::Editor
 			hudData.Duration = chartDuration;
 			hudData.DrawPracticeInfo = true;
 			sharedContext.RenderHelper->DrawHUD(*sharedContext.Renderer, hudData);
+		}
 
-			bool comboTextDrawn = false, chainSlidePointTextDrawn = false;
+		void DrawScoreText()
+		{
+			const auto playbackTime = GetPlaybackTime();
+
+			bool comboTextDrawn = false;
+			bool chainSlidePointTextDrawn = false;
+
 			for (i32 i = static_cast<i32>(onScreenTargetPairs.size()) - 1; i >= 0; i--)
 			{
 				const auto& onScreenPair = onScreenTargetPairs[i];
@@ -516,139 +635,97 @@ namespace Comfy::Studio::Editor
 					}
 
 					if (comboTextDrawn && chainSlidePointTextDrawn)
-						break;
+						return;
 				}
 			}
+		}
 
-			if (true)
+		void DrawBlackFullscreenQuad(f32 opactiy, f32 min = 0.0f, f32 max = 1.0f)
+		{
+			sharedContext.Renderer->Draw(Render::RenderCommand2D(vec2(0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, std::clamp(opactiy, min, max))));
+		}
+
+		void DrawPauseToggleFade()
+		{
+			pauseFade.PlaybackLastFrame = pauseFade.PlaybackThisFrame;
+			pauseFade.PlaybackThisFrame = sharedContext.SongVoice->GetIsPlaying();
+
+			if (pauseFade.PlaybackLastFrame && !pauseFade.PlaybackThisFrame)
+				pauseFade.InStopwatch.Restart();
+
+			if (!pauseFade.PlaybackLastFrame && pauseFade.PlaybackThisFrame)
+				pauseFade.OutStopwatch.Restart();
+
+			if (pauseFade.InStopwatch.IsRunning())
 			{
-				char textBuffer[64] = {};
-				if (!sharedContext.SongVoice->GetIsPlaying())
-					strcat_s(textBuffer, "PAUSED");
+				const auto elapsed = pauseFade.InStopwatch.GetElapsed();
+				DrawBlackFullscreenQuad(static_cast<f32>(ConvertRange<f64>(0.0, pauseFade.Duration.TotalSeconds(), 0.0, pauseFade.Opacity, elapsed.TotalSeconds())), 0.0f, pauseFade.Opacity);
 
-				if (autoplayEnabled)
-				{
-					if (textBuffer[0] != '\0')
-						strcat_s(textBuffer, "\n");
-					strcat_s(textBuffer, "AUTOPLAY");
-				}
+				if (elapsed > pauseFade.Duration)
+					pauseFade.InStopwatch.Stop();
+			}
+			else if (!pauseFade.PlaybackThisFrame)
+			{
+				DrawBlackFullscreenQuad(pauseFade.Opacity);
+			}
 
+			if (pauseFade.OutStopwatch.IsRunning())
+			{
+				const auto elapsed = pauseFade.OutStopwatch.GetElapsed();
+				DrawBlackFullscreenQuad(static_cast<f32>(ConvertRange<f64>(0.0, pauseFade.Duration.TotalSeconds(), pauseFade.Opacity, 0.0, elapsed.TotalSeconds())), 0.0f, pauseFade.Opacity);
+
+				if (elapsed > pauseFade.Duration)
+					pauseFade.OutStopwatch.Stop();
+			}
+		}
+
+		void DrawOverlayText()
+		{
+			char textBuffer[64] = {};
+			if (!sharedContext.SongVoice->GetIsPlaying())
+				strcat_s(textBuffer, "PAUSED");
+
+			if (autoplayEnabled)
+			{
 				if (textBuffer[0] != '\0')
+					strcat_s(textBuffer, "\n");
+				strcat_s(textBuffer, "AUTOPLAY");
+			}
+
+			if (textBuffer[0] != '\0')
+			{
+				sharedContext.RenderHelper->WithFont36([&](auto& font)
 				{
-					sharedContext.RenderHelper->WithFont36([&](auto& font)
-					{
-						constexpr auto rightAllignedTextPosition = vec2(16.0f, 112.0f + 10.0f);
-						const auto textWidth = 180.0f;
-						const auto textPosition = vec2(Rules::PlacementAreaSize.x - (textWidth + rightAllignedTextPosition.x), rightAllignedTextPosition.y);
-						sharedContext.Renderer->Font().DrawBorder(font, textBuffer, Graphics::Transform2D(textPosition));
-					});
-				}
+					constexpr auto rightAllignedTextPosition = vec2(16.0f, 112.0f + 10.0f);
+					const auto textWidth = 180.0f;
+					const auto textPosition = vec2(Rules::PlacementAreaSize.x - (textWidth + rightAllignedTextPosition.x), rightAllignedTextPosition.y);
+					sharedContext.Renderer->Font().DrawBorder(font, textBuffer, Graphics::Transform2D(textPosition));
+				});
+			}
+		}
+
+		void DrawFadeInFadeOut()
+		{
+			if (fadeInOut.InStopwatch.IsRunning())
+			{
+				const auto elapsed = fadeInOut.InStopwatch.GetElapsed();
+				DrawBlackFullscreenQuad(static_cast<f32>(ConvertRange<f64>(0.0, fadeInOut.InDuration.TotalSeconds(), 1.0, 0.0, elapsed.TotalSeconds())));
+
+				if (elapsed > fadeInOut.InDuration)
+					fadeInOut.InStopwatch.Stop();
 			}
 
-			auto drawFullscreenQuad = [&](f32 opactiy) { sharedContext.Renderer->Draw(Render::RenderCommand2D(vec2(0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, std::clamp(opactiy, 0.0f, 1.0f)))); };
-
-			if (fadeInStopwatch.IsRunning())
+			if (fadeInOut.OutExitStopwatch.IsRunning())
 			{
-				const auto elapsed = fadeInStopwatch.GetElapsed();
-				drawFullscreenQuad(static_cast<f32>(ConvertRange<f64>(0.0, fadeInDuration.TotalSeconds(), 1.0, 0.0, elapsed.TotalSeconds())));
-				if (elapsed > fadeInDuration)
-					fadeInStopwatch.Stop();
-			}
+				const auto elapsed = fadeInOut.OutExitStopwatch.GetElapsed();
+				DrawBlackFullscreenQuad(static_cast<f32>(ConvertRange<f64>(0.0, fadeInOut.OutDuration.TotalSeconds(), 0.0, 1.0, elapsed.TotalSeconds())));
 
-			if (fadeOutExitStopwatch.IsRunning())
-			{
-				const auto elapsed = fadeOutExitStopwatch.GetElapsed();
-				drawFullscreenQuad(static_cast<f32>(ConvertRange<f64>(0.0, fadeOutDuration.TotalSeconds(), 0.0, 1.0, elapsed.TotalSeconds())));
-				if (elapsed > fadeOutDuration)
+				if (elapsed > fadeInOut.OutDuration)
 				{
 					exitRequestedThisFrame = true;
-					fadeOutExitStopwatch.Stop();
+					fadeInOut.OutExitStopwatch.Stop();
 				}
 			}
-		}
-
-		void OverlayGui()
-		{
-			bool contextMenuOpen = false;
-			Gui::WindowContextMenu("PlayTestWindowContextMenu", [&]
-			{
-				contextMenuOpen = true;
-				if (Gui::MenuItem("Return to Editor", Input::GetKeyCodeName(Input::KeyCode_Escape)))
-					FadeOutThenExit();
-
-				Gui::MenuItem("Autoplay Enabled", Input::GetKeyCodeName(Input::KeyCode_F1), &autoplayEnabled);
-				Gui::Separator();
-
-				if (Gui::MenuItem(sharedContext.SongVoice->GetIsPlaying() ? "Pause" : "Resume", Input::GetKeyCodeName(Input::KeyCode_Space)))
-					TogglePause();
-
-				if (Gui::MenuItem("Restart", Input::GetKeyCodeName(Input::KeyCode_Enter)))
-					RestartFromRestartPoint();
-
-				Gui::Separator();
-				if (Gui::MenuItem("Move Reset Point Forward", "Tab"))
-					MoveResetPointToPlaybackTime();
-
-				if (Gui::MenuItem("Move Reset Point Backward", "Shift + Tab"))
-					MoveResetPointBackward();
-
-				// TODO: (?)
-				// Gui::MenuItem("Toggle Fullscreen..?", nullptr, false, false);
-
-#if COMFY_DEBUG
-				Gui::Separator();
-				if (Gui::BeginMenu("Color Correction"))
-				{
-					Gui::Checkbox("Enabled", &context.RenderTarget->Param.PostProcessingEnabled);
-					Gui::SliderFloat("Saturate", &context.RenderTarget->Param.PostProcessing.Saturation, 2.0f, 3.0f);
-					Gui::SliderFloat("Brightness", &context.RenderTarget->Param.PostProcessing.Brightness, 0.35f, 0.80f);
-
-					Gui::SliderFloat3("Coefficients R", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[0]), 0.0f, 1.25f);
-					Gui::SliderFloat3("Coefficients G", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[1]), 0.0f, 1.25f);
-					Gui::SliderFloat3("Coefficients B", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[2]), 0.0f, 1.25f);
-
-					Gui::EndMenu();
-				}
-#endif
-			});
-
-			if (auto delta = Gui::GetIO().MouseDelta; delta.x != 0.0f || delta.y != 0.0f)
-				lastMouseMovementStopwatch.Restart();
-
-			if (!contextMenuOpen && Gui::IsWindowHovered())
-			{
-				if (lastMouseMovementStopwatch.GetElapsed() > mouseAutoHideThreshold)
-					Gui::SetMouseCursor(ImGuiMouseCursor_None);
-			}
-		}
-
-		bool ExitRequestedThisFrame()
-		{
-			const bool result = exitRequestedThisFrame;
-			exitRequestedThisFrame = false;
-			return result;
-		}
-
-		void Restart(TimeSpan startTime)
-		{
-			restartPoint = startTime;
-			fadeInStopwatch = {};
-			RestartFromRestartPoint();
-		}
-
-		bool GetAutoplayEnabled() const
-		{
-			return autoplayEnabled;
-		}
-
-		void SetAutoplayEnabled(bool value)
-		{
-			autoplayEnabled = value;
-		}
-
-		bool GetIsPlayback() const
-		{
-			return sharedContext.SongVoice->GetIsPlaying();
 		}
 
 	private:
@@ -668,16 +745,16 @@ namespace Comfy::Studio::Editor
 
 		void FadeOutThenExit()
 		{
-			if (!fadeOutExitStopwatch.IsRunning())
-				fadeOutExitStopwatch.Restart();
+			if (!fadeInOut.OutExitStopwatch.IsRunning())
+				fadeInOut.OutExitStopwatch.Restart();
 		}
 
 		void RestartFromRestartPoint()
 		{
-			if (fadeInStopwatch.IsRunning())
+			if (fadeInOut.InStopwatch.IsRunning())
 				return;
 
-			fadeInStopwatch.Restart();
+			fadeInOut.InStopwatch.Restart();
 			PlayOneShotSoundEffect("se_ft_practice_restart_01");
 			RestartInitializeChart(restartPoint);
 		}
@@ -722,7 +799,7 @@ namespace Comfy::Studio::Editor
 		void UpdateAutoplayInput()
 		{
 			const auto playbackTime = GetPlaybackTime();
-			const auto hitThreshold = TimeSpan::FromSeconds(Gui::GetIO().DeltaTime * 0.5f); // TimeSpan::Zero();
+			const auto hitThreshold = TimeSpan::FromSeconds(Gui::GetIO().DeltaTime * 0.5f);
 
 			for (auto& onScreenPair : onScreenTargetPairs)
 			{
@@ -1001,21 +1078,36 @@ namespace Comfy::Studio::Editor
 	private:
 		bool exitRequestedThisFrame = false;
 
-		Stopwatch lastMouseMovementStopwatch = {};
-		const TimeSpan mouseAutoHideThreshold = TimeSpan::FromSeconds(3.0);
-
 		TimeSpan restartPoint = TimeSpan::Zero();
 		TimeSpan chartDuration = TimeSpan::FromMinutes(1.0);
 		std::vector<PlayTestSyncPair> availableTargetPairs, onScreenTargetPairs;
 
 		bool autoplayEnabled = false;
 
-		Stopwatch fadeInStopwatch = {}, fadeOutExitStopwatch = {};
-		const TimeSpan fadeInDuration = TimeSpan::FromSeconds(0.75);
-		const TimeSpan fadeOutDuration = TimeSpan::FromSeconds(0.20);
-
 		Stopwatch lastSlideActionStopwatch = {};
 		SliderTouchPoint sliderTouchPointL = { -1.0f }, sliderTouchPointR = { +1.0f };
+
+		struct PauseFadeData
+		{
+			bool PlaybackThisFrame = false, PlaybackLastFrame = false;
+			Stopwatch InStopwatch = {}, OutStopwatch = {};
+
+			const TimeSpan Duration = TimeSpan::FromMilliseconds(95.0);
+			const f32 Opacity = 0.5f;
+		} pauseFade = {};
+
+		struct FadeInOutData
+		{
+			Stopwatch InStopwatch = {}, OutExitStopwatch = {};
+			const TimeSpan InDuration = TimeSpan::FromSeconds(0.75);
+			const TimeSpan OutDuration = TimeSpan::FromSeconds(0.20);
+		} fadeInOut = {};
+
+		struct MouseHideData
+		{
+			Stopwatch LastMovementStopwatch = {};
+			const TimeSpan AutoHideThreshold = TimeSpan::FromSeconds(3.0);
+		} mouseHide;
 	};
 
 	PlayTestCore::PlayTestCore(PlayTestWindow& window, PlayTestContext& context, PlayTestSharedContext& sharedContext)
