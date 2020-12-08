@@ -169,9 +169,8 @@ namespace Comfy::Studio::Editor
 			return false;
 		}
 
-		inline std::vector<PlayTestSyncPair> ChartToPlayTestTargets(Chart& chart)
+		inline void ChartToPlayTestTargets(Chart& chart, std::vector<PlayTestSyncPair>& outTargets)
 		{
-			std::vector<PlayTestSyncPair> outTargets;
 			outTargets.reserve(chart.Targets.size());
 
 			for (size_t targetIndex = 0; targetIndex < chart.Targets.size();)
@@ -200,8 +199,6 @@ namespace Comfy::Studio::Editor
 				assert(frontPairSourceTarget.Flags.SyncPairCount >= 1);
 				targetIndex += frontPairSourceTarget.Flags.SyncPairCount;
 			}
-
-			return outTargets;
 		}
 	}
 
@@ -790,7 +787,7 @@ namespace Comfy::Studio::Editor
 
 			chartDuration = sharedContext.Chart->DurationOrDefault();
 			availableTargetPairs.clear();
-			availableTargetPairs = ChartToPlayTestTargets(*sharedContext.Chart);
+			ChartToPlayTestTargets(*sharedContext.Chart, availableTargetPairs);
 			onScreenTargetPairs.clear();
 			onScreenTargetPairs.reserve(availableTargetPairs.size());
 
