@@ -236,16 +236,11 @@ namespace Comfy::Studio::Editor
 			Gui::WindowContextMenu("PlayTestWindowContextMenu", [&]
 			{
 				contextMenuOpen = true;
-				if (Gui::MenuItem("Return to Editor", Input::GetKeyCodeName(Input::KeyCode_Escape)))
-					FadeOutThenExit();
-
-				Gui::MenuItem("Autoplay Enabled", Input::GetKeyCodeName(Input::KeyCode_F1), &autoplayEnabled);
-				Gui::Separator();
 
 				if (Gui::MenuItem(sharedContext.SongVoice->GetIsPlaying() ? "Pause" : "Resume", Input::GetKeyCodeName(Input::KeyCode_Space)))
 					TogglePause();
 
-				if (Gui::MenuItem("Restart", Input::GetKeyCodeName(Input::KeyCode_Enter)))
+				if (Gui::MenuItem("Restart from Reset Point", Input::GetKeyCodeName(Input::KeyCode_Enter)))
 					RestartFromRestartPoint();
 
 				Gui::Separator();
@@ -254,6 +249,12 @@ namespace Comfy::Studio::Editor
 
 				if (Gui::MenuItem("Move Reset Point Backward", "Shift + Tab"))
 					MoveResetPointBackward();
+
+				Gui::Separator();
+				Gui::MenuItem("Autoplay Enabled", Input::GetKeyCodeName(Input::KeyCode_F1), &autoplayEnabled);
+
+				if (Gui::MenuItem("Return to Editor", Input::GetKeyCodeName(Input::KeyCode_Escape)))
+					FadeOutThenExit();
 
 #if COMFY_DEBUG
 				Gui::Separator();
