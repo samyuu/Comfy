@@ -41,6 +41,7 @@ namespace Comfy
 			bool IsFullscreenRequested = false;
 			bool IsMaximized = false;
 
+			// NOTE: All positions and sizes are always stored in client space
 			ivec2 Position = DefaultStartupWindowPosition;
 			ivec2 Size = DefaultStartupWindowSize;
 
@@ -191,6 +192,37 @@ namespace Comfy
 		}
 
 	public:
+		ivec4 ClientToWindowArea(ivec2 clientPosition, ivec2 clientSize)
+		{
+			RECT inClientOutWindowRect;
+			inClientOutWindowRect.left = clientPosition.x;
+			inClientOutWindowRect.top = clientPosition.y;
+			inClientOutWindowRect.right = clientPosition.x + clientSize.x;
+			inClientOutWindowRect.bottom = clientPosition.y + clientSize.y;
+
+			if (!::AdjustWindowRect(&inClientOutWindowRect, WS_OVERLAPPEDWINDOW, false))
+				return ivec4(clientPosition, clientSize);
+
+			const ivec2 windowPosition =
+			{
+				inClientOutWindowRect.left,
+				inClientOutWindowRect.top,
+			};
+
+			const ivec2 windowSize =
+			{
+				inClientOutWindowRect.right - inClientOutWindowRect.left,
+				inClientOutWindowRect.bottom - inClientOutWindowRect.top,
+			};
+
+			return ivec4(windowPosition, windowSize);
+		}
+
+		ivec4 ClientToWindowArea(ivec4 clientArea)
+		{
+			return ClientToWindowArea(ivec2(clientArea.x, clientArea.y), ivec2(clientArea.z, clientArea.w));
+		}
+
 		bool InternalCreateWindow()
 		{
 			const auto windowClassName = UTF8::WideArg(ApplicationHost::ComfyWindowClassName);
@@ -213,15 +245,17 @@ namespace Comfy
 			if (!::RegisterClassExW(&windowClass))
 				return false;
 
+			const auto windowStartupRegion = ClientToWindowArea(Window.Position, Window.Size);
+
 			Window.Handle = ::CreateWindowExW(
 				NULL,
 				windowClassName.c_str(),
 				windowTitle.c_str(),
 				WS_OVERLAPPEDWINDOW,
-				Window.UseDefaultPosition ? CW_USEDEFAULT : Window.Position.x,
-				Window.UseDefaultPosition ? CW_USEDEFAULT : Window.Position.y,
-				Window.UseDefaultSize ? CW_USEDEFAULT : Window.Size.x,
-				Window.UseDefaultSize ? CW_USEDEFAULT : Window.Size.y,
+				Window.UseDefaultPosition ? CW_USEDEFAULT : windowStartupRegion.x,
+				Window.UseDefaultPosition ? CW_USEDEFAULT : windowStartupRegion.y,
+				Window.UseDefaultSize ? CW_USEDEFAULT : windowStartupRegion.z,
+				Window.UseDefaultSize ? CW_USEDEFAULT : windowStartupRegion.w,
 				NULL,
 				NULL,
 				GlobalModuleHandle,
@@ -235,14 +269,15 @@ namespace Comfy
 			// NOTE: Set window placement first to retrieve the maximized window size and set the restore position
 			if (maximizedOnStartup)
 			{
+				const auto windowRestoreRegion = ClientToWindowArea(Window.RestoreRegion);
+
 				WINDOWPLACEMENT windowPlacement;
 				windowPlacement.length = sizeof(WINDOWPLACEMENT);
 				windowPlacement.flags = 0;
 				windowPlacement.showCmd = SW_MAXIMIZE;
-				windowPlacement.ptMinPosition = { Window.Position.x, Window.Position.y };
-				windowPlacement.ptMaxPosition = { Window.Position.x, Window.Position.y };
-				windowPlacement.rcNormalPosition = { Window.RestoreRegion.x, Window.RestoreRegion.y, Window.RestoreRegion.x + Window.RestoreRegion.z, Window.RestoreRegion.y + Window.RestoreRegion.w };
-
+				windowPlacement.ptMinPosition = { windowStartupRegion.x, windowStartupRegion.y };
+				windowPlacement.ptMaxPosition = { windowStartupRegion.x, windowStartupRegion.y };
+				windowPlacement.rcNormalPosition = { windowRestoreRegion.x, windowRestoreRegion.y, windowRestoreRegion.x + windowRestoreRegion.z, windowRestoreRegion.y + windowRestoreRegion.w };
 				::SetWindowPlacement(Window.Handle, &windowPlacement);
 			}
 
@@ -255,7 +290,7 @@ namespace Comfy
 			if (!maximizedOnStartup)
 			{
 				Window.RestoreRegion = ivec4(Window.Position, Window.Size);
-				::ShowWindow(Window.Handle, SW_SHOWDEFAULT);
+				::ShowWindow(Window.Handle, SW_SHOWNORMAL);
 			}
 
 			::UpdateWindow(Window.Handle);
@@ -269,7 +304,10 @@ namespace Comfy
 		void InternalApplyWindowPositionAndSize()
 		{
 			if (Window.Handle != nullptr)
-				::MoveWindow(Window.Handle, Window.Position.x, Window.Position.y, Window.Size.x, Window.Size.y, true);
+			{
+				const auto newWindowRegion = ClientToWindowArea(Window.Position, Window.Size);
+				::MoveWindow(Window.Handle, newWindowRegion.x, newWindowRegion.y, newWindowRegion.z, newWindowRegion.w, true);
+			}
 		}
 
 	public:
