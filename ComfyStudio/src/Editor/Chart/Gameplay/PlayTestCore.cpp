@@ -412,8 +412,8 @@ namespace Comfy::Studio::Editor
 				const auto progressUnbound = static_cast<f32>(ConvertRange(onScreenPair.TargetTime.TotalSeconds(), onScreenPair.ButtonTime.TotalSeconds(), 0.0, 1.0, playbackTime.TotalSeconds()));
 				const auto progress = glm::clamp(progressUnbound, 0.0f, 1.0f);
 
-				// TODO: Needs to be at least longer than the duration of the hit effect / combo text animation
-				if (remainingTime < TimeSpan::FromSeconds(-2.0))
+				constexpr TimeSpan maxPostHitAnimationDuration = TimeSpan::FromSeconds(2.0);
+				if (remainingTime < -maxPostHitAnimationDuration)
 					onScreenPair.NoLongerValid = true;
 
 				const auto hitMissProgress = std::clamp(static_cast<f32>(ConvertRange<f64>(0.0, -HitThreshold::Worst.TotalSeconds(), 1.0, 0.0, remainingTime.TotalSeconds())), 0.0f, 1.0f);
@@ -434,6 +434,7 @@ namespace Comfy::Studio::Editor
 							if (onScreenTarget.Flags.IsChainStart)
 							{
 								sharedContext.ButtonSoundController->PlayChainSoundStart(chainSlot);
+								context.Score.ComboCount++;
 								context.Score.ChainSlideScore = 0;
 							}
 							else
@@ -452,7 +453,6 @@ namespace Comfy::Studio::Editor
 
 						if (!onScreenTarget.HasBeenHit && !onScreenTarget.HasBeenChainHit && remainingTime < -HitThreshold::Worst)
 						{
-							// BUG: Failing a chain can cause all future slides to become unhittable
 							if (!onScreenTarget.HasAnyChainFragmentFailed)
 							{
 								onScreenTarget.ThisFragmentCausedChainFailure = true;
@@ -741,6 +741,12 @@ namespace Comfy::Studio::Editor
 			const bool isPlaying = sharedContext.SongVoice->GetIsPlaying();
 			PlayOneShotSoundEffect(isPlaying ? "se_ft_sys_dialog_open" : "se_ft_sys_dialog_close");
 			sharedContext.SongVoice->SetIsPlaying(!isPlaying);
+
+			if (isPlaying)
+			{
+				for (size_t i = 0; i < EnumCount<ChainSoundSlot>(); i++)
+					sharedContext.ButtonSoundController->FadeOutLastChainSound(static_cast<ChainSoundSlot>(i));
+			}
 		}
 
 		void FadeOutThenExit()
@@ -773,6 +779,12 @@ namespace Comfy::Studio::Editor
 
 		void RestartInitializeChart(TimeSpan startTime, bool resetScore = true)
 		{
+			if (sharedContext.SongVoice->GetIsPlaying())
+			{
+				for (size_t i = 0; i < EnumCount<ChainSoundSlot>(); i++)
+					sharedContext.ButtonSoundController->FadeOutLastChainSound(static_cast<ChainSoundSlot>(i));
+			}
+
 			SetPlaybackTime(startTime);
 			sharedContext.SongVoice->SetIsPlaying(true);
 
@@ -782,14 +794,19 @@ namespace Comfy::Studio::Editor
 			onScreenTargetPairs.clear();
 			onScreenTargetPairs.reserve(availableTargetPairs.size());
 
-			for (auto& target : availableTargetPairs)
+			for (auto& pair : availableTargetPairs)
 			{
-#if 0
-				if (target.ButtonTime < startTime)
-#else
-				if (target.TargetTime < startTime)
-#endif
-					target.NoLongerValid = true;
+				if (pair.TargetTime < startTime)
+				{
+					pair.NoLongerValid = true;
+
+					for (size_t i = 0; i < pair.TargetCount; i++)
+					{
+						// NOTE: Ensure all chains always have a valid start fragment
+						if (pair.Targets[i].Flags.IsChain)
+							ForEachFragmentInChain(availableTargetPairs, pair, pair.Targets[i], [&](auto& chainPair, auto& fragment) { chainPair.NoLongerValid = true; });
+					}
+				}
 			}
 
 			if (resetScore)
@@ -1032,6 +1049,9 @@ namespace Comfy::Studio::Editor
 
 			for (auto& onScreenPair : onScreenTargetPairs)
 			{
+				if (onScreenPair.NoLongerValid)
+					continue;
+
 				for (size_t i = 0; i < onScreenPair.TargetCount; i++)
 				{
 					auto& onScreenTarget = onScreenPair.Targets[i];
@@ -1054,8 +1074,10 @@ namespace Comfy::Studio::Editor
 								return;
 						}
 					}
-					else if (!onScreenTarget.HasBeenHit && !onScreenPair.NoLongerValid)
+					else if (!onScreenTarget.HasBeenHit)
+					{
 						return;
+					}
 				}
 			}
 		}
@@ -1107,7 +1129,7 @@ namespace Comfy::Studio::Editor
 		{
 			Stopwatch LastMovementStopwatch = {};
 			const TimeSpan AutoHideThreshold = TimeSpan::FromSeconds(3.0);
-		} mouseHide;
+		} mouseHide = {};
 	};
 
 	PlayTestCore::PlayTestCore(PlayTestWindow& window, PlayTestContext& context, PlayTestSharedContext& sharedContext)
