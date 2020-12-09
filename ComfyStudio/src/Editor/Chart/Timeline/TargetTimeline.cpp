@@ -168,7 +168,7 @@ namespace Comfy::Studio::Editor
 			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(target.Tick);
 			const auto offsetButtonTime = buttonTime - futureOffset;
 
-			if (offsetButtonTime >= lastFrameButtonSoundCursorTime && offsetButtonTime <= thisFrameButtonSoundCursorTime)
+			if (offsetButtonTime >= lastFrameButtonSoundCursorTime && offsetButtonTime < thisFrameButtonSoundCursorTime)
 			{
 				// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
 				//		 or playback was started on top of an existing target
@@ -184,10 +184,7 @@ namespace Comfy::Studio::Editor
 					}
 					if (target.Flags.IsChainEnd)
 					{
-						if (constexpr bool success = true; success)
-							buttonSoundController.PlayChainSoundSuccess(chainSoundSlot, startTime, externalClock);
-						else
-							buttonSoundController.PlayChainSoundFailure(chainSoundSlot, startTime, externalClock);
+						buttonSoundController.PlayChainSoundSuccess(chainSoundSlot, startTime, externalClock);
 
 						// BUG: Sync chain slides with the left chain ending earlier than the right one. In practice this should rarely ever happen though
 						buttonSoundController.FadeOutLastChainSound(chainSoundSlot);
