@@ -137,14 +137,14 @@ namespace Comfy::Studio::Editor
 
 		for (size_t i = 0; i < ButtonVoicePoolSize; i++)
 		{
-			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundController::ButtonVoicePool[%02zu]", i));
+			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSound ButtonVoicePool[%02zu]", i));
 			buttonVoicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameView, false);
 			buttonVoicePool[i].SetPauseOnEnd(true);
 		}
 
 		for (size_t i = 0; i < SliderTouchVoicePoolSize; i++)
 		{
-			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundController::SliderTouchVoicePool[%02zu]", i));
+			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSound SliderTouchVoicePool[%02zu]", i));
 			sliderTouchVoicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameView, false);
 			sliderTouchVoicePool[i].SetPauseOnEnd(true);
 		}
@@ -156,7 +156,7 @@ namespace Comfy::Studio::Editor
 			auto& slotVoicePool = chainStartVoicePools[slotIndex];
 			for (size_t i = 0; i < PerSlotChainVoicePoolSize; i++)
 			{
-				const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundController::ChainStartVoicePool[%c][%02zu]", getSlotCharID(slotIndex), i));
+				const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSound ChainStartVoicePool[%c][%02zu]", getSlotCharID(slotIndex), i));
 				slotVoicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameView, false);
 				slotVoicePool[i].SetPauseOnEnd(true);
 			}
@@ -167,7 +167,7 @@ namespace Comfy::Studio::Editor
 			auto& slotVoicePool = chainEndVoicePools[slotIndex];
 			for (size_t i = 0; i < PerSlotChainVoicePoolSize; i++)
 			{
-				const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundController::ChainEndVoicePool[%c][%02zu]", getSlotCharID(slotIndex), i));
+				const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSound ChainEndVoicePool[%c][%02zu]", getSlotCharID(slotIndex), i));
 				slotVoicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameView, false);
 				slotVoicePool[i].SetPauseOnEnd(true);
 			}
@@ -176,7 +176,7 @@ namespace Comfy::Studio::Editor
 		for (size_t slotIndex = 0; slotIndex < EnumCount<ChainSoundSlot>(); slotIndex++)
 		{
 			auto& voice = perSlotChainSubVoices[slotIndex];
-			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundController::ChainSubVoice[%c]", getSlotCharID(slotIndex)));
+			const auto nameView = std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSound ChainSubVoice[%c]", getSlotCharID(slotIndex)));
 			voice = audioEngine.AddVoice(Audio::SourceHandle::Invalid, nameView, false);
 		}
 	}

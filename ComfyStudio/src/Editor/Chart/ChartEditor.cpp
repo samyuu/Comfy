@@ -33,8 +33,11 @@ namespace Comfy::Studio::Editor
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
 
+		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor SongVoice", false, 1.0f, true);
+		buttonSoundController = std::make_unique<ButtonSoundController>(soundEffectManager);
+
 		renderer = std::make_unique<Render::Renderer2D>();
-		timeline = std::make_unique<TargetTimeline>(*this, undoManager, buttonSoundController);
+		timeline = std::make_unique<TargetTimeline>(*this, undoManager, *buttonSoundController);
 
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
 		renderWindow->RegisterRenderCallback([this](auto& renderWindow, auto& renderer) { presetWindow.OnRenderWindowRender(*chart, renderWindow, renderer); });
@@ -46,8 +49,6 @@ namespace Comfy::Studio::Editor
 		presetWindow.OnEditorSpritesLoaded(editorSprites.get());
 
 		SyncWorkingChartPointers();
-
-		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor::SongVoice", false, 0.75f, true);
 
 		const auto fileToOpen = parentApplication.GetFileToOpenOnStartup();
 		if (!fileToOpen.empty() && Util::MatchesInsensitive(IO::Path::GetExtension(fileToOpen), ComfyStudioChartFile::Extension))
@@ -69,7 +70,7 @@ namespace Comfy::Studio::Editor
 		Gui::GetCurrentWindow()->Hidden = true;
 
 		const auto& buttonIDs = chart->Properties.ButtonSound;
-		buttonSoundController.SetIDs(buttonIDs.ButtonID, buttonIDs.SlideID, buttonIDs.ChainSlideID, buttonIDs.SliderTouchID);
+		buttonSoundController->SetIDs(buttonIDs.ButtonID, buttonIDs.SlideID, buttonIDs.ChainSlideID, buttonIDs.SliderTouchID);
 
 		UpdateApplicationClosingRequest();
 		UpdateGlobalControlInput();
@@ -753,7 +754,7 @@ namespace Comfy::Studio::Editor
 			sharedContext.Renderer = renderer.get();
 			sharedContext.RenderHelper = &renderWindow->GetRenderHelper();
 			sharedContext.SoundEffectManager = &soundEffectManager;
-			sharedContext.ButtonSoundController = &buttonSoundController;
+			sharedContext.ButtonSoundController = buttonSoundController.get();
 			sharedContext.SongVoice = &songVoice;
 			sharedContext.Chart = chart.get();
 			playTestWindow = std::make_unique<PlayTestWindow>(sharedContext);

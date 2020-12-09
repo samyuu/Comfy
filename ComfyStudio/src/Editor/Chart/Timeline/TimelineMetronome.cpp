@@ -28,7 +28,7 @@ namespace Comfy::Studio::Editor
 			char buffer[64];
 			for (size_t i = 0; i < voicePool.size(); i++)
 			{
-				voicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, std::string_view(buffer, sprintf_s(buffer, "TimelineMetronome::VoicePool[%zu]", i)), false, volume);
+				voicePool[i] = audioEngine.AddVoice(Audio::SourceHandle::Invalid, std::string_view(buffer, sprintf_s(buffer, "Metronome VoicePool[%zu]", i)), false, volume);
 				voicePool[i].SetPauseOnEnd(true);
 			}
 

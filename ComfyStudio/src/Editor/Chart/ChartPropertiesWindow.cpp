@@ -28,14 +28,20 @@ namespace Comfy::Studio::Editor
 				auto& engine = Audio::AudioEngine::GetInstance();
 				engine.EnsureStreamRunning();
 
+				char nameBuffer[512];
+				auto formatVoiceName = [&nameBuffer](std::string_view sfxName) -> std::string_view
+				{
+					return std::string_view(nameBuffer, sprintf_s(nameBuffer, "ButtonSoundPreview %.*s", static_cast<int>(sfxName.size()), sfxName.data()));
+				};
+
 				switch (btnSfxDBType)
 				{
 				case Database::GmBtnSfxType::Button:
-					engine.PlayOneShotSound(soundEffectManager.GetButtonSound(entry.ID), entry.SfxName);
+					engine.PlayOneShotSound(soundEffectManager.GetButtonSound(entry.ID), formatVoiceName(entry.SfxName));
 					break;
 
 				case Database::GmBtnSfxType::Slide:
-					engine.PlayOneShotSound(soundEffectManager.GetSlideSound(entry.ID), entry.SfxName);
+					engine.PlayOneShotSound(soundEffectManager.GetSlideSound(entry.ID), formatVoiceName(entry.SfxName));
 					break;
 
 				case Database::GmBtnSfxType::ChainSlide:
@@ -44,11 +50,11 @@ namespace Comfy::Studio::Editor
 					constexpr auto startDuration = TimeSpan::FromSeconds(1.0);
 					const auto[firstSource, subSource, successSource, failureSource] = soundEffectManager.GetChainSlideSound(entry.ID);
 
-					Audio::Voice startVoice = engine.AddVoice(firstSource, entry.Chain.SfxNameFirst, true);
+					Audio::Voice startVoice = engine.AddVoice(firstSource, formatVoiceName(entry.Chain.SfxNameFirst), true);
 					startVoice.SetRemoveOnEnd(true);
 					startVoice.SetVolumeMap(startDuration, startDuration + fadeOutDuration, 1.0f, 0.0f);
 
-					Audio::Voice endVoice = engine.AddVoice(successSource, entry.Chain.SfxNameSuccess, true);
+					Audio::Voice endVoice = engine.AddVoice(successSource, formatVoiceName(entry.Chain.SfxNameSuccess), true);
 					endVoice.SetRemoveOnEnd(true);
 					endVoice.SetPosition(-startDuration);
 					break;
@@ -64,7 +70,7 @@ namespace Comfy::Studio::Editor
 
 					for (size_t i = 0; i < voicesToPlay; i++)
 					{
-						Audio::Voice voice = engine.AddVoice(sources[(sources.size() / voicesToPlay) * i], entry.SfxName, true);
+						Audio::Voice voice = engine.AddVoice(sources[(sources.size() / voicesToPlay) * i], formatVoiceName(entry.SfxName), true);
 						voice.SetRemoveOnEnd(true);
 						voice.SetPosition(startOffset);
 						startOffset -= voiceInterval;

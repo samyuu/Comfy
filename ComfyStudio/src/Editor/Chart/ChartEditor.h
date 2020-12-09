@@ -104,7 +104,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Graphics::SprSet> editorSprites = nullptr;
 
 		SoundEffectManager soundEffectManager;
-		ButtonSoundController buttonSoundController = { soundEffectManager };
+		std::unique_ptr<ButtonSoundController> buttonSoundController = nullptr;
 
 		std::unique_ptr<PlayTestWindow> playTestWindow = nullptr;
 
