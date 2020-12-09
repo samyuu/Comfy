@@ -76,7 +76,15 @@ namespace Comfy::IO
 
 		void OpenWithDefaultProgram(std::string_view filePath)
 		{
-			::ShellExecuteW(NULL, L"open", UTF8::WideArg(filePath).c_str(), NULL, NULL, SW_SHOW);
+			if (Path::IsRelative(filePath))
+			{
+				const auto absolutePath = Path::Combine(Directory::GetWorkingDirectory(), filePath);
+				::ShellExecuteW(NULL, L"open", UTF8::WideArg(absolutePath).c_str(), NULL, NULL, SW_SHOW);
+			}
+			else
+			{
+				::ShellExecuteW(NULL, L"open", UTF8::WideArg(filePath).c_str(), NULL, NULL, SW_SHOW);
+			}
 		}
 
 		namespace
