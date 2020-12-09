@@ -260,10 +260,9 @@ namespace Comfy::Studio::Editor
 			const bool isLastFrame = (cursorTime >= workingChart->DurationOrDefault());
 			const bool isPlayback = GetIsPlayback();
 
-			constexpr float borderSize = 1.0f;
+			constexpr f32 borderSize = 1.0f;
 			Gui::SetCursorPosX(Gui::GetCursorPosX() + borderSize);
 
-			// NOTE: First frame button
 			{
 				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
 				if (Gui::Button(ICON_FA_FAST_BACKWARD))
@@ -272,10 +271,9 @@ namespace Comfy::Studio::Editor
 					CenterCursor();
 				}
 				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
-				Gui::SetWideItemTooltip("Go to first beat");
+				Gui::SetWideItemTooltip("Go to First Beat");
 			}
 
-			// NOTE: Previous frame button
 			{
 				Gui::SameLine();
 				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
@@ -284,19 +282,17 @@ namespace Comfy::Studio::Editor
 					AdvanceCursorByGridDivisionTick(-1);
 				}
 				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
-				Gui::SetWideItemTooltip("Go to previous grid tick");
+				Gui::SetWideItemTooltip("Go to previous Grid Tick");
 			}
 
-			// NOTE: Playback toggle button
 			{
 				Gui::SameLine();
 				if (Gui::Button(isPlayback ? ICON_FA_PAUSE : ICON_FA_PLAY))
 					isPlayback ? PausePlayback() : ResumePlayback();
 
-				Gui::SetWideItemTooltip(isPlayback ? "Pause playback" : "Resume playback");
+				Gui::SetWideItemTooltip(isPlayback ? "Pause Playback" : "Resume Playback");
 			}
 
-			// NOTE: Playback stop button
 			{
 				Gui::SameLine();
 				Gui::PushItemDisabledAndTextColorIf(!isPlayback);
@@ -305,10 +301,9 @@ namespace Comfy::Studio::Editor
 					StopPlayback();
 				}
 				Gui::PopItemDisabledAndTextColorIf(!isPlayback);
-				Gui::SetWideItemTooltip("Stop playback");
+				Gui::SetWideItemTooltip("Stop Playback");
 			}
 
-			// NOTE: Next frame button
 			{
 				Gui::SameLine();
 				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
@@ -317,10 +312,9 @@ namespace Comfy::Studio::Editor
 					AdvanceCursorByGridDivisionTick(+1);
 				}
 				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
-				Gui::SetWideItemTooltip("Go to next grid tick");
+				Gui::SetWideItemTooltip("Go to next Grid Tick");
 			}
 
-			// NOTE: Last frame button
 			{
 				Gui::SameLine();
 				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
@@ -330,27 +324,52 @@ namespace Comfy::Studio::Editor
 					CenterCursor();
 				}
 				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
-				Gui::SetWideItemTooltip("Go to last beat");
+				Gui::SetWideItemTooltip("Go to Last Beat");
 			}
 
-			// NOTE: Settings button
 			{
 				Gui::SameLine();
-				Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				if (Gui::Button(ICON_FA_COG))
 					Gui::OpenPopup(settingsPopupName);
-				Gui::SetWideItemTooltip("Timeline settings");
-				Gui::PopItemFlag();
+				Gui::SetWideItemTooltip("Timeline Settings");
 			}
 		}
 		Gui::PopStyleColor(1);
 		Gui::PopStyleVar(2);
 
-		// NOTE: Settings popup
-		if (Gui::WideBeginPopup(settingsPopupName))
+		if (Gui::WideBeginPopup(settingsPopupName, ImGuiWindowFlags_NoMove))
 		{
-			// TODO: Audio volume settings here (?)
-			Gui::TextDisabled("TODO:");
+			Gui::TextUnformatted("Volume Levels:");
+			Gui::Separator();
+			{
+				if (auto v = (chartEditor.GetSongVoice().GetVolume() * 100.0f); Gui::SliderFloat("##SongVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Song Volume"))
+					chartEditor.GetSongVoice().SetVolume(v / 100.0f);
+				if (auto v = (buttonSoundController.GetMasterVolume() * 100.0f); Gui::SliderFloat("##ButtonSoundVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Button Volume"))
+					buttonSoundController.SetMasterVolume(v / 100.0f);
+
+				Gui::Separator();
+				if (Gui::Button("Default Volume##SongButton", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				{
+					chartEditor.GetSongVoice().SetVolume(1.0f);
+					buttonSoundController.SetMasterVolume(1.0f);
+				}
+			}
+			Gui::Separator();
+
+			Gui::TextUnformatted("Metronome Settings:");
+			Gui::Separator();
+			{
+				Gui::Checkbox("Metronome Enabled", &metronomeEnabled);
+				Gui::PushItemDisabledAndTextColorIf(!metronomeEnabled);
+				if (auto v = (metronome.GetVolume() * 100.0f); Gui::SliderFloat("##MetronomeVolumeSlider", &v, 10.0f, 150.0f, "%.0f%% Metronome Volume"))
+					metronome.SetVolume(v / 100.0f);
+
+				Gui::Separator();
+				if (Gui::Button("Default Volume##Metronome", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					metronome.SetVolume(1.0f);
+				Gui::PopItemDisabledAndTextColorIf(!metronomeEnabled);
+			}
+
 			Gui::EndPopup();
 		}
 	}
@@ -1325,26 +1344,7 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
-			// TODO: Maybe move metronome settings to the timeline info column header (?)
-			if (Gui::BeginMenu("Metronome"))
-			{
-				Gui::Checkbox("Enabled", &metronomeEnabled);
-				Gui::PushItemDisabledAndTextColorIf(!metronomeEnabled);
-				if (auto v = (metronome.GetVolume() * 100.0f); Gui::SliderFloat("##MetronomeVolumeSlider", &v, 10.0f, 150.0f, "%.0f%% Volume"))
-					metronome.SetVolume(v / 100.0f);
-				Gui::PopItemDisabledAndTextColorIf(!metronomeEnabled);
-				Gui::EndMenu();
-			}
-
-			// TODO: Move somewhere else and implement different sound source options stored in chart
-			if (Gui::BeginMenu("Button Sounds"))
-			{
-				if (auto v = (buttonSoundController.GetMasterVolume() * 100.0f); Gui::SliderFloat("##ButtonSoundVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Volume"))
-					buttonSoundController.SetMasterVolume(v / 100.0f);
-				Gui::EndMenu();
-			}
-
-			if (Gui::MenuItem("Set Song End", "", nullptr, true))
+			if (Gui::MenuItem("Set Song End", "", false, !GetIsPlayback()))
 				undoManager.Execute<ChangeSongDuration>(*workingChart, GetCursorTime());
 
 			Gui::Separator();
