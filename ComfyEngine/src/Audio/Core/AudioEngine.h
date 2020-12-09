@@ -86,11 +86,16 @@ namespace Comfy::Audio
 
 	enum class AudioBackend : u32
 	{
-		Invalid,
 		WASAPIShared,
 		WASAPIExclusive,
 		Count,
 		Default = WASAPIExclusive, // WASAPIShared,
+	};
+
+	constexpr std::array<const char*, EnumCount<AudioBackend>()> AudioBackendNames = 
+	{
+		"WASAPI (Shared)",
+		"WASAPI (Exclusive)",
 	};
 
 	class AudioEngine : NonCopyable
@@ -136,7 +141,7 @@ namespace Comfy::Audio
 		COMFY_NODISCARD std::future<SourceHandle> LoadSourceAsync(std::string_view filePath);
 		COMFY_NODISCARD SourceHandle LoadSource(std::string_view filePath);
 		COMFY_NODISCARD SourceHandle LoadSource(std::string_view fileName, const void* fileContent, size_t fileSize);
-		COMFY_NODISCARD SourceHandle RegisterSource(std::shared_ptr<ISampleProvider> sampleProvider);
+		COMFY_NODISCARD SourceHandle RegisterSource(std::shared_ptr<ISampleProvider> sampleProvider, std::string_view name);
 		void UnloadSource(SourceHandle source);
 
 		// NOTE: Add a voice and keep a handle to it
@@ -146,10 +151,13 @@ namespace Comfy::Audio
 		// NOTE: Add a voice, play it once then discard
 		void PlayOneShotSound(SourceHandle source, std::string_view name, f32 volume = MaxVolume);
 
-		COMFY_NODISCARD std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle handle);
+		COMFY_NODISCARD std::shared_ptr<ISampleProvider> GetSharedSource(SourceHandle source);
 
-		f32 GetSourceBaseVolume(SourceHandle handle);
-		void SetSourceBaseVolume(SourceHandle handle, f32 value);
+		f32 GetSourceBaseVolume(SourceHandle source);
+		void SetSourceBaseVolume(SourceHandle source, f32 value);
+
+		void GetSourceName(SourceHandle source, std::string& outName);
+		void SetSourceName(SourceHandle source, std::string_view newName);
 
 	public:
 		AudioBackend GetAudioBackend() const;
@@ -179,6 +187,8 @@ namespace Comfy::Audio
 
 		// NOTE: Has to be large enough to store at least Engine::MaxSimultaneousVoices
 		void DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount);
+		
+		size_t DebugGetMaxSourceCount();
 
 		std::array<TimeSpan, CallbackDurationRingBufferSize> DebugGetCallbackDurations();
 		std::array<std::array<i16, LastPlayedSamplesRingBufferFrameCount>, OutputChannelCount> DebugGetLastPlayedSamples();
