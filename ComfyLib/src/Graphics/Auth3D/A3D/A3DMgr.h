@@ -10,7 +10,7 @@ namespace Comfy::Graphics
 	public:
 		static f32 Interpolate(A3DTangentType type, const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame);
 		static f32 InterpolateLinear(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame);
-		static f32 InterpolateHermit(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame);
+		static f32 InterpolateHermite(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame);
 		static f32 InterpolateHold(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame);
 
 		static std::array<const A3DKeyFrame*, 2> FindStartEndKeyFramesAt(const A3DProperty1D& property, frame_t frame);

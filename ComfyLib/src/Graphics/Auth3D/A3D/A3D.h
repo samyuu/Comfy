@@ -64,7 +64,7 @@ namespace Comfy::Graphics
 		None = 0,
 		Static = 1,
 		Linear = 2,
-		Hermit = 3,
+		Hermite = 3,
 		Hold = 4,
 		Count,
 	};

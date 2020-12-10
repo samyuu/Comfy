@@ -12,8 +12,8 @@ namespace Comfy::Graphics
 		case A3DTangentType::Linear:
 			return A3DMgr::InterpolateLinear(start, end, frame);
 
-		case A3DTangentType::Hermit:
-			return A3DMgr::InterpolateHermit(start, end, frame);
+		case A3DTangentType::Hermite:
+			return A3DMgr::InterpolateHermite(start, end, frame);
 
 		case A3DTangentType::Hold:
 			return A3DMgr::InterpolateHold(start, end, frame);
@@ -31,7 +31,7 @@ namespace Comfy::Graphics
 		return ((1.0f - t) * start.Value) + (t * end.Value);
 	}
 
-	f32 A3DMgr::InterpolateHermit(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame)
+	f32 A3DMgr::InterpolateHermite(const A3DKeyFrame& start, const A3DKeyFrame& end, frame_t frame)
 	{
 		const f32 range = end.Frame - start.Frame;
 		const f32 t = (frame - start.Frame) / range;
