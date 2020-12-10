@@ -252,12 +252,6 @@ namespace Comfy::Studio::Editor
 
 		if (IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".png;.jpg;.jpeg;.bmp;.gif"))
 		{
-			const auto lowerCaseFileName = Util::ToLowerCopy(std::string(IO::Path::GetFileName(filePath)));
-			auto fileNameContains = [&lowerCaseFileName](std::string_view subString)
-			{
-				return Util::Contains(lowerCaseFileName, subString);
-			};
-
 			auto setAndLoad = [&](std::string& outFileName, AsyncLoadedImageFile& image)
 			{
 				image.TryLoad(filePath);
@@ -266,11 +260,20 @@ namespace Comfy::Studio::Editor
 				return true;
 			};
 
-			if (fileNameContains("cover") || fileNameContains("jacket") || fileNameContains("song_jk"))
+			static constexpr std::array coverStrings { "cover", "jacket", "song_jk", "folder", "album" };
+			static constexpr std::array logoStrings { "logo", };
+			static constexpr std::array backgroundStrings { "background", "song_bg", "haikei" };
+
+			const auto lowerCaseFileName = Util::ToLowerCopy(std::string(IO::Path::GetFileName(filePath)));
+			auto isPartOfFileName = [&lowerCaseFileName](std::string_view subString) { return Util::Contains(lowerCaseFileName, subString); };
+
+			if (std::any_of(coverStrings.begin(), coverStrings.end(), isPartOfFileName))
 				return setAndLoad(chart->Properties.Image.CoverFileName, chart->Properties.Image.Cover);
-			else if (fileNameContains("logo"))
+
+			if (std::any_of(logoStrings.begin(), logoStrings.end(), isPartOfFileName))
 				return setAndLoad(chart->Properties.Image.LogoFileName, chart->Properties.Image.Logo);
-			else if (fileNameContains("background") || fileNameContains("song_bg") || fileNameContains("haikei"))
+
+			if (std::any_of(backgroundStrings.begin(), backgroundStrings.end(), isPartOfFileName))
 				return setAndLoad(chart->Properties.Image.BackgroundFileName, chart->Properties.Image.Background);
 		}
 
