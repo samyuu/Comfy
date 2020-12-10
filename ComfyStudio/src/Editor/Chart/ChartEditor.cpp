@@ -645,17 +645,11 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiSubWindows()
 	{
-#if 0 // TODO:
-		if (Gui::Begin(ICON_FA_QUESTION_CIRCLE "  Chart Editor Manual", nullptr, ImGuiWindowFlags_None))
-			chartEditorManual.Gui();
-		Gui::End();
-#endif
-
 		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sync Target Presets", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SyncGui(*chart);
 		Gui::End();
 
-#if 1 // TODO:
+#if 0 // TODO:
 		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sequence Target Presets", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SequenceGui(*chart);
 		Gui::End();

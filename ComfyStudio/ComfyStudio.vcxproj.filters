@@ -165,9 +165,6 @@
     <ClCompile Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Editor\Chart\ChartEditorManual.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMetronome.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -435,9 +432,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\FileFormat\ComfyStudioChartFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Chart\ChartEditorManual.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\Timeline\TimelineMetronome.h">

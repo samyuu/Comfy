@@ -7,7 +7,6 @@
 #include "TargetInspector.h"
 #include "BPMCalculatorWindow.h"
 #include "ChartPropertiesWindow.h"
-#include "ChartEditorManual.h"
 #include "FileFormat/ComfyStudioChartFile.h"
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
@@ -118,7 +117,6 @@ namespace Comfy::Studio::Editor
 		UndoHistoryWindow historyWindow = { undoManager };
 		BPMCalculatorWindow bpmCalculatorWindow = { undoManager };
 		ChartPropertiesWindow chartPropertiesWindow = { *this, undoManager };
-		ChartEditorManual chartEditorManual = { *this };
 
 	private:
 		struct SaveConfirmationPopupData
