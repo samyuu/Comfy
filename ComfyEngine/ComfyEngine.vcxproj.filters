@@ -309,9 +309,6 @@
     <ClInclude Include="src\ImGui\GuiRendererGlyphRanges.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImGui\Core\imgui_markdown.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Audio\Core\Backend\IAudioBackend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
