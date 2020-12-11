@@ -75,15 +75,17 @@ namespace Comfy::Studio::Editor
 			TargetProperties Properties;
 
 			TimeSpan RemainingTimeOnHit;
+			HitEvaluation HitEvaluation;
+			HitPrecision HitPrecision;
+
 			bool HasBeenHit;
 			bool HasBeenChainHit;
 			bool HasAnyChainFragmentFailed;
+			bool HasAnyChainHitAttemptBeenMade;
+			bool HasAnyChainStartFragmentBeenHit;
 			bool ThisFragmentCausedChainFailure;;
 			bool HasTimedOut;
 			bool WrongTypeOnTimeOut;
-
-			HitEvaluation HitEvaluation;
-			HitPrecision HitPrecision;
 		};
 
 		struct PlayTestSyncPair
@@ -425,6 +427,11 @@ namespace Comfy::Studio::Editor
 						const auto chainSlot = (onScreenTarget.Type == ButtonType::SlideL) ? ChainSoundSlot::Left : ChainSoundSlot::Right;
 						if (!onScreenTarget.HasBeenHit && onScreenTarget.HasBeenChainHit && !onScreenTarget.HasAnyChainFragmentFailed && remainingTime <= TimeSpan::Zero())
 						{
+							ForEachFragmentInChain(onScreenTargetPairs, onScreenPair, onScreenTarget, [&](PlayTestSyncPair& fragmentPair, PlayTestTarget& fragment)
+							{
+								fragment.HasAnyChainHitAttemptBeenMade = true;
+							});
+
 							onScreenTarget.HasBeenHit = true;
 							onScreenTarget.RemainingTimeOnHit = TimeSpan::Zero();
 							onScreenTarget.HitEvaluation = HitEvaluation::Cool;
@@ -434,6 +441,11 @@ namespace Comfy::Studio::Editor
 								sharedContext.ButtonSoundController->PlayChainSoundStart(chainSlot);
 								context.Score.ComboCount++;
 								context.Score.ChainSlideScore = 0;
+
+								ForEachFragmentInChain(onScreenTargetPairs, onScreenPair, onScreenTarget, [&](PlayTestSyncPair& fragmentPair, PlayTestTarget& fragment)
+								{
+									fragment.HasAnyChainStartFragmentBeenHit = true;
+								});
 							}
 							else
 							{
@@ -459,15 +471,19 @@ namespace Comfy::Studio::Editor
 									fragment.HasAnyChainFragmentFailed = true;
 								});
 
-								sharedContext.ButtonSoundController->FadeOutLastChainSound(chainSlot);
-								sharedContext.ButtonSoundController->PlayChainSoundFailure(chainSlot);
+								if (onScreenTarget.HasAnyChainHitAttemptBeenMade)
+								{
+									sharedContext.ButtonSoundController->FadeOutLastChainSound(chainSlot);
+									sharedContext.ButtonSoundController->PlayChainSoundFailure(chainSlot);
+								}
+
 								context.Score.ChainSlideScore = 0;
 							}
 
 							onScreenTarget.HasBeenHit = true;
 							onScreenTarget.RemainingTimeOnHit = remainingTime;
 							onScreenTarget.HasTimedOut = true;
-							onScreenTarget.HitEvaluation = HitEvaluation::Worst;
+							onScreenTarget.HitEvaluation = onScreenTarget.WrongTypeOnTimeOut ? HitEvaluation::WrongCool : HitEvaluation::Worst;
 							onScreenTarget.HitPrecision = HitPrecision::Late;
 
 							context.Score.ComboCount = 0;
@@ -480,6 +496,9 @@ namespace Comfy::Studio::Editor
 						onScreenTarget.HasTimedOut = true;
 						onScreenTarget.HitEvaluation = onScreenTarget.WrongTypeOnTimeOut ? HitEvaluation::WrongCool : HitEvaluation::Worst;
 						onScreenTarget.HitPrecision = HitPrecision::Late;
+
+						if (onScreenTarget.WrongTypeOnTimeOut && IsSlideButtonType(onScreenTarget.Type))
+							sharedContext.ButtonSoundController->PlaySlideSound();
 
 						context.Score.ComboCount = 0;
 					}
@@ -507,7 +526,7 @@ namespace Comfy::Studio::Editor
 						targetAppearData.Time = elapsedTime;
 					}
 
-					if (onScreenTarget.HasBeenHit && !onScreenTarget.HasTimedOut)
+					if (onScreenTarget.HasBeenHit && (!onScreenTarget.HasTimedOut || onScreenTarget.WrongTypeOnTimeOut))
 					{
 						const auto timeOnHit = onScreenPair.ButtonTime - onScreenTarget.RemainingTimeOnHit;
 						const auto timeSinceHit = playbackTime - timeOnHit;
@@ -515,9 +534,12 @@ namespace Comfy::Studio::Editor
 						auto& targetHitData = context.RenderHelperEx.EmplaceTargetHit();
 						targetHitData.Position = properties.Position;
 						targetHitData.Time = timeSinceHit;
-						targetHitData.SlideL = (onScreenTarget.Type == ButtonType::SlideL);
-						targetHitData.SlideR = (onScreenTarget.Type == ButtonType::SlideR);
-						targetHitData.Chain = onScreenTarget.Flags.IsChain;
+						if (!onScreenTarget.WrongTypeOnTimeOut)
+						{
+							targetHitData.SlideL = (onScreenTarget.Type == ButtonType::SlideL);
+							targetHitData.SlideR = (onScreenTarget.Type == ButtonType::SlideR);
+							targetHitData.Chain = onScreenTarget.Flags.IsChain;
+						}
 						targetHitData.CoolHit = (onScreenTarget.HitEvaluation == HitEvaluation::Cool);
 						targetHitData.FineHit = (onScreenTarget.HitEvaluation == HitEvaluation::Fine);
 						targetHitData.SafeHit = (onScreenTarget.HitEvaluation == HitEvaluation::Safe);
@@ -814,7 +836,7 @@ namespace Comfy::Studio::Editor
 		void UpdateAutoplayInput()
 		{
 			const auto playbackTime = GetPlaybackTime();
-			const auto hitThreshold = TimeSpan::FromSeconds(Gui::GetIO().DeltaTime * 0.5f);
+			const auto deltaPerfectHitThreshold = TimeSpan::FromSeconds(Gui::GetIO().DeltaTime * 0.5f);
 
 			for (auto& onScreenPair : onScreenTargetPairs)
 			{
@@ -822,7 +844,7 @@ namespace Comfy::Studio::Editor
 					continue;
 
 				const auto remainingTime = (onScreenPair.ButtonTime - playbackTime);
-				if (remainingTime <= hitThreshold)
+				if (remainingTime <= deltaPerfectHitThreshold)
 				{
 					for (size_t i = 0; i < onScreenPair.TargetCount; i++)
 					{
@@ -854,12 +876,21 @@ namespace Comfy::Studio::Editor
 				for (size_t i = 0; i < onScreenPair.TargetCount; i++)
 				{
 					auto& target = onScreenPair.Targets[i];
-					if (target.HasBeenHit || !target.Flags.IsChain)
-						return;
+					if (!target.Flags.IsChain || target.HasBeenChainHit)
+						continue;
 
-					const auto progress = static_cast<f32>(ConvertRange(onScreenPair.TargetTime.TotalSeconds(), onScreenPair.ButtonTime.TotalSeconds(), 0.0, 1.0, playbackTime.TotalSeconds()));
-					if (progress >= HitThreshold::ChainSlidePreHitProgress)
-						target.HasBeenChainHit = true;
+					if (!target.HasAnyChainStartFragmentBeenHit)
+					{
+						const auto remainingTime = (onScreenPair.ButtonTime - playbackTime);
+						if (remainingTime <= deltaPerfectHitThreshold)
+							target.HasBeenChainHit = true;
+					}
+					else
+					{
+						const auto progress = static_cast<f32>(ConvertRange(onScreenPair.TargetTime.TotalSeconds(), onScreenPair.ButtonTime.TotalSeconds(), 0.0, 1.0, playbackTime.TotalSeconds()));
+						if (progress >= HitThreshold::ChainSlidePreHitProgress)
+							target.HasBeenChainHit = true;
+					}
 				}
 			}
 		}
