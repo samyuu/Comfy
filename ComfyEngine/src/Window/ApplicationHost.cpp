@@ -799,6 +799,11 @@ namespace Comfy
 			::ShowWindow(impl->Window.Handle, impl->Window.IsMaximized ? SW_MAXIMIZE : SW_RESTORE);
 	}
 
+	int ApplicationHost::GetSwapInterval() const
+	{
+		return impl->Timing.SwapInterval;
+	}
+
 	void ApplicationHost::SetSwapInterval(int interval)
 	{
 		impl->Timing.SwapInterval = interval;

@@ -9,6 +9,7 @@
 #include "System/ComfyData.h"
 #include "Core/Logger.h"
 #include "IO/File.h"
+#include "IO/Shell.h"
 
 #include "../res/resource.h"
 
@@ -16,6 +17,7 @@ namespace Comfy::Studio
 {
 	constexpr std::string_view ComfyStudioWindowTitle = "Comfy Studio";
 	constexpr std::string_view ComfyCopyrightNotice = "Copyright (C) 2020 Samyuu";
+	constexpr std::string_view UserManualDocumentFilePath = "manual/comfy_manual.html";
 	constexpr const char* AboutWindowName = "About##Application";
 
 	namespace ApplicationConfigIDs
@@ -262,10 +264,11 @@ namespace Comfy::Studio
 
 			if (Gui::BeginMenu("Swap Interval"))
 			{
-				if (Gui::MenuItem("SwapInterval(0) - Unlimited", nullptr))
+				const auto swapInterval = host->GetSwapInterval();
+				if (Gui::MenuItem("Swap Interval 0 - Unlimited", nullptr, (swapInterval == 0)))
 					host->SetSwapInterval(0);
 
-				if (Gui::MenuItem("SwapInterval(1) - VSync", nullptr))
+				if (Gui::MenuItem("Swap Interval 1 - VSync", nullptr, (swapInterval == 1)))
 					host->SetSwapInterval(1);
 
 				Gui::EndMenu();
@@ -328,6 +331,10 @@ namespace Comfy::Studio
 			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_Text, 0.75f));
 			Gui::TextUnformatted(Gui::StringViewStart(ComfyCopyrightNotice), Gui::StringViewEnd(ComfyCopyrightNotice));
 			Gui::PopStyleColor();
+			Gui::Separator();
+
+			if (Gui::MenuItem("Open User Manual"))
+				IO::Shell::OpenWithDefaultProgram(UserManualDocumentFilePath);
 			Gui::Separator();
 
 			if (Gui::MenuItem("About Comfy Studio"))

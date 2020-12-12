@@ -63,6 +63,7 @@ namespace Comfy
 		bool GetIsMaximized() const;
 		void SetIsMaximized(bool value);
 
+		int GetSwapInterval() const;
 		void SetSwapInterval(int interval);
 
 		bool IsWindowFocused(bool mainWindowOnly = false) const;
