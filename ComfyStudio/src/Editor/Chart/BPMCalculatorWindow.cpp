@@ -74,28 +74,42 @@ namespace Comfy::Studio::Editor
 			{
 				auto guiBPMText = [](f32 bpm) { if (bpm != 0.0f) { Gui::Text("%.2f BPM", bpm); } else { Gui::TextUnformatted("--.-- BPM"); } };
 
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Minimum");
 				Gui::NextColumn();
+				Gui::AlignTextToFramePadding();
 				guiBPMText(bpmCalculator.GetBPMOnLastTapMinRound());
 				Gui::NextColumn();
+				Gui::Separator();
 
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Maximum");
 				Gui::NextColumn();
+				Gui::AlignTextToFramePadding();
 				guiBPMText(bpmCalculator.GetBPMOnLastTapMaxRound());
 				Gui::NextColumn();
+				Gui::Separator();
 
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Running");
 				Gui::NextColumn();
+				Gui::AlignTextToFramePadding();
 				guiBPMText(bpmCalculator.GetRunningBPMRound());
 				Gui::NextColumn();
+				Gui::Separator();
 
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Beat Duration");
 				Gui::NextColumn();
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted(beatTime.FormatTime().data());
 				Gui::NextColumn();
+				Gui::Separator();
 
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Timing Taps");
 				Gui::NextColumn();
+				Gui::AlignTextToFramePadding();
 				Gui::Text("%d Tap(s)", bpmCalculator.GetTapCount());
 				Gui::NextColumn();
 			}
