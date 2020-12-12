@@ -1,5 +1,4 @@
 #include "Application.h"
-#include "IO/File.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
 #include "DataTest/InputTestWindow.h"
@@ -9,11 +8,16 @@
 #include "Input/Input.h"
 #include "System/ComfyData.h"
 #include "Core/Logger.h"
+#include "IO/File.h"
 
 #include "../res/resource.h"
 
 namespace Comfy::Studio
 {
+	constexpr std::string_view ComfyStudioWindowTitle = "Comfy Studio";
+	constexpr std::string_view ComfyCopyrightNotice = "Copyright (C) 2020 Samyuu";
+	constexpr const char* VersionWindowName = "Version Info##Application";
+
 	namespace ApplicationConfigIDs
 	{
 		constexpr std::string_view RestoreRegion = "Comfy::Studio::Application::RestoreRegion";
@@ -321,12 +325,16 @@ namespace Comfy::Studio
 
 		if (Gui::BeginMenu("Help"))
 		{
-			Gui::TextUnformatted(Gui::StringViewStart(CopyrightNotice), Gui::StringViewEnd(CopyrightNotice));
+			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_Text, 0.75f));
+			Gui::TextUnformatted(Gui::StringViewStart(ComfyCopyrightNotice), Gui::StringViewEnd(ComfyCopyrightNotice));
+			Gui::PopStyleColor();
 			Gui::Separator();
-			if (Gui::MenuItem("License"))
+
+			if (Gui::MenuItem("View License Info"))
 				openLicensePopup = true;
-			if (Gui::MenuItem("Version"))
+			if (Gui::MenuItem("View Version Info"))
 				openVersionPopup = true;
+
 			Gui::EndMenu();
 		}
 
@@ -339,8 +347,8 @@ namespace Comfy::Studio
 
 		if (openVersionPopup)
 		{
-			aboutWindow.IsOpen = true;
-			Gui::OpenPopup(aboutWindow.Name);
+			versionWindowIsOpen = true;
+			Gui::OpenPopup(VersionWindowName);
 		}
 		GuiHelpVersionPopup();
 	}
@@ -365,14 +373,14 @@ namespace Comfy::Studio
 
 	void Application::GuiHelpVersionPopup()
 	{
-		if (Gui::BeginPopupModal(aboutWindow.Name, &aboutWindow.IsOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+		if (Gui::BeginPopupModal(VersionWindowName, &versionWindowIsOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
 		{
 			const auto viewport = Gui::GetMainViewport();
-			const auto window = Gui::FindWindowByName(aboutWindow.Name);
+			const auto window = Gui::FindWindowByName(VersionWindowName);
 			Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 4.0f, ImGuiCond_Always);
 			Gui::SetWindowSize(window, viewport->Size * 0.5f, ImGuiCond_Always);
 
-			Gui::BeginChild("AboutWindowChild", vec2(0.0f, 0.0f), true);
+			Gui::BeginChild("VersionWindowChild", vec2(0.0f, 0.0f), true);
 			Gui::Columns(2);
 			{
 				auto guiPropertyValue = [&](const char* property, const char* value)

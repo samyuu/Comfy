@@ -16,9 +16,6 @@ namespace Comfy::Studio
 
 		constexpr ImGuiWindowFlags scrollBarWindowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar;
 
-		Gui::BulletText("License:");
-		Gui::Separator();
-
 		Gui::BeginChild("ListChild##LicenseWindow", vec2(Gui::GetWindowWidth() * listWidth, 0.0f), true, scrollBarWindowFlags);
 		{
 			for (int i = 0; i < licenseData.size(); i++)
@@ -71,7 +68,7 @@ namespace Comfy::Studio
 
 	const char* LicenseWindow::GetWindowName() const
 	{
-		return "License Window";
+		return "License Info";
 	}
 
 	void LicenseWindow::LoadLicenseData()

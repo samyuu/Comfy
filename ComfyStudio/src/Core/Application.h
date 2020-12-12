@@ -10,10 +10,6 @@ namespace Comfy::Studio
 	class Application : NonCopyable
 	{
 	public:
-		static constexpr std::string_view ComfyStudioWindowTitle = "Comfy Studio";
-		static constexpr std::string_view CopyrightNotice = "Copyright (C) 2020 Samyuu";
-
-	public:
 		Application(std::string_view fileToOpen = "");
 		~Application() = default;
 
@@ -79,11 +75,7 @@ namespace Comfy::Studio
 		bool showDemoWindow = false;
 
 		LicenseWindow licenseWindow = {};
-		struct AboutWindowData
-		{
-			bool IsOpen = false;
-			const char* Name = "About - Version##Application";
-		} aboutWindow = {};
+		bool versionWindowIsOpen = false;
 
 		std::unique_ptr<Editor::EditorManager> editorManager = nullptr;
 		std::vector<std::unique_ptr<BaseWindow>> dataTestComponents;
