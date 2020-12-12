@@ -292,11 +292,12 @@ namespace Comfy::Studio
 	{
 		if (Gui::BeginMenu("Test Windows"))
 		{
-			const bool imguiDebugWindowsEnabled = BuildConfiguration::Debug;
-			Gui::MenuItem("Style Editor", nullptr, &showStyleEditor, imguiDebugWindowsEnabled);
-			Gui::MenuItem("Demo Window", nullptr, &showDemoWindow, imguiDebugWindowsEnabled);
+#if COMFY_DEBUG
+			Gui::MenuItem("Style Editor", nullptr, &showStyleEditor);
+			Gui::MenuItem("Demo Window", nullptr, &showDemoWindow);
 
 			Gui::Separator();
+#endif
 
 			for (const auto& component : dataTestComponents)
 				Gui::MenuItem(component->GetName(), nullptr, &component->GetIsOpen());

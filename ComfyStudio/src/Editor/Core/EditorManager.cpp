@@ -87,8 +87,11 @@ namespace Comfy::Studio::Editor
 
 		registeredEditors.reserve(3);
 		RegisterEditorComponent<ChartEditor>("Chart Editor");
+
+#if COMFY_DEBUG || 0
 		RegisterEditorComponent<AetEditor>("Aet Editor");
 		RegisterEditorComponent<SceneEditor>("Scene Editor");
+#endif
 
 		constexpr auto defaultEditor = "Chart Editor";
 		const auto lastActiveName = System::Config.GetStr(EditorManagerConfigIDs::ActiveEditor).value_or(defaultEditor);
@@ -106,6 +109,7 @@ namespace Comfy::Studio::Editor
 
 	void EditorManager::GuiWorkSpaceMenu()
 	{
+#if COMFY_DEBUG || 0
 		if (Gui::BeginMenu("Workspace"))
 		{
 			for (size_t i = 0; i < registeredEditors.size(); i++)
@@ -128,6 +132,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::EndMenu();
 		}
+#endif
 	}
 
 	void EditorManager::GuiWindows()
@@ -179,7 +184,7 @@ namespace Comfy::Studio::Editor
 	{
 		UpdateFileDrop();
 
-#if defined(COMFY_DEBUG)
+#if COMFY_DEBUG
 		// NOTE: Only support live updating during debug builds
 		UpdateEditorColors();
 #else

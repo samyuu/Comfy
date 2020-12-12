@@ -145,8 +145,10 @@ namespace Comfy::Studio::Editor
 				undoManager.Redo();
 			Gui::Separator();
 
-			// TODO: Or maybe this should be part of the EditorManager instead so that each component can register its own sub settings menu (?)
+#if 0  // TODO: Or maybe this should be part of the EditorManager instead so that each component can register its own sub settings menu (?)
+			Gui::Separator();
 			if (Gui::MenuItem("Settings...", nullptr, false, false)) {}
+#endif
 
 			Gui::EndMenu();
 		}
