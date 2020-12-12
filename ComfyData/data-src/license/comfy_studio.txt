@@ -10,7 +10,7 @@ TBD
 #license
 Copyright (C) 2020 Samyuu
 
-License To Be Determined
+All Rights Reserved.
 
 #remark
 Feeling Comfy...
