@@ -26,13 +26,13 @@ namespace Comfy::Studio::Editor
 
 			GuiProperty::PropertyFuncValueFunc([&]
 			{
-				Gui::TextDisabled("Move first Beat");
+				Gui::TextDisabled("Move by Beat");
 				return false;
 			}, [&]
 			{
 				const auto& style = Gui::GetStyle();
 				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-				const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 4.0f;
+				const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - (style.ItemSpacing.x + style.ItemInnerSpacing.x * 2.0f) - 1.0f) / 4.0f;
 
 				auto beatOffsetButton = [&](const char* label, const f64 factor)
 				{
