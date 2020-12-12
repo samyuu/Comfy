@@ -196,6 +196,7 @@ namespace ImGui
 		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontFileSize), iconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
 			return false;
 
+#if 0 // NOTE: Additional bold fonts for fancy formatting, not needed for now
 		ImFontConfig boldFontConfig = {};
 		boldFontConfig.FontDataOwnedByAtlas = false;
 		memcpy(boldFontConfig.Name, textFontName.data(), textFontName.size());
@@ -204,6 +205,7 @@ namespace ImGui
 			return false;
 		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), textFontSizes[2], &boldFontConfig) == nullptr)
 			return false;
+#endif
 
 		return true;
 	}
