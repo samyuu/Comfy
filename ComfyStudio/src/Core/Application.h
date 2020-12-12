@@ -49,8 +49,7 @@ namespace Comfy::Studio
 		void GuiTestWindowWindows();
 
 		void GuiHelpMenus();
-		void GuiLicensePopup();
-		void GuiHelpVersionPopup();
+		void GuiAboutPopup();
 		void GuiMenuBarAudioAndPerformanceDisplay();
 
 	private:
@@ -75,7 +74,7 @@ namespace Comfy::Studio
 		bool showDemoWindow = false;
 
 		LicenseWindow licenseWindow = {};
-		bool versionWindowIsOpen = false;
+		bool aboutWindowIsOpen = false;
 
 		std::unique_ptr<Editor::EditorManager> editorManager = nullptr;
 		std::vector<std::unique_ptr<BaseWindow>> dataTestComponents;

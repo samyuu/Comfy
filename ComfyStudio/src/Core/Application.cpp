@@ -16,7 +16,7 @@ namespace Comfy::Studio
 {
 	constexpr std::string_view ComfyStudioWindowTitle = "Comfy Studio";
 	constexpr std::string_view ComfyCopyrightNotice = "Copyright (C) 2020 Samyuu";
-	constexpr const char* VersionWindowName = "Version Info##Application";
+	constexpr const char* AboutWindowName = "About##Application";
 
 	namespace ApplicationConfigIDs
 	{
@@ -320,8 +320,7 @@ namespace Comfy::Studio
 
 	void Application::GuiHelpMenus()
 	{
-		bool openLicensePopup = false;
-		bool openVersionPopup = false;
+		bool openAboutPopup = false;
 
 		if (Gui::BeginMenu("Help"))
 		{
@@ -330,84 +329,64 @@ namespace Comfy::Studio
 			Gui::PopStyleColor();
 			Gui::Separator();
 
-			if (Gui::MenuItem("View License Info"))
-				openLicensePopup = true;
-			if (Gui::MenuItem("View Version Info"))
-				openVersionPopup = true;
+			if (Gui::MenuItem("About Comfy Studio"))
+				openAboutPopup = true;
 
 			Gui::EndMenu();
 		}
 
-		if (openLicensePopup)
+		if (openAboutPopup)
 		{
-			*licenseWindow.GetIsWindowOpen() = true;
-			Gui::OpenPopup(licenseWindow.GetWindowName());
+			aboutWindowIsOpen = true;
+			Gui::OpenPopup(AboutWindowName);
 		}
-		GuiLicensePopup();
-
-		if (openVersionPopup)
-		{
-			versionWindowIsOpen = true;
-			Gui::OpenPopup(VersionWindowName);
-		}
-		GuiHelpVersionPopup();
+		GuiAboutPopup();
 	}
 
-	void Application::GuiLicensePopup()
+	void Application::GuiAboutPopup()
 	{
-		if (Gui::BeginPopupModal(licenseWindow.GetWindowName(), licenseWindow.GetIsWindowOpen(), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+		const auto viewport = Gui::GetWindowViewport();
+		Gui::SetNextWindowPos(viewport->Pos + viewport->Size / 4.0f, ImGuiCond_Appearing);
+		Gui::SetNextWindowSize(viewport->Size * 0.5f, ImGuiCond_Appearing);
+
+		if (Gui::BeginPopupModal(AboutWindowName, &aboutWindowIsOpen, ImGuiWindowFlags_None))
 		{
-			const auto viewport = Gui::GetMainViewport();
-			const auto window = Gui::FindWindowByName(licenseWindow.GetWindowName());
-			Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 8.0f, ImGuiCond_Always);
-			Gui::SetWindowSize(window, viewport->Size * 0.75f, ImGuiCond_Always);
-
-			licenseWindow.DrawGui();
-
-			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
-				Gui::CloseCurrentPopup();
-
-			Gui::EndPopup();
-		}
-	}
-
-	void Application::GuiHelpVersionPopup()
-	{
-		if (Gui::BeginPopupModal(VersionWindowName, &versionWindowIsOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
-		{
-			const auto viewport = Gui::GetMainViewport();
-			const auto window = Gui::FindWindowByName(VersionWindowName);
-			Gui::SetWindowPos(window, viewport->Pos + viewport->Size / 4.0f, ImGuiCond_Always);
-			Gui::SetWindowSize(window, viewport->Size * 0.5f, ImGuiCond_Always);
-
-			Gui::BeginChild("VersionWindowChild", vec2(0.0f, 0.0f), true);
-			Gui::Columns(2);
+			Gui::BeginTabBar("AboutTabBar", ImGuiTabBarFlags_NoTooltip);
+			if (Gui::BeginTabItem("Version", nullptr, ImGuiTabItemFlags_NoCloseButton))
 			{
-				auto guiPropertyValue = [&](const char* property, const char* value)
+				Gui::BeginChild("VersionWindowChild", vec2(0.0f, 0.0f), true);
+				Gui::Columns(2);
 				{
-					Gui::Text("%s::%s", "BuildVersion", property);
-					Gui::NextColumn();
-					Gui::TextUnformatted(value);
-					Gui::NextColumn();
-				};
+					auto guiPropertyValue = [&](const char* property, const char* value)
+					{
+						Gui::AlignTextToFramePadding();
+						Gui::Text("%s %s", "BuildVersion", property);
+						Gui::NextColumn();
+						Gui::AlignTextToFramePadding();
+						Gui::TextUnformatted(value);
+						Gui::NextColumn();
+						Gui::Separator();
+					};
 
-				Gui::TextUnformatted("Property");
-				Gui::NextColumn();
-				Gui::TextUnformatted("Value");
-				Gui::NextColumn();
+					guiPropertyValue("BuildConfiguration", BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
+					guiPropertyValue("Author", BuildVersion::Author);
+					guiPropertyValue("CommitHash", BuildVersion::CommitHash);
+					guiPropertyValue("CommitTime", BuildVersion::CommitTime);
+					guiPropertyValue("CommitNumber", BuildVersion::CommitNumber);
+					guiPropertyValue("Branch", BuildVersion::Branch);
+					guiPropertyValue("CompileTime", BuildVersion::CompileTime);
+				}
+				Gui::Columns(1);
+				Gui::EndChild();
 
-				Gui::Separator();
-
-				guiPropertyValue("BuildConfiguration", BuildConfiguration::Debug ? "Debug" : BuildConfiguration::Release ? "Release" : "Unknown");
-				guiPropertyValue("Author", BuildVersion::Author);
-				guiPropertyValue("CommitHash", BuildVersion::CommitHash);
-				guiPropertyValue("CommitTime", BuildVersion::CommitTime);
-				guiPropertyValue("CommitNumber", BuildVersion::CommitNumber);
-				guiPropertyValue("Branch", BuildVersion::Branch);
-				guiPropertyValue("CompileTime", BuildVersion::CompileTime);
+				Gui::EndTabItem();
 			}
-			Gui::Columns(1);
-			Gui::EndChild();
+			if (Gui::BeginTabItem("License", nullptr, ImGuiTabItemFlags_NoCloseButton))
+			{
+				licenseWindow.DrawGui();
+				Gui::EndTabItem();
+			}
+			Gui::EndTabBar();
 
 			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
 				Gui::CloseCurrentPopup();
