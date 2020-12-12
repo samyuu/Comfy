@@ -4,6 +4,7 @@
 #include "Input/Input.h"
 #include "Time/TimeUtilities.h"
 #include "IO/Path.h"
+#include "IO/Shell.h"
 #include <numeric>
 
 namespace Comfy::Studio::DataTest
@@ -79,6 +80,8 @@ namespace Comfy::Studio::DataTest
 							engine.OpenStartStream();
 						if (Gui::Button("Stop Close Stream", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 							engine.StopCloseStream();
+						if (Gui::Button("Ensure Stream Running", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+							engine.EnsureStreamRunning();
 						return false;
 					});
 
@@ -185,25 +188,42 @@ namespace Comfy::Studio::DataTest
 
 				GuiProperty::TreeNode("Audio Engine (Debug)", [&]
 				{
-					GuiProperty::PropertyLabelValueFunc("Raw Recording", [&]
+					GuiProperty::PropertyLabelValueFunc("WAV Recording", [&]
 					{
+						constexpr std::string_view recordingDirectory = "dev_ram/audio_dump";
+
 						if (!engine.DebugGetEnableOutputCapture())
 						{
-							Gui::PushStyleColor(ImGuiCol_Text, greenColor);
 							if (Gui::Button("Start Recording", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
 								engine.DebugSetEnableOutputCapture(true);
 						}
 						else
 						{
-							Gui::PushStyleColor(ImGuiCol_Text, redColor);
-							if (Gui::Button("Stop Recording (Dump)", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+							const auto halfAvailWidth = (Gui::GetContentRegionAvailWidth() - Gui::GetStyle().ItemInnerSpacing.x * 1.0f) / 2.0f;
+
+							Gui::PushStyleColor(ImGuiCol_Text, greenColor);
+							if (Gui::Button("Stop and Save", vec2(halfAvailWidth, 0.0f)))
 							{
+								const auto filePath = IO::Path::Combine(recordingDirectory, IO::Path::ChangeExtension("engine_output_" + FormatFileNameDateTimeNow(), ".wav"));
 								engine.DebugSetEnableOutputCapture(false);
-								const auto filePath = IO::Path::Combine("dev_ram/audio_dump", IO::Path::ChangeExtension("engine_output_" + FormatFileNameDateTimeNow(), ".wav"));
 								engine.DebugFlushCaptureToWaveFile(filePath);
 							}
+							Gui::PopStyleColor();
+
+							Gui::SameLine(0.0f, Gui::GetStyle().ItemInnerSpacing.x);
+
+							Gui::PushStyleColor(ImGuiCol_Text, redColor);
+							if (Gui::Button("Stop and Discard", vec2(halfAvailWidth, 0.0f)))
+							{
+								engine.DebugSetEnableOutputCapture(false);
+								engine.DebugFlushCaptureDiscard();
+							}
+							Gui::PopStyleColor();
 						}
-						Gui::PopStyleColor();
+
+						if (Gui::Button("Open Directory...", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+							IO::Shell::OpenInExplorer(recordingDirectory);
+
 						return false;
 					});
 
@@ -327,35 +347,66 @@ namespace Comfy::Studio::DataTest
 				auto sourceHandle = static_cast<SourceHandle>(i);
 				auto sharedSource = engine.GetSharedSource(sourceHandle);
 
-				if (sharedSource != nullptr)
+				if (sharedSource == nullptr)
+					continue;
+
+				Gui::PushID(sharedSource.get());
+				bool thisSourceIsPreviewing = (sourcePreviewVoice.GetIsPlaying() && sourcePreviewVoice.GetSource() == sourceHandle);
+
+				const bool pushTextColor = !thisSourceIsPreviewing;
+				if (pushTextColor) Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+
+				const bool selectableClicked = Gui::Selectable("##SourcePreview", thisSourceIsPreviewing, ImGuiSelectableFlags_SpanAllColumns);
+				const bool selectableHovered = Gui::IsItemHovered();
+				const bool selectableRightClicked = (selectableHovered && Gui::IsMouseClicked(1));
+				const auto selectableRect = Gui::GetCurrentWindowRead()->DC.LastItemRect;
+				const auto nameColumnWidth = Gui::GetContentRegionAvailWidth();
+				Gui::SameLine();
+
+				if (selectableClicked)
 				{
-					Gui::PushID(sharedSource.get());
-					const bool thisSourceIsPreviewing = (sourcePreviewVoice.GetIsPlaying() && sourcePreviewVoice.GetSource() == sourceHandle);
-
-					if (!thisSourceIsPreviewing) Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-
-					if (Gui::Selectable("##SourcePreview", thisSourceIsPreviewing, ImGuiSelectableFlags_SpanAllColumns))
-						thisSourceIsPreviewing ? StopSourcePreview() : StartSourcePreview(sourceHandle);
-					Gui::SameLine();
-
-					engine.GetSourceName(sourceHandle, sourceNameBuffer);
-					Gui::TextUnformatted(Gui::StringViewStart(sourceNameBuffer), Gui::StringViewEnd(sourceNameBuffer));
-					Gui::NextColumn();
-					sourceNameBuffer.clear();
-
-					static_assert(sizeof(HandleBaseType) == 2, "TODO: Update format strings");
-					Gui::Text("0x%04X", static_cast<HandleBaseType>(sourceHandle));
-					Gui::NextColumn();
-
-					const auto baseVolume = engine.GetSourceBaseVolume(sourceHandle);
-					Gui::Text("%.2f%%", baseVolume * 100.0f);
-					Gui::NextColumn();
-
-					if (!thisSourceIsPreviewing) Gui::PopStyleColor();
-
-					Gui::PopID();
+					thisSourceIsPreviewing ? StopSourcePreview() : StartSourcePreview(sourceHandle);
+					thisSourceIsPreviewing ^= true;
 				}
 
+				if (selectableRightClicked)
+				{
+					StartSourcePreview(sourceHandle);
+					thisSourceIsPreviewing = true;
+				}
+
+				if (thisSourceIsPreviewing)
+				{
+					if (selectableRightClicked)
+					{
+						const auto hoverProgress = (Gui::GetMousePos().x - selectableRect.Min.x) / nameColumnWidth;
+						if (hoverProgress >= 0.0f && hoverProgress < 1.0f)
+							sourcePreviewVoice.SetPosition((sourcePreviewVoice.GetDuration() * hoverProgress));
+					}
+
+					const auto previewProgress = std::clamp(static_cast<f32>(sourcePreviewVoice.GetPosition() / sourcePreviewVoice.GetDuration()), 0.0f, 1.0f);
+					Gui::GetWindowDrawList()->AddRectFilled(
+						vec2(selectableRect.Min.x, selectableRect.Min.y),
+						vec2(selectableRect.Min.x + (nameColumnWidth * previewProgress), selectableRect.Max.y),
+						Gui::GetColorU32(selectableHovered ? ImGuiCol_PlotHistogramHovered : ImGuiCol_PlotHistogram, 1.0f));
+				}
+
+				engine.GetSourceName(sourceHandle, sourceNameBuffer);
+				Gui::TextUnformatted(Gui::StringViewStart(sourceNameBuffer), Gui::StringViewEnd(sourceNameBuffer));
+				Gui::NextColumn();
+				sourceNameBuffer.clear();
+
+				static_assert(sizeof(HandleBaseType) == 2, "TODO: Update format strings");
+				Gui::Text("0x%04X", static_cast<HandleBaseType>(sourceHandle));
+				Gui::NextColumn();
+
+				const auto baseVolume = engine.GetSourceBaseVolume(sourceHandle);
+				Gui::Text("%.2f%%", baseVolume * 100.0f);
+				Gui::NextColumn();
+
+				if (pushTextColor) Gui::PopStyleColor();
+
+				Gui::PopID();
 				Gui::Separator();
 			}
 
@@ -365,7 +416,7 @@ namespace Comfy::Studio::DataTest
 		}
 	}
 
-	void AudioTestWindow::StartSourcePreview(SourceHandle source)
+	void AudioTestWindow::StartSourcePreview(SourceHandle source, TimeSpan startTime)
 	{
 		if (source == SourceHandle::Invalid)
 			return;
@@ -375,12 +426,12 @@ namespace Comfy::Studio::DataTest
 		if (!previewVoiceAdded)
 		{
 			previewVoiceAdded = true;
-			sourcePreviewVoice = AudioEngine::GetInstance().AddVoice(SourceHandle::Invalid, "AudioTestWindow PreviewVoice", false, 1.0f, false);
+			sourcePreviewVoice = AudioEngine::GetInstance().AddVoice(SourceHandle::Invalid, "AudioTestWindow SourcePreview", false, 1.0f, false);
 			sourcePreviewVoice.SetPauseOnEnd(true);
 		}
 
 		sourcePreviewVoice.SetSource(source);
-		sourcePreviewVoice.SetPosition(TimeSpan::Zero());
+		sourcePreviewVoice.SetPosition(startTime);
 		sourcePreviewVoice.SetIsPlaying(true);
 	}
 

@@ -195,6 +195,7 @@ namespace Comfy::Audio
 
 		bool DebugGetEnableOutputCapture() const;
 		void DebugSetEnableOutputCapture(bool value);
+		void DebugFlushCaptureDiscard();
 		void DebugFlushCaptureToWaveFile(std::string_view filePath);
 
 	private:

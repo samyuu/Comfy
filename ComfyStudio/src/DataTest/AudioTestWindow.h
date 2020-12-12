@@ -22,7 +22,7 @@ namespace Comfy::Studio::DataTest
 		void ActiveVoicesGui();
 		void LoadedSourcesGui();
 
-		void StartSourcePreview(Audio::SourceHandle source);
+		void StartSourcePreview(Audio::SourceHandle source, TimeSpan startTime = TimeSpan::Zero());
 		void StopSourcePreview();
 
 	private:

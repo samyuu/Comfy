@@ -881,6 +881,12 @@ namespace Comfy::Audio
 		impl->DebugCapture.RecordOutput = value;
 	}
 
+	void AudioEngine::DebugFlushCaptureDiscard()
+	{
+		const auto lock = std::scoped_lock(impl->DebugCapture.Mutex);
+		impl->DebugCapture.RecordedSamples.clear();
+	}
+
 	void AudioEngine::DebugFlushCaptureToWaveFile(std::string_view filePath)
 	{
 		const auto lock = std::scoped_lock(impl->DebugCapture.Mutex);
