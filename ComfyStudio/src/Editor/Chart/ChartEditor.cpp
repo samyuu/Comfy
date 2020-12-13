@@ -386,6 +386,9 @@ namespace Comfy::Studio::Editor
 			chartSaveFileFuture = IO::File::SaveAsync(chart->ChartFilePath, lastSavedChartFile.get());
 
 			undoManager.ClearPendingChangesFlag();
+
+			recentChartFiles.Add(chart->ChartFilePath);
+			System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
 		}
 	}
 
