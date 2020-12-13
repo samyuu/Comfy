@@ -204,6 +204,7 @@
     <ClCompile Include="src\Editor\Chart\Timeline\TimelineMap.cpp" />
     <ClCompile Include="src\Editor\Common\ButtonSoundController.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp" />
+    <ClCompile Include="src\Editor\Common\RecentFilesList.cpp" />
     <ClCompile Include="src\Editor\Common\SoundEffectManager.cpp" />
     <ClCompile Include="src\Editor\Common\UndoHistoryWindow.cpp" />
     <ClCompile Include="src\Editor\Core\EditorManager.cpp" />
@@ -286,6 +287,7 @@
     <ClInclude Include="src\Editor\Common\ButtonSoundController.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />
     <ClInclude Include="src\Editor\Common\CheckerboardGrid.h" />
+    <ClInclude Include="src\Editor\Common\RecentFilesList.h" />
     <ClInclude Include="src\Editor\Common\SfxArchive.h" />
     <ClInclude Include="src\Editor\Common\SoundEffectManager.h" />
     <ClInclude Include="src\Editor\Common\UndoHistoryWindow.h" />
