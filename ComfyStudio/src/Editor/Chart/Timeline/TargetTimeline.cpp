@@ -1833,6 +1833,12 @@ namespace Comfy::Studio::Editor
 		PlaybackStateChangeSyncButtonSoundCursorTime(playbackTime);
 	}
 
+	void TargetTimeline::ResetScrollAndZoom()
+	{
+		SetScrollX(0.0f);
+		zoomLevel = 2.0f;
+	}
+
 	i32 TargetTimeline::FindGridDivisionPresetIndex() const
 	{
 		for (i32 i = 0; i < static_cast<i32>(presetBarGridDivisions.size()); i++)

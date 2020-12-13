@@ -67,6 +67,8 @@ namespace Comfy::Studio::Editor
 		void ResumePlayback() override;
 		void StopPlayback() override;
 
+		void ResetScrollAndZoom();
+
 	public:
 		i32 FindGridDivisionPresetIndex() const;
 		void SelectNextPresetGridDivision(i32 direction);

@@ -249,6 +249,7 @@ namespace Comfy::Studio::Editor
 		if (IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".flac;.ogg;.mp3;.wav"))
 		{
 			LoadSongAsync(filePath);
+			undoManager.SetChangesWereMade();
 			return true;
 		}
 
@@ -302,9 +303,6 @@ namespace Comfy::Studio::Editor
 		songSource = Audio::SourceHandle::Invalid;
 		songSourceFilePathAbsolute.clear();
 
-		if (isPlaying)
-			PausePlayback();
-
 		timeline->OnSongLoaded();
 	}
 
@@ -343,6 +341,12 @@ namespace Comfy::Studio::Editor
 		chart->Properties.Image.Background.TryLoad(chart->Properties.Image.BackgroundFileName, chart->ChartFilePath);
 
 		SyncWorkingChartPointers();
+
+		if (isPlaying)
+			timeline->StopPlayback();
+
+		timeline->SetCursorTime(TimeSpan::Zero());
+		timeline->ResetScrollAndZoom();
 	}
 
 	void ChartEditor::SaveChartFileAsync(std::string_view filePath)
@@ -702,6 +706,7 @@ namespace Comfy::Studio::Editor
 		{
 			constexpr auto buttonSize = vec2(120.0f, 0.0f);
 
+			Gui::AlignTextToFramePadding();
 			Gui::Text("  Save changes to the current file?\n\n\n");
 			Gui::Separator();
 
