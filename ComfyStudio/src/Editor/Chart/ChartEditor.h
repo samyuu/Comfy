@@ -13,6 +13,7 @@
 #include "Gameplay/PlayTestWindow.h"
 #include "Editor/Common/UndoHistoryWindow.h"
 #include "Editor/Common/SoundEffectManager.h"
+#include "Editor/Common/RecentFilesList.h"
 #include "ImGui/Widgets/FileViewer.h"
 #include "Undo/Undo.h"
 
@@ -128,6 +129,8 @@ namespace Comfy::Studio::Editor
 		std::future<bool> chartSaveFileFuture;
 		std::unique_ptr<ComfyStudioChartFile> lastSavedChartFile;
 
+		RecentFilesList recentChartFiles = {};
+
 	private:
 		std::string songSourceFilePathAbsolute;
 		std::future<Audio::SourceHandle> songSourceFuture;
@@ -137,7 +140,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		bool isPlaying = false;
-		TimeSpan playbackTimeOnPlaybackStart;
-		TimeSpan playbackTimeOnPlaytestStart;
+		TimeSpan playbackTimeOnPlaybackStart = {};
+		TimeSpan playbackTimeOnPlaytestStart = {};
 	};
 }

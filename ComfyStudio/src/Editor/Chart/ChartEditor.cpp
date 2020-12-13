@@ -12,6 +12,11 @@
 
 namespace Comfy::Studio::Editor
 {
+	namespace ApplicationConfigIDs
+	{
+		constexpr std::string_view RecentFiles = "Comfy::Studio::ChartEditor::RecentFiles";
+	}
+
 	namespace
 	{
 		constexpr std::string_view FallbackChartFileName = "Untitled Chart.csfm";
@@ -30,6 +35,9 @@ namespace Comfy::Studio::Editor
 
 	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
+		if (auto recentFiles = System::Config.GetStr(ApplicationConfigIDs::RecentFiles))
+			recentChartFiles.FromNewLineString(recentFiles.value());
+
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
 
@@ -93,17 +101,27 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Open...", "Ctrl + O", false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
 
-			if (Gui::BeginMenu("Open Recent", false))
+			if (Gui::BeginMenu("Open Recent", !recentChartFiles.View().empty()))
 			{
-				// TODO: Read and write to / from config file (?)
-				for (const auto path : std::array { "dev_ram/chart/test/test_chart.csfm" })
-				{
-					if (Gui::MenuItem(path))
-						CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
-				}
+				size_t fileIndex = 0;
 
-				// TODO: Clear config file entries
-				if (Gui::MenuItem("Clear Items")) {}
+				const auto& recentFilesView = recentChartFiles.View();
+				std::for_each(recentFilesView.rbegin(), recentFilesView.rend(), [&](const auto& path)
+				{
+					// NOTE: No actual keyboard input yet but still help with reading the list
+					const char shortcutBuffer[2] = { (fileIndex < 9) ? static_cast<char>('1' + fileIndex) : '\0', '\0' };
+
+					if (Gui::MenuItem(path.c_str(), shortcutBuffer))
+						CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
+					fileIndex++;
+				});
+
+				Gui::Separator();
+				if (Gui::MenuItem("Clear Items"))
+				{
+					recentChartFiles.Clear();
+					System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
+				}
 
 				Gui::EndMenu();
 			}
@@ -143,7 +161,6 @@ namespace Comfy::Studio::Editor
 				undoManager.Undo();
 			if (Gui::MenuItem("Redo", "Ctrl + Y", false, undoManager.CanRedo()))
 				undoManager.Redo();
-			Gui::Separator();
 
 #if 0  // TODO: Or maybe this should be part of the EditorManager instead so that each component can register its own sub settings menu (?)
 			Gui::Separator();
@@ -320,6 +337,9 @@ namespace Comfy::Studio::Editor
 	{
 		if (!Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
 			return;
+
+		recentChartFiles.Add(filePath);
+		System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
 
 		// TODO: Display error GUI if unable to load
 		const auto chartFile = IO::File::Load<ComfyStudioChartFile>(filePath);
