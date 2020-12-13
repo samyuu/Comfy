@@ -331,6 +331,12 @@ namespace Comfy::Studio::Editor
 		UnloadSong();
 
 		SyncWorkingChartPointers();
+
+		if (isPlaying)
+			timeline->StopPlayback();
+
+		timeline->SetCursorTime(TimeSpan::Zero());
+		timeline->ResetScrollAndZoom();
 	}
 
 	void ChartEditor::LoadChartFileSync(std::string_view filePath)
