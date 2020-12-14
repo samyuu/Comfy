@@ -21,7 +21,7 @@ namespace Comfy::Studio::Editor
 	private:
 		Undo::UndoManager& undoManager;
 
-		bool applyTapToTempoMap = true;
+		bool applyTapToTempoMap = false;
 		BPMTapCalculator bpmCalculator = {};
 	};
 }
