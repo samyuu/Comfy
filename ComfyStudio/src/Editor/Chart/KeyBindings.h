@@ -74,7 +74,8 @@ namespace Comfy::Studio::Editor
 
 		constexpr Input::KeyCode PositionToolFlipHorizontal = Input::KeyCode_H;
 		constexpr Input::KeyCode PositionToolFlipVertical = Input::KeyCode_J;
-		constexpr Input::KeyCode PositionToolInterpolate = Input::KeyCode_U;
+		constexpr Input::KeyCode PositionToolPositionInRow = Input::KeyCode_U;
+		constexpr Input::KeyCode PositionToolInterpolate = Input::KeyCode_I;
 
 		constexpr Input::KeyCode PathToolInvertFrequencies = Input::KeyCode_R;
 		constexpr Input::KeyCode PathToolInterpolateClockwise = Input::KeyCode_U;

@@ -39,14 +39,19 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::OnContextMenuGUI(Chart& chart)
 	{
-		// TODO: What about sync placement... need full integration for horziontal/verctical pairs as well as triangle and square formations
-
 		if (Gui::MenuItem("Flip Targets Horizontally", Input::GetKeyCodeName(KeyBindings::PositionToolFlipHorizontal), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, true);
 		if (Gui::MenuItem("Flip Targets Vertically", Input::GetKeyCodeName(KeyBindings::PositionToolFlipVertical), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, false);
+
+		if (Gui::MenuItem("Position in Row", Input::GetKeyCodeName(KeyBindings::PositionToolPositionInRow), false, (lastFrameSelectionCount > 0)))
+			PositionSelectedTargetInRowAutoDirection(undoManager, chart);
 		if (Gui::MenuItem("Interpolate Positions", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolate), false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositions(undoManager, chart);
+
+#if COMFY_DEBUG && 0 // TODO: Two step rotation tool
+		Gui::MenuItem("Rotate Targets...", "?", false, false);
+#endif
 
 		Gui::Separator();
 	}
@@ -186,10 +191,11 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipHorizontal, false))
 				FlipSelectedTargets(undoManager, chart, true);
-
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipVertical, false))
 				FlipSelectedTargets(undoManager, chart, false);
 
+			if (Gui::IsKeyPressed(KeyBindings::PositionToolPositionInRow, false))
+				PositionSelectedTargetInRowAutoDirection(undoManager, chart);
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolate, false))
 				InterpolateSelectedTargetPositions(undoManager, chart);
 		}
@@ -202,6 +208,7 @@ namespace Comfy::Studio::Editor
 
 		for (const auto&[key, direction] : KeyBindings::PositionToolMoveStep)
 		{
+			// TODO: Improve command merge behavior
 			if (Gui::IsKeyPressed(key, true) && Gui::GetActiveID() == 0)
 			{
 				const auto stepDistance = Gui::GetIO().KeyShift ? GridStepDistance : PreciseStepDistance;
@@ -432,6 +439,74 @@ namespace Comfy::Studio::Editor
 			undoManager.Execute<FlipTargetListPropertiesHorizontal>(chart, std::move(targetData));
 		else
 			undoManager.Execute<FlipTargetListPropertiesVertical>(chart, std::move(targetData));
+	}
+
+	void TargetPositionTool::PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart)
+	{
+		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+		if (firstTarget.Tick == lastTarget.Tick)
+			return;
+
+		const auto startPosition = Rules::TryGetProperties(firstTarget).Position;
+		const auto endPosition = Rules::TryGetProperties(lastTarget).Position;
+		const auto rowDirection = glm::normalize(endPosition - startPosition);
+
+		std::vector<ChangeTargetListPositionsRow::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		if (startPosition == endPosition)
+		{
+			for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+			{
+				if (!chart.Targets[i].IsSelected)
+					continue;
+
+				auto& data = targetData.emplace_back();
+				data.TargetIndex = i;
+				data.NewValue.Position = startPosition;
+			}
+		}
+		else
+		{
+			auto lastTargetPosition = startPosition;
+			const auto* lastTarget = &firstTarget;
+
+			for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+			{
+				const auto& thisTarget = chart.Targets[i];
+				if (!thisTarget.IsSelected)
+					continue;
+
+				auto& data = targetData.emplace_back();
+				data.TargetIndex = i;
+
+				if (&thisTarget == &firstTarget)
+				{
+					data.NewValue.Position = startPosition;
+				}
+				else
+				{
+					const auto tickDistance = (thisTarget.Tick - lastTarget->Tick);
+
+					auto distance = (lastTarget->Flags.IsChain && !lastTarget->Flags.IsChainEnd) ? Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistance);
+					if (lastTarget->Flags.IsChainEnd)
+						distance += Rules::ChainFragmentStartEndOffsetDistance;
+
+					data.NewValue.Position = lastTargetPosition + (rowDirection * distance);
+				}
+
+				lastTargetPosition = data.NewValue.Position;
+				lastTarget = &chart.Targets[i];
+			}
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		undoManager.Execute<ChangeTargetListPositionsRow>(chart, std::move(targetData));
 	}
 
 	void TargetPositionTool::InterpolateSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart)
