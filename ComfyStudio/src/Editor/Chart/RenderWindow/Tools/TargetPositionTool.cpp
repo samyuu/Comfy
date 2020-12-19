@@ -172,9 +172,47 @@ namespace Comfy::Studio::Editor
 		drawList.AddLine(row.Start, row.Start + (vec2(+0.0f, +1.0f) * guideRadius), dimWhiteColor, 1.0f);
 		drawList.AddLine(row.Start, row.Start + (vec2(-1.0f, +0.0f) * guideRadius), dimWhiteColor, 1.0f);
 
+		static constexpr struct ArrowSettingsData
+		{
+			f32 Size = 28.0f;
+			f32 HeadSpacing = 32.0f;
+			f32 HeadEndSpacingFactor = 0.6f;
+			f32 HeadSize = 56.0f;
+			f32 HeadAngle = 16.0f;
+			vec4 BackgroundColor = vec4(0.16f, 0.16f, 0.16f, 0.95f);
+		} arrowSettings;
+
+		auto drawArrowHeader = [](ImDrawList& drawList, vec2 position, vec2 direction, ImU32 color, f32 thickness = 1.0f)
+		{
+			const auto angleRadians = glm::atan(direction.y, direction.x);
+
+			const auto headRadiansL = (angleRadians - glm::radians(arrowSettings.HeadAngle));
+			const auto headRadiansR = (angleRadians + glm::radians(arrowSettings.HeadAngle));
+			const auto headDirectionL = vec2(glm::cos(headRadiansL), glm::sin(headRadiansL));
+			const auto headDirectionR = vec2(glm::cos(headRadiansR), glm::sin(headRadiansR));
+			const auto backgroundColor = Gui::ColorConvertFloat4ToU32(arrowSettings.BackgroundColor * Gui::ColorConvertU32ToFloat4(color));
+
+			const auto headStart = position;
+			const auto headEnd = headStart + ((arrowSettings.HeadSpacing * arrowSettings.HeadEndSpacingFactor) * direction);
+
+			const auto headEndL = headStart + (headDirectionL * (arrowSettings.HeadSize * 0.5f));
+			const auto headEndR = headStart + (headDirectionR * (arrowSettings.HeadSize * 0.5f));
+
+			drawList.AddLine(headStart, headEnd, backgroundColor, 1.0f);
+			drawList.AddTriangleFilled(headStart, headEndL, headEnd, backgroundColor);
+			drawList.AddTriangleFilled(headEnd, headEndR, headStart, backgroundColor);
+
+			drawList.AddLine(headStart, headEndL, color, thickness);
+			drawList.AddLine(headStart, headEndR, color, thickness);
+			drawList.AddLine(headEndL, headEnd, color, thickness);
+			drawList.AddLine(headEndR, headEnd, color, thickness);
+		};
+
+		const auto arrowPosition = row.Start + (direction * (row.Backwards ? (guideRadius - arrowSettings.Size) : guideRadius));
+
 		drawList.AddCircleFilled(row.Start, 2.0f, whiteColor, 9);
-		drawList.AddCircleFilled(row.Start + (direction * guideRadius), 4.0f, whiteColor, 9);
-		drawList.AddLine(row.Start, row.Start + (direction * guideRadius), whiteColor, 1.0f);
+		drawList.AddLine(row.Start, arrowPosition, whiteColor, 1.0f);
+		drawArrowHeader(drawList, arrowPosition, row.Backwards ? +direction : -direction, whiteColor);
 
 		char textBuffer[32];
 		const auto textView = std::string_view(textBuffer, sprintf_s(textBuffer, "[%s]", CardinalDirectionAbbreviations[static_cast<u8>(cardinal)]));
@@ -319,8 +357,11 @@ namespace Comfy::Studio::Editor
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
 			constexpr auto distanceThreshold = 9.0f;
-			if (glm::distance(row.Start, row.End) > distanceThreshold && (selectedTargetsBuffer.size() > 1) && row.Start != row.End && mouseWasMoved || steepStateChanged)
-				ArrangeSelectedTargetsInRow(undoManager, chart, rowDirection, IsIntercardinal(cardinal), row.Backwards);
+			if (selectedTargetsBuffer.size() > 1 && glm::distance(row.Start, row.End) > distanceThreshold)
+			{
+				if (row.Start != row.End && (mouseWasMoved || steepStateChanged))
+					ArrangeSelectedTargetsInRow(undoManager, chart, rowDirection, IsIntercardinal(cardinal), row.Backwards);
+			}
 		}
 	}
 
