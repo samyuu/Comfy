@@ -245,7 +245,8 @@ namespace Comfy
 			if (!::RegisterClassExW(&windowClass))
 				return false;
 
-			const auto windowStartupRegion = ClientToWindowArea(Window.Position, Window.Size);
+			auto windowStartupRegion = ClientToWindowArea(Window.Position, Window.Size);
+			windowStartupRegion.y = std::max(windowStartupRegion.y, 0);
 
 			Window.Handle = ::CreateWindowExW(
 				NULL,
@@ -732,6 +733,9 @@ namespace Comfy
 		setIfHasValue(impl->Window.IsFullscreen, param.StartupWindowState.IsFullscreen);
 		setIfHasValue(impl->Window.IsMaximized, param.StartupWindowState.IsMaximized);
 
+		impl->Window.UseDefaultPosition = !param.StartupWindowState.Position.has_value();
+		impl->Window.UseDefaultSize = !param.StartupWindowState.Size.has_value();
+
 		impl->FailedToInitialize = !(impl->Initialize());
 	}
 
@@ -870,16 +874,6 @@ namespace Comfy
 	void ApplicationHost::SetWindowRestoreRegion(ivec4 value)
 	{
 		impl->Window.RestoreRegion = value;
-	}
-
-	void ApplicationHost::SetDefaultPositionWindow(bool value)
-	{
-		impl->Window.UseDefaultPosition = value;
-	}
-
-	void ApplicationHost::SetDefaultResizeWindow(bool value)
-	{
-		impl->Window.UseDefaultSize = value;
 	}
 
 	void* ApplicationHost::GetWindowHandle() const

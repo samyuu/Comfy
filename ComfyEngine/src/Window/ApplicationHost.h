@@ -82,9 +82,6 @@ namespace Comfy
 		ivec4 GetWindowRestoreRegion();
 		void SetWindowRestoreRegion(ivec4 value);
 
-		void SetDefaultPositionWindow(bool value);
-		void SetDefaultResizeWindow(bool value);
-
 		void* GetWindowHandle() const;
 
 	public:
