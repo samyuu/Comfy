@@ -640,6 +640,8 @@ namespace Comfy::Audio
 			voiceToUpdate.Source = source;
 			voiceToUpdate.Volume = volume;
 			voiceToUpdate.FramePosition = 0;
+			voiceToUpdate.VolumeMap.StartVolume = 0.0f;
+			voiceToUpdate.VolumeMap.EndVolume = 0.0f;
 			CopyStringIntoBuffer(voiceToUpdate.Name.data(), voiceToUpdate.Name.size(), name);
 
 			return static_cast<VoiceHandle>(i);
@@ -677,6 +679,8 @@ namespace Comfy::Audio
 			voiceToUpdate.Source = source;
 			voiceToUpdate.Volume = volume;
 			voiceToUpdate.FramePosition = 0;
+			voiceToUpdate.VolumeMap.StartVolume = 0.0f;
+			voiceToUpdate.VolumeMap.EndVolume = 0.0f;
 			CopyStringIntoBuffer(voiceToUpdate.Name.data(), voiceToUpdate.Name.size(), name);
 			return;
 		}
