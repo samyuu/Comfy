@@ -1,0 +1,1280 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Samyuu">
+    <meta name="description" content="User manual for the Comfy Studio chart editor program.">
+    <title>Comfy Studio User Manual</title>
+    <link rel="shortcut icon" href="image/comfy_icon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="comfy_style.css" type="text/css">
+</head>
+
+<!-- NOTE: HTML formatting style guidelines
+
+    "Menu Option" for single menu items
+    "Menu" for nested menu containers
+
+    Menus and widgets are "clicked"
+    Input device buttons are "pressed"
+
+    HTML class names are PascalCase
+    HTML IDs may be visible in the URL therefore kebab-case
+-->
+
+<body>
+
+    <div class="MainContent">
+
+        <header class="MainHeader">
+            <div>
+                <img class="MainHeaderIcon" src="image/comfy_icon.ico">
+                <h1>Comfy Studio Chart Editor (Beta)</h1>
+                <!-- TODO: Keep date updated :Sadge: -->
+                <h4>User Manual - <time>(2020/12/20)</time></h4>
+            </div>
+            <div>
+                <!-- TODO: "DEVELOPMENT BUILD" title bar in all screenshots (?) and make sure bottom tool bar isn't visible -->
+                <img class="MainHeaderImage" src="image/example_chart.png">
+            </div>
+        </header>
+
+        <nav class="MainIndex">
+            <h2>Getting Started</h2>
+            <ul>
+                <li>
+                    <a href="#open-save-chart">Opening and Saving Charts</a>
+                </li>
+                <li>
+                    <a href="#loading-song">Loading a Song</a>
+                </li>
+                <li>
+                    <a href="#setting-metadata">Setting Metadata</a>
+                </li>
+                <li>
+                    <a href="#setting-rhythm">Sync and Tempo</a>
+                </li>
+                <li>
+                    <a href="#placing-targets">Placing Targets</a>
+                </li>
+                <li>
+                    <a href="#positioning-targets">Positioning Targets</a>
+                </li>
+                <li>
+                    <a href="#playtesting-chart">Playtesting</a>
+                </li>
+                <li>
+                    <a href="#remainig-interface">Remaining Interface</a>
+                </li>
+
+                <!-- TODO: Include section -->
+                <!-- <li>
+                    <a href="#terminology-concepts">Terminology and Concepts</a>
+                </li> -->
+
+                <!-- TODO: Include section -->
+                <!-- <li>
+                    <a href="#chart-style-guide">Charting Style Guide</a>
+                </li> -->
+
+                <li>
+                    <a href="#upcoming-features">Upcoming Features</a>
+                </li>
+            </ul>
+        </nav>
+        <hr>
+        <section class="SubSection" id="open-save-chart">
+            <header class="SectionHeader">
+                <h3>Opening and Saving Charts</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    Comfy Studio uses the custom <code>.csfm</code> file format for storing chart data.
+                    Charts can be opened by clicking the <code>File > Open...</code> menu option or pressing
+                    <code>Ctrl+O</code> to open a file dialog.
+                    Chart files can also be opened by being dropped onto the Comfy Studio window or launched
+                    via windows file association.
+                    The <code>File > Open Recent</code> menu allows quick access to recently opened files and can
+                    be cleared using the <code>File > Open Recent > Clear Items</code> menu option.
+                    This menu is disable if no previous file has been opened
+                    or the list has been recently cleared by the user.
+                </p>
+                <figure class="NoteFigure">
+                    <p>
+                        <strong>Note:</strong> The <code>.csfm</code> file format has to be linked manually to the
+                        <code>ComfyStudio.exe</code> executable by the user to allow <em>Open With</em> functionality
+                        through the
+                        file explorer.
+                    </p>
+                </figure>
+
+                <p>
+                    Charts can be saved by clicking the <code>File > Save</code> menu option or pressing
+                    <code>Ctrl+S</code>.
+                    To save a chart to a new location click the <code>File > Save As...</code> menu option or
+                    press <code>Ctrl+Shift+S</code> to open a file dialog.
+                    If the <em>Song File Name</em> is specified as an <em>absolute</em> path
+                    and the <code>Copy Song to Directory</code> checkbox is checked
+                    then the associated audio file will be copied to the directory of the new <code>.csfm</code>
+                    chart file and the <em>Song File Name</em> path will be updated to be <em>relative</em>.
+                </p>
+
+                <p>
+                    The <code>File > New Chart</code> menu option can be used to close the current chart being edited
+                    and create an empty new one.
+                    <br>
+                    <code>File > Open Chart Directory...</code> will open the directory of the current chart in the
+                    Windows File Explorer.
+                    This menu option is disable if the chart has not yet been saved to disk.
+                </p>
+            </div>
+
+            <div class="ImageBlock">
+                <img src="image/menu_option/file.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The current chart file name is displayed in the Comfy Studio window title bar.
+                    Attempting to close or otherwise discard a chart while having unsaved changes (indicated by an
+                    asterisk next to the chart name in the window title)
+                    will prompt the user with a warning dialog.
+                    <br>
+                    Clicking the <code>Save Changes</code> button or pressing <code>Enter</code> will <em>save the
+                        chart</em> and continue.
+                    Clicking the <code>Discard Changes</code> button will <em>discard</em> all pending changes.
+                    Clicking the <code>Cancel</code> button or pressing <code>Esc</code> will <em>retain</em> all
+                    changes and abort / cancel the
+                    previously user made action to have prompted the dialog.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/file_dialog/unsaved_changes.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    In addition to the <code>.csfm</code> chart format, Comfy Studio supports importing and exporting
+                    charts in the <code>.pje</code> format used by UPDC through the <code>File > Import...</code> and
+                    <code>File > Export As...</code> menu options respectively.
+                    Doing so comes at a <strong>loss of precision</strong> and perfect compatibility
+                    is <strong>not guaranteed</strong>. This feature is more so intended as a crutch while future
+                    import and export options are still being developed.
+                </p>
+            </div>
+
+        </section>
+        <hr>
+        <section class="SubSection" id="loading-song">
+            <header class="SectionHeader">
+                <h3>Loading a Song</h3>
+            </header>
+
+            <div class="TextBlock">
+                <p>
+                    The first step in creating a chart is choosing and loading an audio file.
+                    This can be done through the
+                    <em>Chart Properties</em> window.
+                    Either manually enter a file path into the <code>Song File Name</code> input text field, click the
+                    <code>...</code> button
+                    to open a file dialog
+                    or drop an audio file on top of the Comfy Studio window.
+                    Upon initially loading the audio file the chart <em>Song Title</em> and <em>Duration</em> will be
+                    set automatically to that of the audio file.
+                </p>
+
+                <figure class="NoteFigure">
+                    <p>
+                        <strong>Note:</strong> All file paths may be specified relative to the current chart file
+                        being edited.
+                    </p>
+                </figure>
+            </div>
+
+            <div class="ImageBlock">
+                <img src="image/chart_properties/song_file_name.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>The currently supported audio file formats are:</p>
+                <ul>
+                    <li>Free Lossless Audio Codec (*.flac)</li>
+                    <li>Ogg Vorbis (*.ogg)</li>
+                    <li>MPEG Audio Layer III (*.mp3)</li>
+                    <li>Waveform Audio File Format (*.wav)</li>
+                </ul>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/file_dialog/audio_file_types.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    Once the audio file has been successfully loaded an audio waveform will appear in the
+                    <em>Target Timeline</em> window.
+                </p>
+            </div>
+            <!-- TODO: Update image with 12th grid division to match the example song -->
+            <div class="ImageBlock">
+                <img src="image/target_timeline/waveform.png">
+            </div>
+        </section>
+        <hr>
+        <section class="SubSection" id="setting-metadata">
+            <header class="SectionHeader">
+                <h3>Setting Metadata</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    In addition to selecting an audio file, the <em>Chart Properties</em> window can also used for
+                    setting additional chart related properties:
+                </p>
+            </div>
+            <div>
+                <div class="FloatContainerLeft">
+                    <div class="TextBlock">
+                        <ul>
+                            <li>Song Title</li>
+                            <p>
+                                The text displayed inside the top part of the gameplay HUD. Defaults to "ダミー" if
+                                unspecified.
+                            </p>
+                            <hr>
+                            <li>Song Artist</li>
+                            <li>Song Album</li>
+                            <li>Song Lyricist</li>
+                            <li>Song Arranger</li>
+                            <li>Extra Info 1 - 4</li>
+                            <p>
+                                General info about the chosen song and are usually displayed during or prior to the
+                                loading screen.
+                                <br>
+                                <em>Extra Info</em> are user-defined custom properties with identical functionality.
+                            </p>
+                            <hr>
+                            <li>Chart Creator Name</li>
+                            <li>Chart Creator Comment</li>
+                            <p>
+                                Used for identifying yourself or commenting on something
+                                for anyone with access to the chart file.
+                            </p>
+                            <hr>
+                            <li>Cover Image</li>
+                            <li>Logo Image</li>
+                            <li>Background Image</li>
+                            <p>
+                                Paths to the images displayed in the practice mode background and during
+                                the song select menu.
+                                These widgets function identically to the <code>Song File Name</code> path widget.
+                                <!-- <br> -->
+                                Conventionally the image dimensions are <code>500x500 (1:1)</code> for covers,
+                                <code>860x300 (43:15)</code> for logos and <code>1280x720 (16:9)</code> for backgrounds.
+                                At the moment, images of different sizes will be <em>stretched to fit</em>.
+                                <br>
+                                <br>
+                                Image files dropped onto the Comfy Studio window will automatically be
+                                assigned if their file name case-insensitively contains
+                                at least one of the following keywords:
+                                <br>
+                                <strong>Cover</strong>: <code>cover</code>, <code>jacket</code>, <code>song_jk</code>,
+                                <code>folder</code>, <code>album</code>
+                                <br>
+                                <strong>Logo</strong>: <code>logo</code>, <code>song_logo</code>
+                                <br>
+                                <strong>Background</strong>: <code>background</code>, <code>song_bg</code>,
+                                <code>haikei</code>
+                            </p>
+                            <hr>
+                            <li>Difficulty Type</li>
+                            <li>Difficulty Level</li>
+                            <p>
+                                The difficulty rating displayed in the gameplay HUD and used for sorting during the song
+                                select menu.
+                            </p>
+                            <hr>
+                            <li>Button Sound</li>
+                            <li>Slide Sound</li>
+                            <li>Chain Slide Sound</li>
+                            <li>Slider Touch</li>
+                            <p>
+                                The default button sounds associated with the chart and the sounds used inside the
+                                editor as well as during playtesting.
+                            </p>
+
+                            <figure class="NoteFigure">
+                                <p>
+                                    <strong>Note:</strong> <em>Right Click</em> a combo box item to preview its sound.
+                                </p>
+                            </figure>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="FloatContainerRight">
+                    <div class="ImageBlock">
+                        <img src="image/chart_properties/expanded.png">
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <div class="FloatClear"></div>
+        <hr>
+        <section class="SubSection" id="setting-rhythm">
+            <header class="SectionHeader">
+                <h3>Sync and Tempo</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    Choosing the right tempo and song offset is essential for any chart.
+                    The <em>Sync Window</em> is the main method of setting a song's tempo, start offset and duration.
+                </p>
+                <p>
+                    The <code>Start Offset</code> widget is used for setting the offset of the song audio file relative
+                    to the
+                    start of the chart.
+                    A <em>negative</em> offset results in the song starting <em>later</em>, a <em>positive</em> offset
+                    <em>earlier</em>. The Target Timeline waveform can be a very useful tool in finding a suitable
+                    offset.
+                    <br>
+                    The <code>Move by Beat</code> buttons add or subtract a fraction of the duration of a beat at the
+                    initial tempo to the Start Offset.
+                    This is especially useful when for example delaying the start offset of a song up to the second
+                    <span class="TimeSigSpan"><sup class="TimeSigSup"><b>4</b></sup><br><sup
+                            class="TimeSigSup"><b>4</b></sub></span>
+                    bar as is recommended.
+                    <br>
+                    The <code>Duration</code> widget is used for setting the duration of the chart. Upon initially
+                    loading an audio file the duration is automatically set to its duration and can also be changed
+                    through the <code>Set Song End</code> Target Timeline context menu option.
+                </p>
+                <p>
+                    The <code>Tempo</code> and <code>Time Signature</code> widgets
+                    operate on the current Target Timeline cursor position.
+                    If the cursor does not sit on an existing Tempo Change, a new one is inserted automatically.
+                    <br>
+                    Pressing the <code>Remove</code> button removes the tempo change at the cursor position, the very
+                    first tempo change however can not be removed.
+                    <br>
+                    Allowed tempos range from <code>30.00 BPM</code> to <code>960.00 BPM</code>
+                    and both the numerator and denominator of the time signature may range from <code>1</code> to
+                    <code>64</code>.
+                </p>
+
+                <figure class="NoteFigure">
+                    <p>
+                        <strong>Note:</strong> Vastly irregular (and in practice rarely ever used) time signatures which
+                        when <em>192</em> is divided by their <em>denominator</em> unevenly (for example
+                        <span class="TimeSigSpan"><sup class="TimeSigSup"><b>4</b></sup><br><sup
+                                class="TimeSigSup"><b>7</b></sub></span>
+                        because 192÷7 ≈ 27.4285...) will result in integer precision
+                        inaccuracies and are therefore <em>not officially supported</em>.
+                    </p>
+                </figure>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/sync_window/empty.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    Alternatively <code>Right Mouse</code> click on an existing Tempo Change in the Target Timeline to
+                    open an edit popup with similar functionality to the Sync Window Chart Rhythm widgets.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/tempo_change_popup.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    One way of determining a song's tempo is through the <em>BPM Calculator</em> window.
+                    Tap along with every perceived beat as you listen to your song to calculate its tempo.
+                    <br>
+                    To enter a tap either click the <code>Tap</code> button or press <code>Space</code> while the window
+                    is focused.
+                    To reset the measurement click the <code>Reset</code> button or press <code>Esc</code>.
+                </p>
+                <p>
+                    By <code>Right Mouse</code> clicking a context menu can be opened with options for:
+                <ul>
+                    <li><code>Auto Reset Enabled</code> to automatically reset after 2 seconds of inactivity.</li>
+                    <li><code>Apply to Tempo Map</code> to automatically apply the calculated <em>Running BPM</em> to
+                        last tempo change at the cursor position.</li>
+                </ul>
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/bpm_calculator/empty.png">
+            </div>
+        </section>
+        <hr>
+        <section class="SubSection" id="placing-targets">
+            <header class="SectionHeader">
+                <h3>Placing Targets</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    Placing targets in-sync to the music is the very essence of a chart and is done through the
+                    <em>Target Timeline</em> window.
+                </p>
+                <p>
+                    <code>Left Mouse</code> click while hovering the timeline area to position your
+                    timeline cursor underneath your mouse cursor.
+                    <br>
+                    Hold down <code>Left Mouse</code> inside the upper part of the timeline to begin cursor scrubbing.
+                    <!-- <br> -->
+                    The current cursor time is displayed in the bottom left of the timeline.
+                    Pressing <code>Esc</code> will center the cursor. Pressing the
+                    <code>Left</code> and <code>Right</code> keys will move the cursor by a single grid step in the
+                    corresponding direction and holding down <code>Shift</code> while doing so
+                    increases the cursor step distance.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/mouse_click.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The timeline can be scrolled left and right by using the <code>Mouse Wheel</code>.
+                    Holding down <code>Shift</code> increases the scroll speed.
+                    Holding down <code>Middle Mouse</code> allows scroll gripping of the timeline.
+                    The timeline scrollbar can also be used to quickly navigate the entire timeline.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/mouse_scroll.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The timeline can be zoomed in and out by holding down <code>Alt</code> while
+                    <code>Mouse Wheel</code> scrolling up and down.
+                    The timeline zoom slider can also be used for controlling the zoom level. Holding down
+                    <code>Ctrl</code> before clicking on a slider widget turns it into an input text field.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/mouse_zoom.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    Click the <code>Toggle Playback</code> button or press <code>Space</code> to toggle playback.
+                    Click the <code>Stop Playback</code> button or press <code>Esc</code> during playback not only pause
+                    playback
+                    but also reset the cursor to the last time point prior to playback (indicated by the white marker
+                    line).
+                    <code>Mouse Wheel</code> scrolling during playback not only scrolls the timeline, but also seeks
+                    through the chart.
+                </p>
+
+                <p>
+                    The <em>grid division</em> controls the number of sub divisions in a <span class="TimeSigSpan"><sup
+                            class="TimeSigSup"><b>4</b></sup><br>
+                        <sup class="TimeSigSup"><b>4</b></sub>
+                    </span> bar that the cursor is allowed to move in.
+                    <br>
+                    The available division level ranges from 1/4th (1 beat) up to 1/192nd,
+                    however divisions more precise than 1/32nd should almost never be used and are often an
+                    indication for an inaccurately set tempo or song offset.
+                    <br>
+                    The current grid division is displayed in the top left of the timeline next to the cursor time
+                    display
+                    and can be changed by <code>Left Mouse</code> / <code>Right Mouse</code> clicking the division
+                    widget,
+                    pressing <code>Up</code> / <code>Down</code>, clicking <code>Mouse X1</code> / <code>Mouse X2</code>
+                    or by clicking one of the <code>Grid Division</code> context menu options.
+                </p>
+
+                <p>
+                    Targets can be <em>inserted</em> at the current cursor position by pressing:
+                <ul>
+                    <li><code>W</code> or <code>I</code> for <strong>Triangle</strong></li>
+                    <li><code>A</code> or <code>J</code> for <strong>Square</strong></li>
+                    <li><code>S</code> or <code>K</code> for <strong>Cross</strong></li>
+                    <li><code>D</code> or <code>L</code> for <strong>Circle</strong></li>
+                    <li><code>Q</code> or <code>U</code> for <strong>Slide Left</strong></li>
+                    <li><code>E</code> or <code>O</code> for <strong>Slide Right</strong></li>
+                </ul>
+                Pressing the corresponding target button a <em>second</em> time will <em>remove</em> the existing
+                target.
+                In case of slides, pressing a second time will insert an additional same directional slide instead
+                which can then be removed by pressing a <em>third</em> time.
+                </p>
+
+                <p>
+                    <em>Range selections</em> can be made by pressing <code>Tab</code> to mark a <em>start point</em>,
+                    moving the cursor and pressing <code>Tab</code> a second time to mark an <em>end point</em>.
+                    Range selections are displayed as a white box with the same height as your cursor.
+                    <br>
+                    To insert a <em>Chain Slide</em>, first <em>range-select</em> a region,
+                    hold down <code>Shift</code> and press the corresponding target slide key: <code>Q</code> /
+                    <code>U</code> for left chain slides and <code>E</code> / <code>O</code> for right chain slides.
+                    <br>
+                    The default chain slide fragment interval is set to 1/32nd and can be changed through
+                    the <code>Chain Slide Division</code> context menu options.
+                    <br>
+                    Holding down <code>Shift</code> and pressing a <em>non-slide</em> button key will fill in the
+                    range-selection at the current grid division level with normal targets instead.
+                </p>
+
+                <figure class="NoteFigure">
+                    <p>
+                        <strong>Note:</strong> Targets <strong>mustn't</strong> be placed inside the first <span
+                            class="TimeSigSpan"><sup class="TimeSigSup"><b>4</b></sup><br>
+                            <sup class="TimeSigSup"><b>4</b></sub>
+                        </span> bar as indicated by the darkened background.
+                    </p>
+                </figure>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/add_remove_targets.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    Targets can be selected by holding down <code>Right Mouse</code> and enclosing them with a
+                    <em>selection box</em>.
+                    Holding down <code>Shift</code> allows selecting <em>new targets</em> and holding down
+                    <code>Alt</code> allows deselecting <em>old targets</em> without clearing the previous selection.
+                </p>
+                <p>
+                    Selected targets can be moved left and right by mouse hovering over them, clicking
+                    <code>Left Mouse</code> and dragging them <em>left and right</em>.
+                    In the same way, holding down <code>Shift</code> <em>before</em> clicking <code>Left Mouse</code>
+                    allows changing the type of selected targets by dragging them <em>up and down</em> instead.
+                    <br>
+                    Selected targets can <em>not</em> be moved past, nor be overlapped with each other this way.
+                    Sync target pairs also <em>cannot</em> be separated from each other
+                    and can only be moved if <em>all</em> targets within a sync pair are selected.
+                    To separate sync targets and or move targets past each other
+                    the <code>Cut</code> and <code>Paste</code> commands are recommended instead.
+                </p>
+                <!-- <p>
+                    Selected targets can be removed by pressing <code>Del</code>,
+                    cut or copied by pressing <code>Ctrl+X</code> / <code>Ctrl+C</code>
+                    and <em>pasted</em> at the current cursor position by pressing <code>Ctrl+V</code>.
+                </p> -->
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/select_move_targets.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The upper part of the left side of the timeline contains 7 buttons:
+                </p>
+                <ul>
+                    <li><code>Jump to First Beat</code> to position the cursor at the start of the chart.</li>
+                    <li><code>Go to previous Grid Tick</code> to step back the cursor by one grid tick, same as pressing
+                        <code>Left</code>.
+                    </li>
+                    <li><code>Toggle Playback</code> to toggle playback, same as pressing <code>Space</code>.</li>
+                    <li><code>Stop Playback</code> to stop playback, same as pressing <code>Esc</code>.</li>
+                    <li><code>Go to next Grid Tick</code> to step forward the cursor by one grid tick, same as pressing
+                        <code>Right</code>.
+                    </li>
+                    <li><code>Jump to Last Beat</code> to position the cursor at the end of the chart.</li>
+                    <li><code>Timeline Settings</code> to open the timeline settings popup.</li>
+                </ul>
+                <p>
+                    The <em>timeline settings popup</em> allows individual control of the volume levels for the song and
+                    button
+                    sounds.
+                    The <code>Default Volume</code> buttons reset the audio levels back to the default 100%.
+                    <br>
+                    An optional metronome can also be enabled here which will match the chart's time signature and tempo
+                    during playback.
+                    <br>
+                    These settings only apply within the editor and are not stored or in some way applied to the chart
+                    file itself.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/settings.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    <code>Right Mouse</code> clicking while not moving the mouse opens a context menu:
+                </p>
+                <ul>
+                    <li><code>Grid Division</code> allows setting the current grid division.</li>
+                    <li><code>Chain Slide Division</code> allows setting the chain slide division used while
+                        placing chain slides.</li>
+                    <li><code>Playback Speed</code> allows changing the in-editor song playback speed.
+                        Press <code>Comma</code> / <code>Period</code> to quickly speed up or slow down playback.</li>
+                    <li><code>Set Song End</code> sets the <em>Duration</em> of the chart equal to the
+                        current cursor position.</li>
+                    <li><code>Cut</code>, <code>Copy</code> and <code>Paste</code> expose cut, copy and paste
+                        functionality
+                        and can also be accessed by pressing <code>Ctrl+X</code>, <code>Ctrl+C</code> and
+                        <code>Ctrl+V</code>.
+                    </li>
+                    <li><code>Select All</code> and <code>Deselect</code> will either select or deselect
+                        all targets in the entire chart.</li>
+                    <li><code>Refine Selection</code> allows performing selection refinements
+                        to the current target selection.
+                        <br>
+                        <code>Refine Selection > Select every Nth Target</code> refines the selection
+                        based on an even interval, especially useful for quickly creating multi type target patterns.
+                        <br>
+                        <code>Refine Selection > Shift Selection Left / Right</code> shifts the selection
+                        into the specified direction.
+                        <br>
+                        <code>Refine Selection > Select all Single Targets</code> refines the selection to only include
+                        targets that don't share the same time point with any other target.
+                        <br>
+                        <code>Refine Selection > Select all Sync Targets</code> refines the selection to only include
+                        targets that share the same time point with at least one other sync target.
+                        <br>
+                        <code>Refine Selection > Select all partially selected Sync Pairs</code> refines the selection
+                        to also include every target in a sync pair if at least one target within is already selected.
+                    </li>
+                    <li><code>Remove Targets</code> removes all selected targets
+                        and can also be accessed by pressing <code>Del</code>.</li>
+                </ul>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_timeline/context_menu.png">
+            </div>
+        </section>
+        <hr>
+        <section class="SubSection" id="positioning-targets">
+            <header class="SectionHeader">
+                <h3>Positioning Targets</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    The <em>Target Preview</em> window is the main method for controlling target positions and angles.
+                    It has two modes of operation: the <code>Position Tool</code> and the <code>Path Tool</code>
+                    which can be switched between by either pressing <code>1</code>, <code>2</code> or using their
+                    respective
+                    context menu options.
+                </p>
+                <p>
+                    The Target Preview window displays all targets at the current timeline cursor position for as long
+                    as they have been selected, not yet hit or have been hit more recently
+                    than the <em>Post Hit Linger duration</em>.
+                    Like on the Target Timeline, targets can be box-selected by holding down <code>Right Mouse</code>
+                    and enclosing them with a selection box.
+                    <code>Shift</code> and <code>Alt</code> likewise allow addition and exclusion from the existing
+                    selection.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_preview/select_targets.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The <code>Position Tool</code>, indicated by distance marker circles rendered around all selected
+                    targets, allows manipulation of <em>target positions</em>.
+                    <br>
+                    Clicking <code>Left Mouse</code> while hovering over a selected target allows target selection
+                    to be moved with the mouse. Holding down <code>Shift</code> while doing so snaps their positions to
+                    the grid.
+                    <br>
+                    Clicking <code>Left Mouse</code> while <em>not</em> hovering any selected target
+                    will open a <em>Row Position Circle</em> instead.
+                    Moving the mouse cursor in a direction relative to the mouse-down start position then positions all
+                    selected targets in a matching row formation.
+                    Holding <code>Shift</code> increases the row steepness when angled and pressing <code>Alt</code>
+                    <em>before</em> clicking <code>Left Mouse</code> allows positioning the target row
+                    <em>backwards</em>. Backwards row placement is especially useful for fitting targets around
+                    existing sync target formations.
+                    <br>
+                    Pressing <code>W, A, S, D</code> or <code>Up, Left, Down, Right</code> moves all selected targets by
+                    one step in the corresponding direction. Holding <code>Shift</code> while doing so
+                    increases the step distance to that of the grid.
+                    <br>
+                    Pressing <code>Q</code> / <code>E</code> moves the timeline cursor
+                    to the closest previous / next target or sync target pair.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_preview/position_targets.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The <code>Path Tool</code>, indicated by button path curves rendered on top of selected targets,
+                    allows manipulation of the target button path properties <em>angle</em> and <em>frequency</em>.
+                    <br>
+                    Clicking <code>Left Mouse</code> anywhere in the window allows setting the angles of all selected
+                    targets equal to the angle between the mouse cursor and the <em>first</em> selected target.
+                    Pressing <code>Alt</code> <em>before</em> clicking <code>Left Mouse</code> sets the angle between
+                    the mouse cursor and <em>last</em> selected target instead.
+                    <br>
+                    Holding down <code>Shift</code> snaps the mouse angle to <code>15.0&deg;</code> and holding down
+                    <code>Alt</code>
+                    snaps it to <code>0.1&deg;</code>.
+                    <br>
+                    <code>Mouse Wheel</code> scrolling up and down increments or decrements the angle to all selected
+                    targets by a uniform amount.
+                    Holding down <code>Shift</code> sets the scroll increment step to <code>5.0&deg;</code> and holding
+                    down <code>Alt</code> sets it to <code>0.1&deg;</code>.
+                    <br>
+                    Clicking <code>Middle Mouse</code> while not setting an angle displays the selected target angles as
+                    a numeric value and renders the target button paths as straight lines.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <!-- TODO: Remake and only show off left click angle settings to reduce complexity -->
+                <img src="image/target_preview/angle_targets.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    <code>Right Mouse</code> clicking while not moving the mouse opens a context menu
+                    with different options depending on the current tool selection:
+                </p>
+                <ul>
+                    <li><code>Position Tool</code> select the <em>Position Tool</em>.</li>
+                    <li><code>Path Tool</code> select the <em>Path Tool</em>.</li>
+                </ul>
+
+                <p>
+                    <strong>Position Tool</strong> specific:
+                </p>
+                <ul>
+                    <li><code>Flip Targets Horizontally</code></li>
+                    <li><code>Flip Targets Vertically</code> flips the position, angle and frequency of all selected
+                        targets horizontally / vertically.
+                        Can also be accessed by pressing <code>H</code> / <code>J</code>.</li>
+                    <li><code>Position in Row</code> positions all selected targets in a row starting from the
+                        <em>first</em> selected target to the direction of the <em>last</em> selected target,
+                        <em>spaced correctly</em> based on each target's beat timing. Can also be accessed by pressing
+                        <code>U</code>.
+                    </li>
+                    <li><code>Interpolate Positions</code> linearly interpolates the position of all selected targets
+                        starting at the <em>first</em> selected target up to and including the <em>last</em> selected
+                        target, <em>regardless</em> of each target's beat timing. Can also be accessed by pressing
+                        <code>I</code>.
+                    </li>
+                </ul>
+                <hr>
+
+                <p>
+                    <strong>Path Tool</strong> specific:
+                </p>
+                <ul>
+                    <li><code>Invert Target Frequencies</code> sets the frequency of all selected targets to negative
+                        itself effectively flipping the path of the button. Can also be accessed by pressing
+                        <code>R</code>.
+                        <br>
+                        This option is crucial for quickly matching a target's button path curve
+                        to that of its target row direction.
+                    </li>
+                    <li><code>Interpolate Angles Clockwise</code></li>
+                    <li><code>Interpolate Angles Counterclockwise</code> Linearly interpolates the angles of all
+                        selected
+                        targets starting at the <em>first</em> selected up to and including the <em>last</em> selected
+                        target.
+                        Can also be accessed by pressing
+                        <code>U</code> / <code>I</code>.
+                    </li>
+                    <li><code>Angle Increment Settings</code> configures angle increment settings
+                        used by the <code>Apply Angle Increment</code> options.
+                        <br>
+                        <code>Angle Increment Settings > Fixed Step Increment</code> causes the beat distance to be
+                        ignored from one target to another. This option is generally not recommended.
+                        <br>
+                        <code>Angle Increment Settings > Apply to Chain Slide Fragments</code> increments angles with
+                        each chain slide fragment instead of only the starting piece. This option is generally not
+                        recommended.
+                        <br>
+                        The <code>Per Beat</code>, <code>Per Beat (Slope)</code> and <code>Per Target</code>
+                        slider widgets control the degree angle to be applied from one target to the next.
+                        The Slope increment is used if a target is placed at an angle relative to the last.
+                        <br>
+                        The <code>Set Default</code> and <code>Set Default Small</code> button allow quickly switching
+                        between the settings for the two most common used configurations.
+                        Sticking to these is generally recommended.
+                    </li>
+                    <li><code>Apply Angle Increment Positive</code></li>
+                    <li><code>Apply Angle Increment Negative</code> increments / decrements the angles to all selected
+                        targets from one to the next based on the current <code>Angle Increment Settings</code>. Can
+                        also be accessed by pressing <code>F</code> / <code>V</code>.
+                    </li>
+                </ul>
+                <hr>
+
+                <p>
+                    <strong>Always</strong> available:
+                </p>
+                <ul>
+                    <li><code>Settings</code> in-editor render settings.
+                        These options are entirely cosmetic and only apply within the editor.
+                    </li>
+                    <ul>
+                        <li><code>Target Area</code> allows configuring the background and target render behavior.
+                            <code>Target Area > Post Hit Linger</code> controls the duration after which
+                            already hit targets will be rendered in the Target Preview window.
+                            These are measured in <em>Beat Tick units</em>
+                            with each <em>Tick</em> representing 1/48th of a beat.
+                        </li>
+                        <li><code>Practice Background</code> allows configuring the background render behavior for the
+                            practice background.
+                        </li>
+                        <li><code>Set Default Editor View</code> sets the background render behavior to its editor
+                            default: Practice background <em>disabled</em> with the target grid <em>enabled</em>.</li>
+                        <li><code>Set Default Practice View</code> sets the background render behavior to its practice
+                            default: Practice background <em>enabled</em> with the target grid <em>disabled</em>.</li>
+                    </ul>
+                    <hr>
+                </ul>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_preview/context_menu.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    Another way of setting target properties is the <em>Target Inspector</em> window.
+                    Modifications here are always applied to all selected targets simultaneously.
+                </p>
+                <p>
+                    Labels can be <code>Left Mouse</code> click dragged left and right
+                    to apply a <strong>uniform increment</strong> to the property for all selected targets.
+                    Holding <code>Shift</code> / <code>Alt</code> allows for more rough / precise drag control.
+                    <br>
+                    Entering a <em>numeric value</em> into one of the text input fields applies the
+                    <strong>same</strong> value to the property for all selected targets.
+                </p>
+                <p>
+                    Currently holds, the preset flag, (exact values for) frequency, amplitude and distance can only be
+                    edited through the Target Inspector.
+                    The <code>Amplitude</code> and <code>Distance</code> property input field widgets also function as
+                    combo boxes from where a list of common values can be selected.
+                    These combo boxes can either be expanded by clicking on the arrow button on the right
+                    or <code>Right Mouse</code> clicking anywhere inside the input field.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_inspector/quad_sync_selection.png">
+            </div>
+            <div class="TextBlock">
+                <p>
+                    Until a property has been edited by the user, targets have the <code>Use Preset</code> flag enabled.
+                    Targets with this flag set automatically follow a predefined position path and react dynamically to
+                    being moved or edited on the Target Timeline.
+                    <br>
+                    If the <code>Use Preset</code> flag is manually re-enabled for a target it will automatically revert
+                    back to its predefined path. Resetting the placement for an entire chart for example can be done
+                    quickly by select all targets and enabling this property.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_inspector/use_preset_demo.apng">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    Multiple targets placed at the same time point, so called "Sync Targets", conventionally use
+                    specific placement and path formation which can be quickly formed
+                    through the <em>Sync Target Presets</em> window.
+                    <br>
+                    Comfy Studio separates between two type of sync presets:
+                    <em>Dynamic presets</em> and <em>Static presets</em>.
+                    <br>
+                    <em>Dynamic</em> sync presets are represented as the 6 button at the top of the window
+                    and <em>dynamically</em> react and adjust with varying behavior according to the target selection.
+                    <br>
+                    <em>Static</em> sync presets on the other hand are predefined fixed list of properties that can be
+                    applied to a sync target pair without variations.
+                </p>
+                <p>
+                    The list of <em>static</em> sync presets is intended to be user defined,
+                    customization however <em>is not yet implemented</em>.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_presets/default.png">
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The sync preset button are enabled once a target selection has been made.
+                    Mouse hovering a preset button previews its behavior in the <em>Target Preview</em> window.
+                    Pressing a preset button then applies its preset to all selected sync target pairs.
+                    Sync presets can be applied to <em>multiple different</em> sync target pairs with a single click
+                    however only <em>the first</em> valid pair is previewed inside the Target Preview window.
+                </p>
+                <p>
+                    The <em>dynamic</em> sync presets operate on the concept of a single <em>master target</em> that
+                    dictates the layout of the other targets within its sync pair.
+                    The <em>master target</em> is chosen by it either being the <em>only</em>
+                    target selected within its sync pair or in case of multiple pair selected targets, the target with
+                    the <em>highest type priority</em>. Targets in the <em>last row</em> of the
+                    Target Timeline, are prioritized <em>first</em>.
+                </p>
+            </div>
+            <div class="TextBlock">
+                <p>
+                    The supported <em>dynamic</em> sync presets are:
+                </p>
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    <strong>Vertical Left / Right:</strong>
+                    <br>
+                    Operates on fixed per-type target Y position spacing, stacked vertically on top of each other.
+                    Applicable to sync target pairs of any non-slide type and number combination.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_presets/dynamic_vertical.apng">
+                <hr>
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    <strong>Horizontal Up / Down:</strong>
+                    <br>
+                    Operates on a fixed X position for each target depending on its type.
+                    Applicable to sync target pairs of any type and number combination.
+                    When used with sync slide target pairs their resulting preset layout various
+                    based on which of the 4 vertically split sections of the screen
+                    the <em>master slide target</em> is positioned in.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_presets/dynamic_horizontal.apng">
+                <hr>
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    <strong>Square:</strong>
+                    <br>
+                    Operates on a uniform distance for each target to the corresponding screen corner.
+                    Applicable to quad non-slide type sync target pairs.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_presets/dynamic_square.apng">
+                <hr>
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    <strong>Triangle:</strong>
+                    <br>
+                    Operates on fixed X position for each target depending on its type and a uniform height distance to
+                    the corresponding screen edge.
+                    Applicable to Triangle+Square+Cross and Square+Cross+Circle sync target pairs.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_presets/dynamic_triangle.apng">
+                <hr>
+            </div>
+
+            <div class="TextBlock">
+                <p>
+                    The settings button at the bottom left of the window allows further configuration of the dynamic
+                    sync
+                    preset behavior.
+                <ul>
+                    <li><code>Steep Angles</code>
+                        use steeper 35.0&deg; instead of 45.0&deg; angles for the vertical and 10.0&deg; instead of
+                        20&deg;
+                        angles for horizontal presets.</li>
+                    <li><code>Same Directional Angles</code> set all angles of the vertical or horizontal presets to the
+                        same direction, depending on the master target.</li>
+                    <li><code>Inside Out Angles</code> flip the angles of the square preset by 180.0&deg;, turning them
+                        inside out.</li>
+                    <li><code>Elevate Bottom Row</code> raise the position of the bottom row targets for the square and
+                        triangle presets.</li>
+                </ul>
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/target_presets/sync_preset_settings.png">
+            </div>
+
+        </section>
+        <hr>
+        <section class="SubSection" id="playtesting-chart">
+            <header class="SectionHeader">
+                <h3>Playtesting</h3>
+            </header>
+
+            <div class="TextBlock">
+                <p>
+                    The playtest mode can be entered by clicking the <code>Playtest > Start from Beginning</code> /
+                    <code>Playtest > Start from Cursor</code> menu option or pressing <code>F5</code> / <code>F6</code>.
+                    The <code>Playtest > Autoplay Enabled</code> menu option allows enabling or disabling
+                    the <em>Autoplay</em> mode before leaving the editor.
+                </p>
+                <p>
+                    At the moment, only Keyboard and DualShock4&trade; input is supported.
+                    Targets can be hit by pressing <code>W, A, S, D</code>, <code>I, J, K, L</code> for normal targets
+                    and <code>Q, E</code> or <code>U, O</code> for slide and chain slide targets.
+                    <code>1, 2, 3, 4, 7, 8, 9, 0</code> are temporarily bound to hit Triangle+Square+Cross+Circle all at
+                    once.
+                    <br>
+                    DualShock4&trade; input uses default bindings with the <code>Left Trigger</code> and
+                    <code>Right Trigger</code> hitting Triangle+Square+Cross+Circle all at once.
+                </p>
+                <p>
+                    <code>Right Mouse</code> click can be used to open a context menu.
+                    Pressing <code>Space</code>, <code>DS4 Options</code>, or clicking the <code>Pause / Resume</code>
+                    context menu options toggles playback. While paused, a "PAUSED" label is displayed in the top right
+                    corner and the screen is dimmed.
+                    <br>
+                    Pressing <code>Enter</code>, <code>DS4 R3</code> or clicking the
+                    <code>Restart from Reset Point</code>
+                    context menu option restarts the playback mode from the last set reset point.
+                    Pressing <code>Tab</code> / <code>Shift + Tab</code>, <code>DS4 Touch</code> / <code>DS4 L3</code>
+                    or clicking the <code>Move Reset Point Forward</code> / <code>Move Reset Point Backward</code>
+                    context menu options
+                    moves the restart point back by 10 seconds / moves the restart point forward to the current playback
+                    time.
+                    <br>
+                    Pressing <code>F1</code> or clicking the <code>Autoplay Enabled</code> context menu option
+                    toggles the autoplay mode.
+                    During autoplay manual input is disabled and an "AUTOPLAY" label is displayed in the top right
+                    corner of the screen.
+                    <br>
+                    Pressing <code>Esc</code> or clicking the <code>Return to Editor</code> context menu option
+                    exits out of the playtest mode and returns to the editor, at the time prior to entering playtest
+                    mode.
+                </p>
+
+                <figure class="NoteFigure">
+                    <p>
+                        <strong>Note:</strong> Button Hold functionality during playtesting
+                        is <em>not yet</em> implemented.
+                    </p>
+                </figure>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/playtest/example.png">
+            </div>
+
+        </section>
+        <hr>
+        <section class="SubSection" id="remainig-interface">
+            <header class="SectionHeader">
+                <h3>Remaining Interface</h3>
+            </header>
+            <div class="TextBlock">
+                <h4>Audio Output</h4>
+                <p>
+                    Comfy Studio supports audio output through WASAPI
+                    in both <em>shared</em> and <em>exclusive</em> mode.
+                    <br>
+                    <em>Shared mode</em> streams have the advantage of allowing multiple applications to use the same
+                    audio
+                    device but come at the cost of <em>higher audio latency</em>.
+                    <br>
+                    <em>Exclusive mode</em> streams on the other hand, as is the default in Comfy Studio,
+                    provide the <em>lowest possible latency</em> supported by the audio hardware,
+                    though be it with the disadvantage of preventing other applications from using the audio device at
+                    the same time.
+                </p>
+                <p>
+                    Low audio latency is not only important for improving the feeling of responsiveness
+                    but also for ensuring maximum accuracy while charting. Button sounds previewed in the
+                    Target Timeline are mixed directly into the audio stream with sample perfect
+                    accuracy regardless of the audio hardware used. Having a high audio latency however
+                    may incorrectly give the user the impression that targets should be placed <em>earlier</em> than
+                    what really matches the song because of the relative delay between the visuals and audio.
+                    Because of this, timing should always be done by ear, not by eye.
+                    The timeline waveform too is a useful tool for syncing as it is not affected by audio latency.
+                    <br>
+                    Furthermore, to ensure <em>perfect</em> synchronization between visuals and audio, the audio render
+                    output is used to <em>directly</em> control the timing of the entire application.
+                    This essentially means the effective framerate during playback
+                    is tied to that of the audio buffer duration,
+                    further encouraging the use of low latency methods.
+                </p>
+                <p>
+                    Like is common in many <abbr title="Digital Audio Workstations">DAWs</abbr>
+                    to lessen the effect of an exclusive stream, the audio device is automatically close and reopened
+                    when the Comfy Studio window loses focus while no audio is playing, meaning playback is paused.
+                    <br>
+                    Tabbing out to a different window while inactive for example,
+                    should therefore <em>not</em> prevent other applications from outputting audio,
+                    all while still allowing the lowest possible latency while actively charting.
+                </p>
+                <p>
+                    The menu option at the top right of the menu bar displays info about and allows control over the
+                    audio device state.
+                    <br>
+                    The <code>Open Audio Device</code> and <code>Close Audio Device</code> menu options allow explicit
+                    control over the open state however usually don't need to be set by the user manually.
+                    <br>
+                    The <code>Use WASAPI Shared</code> and <code>Use WASAPI Exclusive</code> menu options allow
+                    controlling the current stream share mode.
+                    Exclusive mode is the <em>default</em>, if access is denied by Windows however
+                    then Comfy Studio will always fall back to shared mode automatically.
+                    <br>
+                    Exclusive mode permission for an audio device can be configuring inside the Windows
+                    <code>Sound > Playback > "Device Name" > Properties > Advanced</code> menu.
+                    If undesired by the user or if it is causing issues on specific hardware,
+                    exclusive mode access can be systemwide disabled this way.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/audio_device_menu.png">
+            </div>
+            <hr>
+
+            <div class="TextBlock">
+                <h4>Edit Menu</h4>
+                <p>
+                    The <code>Edit</code> menu inside the menu bar currently contains two options:
+                    <code>Edit > Undo</code> also <code>Ctrl+Z</code> and <code>Edit > Redo</code> also
+                    <code>Ctrl+Y</code>.
+                    <br>
+                    The undo / redo action history can also be viewed and edited
+                    inside the <em>Chart Editor History</em> window.
+                    <br>
+                    Un-done actions are grayed out and the latest action is highlighted.
+                    Clicking on one of the listed actions undoes / redoes the action history up that point.
+                </p>
+            </div>
+            <div class="ImageBlock">
+                <img src="image/chart_editor_history/example.png">
+            </div>
+            <hr>
+
+            <div class="TextBlock">
+                <h4>Window Menu</h4>
+                <p>
+                    The <code>Window</code> menu inside the menu bar most importantly contains the options to
+                    <code>Window > Toggle Fullscreen</code> also <code>Alt + Enter</code> and
+                    <code>Window > Swap Interval</code> to enable or disable VSync.
+                    <br>
+                    The <code>Window > ImGui Config</code> menu is used for testing
+                    and is not intended for general use.
+                </p>
+            </div>
+            <hr>
+
+            <div class="TextBlock">
+                <h4>Test Windows Menu</h4>
+                <p>
+                    The <code>Test Windows</code> menu inside the menu bar provides access to various test windows.
+                    These might come in handy if something breaks but are otherwise not intended for general use.
+                </p>
+            </div>
+            <hr>
+
+            <div class="TextBlock">
+                <h4>Help Menu</h4>
+                <p>
+                    The <code>Help</code> menu inside the menu bar allows opening of <em>this</em> manual through the
+                    <code>Help > Open User Manual</code> menu option.
+                    The <code>Help > About Comfy Studio</code> menu option opens a window
+                    containing version and license info.
+                </p>
+            </div>
+
+        </section>
+        <hr>
+
+        <!-- TODO: Include section -->
+        <!-- <section class="SubSection" id="terminology-concepts">
+            <header class="SectionHeader">
+                <h3>Terminology and Concepts</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    <em>Currently under construction. Please come back later.</em>
+
+                    TODO: To include and more
+                    Target / Button (not note), Sync Targets (not multi), Slide / Chain Slide (not slider),
+                    Position, Angle, Frequency, Amplitude, Distance, Flying Time = one 4/4 bar, apparent button speed,
+                    ...
+                </p>
+            </div>
+        </section>
+        <hr> -->
+
+        <!-- TODO: Include section -->
+        <!-- <section class="SubSection" id="chart-style-guide">
+            <header class="SectionHeader">
+                <h3>Charting Style Guide</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    <em>Currently under construction. Please come back later.</em>
+
+                    TODO: To include and more
+                    Target beat timing and their placement distance relationship,
+                    how to position targets, how to angle targets, when and how to use target frequency,
+                    conventional sync target formations,
+                    know when you're allowed to break the rules,
+                    target types should be set during positioning not before else combining sync formation can become impossible,
+                    targets should line up nicely on the bar lines whenever possible,
+                    ...
+                </p>
+            </div>
+        </section>
+        <hr> -->
+
+        <section class="SubSection" id="upcoming-features">
+            <header class="SectionHeader">
+                <h3>Upcoming Features</h3>
+            </header>
+            <div class="TextBlock">
+                <p>
+                    The end of the beta won't mark the end of all updates, I have big ambition, however there are
+                    certain things I'd like to get done first before I consider Comfy Studio ready for public release.
+                    <br>
+                    These are some of the features being considered in the near <em>or</em> distant future:
+                </p>
+                <ul>
+                    <!-- TODO: What did I miss (?) -->
+                    <li>Customizable static sync presets</li>
+                    <li>Customizable inspector property combo box values</li>
+                    <li>Customizable controls and other editor settings</li>
+                    <li>Advanced circle and arbitrary shape / curve placement tools</li>
+                    <li>Visual indication for holds directly inside the editor</li>
+                    <li>Playtest hold mechanics with correct macro handling for hold transfers</li>
+                    <li>DIVA PV script (.dsc) and full MDATA export including automatic handling of multiple chart
+                        export and all the things that go along with it like sprites, DBs and audio files</li>
+                    <li>Improved chain slide input methods</li>
+                    <li>Additional input methods for Holds and the Frequency, Amplitude and Distance properties</li>
+                    <li>Additional chart related properties support</li>
+                </ul>
+                <p>
+                    And also but with <em>less</em> certainty:
+                </p>
+                <ul>
+                    <li>(?) Improved sync preset input methods</li>
+                    <li>(?) Chance time input method</li>
+                    <li>(?) Per-target user defined custom flags to aid in porting to other games.
+                        For example having a "W - Arrow" or "Hold End" flag
+                        that could then be used by external tools to more easily create F style charts</li>
+                    <li>(?) Per target or per tempo change fly time factor</li>
+                    <li>(?) DIVA PV script (.dsc) chart import</li>
+                    <li>(?) Automatic Chart analysis for detecting common placement mistakes and other errors</li>
+                    <li>(?) Different Chart statistics display, target type distribution, placement heat map, etc.</li>
+                    <li>(?) Built-in lyrics editor</li>
+                    <li>(?) Built-in event editor for other PV events like stage changes, video display, eventually
+                        evolving into something more similar to Edit Mode</li>
+                </ul>
+            </div>
+        </section>
+        <hr>
+
+        <footer class="CopyrightFooter">
+            <p><em>Copyright &copy; 2020 Samyuu</em></p>
+            <a href="https://github.com/samyuu">
+                <img class="SamyuuPeepo" src="image/samyuu_peepo.png">
+            </a>
+        </footer>
+    </div>
+
+</body>
+
+</html>
