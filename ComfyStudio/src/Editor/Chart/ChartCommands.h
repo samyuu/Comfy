@@ -571,6 +571,16 @@ namespace Comfy::Studio::Editor
 		Chart& chart;
 		std::vector<Data> targetData;
 	};
+
+	class ToggleTargetListIsHold : public ChangeTargetListIsHold
+	{
+	public:
+		using ChangeTargetListIsHold::ChangeTargetListIsHold;
+
+	public:
+		std::string_view GetName() const override { return "Toggle Target Holds"; }
+	};
+
 }
 
 namespace Comfy::Studio::Editor

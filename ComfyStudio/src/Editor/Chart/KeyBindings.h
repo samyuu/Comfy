@@ -28,6 +28,8 @@ namespace Comfy::Studio::Editor
 		constexpr Input::KeyCode IncreasePlaybackSpeed = Input::KeyCode_OEMPeriod;
 		constexpr Input::KeyCode DecreasePlaybackSpeed = Input::KeyCode_OEMComma;
 
+		constexpr Input::KeyCode ToggleTargetHolds = Input::KeyCode_F;
+
 		constexpr Input::KeyCode JumpToPreviousTarget = Input::KeyCode_Q;
 		constexpr Input::KeyCode JumpToNextTarget = Input::KeyCode_E;
 

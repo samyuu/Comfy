@@ -977,6 +977,9 @@ namespace Comfy::Studio::Editor
 			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 		if (Gui::IsKeyPressed(KeyBindings::IncreasePlaybackSpeed, true))
 			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+
+		if (Gui::IsKeyPressed(KeyBindings::ToggleTargetHolds, false))
+			ToggleSelectedTargetsHolds(*workingChart);
 	}
 
 	namespace
@@ -1349,6 +1352,10 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
+			if (Gui::MenuItem("Toggle Target Holds", Input::GetKeyCodeName(KeyBindings::ToggleTargetHolds), nullptr, (selectionCount > 0)))
+				ToggleSelectedTargetsHolds(*workingChart);
+			Gui::Separator();
+
 			if (Gui::MenuItem("Cut", "Ctrl + X", nullptr, (selectionCount > 0)))
 				ClipboardCutSelection();
 			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0)))
@@ -1480,6 +1487,54 @@ namespace Comfy::Studio::Editor
 			workingChart->Targets.begin(),
 			workingChart->Targets.end(),
 			[](const auto& t) { return t.IsSelected; });
+	}
+
+	void TargetTimeline::ToggleSelectedTargetsHolds(Chart& chart)
+	{
+		const auto selectedTargetCount = CountSelectedTargets();
+		if (selectedTargetCount < 1)
+			return;
+
+		const auto cursorTick = GetCursorTick();
+		bool hasAnyButtonSoundBeenPlayed = false;
+
+		std::vector<ToggleTargetListIsHold::Data> commandData;
+		commandData.reserve(selectedTargetCount);
+
+		for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
+		{
+			const auto& target = workingChart->Targets[i];
+			if (!target.IsSelected || IsSlideButtonType(target.Type))
+				continue;
+
+			auto& data = commandData.emplace_back();
+			data.TargetIndex = i;
+			data.NewValue = !target.Flags.IsHold;
+
+			if (target.Tick == cursorTick && target.Flags.IsHold != data.NewValue)
+			{
+				PlaySingleTargetButtonSoundAndAnimation(target.Type, target.Tick);
+				hasAnyButtonSoundBeenPlayed = true;
+			}
+		}
+
+		if (!commandData.empty())
+		{
+			if (!hasAnyButtonSoundBeenPlayed)
+			{
+				const auto& frontTarget = chart.Targets[commandData.front().TargetIndex];
+				for (const auto& data : commandData)
+				{
+					const auto& target = chart.Targets[data.TargetIndex];
+					if (target.Tick != frontTarget.Tick)
+						break;
+
+					PlaySingleTargetButtonSoundAndAnimation(target.Type, target.Tick);
+				}
+			}
+
+			undoManager.Execute<ToggleTargetListIsHold>(*workingChart, std::move(commandData));
+		}
 	}
 
 	void TargetTimeline::SelectAllTargets(Chart& chart)

@@ -125,6 +125,8 @@ namespace Comfy::Studio::Editor
 	private:
 		size_t CountSelectedTargets() const;
 
+		void ToggleSelectedTargetsHolds(Chart& chart);
+
 		void SelectAllTargets(Chart& chart);
 		void DeselectAllTargets(Chart& chart);
 		void SelectEveryNthTarget(Chart& chart, size_t n);
