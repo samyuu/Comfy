@@ -5,7 +5,7 @@
 
 namespace Comfy::Database
 {
-	struct DateEntry { i32 Day, Month, Year; };
+	struct DateEntry { i32 Year, Month, Day; };
 
 	class BinaryDatabase : public IO::IStreamReadable, public IO::IStreamWritable
 	{
@@ -34,7 +34,6 @@ namespace Comfy::Database
 	class GmCstmItemDB final : public TextDatabase {};
 	class GmModuleDB final : public TextDatabase {};
 	class GmPlateDB final : public TextDatabase {};
-	class GmPvListDB final : public TextDatabase {};
 	class HandItemDB final : public TextDatabase {};
 	class PvDB final : public TextDatabase {};
 }
