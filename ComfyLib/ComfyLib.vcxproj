@@ -52,6 +52,7 @@
     <ClInclude Include="src\IO\Stream\FileSection.h" />
     <ClInclude Include="src\IO\Stream\MemoryWriteStream.h" />
     <ClInclude Include="src\Misc\ASCII.h" />
+    <ClInclude Include="src\Script\PVScript.h" />
     <ClInclude Include="src\Time\Stopwatch.h" />
     <ClInclude Include="src\Core\Logger.h" />
     <ClInclude Include="src\Core\NonCopyable.h" />
@@ -119,6 +120,7 @@
     <ClCompile Include="src\IO\Shell.cpp" />
     <ClCompile Include="src\IO\Stream\FileSection.cpp" />
     <ClCompile Include="src\IO\Stream\MemoryWriteStream.cpp" />
+    <ClCompile Include="src\Script\PVScript.cpp" />
     <ClCompile Include="src\Time\Stopwatch.cpp" />
     <ClCompile Include="src\Time\TimeSpan.cpp" />
     <ClCompile Include="src\Database\AetDB.cpp" />
