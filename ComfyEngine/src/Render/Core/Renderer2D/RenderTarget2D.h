@@ -32,11 +32,12 @@ namespace Comfy::Render
 			struct PostProcessingData
 			{
 				// NOTE: Usually in range 2.0f to 3.0f
-				f32 Saturation = 2.8f;
+				f32 Gamma = 2.8f;
 
 				// NOTE: Usually in range 0.35f to 0.80f
-				f32 Brightness = 0.455f;
+				f32 Contrast = 0.455f;
 
+				// NOTE: Color levels matrix, usually in range 0.75f to 1.25f
 				std::array<vec3, 3> ColorCoefficientsRGB =
 				{
 					vec3(1.0f, 0.0f, 0.0f),

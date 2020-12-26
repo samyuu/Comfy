@@ -15,21 +15,19 @@ static const float3 SAT_PP_COEF_G = float3(-0.00827, 1.00827, 5.28067E-9);
 static const float3 SAT_PP_COEF_B = float3(-0.0082, -0.05057, 1.05877);
 #endif
     
-float4 ColorCorrect_PP(float4 inputColor, float saturationParam, float brightnessParam, float3 coefParamR, float3 coefParamG, float3 coefParamB)
+float4 ColorCorrect_PP(float4 inputColor, float gamma, float contrast, float3 coefR, float3 coefG, float3 coefB)
 {
-	const float almostZero = 0.0000000001;
-	const float3 saturation = float3(saturationParam, saturationParam, saturationParam);
-	const float3 brightness = float3(brightnessParam, brightnessParam, brightnessParam);
+    const float almostZero = 0.0000000001;
     
-	const float3 saturatedColor = float3(
-		exp2(log2(max(abs(inputColor.r), almostZero)) * saturation.r),
-		exp2(log2(max(abs(inputColor.g), almostZero)) * saturation.g),
-		exp2(log2(max(abs(inputColor.b), almostZero)) * saturation.b));
+    const float3 gammaCorrected = float3(
+		exp2(log2(max(abs(inputColor.r), almostZero)) * gamma),
+		exp2(log2(max(abs(inputColor.g), almostZero)) * gamma),
+		exp2(log2(max(abs(inputColor.b), almostZero)) * gamma));
 
-	return float4(
-		exp2(log2(max(abs(clamp(dot(saturatedColor, coefParamR), 0.0, 1.0)), almostZero)) * brightness.r),
-		exp2(log2(max(abs(clamp(dot(saturatedColor, coefParamG), 0.0, 1.0)), almostZero)) * brightness.g),
-		exp2(log2(max(abs(clamp(dot(saturatedColor, coefParamB), 0.0, 1.0)), almostZero)) * brightness.b),
+    return float4(
+		exp2(log2(max(abs(clamp(dot(gammaCorrected, coefR), 0.0, 1.0)), almostZero)) * contrast),
+		exp2(log2(max(abs(clamp(dot(gammaCorrected, coefG), 0.0, 1.0)), almostZero)) * contrast),
+		exp2(log2(max(abs(clamp(dot(gammaCorrected, coefB), 0.0, 1.0)), almostZero)) * contrast),
 		inputColor.a);
 }
 

@@ -263,8 +263,8 @@ namespace Comfy::Studio::Editor
 				if (Gui::BeginMenu("Color Correction"))
 				{
 					Gui::Checkbox("Enabled", &context.RenderTarget->Param.PostProcessingEnabled);
-					Gui::SliderFloat("Saturate", &context.RenderTarget->Param.PostProcessing.Saturation, 2.0f, 3.0f);
-					Gui::SliderFloat("Brightness", &context.RenderTarget->Param.PostProcessing.Brightness, 0.35f, 0.80f);
+					Gui::SliderFloat("Gamma", &context.RenderTarget->Param.PostProcessing.Gamma, 2.0f, 3.0f);
+					Gui::SliderFloat("Contrast", &context.RenderTarget->Param.PostProcessing.Contrast, 0.35f, 0.80f);
 
 					Gui::SliderFloat3("Coefficients R", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[0]), 0.0f, 1.25f);
 					Gui::SliderFloat3("Coefficients G", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[1]), 0.0f, 1.25f);

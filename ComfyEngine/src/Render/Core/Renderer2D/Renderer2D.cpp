@@ -517,8 +517,8 @@ namespace Comfy::Render
 			}
 			else if (RenderTarget->Param.PostProcessingEnabled)
 			{
-				PostProcessConstantBuffer.Data.PostProcessParam[0] = RenderTarget->Param.PostProcessing.Saturation;
-				PostProcessConstantBuffer.Data.PostProcessParam[1] = RenderTarget->Param.PostProcessing.Brightness;
+				PostProcessConstantBuffer.Data.PostProcessParam[0] = RenderTarget->Param.PostProcessing.Gamma;
+				PostProcessConstantBuffer.Data.PostProcessParam[1] = RenderTarget->Param.PostProcessing.Contrast;
 				PostProcessConstantBuffer.Data.PostProcessCoefficients[0] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[0], 0.0f);
 				PostProcessConstantBuffer.Data.PostProcessCoefficients[1] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[1], 0.0f);
 				PostProcessConstantBuffer.Data.PostProcessCoefficients[2] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[2], 0.0f);
