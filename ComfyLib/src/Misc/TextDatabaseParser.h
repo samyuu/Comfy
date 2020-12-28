@@ -43,6 +43,11 @@ namespace Comfy::Util::StringParsing
 			return state.CurrentValueString;
 		}
 
+		inline std::string_view PeekCurrentProperty()
+		{
+			return state.CurrentProperty;
+		}
+
 		template <typename T>
 		T ParseValueString()
 		{
@@ -52,7 +57,7 @@ namespace Comfy::Util::StringParsing
 		template <typename T>
 		T ParseEnumValueString()
 		{
-			return static_cast<T>(StringParsing::ParseType<u32>(ParseValueString()));
+			return static_cast<T>(StringParsing::ParseType<std::underlying_type_t<T>>(ParseValueString()));
 		}
 
 		inline void AdvanceProperty()
