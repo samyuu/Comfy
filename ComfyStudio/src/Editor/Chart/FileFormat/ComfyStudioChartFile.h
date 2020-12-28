@@ -57,6 +57,8 @@ namespace Comfy::Studio::Editor
 			{
 				TimeSpan SongOffset;
 				TimeSpan Duration;
+				TimeSpan SongPreviewStart;
+				TimeSpan SongPreviewDuration;
 			} Time;
 
 			std::vector<TimelineTarget> Targets;

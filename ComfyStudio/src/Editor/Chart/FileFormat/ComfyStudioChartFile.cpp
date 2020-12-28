@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	namespace ChartFileFormat
 	{
 		// NOTE: Increment major version for breaking changes and minor version for backwards and forward compatible additions
-		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 4, };
+		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 5, };
 		enum class Endianness : u16 { Little = 'L', Big = 'B' };
 		enum class PointerSize : u16 { Bit32 = 32, Bit64 = 64 };
 		enum class HeaderFlags : u32 { None = 0xFFFFFFFF };
@@ -81,6 +81,8 @@ namespace Comfy::Studio::Editor
 		constexpr std::string_view SectionIDChartSectionIDTime = "Time";
 		constexpr std::string_view SectionIDChartSectionIDTimeSongOffset = "Song Offset";
 		constexpr std::string_view SectionIDChartSectionIDTimeDuration = "Duration";
+		constexpr std::string_view SectionIDChartSectionIDTimeSongPreviewStart = "Song Preview Start";
+		constexpr std::string_view SectionIDChartSectionIDTimeSongPreviewDuration = "Song Preview Duration";
 		constexpr std::string_view SectionIDChartSectionIDTargets = "Targets";
 		constexpr std::string_view SectionIDChartSectionIDTempoMap = "Tempo Map";
 		constexpr std::string_view SectionIDChartSectionIDButtonSounds = "Button Sounds";
@@ -164,6 +166,8 @@ namespace Comfy::Studio::Editor
 
 		outChart->StartOffset = chart.Time.SongOffset;
 		outChart->Duration = chart.Time.Duration;
+		outChart->Properties.SongPreview.StartTime = chart.Time.SongPreviewStart;
+		outChart->Properties.SongPreview.Duration = chart.Time.SongPreviewDuration;
 
 		outChart->TempoMap = std::move(chart.TempoMap);
 		outChart->Targets = std::move(chart.Targets);
@@ -340,6 +344,10 @@ namespace Comfy::Studio::Editor
 														chart.Time.SongOffset = value;
 													else if (key == SectionIDChartSectionIDTimeDuration)
 														chart.Time.Duration = value;
+													else if (key == SectionIDChartSectionIDTimeSongPreviewStart)
+														chart.Time.SongPreviewStart = value;
+													else if (key == SectionIDChartSectionIDTimeSongPreviewDuration)
+														chart.Time.SongPreviewDuration = value;
 												}
 											});
 										}
@@ -567,6 +575,8 @@ namespace Comfy::Studio::Editor
 										{
 											std::make_pair(SectionIDChartSectionIDTimeSongOffset, chart.Time.SongOffset),
 											std::make_pair(SectionIDChartSectionIDTimeDuration, chart.Time.Duration),
+											std::make_pair(SectionIDChartSectionIDTimeSongPreviewStart, chart.Time.SongPreviewStart),
+											std::make_pair(SectionIDChartSectionIDTimeSongPreviewDuration, chart.Time.SongPreviewDuration),
 										};
 
 										writer.WriteSize(timeEntries.size());
@@ -797,6 +807,8 @@ namespace Comfy::Studio::Editor
 
 		chart.Time.SongOffset = sourceChart.StartOffset;
 		chart.Time.Duration = sourceChart.Duration;
+		chart.Time.SongPreviewStart = sourceChart.Properties.SongPreview.StartTime;
+		chart.Time.SongPreviewDuration = sourceChart.Properties.SongPreview.Duration;
 
 		chart.Targets = sourceChart.Targets.GetRawView();
 		chart.TempoMap = sourceChart.TempoMap.GetRawView();

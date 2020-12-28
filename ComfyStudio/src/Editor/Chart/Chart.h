@@ -126,6 +126,12 @@ namespace Comfy::Studio::Editor
 				DifficultyLevel Level = DifficultyLevel::Star_07_5;
 			} Difficulty;
 
+			struct SongPreviewData
+			{
+				TimeSpan StartTime;
+				TimeSpan Duration;
+			} SongPreview;
+
 		} Properties = {};
 
 		TimeSpan StartOffset = TimeSpan::Zero();
