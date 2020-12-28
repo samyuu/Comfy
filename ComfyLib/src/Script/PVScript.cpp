@@ -59,7 +59,7 @@ namespace Comfy
 		if (bufferSize < sizeof(u32))
 			return;
 
-		Version = *reinterpret_cast<const u32*>(buffer);
+		Version = static_cast<PVScriptVersion>(*reinterpret_cast<const u32*>(buffer));
 		size_t commandCount = 0;
 
 		const u32* commandsStart = reinterpret_cast<const u32*>(buffer + sizeof(u32));
@@ -93,7 +93,7 @@ namespace Comfy
 
 	IO::StreamResult PVScript::Write(IO::StreamWriter& writer)
 	{
-		writer.WriteU32(Version);
+		writer.WriteU32(static_cast<u32>(Version));
 		for (const auto& command : Commands)
 		{
 			writer.WriteU32(static_cast<u32>(command.Type));

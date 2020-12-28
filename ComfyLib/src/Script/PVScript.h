@@ -396,15 +396,21 @@ namespace Comfy
 			i32 DurationMS;
 
 			TargetFlyingTime() = default;
-			constexpr TargetFlyingTime(TimeSpan time) : DurationMS(static_cast<i32>(time.TotalMilliseconds())) {}
-			constexpr operator TargetFlyingTime() const { return TimeSpan::FromMilliseconds(static_cast<f64>(DurationMS)); }
+			TargetFlyingTime(i32 timeMS) : DurationMS(timeMS) {}
+			TargetFlyingTime(TimeSpan time) : DurationMS(static_cast<i32>(glm::round(time.TotalMilliseconds()))) {}
+			operator TargetFlyingTime() const { return TimeSpan::FromMilliseconds(static_cast<f64>(DurationMS)); }
 		};
 	}
+
+	enum class PVScriptVersion : u32
+	{
+		Current = 0x14050921,
+	};
 
 	class PVScript : public IO::IBufferParsable, public IO::IStreamWritable
 	{
 	public:
-		u32 Version = 0x14050921;
+		PVScriptVersion Version = PVScriptVersion::Current;
 		std::vector<PVCommand> Commands;
 
 	public:
