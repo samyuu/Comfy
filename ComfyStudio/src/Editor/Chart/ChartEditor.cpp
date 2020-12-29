@@ -103,23 +103,35 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::BeginMenu("Open Recent", !recentChartFiles.View().empty()))
 			{
-				size_t fileIndex = 0;
+				size_t reserveFileIndex = 0, indexToRemove = std::numeric_limits<size_t>::max();
 
 				const auto& recentFilesView = recentChartFiles.View();
 				std::for_each(recentFilesView.rbegin(), recentFilesView.rend(), [&](const auto& path)
 				{
 					// NOTE: No actual keyboard input yet but still help with reading the list
-					const char shortcutBuffer[2] = { (fileIndex < 9) ? static_cast<char>('1' + fileIndex) : '\0', '\0' };
+					const char shortcutBuffer[2] = { (reserveFileIndex < 9) ? static_cast<char>('1' + reserveFileIndex) : '\0', '\0' };
 
 					if (Gui::MenuItem(path.c_str(), shortcutBuffer))
-						CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
-					fileIndex++;
+					{
+						// TODO: Promp the user with a warning dialog box instead if the file can not be found (?)
+						if (IO::File::Exists(path))
+							CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
+						else
+							indexToRemove = (recentFilesView.size() - (reserveFileIndex + 1));
+					}
+					reserveFileIndex++;
 				});
 
 				Gui::Separator();
 				if (Gui::MenuItem("Clear Items"))
 				{
 					recentChartFiles.Clear();
+					System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
+				}
+
+				if (InBounds(indexToRemove, recentChartFiles.View()))
+				{
+					recentChartFiles.RemoveAt(indexToRemove);
 					System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
 				}
 

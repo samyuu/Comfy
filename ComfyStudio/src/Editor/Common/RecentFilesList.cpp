@@ -76,6 +76,12 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void RecentFilesList::RemoveAt(size_t index)
+	{
+		assert(index < filePaths.size());
+		filePaths.erase(filePaths.begin() + index);
+	}
+
 	void RecentFilesList::Clear()
 	{
 		filePaths.clear();
