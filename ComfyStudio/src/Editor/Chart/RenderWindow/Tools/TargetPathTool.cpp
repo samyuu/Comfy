@@ -51,15 +51,20 @@ namespace Comfy::Studio::Editor
 				"(Use with caution!)"
 			);
 
-			constexpr auto min = 0.0f, max = 90.0f;
+			static constexpr f32 min = 0.0f, max = 90.0f, step = 1.0f, stepFast = 5.0f;
+			auto clampIncrementStep = [](f32& inOut) { inOut = std::clamp(inOut, min, max); };
+
 			if (angleIncrement.UseFixedStepIncrement)
 			{
-				Gui::SliderFloat("##IncrementPerTarget", &angleIncrement.FixedStepIncrementPerTarget, min, max, ("%.2f" DEGREE_SIGN " per Target"));
+				if (Gui::InputFloat("##IncrementPerTarget", &angleIncrement.FixedStepIncrementPerTarget, step, stepFast, ("%.2f" DEGREE_SIGN " per Target")))
+					clampIncrementStep(angleIncrement.FixedStepIncrementPerTarget);
 			}
 			else
 			{
-				Gui::SliderFloat("##IncrementPerBeat", &angleIncrement.IncrementPerBeat, min, max, ("%.2f" DEGREE_SIGN " per Beat"));
-				Gui::SliderFloat("##IncrementPerBeatSlope", &angleIncrement.IncrementPerBeatSlope, min, max, ("%.2f" DEGREE_SIGN " per Beat (Slope)"));
+				if (Gui::InputFloat("##IncrementPerBeat", &angleIncrement.IncrementPerBeat, step, stepFast, ("%.2f" DEGREE_SIGN " per Beat")))
+					clampIncrementStep(angleIncrement.IncrementPerBeat);
+				if (Gui::InputFloat("##IncrementPerBeatSlope", &angleIncrement.IncrementPerBeatSlope, step, stepFast, ("%.2f" DEGREE_SIGN " per Beat (Slope)")))
+					clampIncrementStep(angleIncrement.IncrementPerBeatSlope);
 			}
 
 			static constexpr AngleIncrementData defaultIncrementData = { 2.0f, 10.0f }, defaultIncrementDataSmall = { 1.0f, 8.0f };
