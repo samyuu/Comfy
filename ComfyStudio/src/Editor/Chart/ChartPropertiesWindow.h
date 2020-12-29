@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 #include "Chart.h"
 #include "Undo/Undo.h"
+#include "Audio/Audio.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -22,5 +23,9 @@ namespace Comfy::Studio::Editor
 		Undo::UndoManager& undoManager;
 
 	private:
+		Audio::Voice previewVoice = Audio::VoiceHandle::Invalid;
+		bool previewVoiceHasBeenAdded = false;
+		bool isBeingPreviewed = false;
+		bool previewSliderActiveLastFrame = false, previewSliderActiveThisFrame = false;
 	};
 }

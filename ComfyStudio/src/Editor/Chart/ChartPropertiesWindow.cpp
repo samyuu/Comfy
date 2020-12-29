@@ -9,6 +9,10 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
+		constexpr auto SongPreviewFadeInDuration = TimeSpan::FromSeconds(0.25);
+		constexpr auto SongPreviewFadeOutDuration = TimeSpan::FromSeconds(0.5);
+		constexpr auto SongPreviewLoopDelay = TimeSpan::FromSeconds(0.35);
+
 		bool GuiPropertyButtonSoundCombo(std::string_view label, u32& inOutID, Database::GmBtnSfxType btnSfxDBType, SoundEffectManager& soundEffectManager)
 		{
 			auto entryToCStr = [&](const Database::GmBtnSfxEntry* entry)
@@ -281,6 +285,142 @@ namespace Comfy::Studio::Editor
 				changesMade |= GuiPropertyImageFileName("Cover File Name", "song_jk.png", chart.Properties.Image.CoverFileName, chart.Properties.Image.Cover, chart.ChartFilePath, chartEditor);
 				changesMade |= GuiPropertyImageFileName("Logo File Name", "song_logo.png", chart.Properties.Image.LogoFileName, chart.Properties.Image.Logo, chart.ChartFilePath, chartEditor);
 				changesMade |= GuiPropertyImageFileName("Background File Name", "song_bg.png", chart.Properties.Image.BackgroundFileName, chart.Properties.Image.Background, chart.ChartFilePath, chartEditor);
+			});
+
+			GuiProperty::TreeNode("Song Preview", ImGuiTreeNodeFlags_DefaultOpen, [&]
+			{
+				GuiProperty::PropertyLabelValueFunc("Start and Duration", [&]
+				{
+					const auto& style = Gui::GetStyle();
+					char dummyBuffer[1] = { '\0' };
+
+					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
+					Gui::PushItemWidth((Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f);
+
+					auto timeDrag = [](const char* label, TimeSpan& inOutTime, TimeSpan min, TimeSpan max)
+					{
+						f64 timeSec = inOutTime.TotalSeconds();
+						const f64 timeSecMin = min.TotalSeconds();
+						const f64 timeSecMax = max.TotalSeconds();
+
+						if (Gui::DragScalar(label, ImGuiDataType_Double, &timeSec, 0.25f, &timeSecMin, &timeSecMax, inOutTime.FormatTime().data()))
+							inOutTime = TimeSpan::FromSeconds(timeSec);
+					};
+
+					auto songDuration = chartEditor.GetSongVoice().GetDuration();
+					if (songDuration <= TimeSpan::Zero())
+						songDuration = chart.DurationOrDefault();
+
+					timeDrag("##PreviewStart", chart.Properties.SongPreview.StartTime, TimeSpan::Zero(), songDuration);
+					Gui::SameLine();
+					timeDrag("##PreviewDuration", chart.Properties.SongPreview.Duration, TimeSpan::Zero(), songDuration);
+
+					Gui::PopItemWidth();
+					Gui::PopStyleVar();
+
+					return false;
+				});
+
+				GuiProperty::PropertyLabelValueFunc("Set from Cursor", [&]
+				{
+					const auto& style = Gui::GetStyle();
+					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
+					const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+
+					auto setTimeButton = [&](const char* label, i32 index)
+					{
+						if (Gui::Button(label, vec2(buttonWidth, 0.0f)))
+						{
+							changesMade |= true;
+
+							const auto songPosition = chartEditor.GetSongVoice().GetPosition();
+							auto songDuration = chartEditor.GetSongVoice().GetDuration();
+							if (songDuration <= TimeSpan::Zero())
+								songDuration = chart.DurationOrDefault();
+
+							if (index == 0)
+								chart.Properties.SongPreview.StartTime = std::clamp(songPosition, TimeSpan::Zero(), songDuration);
+							else
+								chart.Properties.SongPreview.Duration = std::clamp(songPosition - chart.Properties.SongPreview.StartTime, TimeSpan::Zero(), songDuration);
+						}
+					};
+
+					setTimeButton("Set Start", 0);
+					Gui::SameLine();
+					setTimeButton("Set End", 1);
+
+					Gui::PopStyleVar();
+					return false;
+				});
+
+				const auto previewTimeStart = chart.Properties.SongPreview.StartTime;
+				const auto previewTimeEnd = (chart.Properties.SongPreview.Duration <= TimeSpan::Zero()) ? chart.DurationOrDefault() : (previewTimeStart + chart.Properties.SongPreview.Duration);
+
+				GuiProperty::PropertyLabelValueFunc("Listen to Preview", [&]
+				{
+					if (Gui::Button(isBeingPreviewed ? "Stop Preview" : "Start Preview", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					{
+						isBeingPreviewed ^= true;
+
+						if (!previewVoiceHasBeenAdded)
+						{
+							previewVoiceHasBeenAdded = true;
+							previewVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartProperties PreviewTimePreview", false, 1.0f, true);
+						}
+
+						previewVoice.SetSource(chartEditor.GetSongSource());
+						previewVoice.SetPosition(previewTimeStart);
+						previewVoice.SetIsPlaying(isBeingPreviewed);
+						previewVoice.SetVolumeMap(previewTimeStart, previewTimeStart + SongPreviewFadeInDuration, 0.0f, 1.0f);
+					}
+
+					if (previewVoiceHasBeenAdded && isBeingPreviewed)
+					{
+						if (previewVoice.GetPosition() > previewTimeEnd)
+							previewVoice.SetVolumeMap(previewTimeEnd, previewTimeEnd + SongPreviewFadeOutDuration, 1.0f, 0.0f);
+
+						if (previewVoice.GetPosition() > (previewTimeEnd + SongPreviewFadeOutDuration + SongPreviewLoopDelay))
+						{
+							previewVoice.SetVolumeMap(previewTimeStart, previewTimeStart + SongPreviewFadeInDuration, 0.0f, 1.0f);
+							previewVoice.SetPosition(previewTimeStart);
+						}
+					}
+
+					return false;
+				});
+
+				GuiProperty::PropertyLabelValueFunc("", [&]
+				{
+					GuiPropertyRAII::ItemWidth width(-1.0f);
+
+					if (isBeingPreviewed && previewVoiceHasBeenAdded)
+					{
+						f64 sliderSec = previewVoice.GetPosition().TotalSeconds();
+						const f64 sliderSecMin = previewTimeStart.TotalSeconds();
+						const f64 sliderSecMax = previewTimeEnd.TotalSeconds();
+
+						const bool sliderUsed = Gui::SliderScalar("##PreviewProgressSlider", ImGuiDataType_Double, &sliderSec, &sliderSecMin, &sliderSecMax, previewVoice.GetPosition().FormatTime().data());
+						previewSliderActiveLastFrame = previewSliderActiveThisFrame;
+						previewSliderActiveThisFrame = Gui::IsItemActive();
+
+						if (!previewSliderActiveLastFrame && previewSliderActiveThisFrame)
+							previewVoice.SetIsPlaying(false);
+						else if (previewSliderActiveLastFrame && !previewSliderActiveThisFrame)
+							previewVoice.SetIsPlaying(true);
+
+						if (sliderUsed)
+							previewVoice.SetPosition(TimeSpan::FromSeconds(sliderSec));
+					}
+					else
+					{
+						Gui::PushItemDisabledAndTextColor();
+						f32 dummyProgress = 0.0f;
+						Gui::SliderFloat("##PreviewProgressSlider", &dummyProgress, 0.0f, 1.0f, "Paused");
+						Gui::PopItemDisabledAndTextColor();
+					}
+
+					return false;
+				});
 			});
 
 			GuiProperty::TreeNode("Difficulty", ImGuiTreeNodeFlags_DefaultOpen, [&]
