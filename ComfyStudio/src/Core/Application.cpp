@@ -16,7 +16,7 @@
 namespace Comfy::Studio
 {
 	constexpr std::string_view ComfyStudioWindowTitle = "Comfy Studio";
-	constexpr std::string_view ComfyCopyrightNotice = "Copyright (C) 2020 Samyuu";
+	constexpr std::string_view ComfyCopyrightNotice = "Copyright (C) 2021 Samyuu";
 	constexpr std::string_view UserManualDocumentFilePath = "manual/comfy_manual.html";
 	constexpr const char* AboutWindowName = "About##Application";
 

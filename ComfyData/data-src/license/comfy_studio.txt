@@ -8,7 +8,7 @@ GitHub: https://github.com/samyuu/Comfy
 TBD
 
 #license
-Copyright (C) 2020 Samyuu
+Copyright (C) 2021 Samyuu
 
 All Rights Reserved.
 
