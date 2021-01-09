@@ -10,7 +10,7 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	void BPMCalculatorWindow::Gui(Chart& chart, TimeSpan cursorBPMTime)
+	void BPMCalculatorWindow::Gui(Chart& chart, TimeSpan cursorBPMTime, TimelineMetronome& metronome)
 	{
 		bpmCalculator.Update();
 
@@ -49,6 +49,8 @@ namespace Comfy::Studio::Editor
 					bpmCalculator.Tap();
 					if (applyTapToTempoMap && bpmCalculator.GetTapCount() > 1)
 						ExecuteUpdateTempoChangeBPM(chart, cursorBPMTime, bpmCalculator.GetBPMOnLastTapRound());
+
+					PlayTapSoundIfEnabled(metronome);
 				}
 				Gui::NextColumn();
 
@@ -62,6 +64,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::ButtonEx("Reset", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight), ImGuiButtonFlags_PressedOnClickRelease) | resetKeyPressed)
 				{
 					bpmCalculator.Reset();
+					PlayTapSoundIfEnabled(metronome);
 				}
 				Gui::PopItemDisabledAndTextColorIf(tapCount == 0);
 				if (resetKeyDown) Gui::PopStyleColor();
@@ -119,11 +122,25 @@ namespace Comfy::Studio::Editor
 				bool autoResetEnabled = (bpmCalculator.GetAutoResetInterval() > TimeSpan::Zero());
 				if (Gui::MenuItem("Auto Reset Enabled", nullptr, &autoResetEnabled))
 					bpmCalculator.SetAutoResetInterval(autoResetEnabled ? BPMTapCalculator::DefaultAutoResetInterval : TimeSpan::Zero());
+
+				const bool useBarTapSoundEnabled = playTapSound;
+				Gui::MenuItem("Play Tap Sound", nullptr, &playTapSound);
+				Gui::MenuItem("Use Bar Tap Sound", nullptr, &useBarTapSound, useBarTapSoundEnabled);
+
 				Gui::MenuItem("Apply to Tempo Map", nullptr, &applyTapToTempoMap);
 			});
 		}
 		Gui::EndColumns();
 		Gui::EndChild();
+	}
+
+	void BPMCalculatorWindow::PlayTapSoundIfEnabled(TimelineMetronome& metronome) const
+	{
+		if (playTapSound)
+		{
+			Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+			metronome.PlayTickSound(TimeSpan::Zero(), useBarTapSound);
+		}
 	}
 
 	void BPMCalculatorWindow::ExecuteUpdateTempoChangeBPM(Chart& chart, TimeSpan cursorBPMTime, Tempo updatedTempo) const

@@ -362,6 +362,9 @@ namespace Comfy::Studio::Editor
 					{
 						isBeingPreviewed ^= true;
 
+						if (isBeingPreviewed)
+							Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+
 						if (!previewVoiceHasBeenAdded)
 						{
 							previewVoiceHasBeenAdded = true;

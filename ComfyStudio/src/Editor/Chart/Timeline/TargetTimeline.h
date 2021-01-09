@@ -68,6 +68,7 @@ namespace Comfy::Studio::Editor
 		void StopPlayback() override;
 
 		void ResetScrollAndZoom();
+		TimelineMetronome& GetMetronome();
 
 	public:
 		i32 FindGridDivisionPresetIndex() const;

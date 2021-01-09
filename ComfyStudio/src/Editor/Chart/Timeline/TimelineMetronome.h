@@ -20,7 +20,6 @@ namespace Comfy::Studio::Editor
 		f32 GetVolume() const;
 		void SetVolume(f32 value);
 
-	private:
 		void PlayTickSound(TimeSpan startTime, bool onBar);
 
 	private:

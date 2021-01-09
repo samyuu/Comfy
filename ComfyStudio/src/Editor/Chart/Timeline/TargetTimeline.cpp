@@ -1898,6 +1898,11 @@ namespace Comfy::Studio::Editor
 		zoomLevel = 2.0f;
 	}
 
+	TimelineMetronome& TargetTimeline::GetMetronome()
+	{
+		return metronome;
+	}
+
 	i32 TargetTimeline::FindGridDivisionPresetIndex() const
 	{
 		for (i32 i = 0; i < static_cast<i32>(presetBarGridDivisions.size()); i++)
