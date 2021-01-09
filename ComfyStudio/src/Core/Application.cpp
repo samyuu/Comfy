@@ -276,6 +276,8 @@ namespace Comfy::Studio
 
 			Gui::Separator();
 
+			// TODO: Reset to default layout
+
 			if (Gui::BeginMenu("ImGui Config"))
 			{
 				if (Gui::MenuItem("Save To Memory", nullptr))
@@ -328,6 +330,7 @@ namespace Comfy::Studio
 
 		if (Gui::BeginMenu("Help"))
 		{
+			// TODO: Should probably be removed from here and as a more clean tab be added to the about window
 			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_Text, 0.75f));
 			Gui::TextUnformatted(Gui::StringViewStart(ComfyCopyrightNotice), Gui::StringViewEnd(ComfyCopyrightNotice));
 			Gui::PopStyleColor();

@@ -30,6 +30,11 @@ namespace Comfy::Studio::Editor
 		i16 Denominator = MinValue;
 	};
 
+	constexpr bool IsValidTimeSignature(TimeSignature signature)
+	{
+		return (BeatTick::FromBars(1).TicksPerBeat % signature.Denominator) == 0;
+	}
+
 	struct DecomposedTimeSignature { BeatTick TicksPerBeat; i32 BeatsPerBar; };
 
 	constexpr DecomposedTimeSignature DecomposeTimeSignature(TimeSignature signature)
