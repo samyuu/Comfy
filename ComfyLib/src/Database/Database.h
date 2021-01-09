@@ -35,5 +35,4 @@ namespace Comfy::Database
 	class GmModuleDB final : public TextDatabase {};
 	class GmPlateDB final : public TextDatabase {};
 	class HandItemDB final : public TextDatabase {};
-	class PvDB final : public TextDatabase {};
 }

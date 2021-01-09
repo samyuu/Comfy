@@ -11,10 +11,10 @@ namespace Comfy::Database
 
 	namespace
 	{
-		struct GmPvListDBParser final : public StringParsing::TextDatabaseParser
+		struct PvDBParser final : public StringParsing::TextDatabaseParser
 		{
 		private:
-			bool TryParseDifficultyArray(GmPvDifficultyEntries& output)
+			bool TryParseDifficultyArray(GmPvDifficultyEditionsEntry& output)
 			{
 				if (CompareProperty("length"))
 				{
@@ -36,7 +36,7 @@ namespace Comfy::Database
 					else if (CompareProperty("ed_day"))
 						entry.EndDate.Day = ParseValueString<i32>();
 					else if (CompareProperty("edition"))
-						entry.Edition = ParseValueString<i32>();
+						entry.Edition = ParseEnumValueString<PVDifficultyEdition>();
 					else if (CompareProperty("ver"))
 						entry.Version = ParseValueString<i32>();
 				}
@@ -74,15 +74,15 @@ namespace Comfy::Database
 						else if (CompareProperty("name"))
 							entry.Name = ParseValueString();
 						else if (CompareProperty("easy"))
-							TryParseDifficultyArray(entry.Easy);
+							TryParseDifficultyArray(entry.Difficulties[static_cast<size_t>(PVDifficultyType::Easy)]);
 						else if (CompareProperty("normal"))
-							TryParseDifficultyArray(entry.Normal);
+							TryParseDifficultyArray(entry.Difficulties[static_cast<size_t>(PVDifficultyType::Normal)]);
 						else if (CompareProperty("hard"))
-							TryParseDifficultyArray(entry.Hard);
+							TryParseDifficultyArray(entry.Difficulties[static_cast<size_t>(PVDifficultyType::Hard)]);
 						else if (CompareProperty("extreme"))
-							TryParseDifficultyArray(entry.Extreme);
+							TryParseDifficultyArray(entry.Difficulties[static_cast<size_t>(PVDifficultyType::Extreme)]);
 						else if (CompareProperty("encore"))
-							TryParseDifficultyArray(entry.Encore);
+							TryParseDifficultyArray(entry.Difficulties[static_cast<size_t>(PVDifficultyType::Encore)]);
 					}
 				}
 			}
@@ -112,7 +112,7 @@ namespace Comfy::Database
 		const char* const startOfTextBuffer = reinterpret_cast<const char*>(buffer);
 		const char* const endOfTextBuffer = reinterpret_cast<const char*>(buffer + bufferSize);
 
-		GmPvListDBParser parser;
+		PvDBParser parser;
 		parser.Parse(*this, startOfTextBuffer, endOfTextBuffer);
 	}
 
@@ -126,7 +126,7 @@ namespace Comfy::Database
 		lines.emplace_back(b, sprintf_s(b, "pv_list.data_list.length=%zu\n", Entries.size()));
 		for (size_t pvIndex = 0; pvIndex < Entries.size(); pvIndex++)
 		{
-			auto writeDifficultyArray = [&](const GmPvDifficultyEntries& entries, const char* name)
+			auto writeDifficultyArray = [&](const GmPvDifficultyEditionsEntry& entries, const char* name)
 			{
 				lines.emplace_back(b, sprintf_s(b, "pv_list.%zu.%s.length=%d\n", pvIndex, name, entries.Count));
 				for (i32 i = 0; i < entries.Count; i++)
@@ -144,11 +144,11 @@ namespace Comfy::Database
 			};
 
 			const auto& pvEntry = Entries[pvIndex];
-			writeDifficultyArray(pvEntry.Easy, "easy");
-			writeDifficultyArray(pvEntry.Normal, "normal");
-			writeDifficultyArray(pvEntry.Hard, "hard");
-			writeDifficultyArray(pvEntry.Extreme, "extreme");
-			writeDifficultyArray(pvEntry.Encore, "encore");
+			writeDifficultyArray(pvEntry.Difficulties[static_cast<size_t>(PVDifficultyType::Easy)], "easy");
+			writeDifficultyArray(pvEntry.Difficulties[static_cast<size_t>(PVDifficultyType::Normal)], "normal");
+			writeDifficultyArray(pvEntry.Difficulties[static_cast<size_t>(PVDifficultyType::Hard)], "hard");
+			writeDifficultyArray(pvEntry.Difficulties[static_cast<size_t>(PVDifficultyType::Extreme)], "extreme");
+			writeDifficultyArray(pvEntry.Difficulties[static_cast<size_t>(PVDifficultyType::Encore)], "encore");
 			lines.emplace_back(b, sprintf_s(b, "pv_list.%zu.name=", pvIndex)).append(pvEntry.Name).append("\n");
 			lines.emplace_back(b, sprintf_s(b, "pv_list.%zu.ignore=%d\n", pvIndex, pvEntry.Ignore));
 			lines.emplace_back(b, sprintf_s(b, "pv_list.%zu.id=%d\n", pvIndex, pvEntry.ID));

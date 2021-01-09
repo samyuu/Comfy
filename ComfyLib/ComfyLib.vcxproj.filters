@@ -246,6 +246,9 @@
     <ClInclude Include="src\Database\Game\GmPvListDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Database\Game\PvDB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
@@ -390,6 +393,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Database\Game\GmPvListDB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Database\Game\PvDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

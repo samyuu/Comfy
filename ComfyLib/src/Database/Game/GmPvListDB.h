@@ -1,25 +1,26 @@
 #pragma once
 #include "Database/Database.h"
+#include "PvDB.h"
 
 namespace Comfy::Database
 {
 	struct GmPvDifficultyEntry
 	{
 		DateEntry StartDate, EndDate;
-		i32 Edition;
+		PVDifficultyEdition Edition;
 		i32 Version;
 	};
 
-	struct GmPvDifficultyEntries
+	struct GmPvDifficultyEditionsEntry
 	{
-		std::array<GmPvDifficultyEntry, 2> Editions;
+		std::array<GmPvDifficultyEntry, EnumCount<PVDifficultyEdition>()> Editions;
 		i32 Count;
 	};
 
 	struct GmPvEntry
 	{
 		DateEntry AdvDemoStartDate, AdvDemoEndDate;
-		GmPvDifficultyEntries Easy, Normal, Hard, Extreme, Encore;
+		std::array<GmPvDifficultyEditionsEntry, EnumCount<PVDifficultyType>()> Difficulties;
 		std::string Name;
 		i32 ID;
 		i32 Ignore;
