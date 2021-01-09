@@ -72,12 +72,27 @@ namespace Comfy::IO
 
 		std::string TryMakeRelative(std::string_view absolutePath, std::string_view baseFileOrDirectory)
 		{
+			// TODO: Confirm that this is working correctly and maybe consider ::PathRelativePathToW();
+
 			if (absolutePath.empty() || baseFileOrDirectory.empty())
 				return std::string(absolutePath);
 
 			const auto baseDirectory = Normalize(IsDirectory(baseFileOrDirectory) ? baseFileOrDirectory : GetDirectoryName(baseFileOrDirectory));
 			const auto absoluteDirectory = Normalize(GetDirectoryName(absolutePath));
-			return std::string((baseDirectory == absoluteDirectory) ? GetFileName(absolutePath) : absolutePath);
+			// return std::string((baseDirectory == absoluteDirectory) ? GetFileName(absolutePath) : absolutePath);
+
+			if (Util::StartsWithInsensitive(absoluteDirectory, baseDirectory))
+			{
+				auto relativePath = absolutePath.substr(baseDirectory.size());
+				if (!relativePath.empty() && (relativePath[0] == DirectorySeparator || relativePath[0] == DirectorySeparatorAlt))
+					relativePath = relativePath.substr(1);
+
+				return std::string(relativePath);
+			}
+			else
+			{
+				return std::string(absolutePath);
+			}
 		}
 
 		std::string ChangeExtension(std::string_view filePath, std::string_view newExtension)
