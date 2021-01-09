@@ -44,6 +44,10 @@ namespace Comfy::Studio::Editor
 		using namespace Gui;
 		SetColor(EditorColor_BaseClear, ImColor(0.16f, 0.16f, 0.16f, 0.0f));
 		SetColor(EditorColor_DarkClear, GetColorU32(ImGuiCol_WindowBg));
+
+		SetColor(EditorColor_GreenText, ImColor(0.14f, 0.78f, 0.21f, 1.0f));
+		SetColor(EditorColor_RedText, ImColor(0.95f, 0.12f, 0.12f, 1.0f));
+
 		SetColor(EditorColor_AltRow, 0xFF363636);
 
 		// TODO: These brighter highlight colors improve readability but somewhat conflict with the darker highlights of other ui elements

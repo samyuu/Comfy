@@ -8,6 +8,8 @@ namespace Comfy::Studio::Editor
 	{
 		EditorColor_BaseClear,
 		EditorColor_DarkClear,
+		EditorColor_GreenText,
+		EditorColor_RedText,
 		EditorColor_AltRow,
 		EditorColor_TreeViewSelected,
 		EditorColor_TreeViewHovered,
