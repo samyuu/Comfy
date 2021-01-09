@@ -95,13 +95,46 @@ namespace Comfy::Studio::Editor
 				layers.LevelInfoExExtreme = findLayer(*aetGameCommon, "level_info_extreme_extra");
 				layers.SongTitle = findLayer(*aetGameCommon, "p_song_title_lt");
 
+				layers.SyncInfoSingle = findLayer(*aetGameCommon, "sync_info_single");
 				layers.SyncInfoDouble = findLayer(*aetGameCommon, "sync_info_double");
 				layers.SyncInfoDoubleAdd = findLayer(*aetGameCommon, "sync_info_double_add");
 				layers.SyncInfoTriple = findLayer(*aetGameCommon, "sync_info_triple");
 				layers.SyncInfoTripleAdd = findLayer(*aetGameCommon, "sync_info_triple_add");
 				layers.SyncInfoQuadruple = findLayer(*aetGameCommon, "sync_info_quadruple");
 				layers.SyncInfoQuadrupleAdd = findLayer(*aetGameCommon, "sync_info_quadruple_add");
-				layers.SyncInfoMax = findLayer(*aetGameCommon, "sync_info_max_add");
+				layers.SyncInfoMaxAdd = findLayer(*aetGameCommon, "sync_info_max_add");
+
+				if (auto* layer = layers.SyncInfoQuadruple.get(); layer != nullptr)
+				{
+					auto findLayerVideo = [&](std::string_view layerName)
+					{
+						auto* videoLayer = layer->GetCompItem()->FindLayer(layerName).get();
+						return (videoLayer != nullptr) ? videoLayer->GetVideoItem() : nullptr;
+					};
+					videos.SyncInfoButtonIconPlaceholders[0] = findLayerVideo("p_sync_icon01_c");
+					videos.SyncInfoButtonIconPlaceholders[1] = findLayerVideo("p_sync_icon02_c");
+					videos.SyncInfoButtonIconPlaceholders[2] = findLayerVideo("p_sync_icon03_c");
+					videos.SyncInfoButtonIconPlaceholders[3] = findLayerVideo("p_sync_icon04_c");
+
+					videos.SyncInfoScoreDigitPlaceholders[0] = findLayerVideo("p_sync_score_00000001_c");
+					videos.SyncInfoScoreDigitPlaceholders[1] = findLayerVideo("p_sync_score_00000010_c");
+					videos.SyncInfoScoreDigitPlaceholders[2] = findLayerVideo("p_sync_score_00000100_c");
+					videos.SyncInfoScoreDigitPlaceholders[3] = findLayerVideo("p_sync_score_00001000_c");
+					videos.SyncInfoScoreDigitPlaceholders[4] = findLayerVideo("p_sync_score_00010000_c");
+					videos.SyncInfoScoreDigitPlaceholders[5] = findLayerVideo("p_sync_score_00100000_c");
+					videos.SyncInfoScoreDigitPlaceholders[6] = findLayerVideo("p_sync_score_01000000_c");
+					videos.SyncInfoScoreDigitPlaceholders[7] = findLayerVideo("p_sync_score_10000000_c");
+
+					markers.SyncHoldInfo.LoopStart = TimeSpan::FromFrames(layer->FindMarkerFrame("loop_start").value_or(0.0f));
+					markers.SyncHoldInfo.LoopEnd = TimeSpan::FromFrames(layer->FindMarkerFrame("loop_end").value_or(0.0f));
+					markers.SyncHoldInfo.ChargeEnd = TimeSpan::FromFrames(layer->FindMarkerFrame("charge_end").value_or(0.0f));
+				}
+
+				if (auto* layer = layers.SyncInfoQuadrupleAdd.get(); layer != nullptr)
+				{
+					markers.SyncHoldInfo.LoopStartAdd = TimeSpan::FromFrames(layer->FindMarkerFrame("loop_start").value_or(0.0f));
+				}
+
 				layers.TargetAppearEffect = findLayer(*aetGameCommon, "target_eff");
 
 				layers.HitEffects[0] = findLayer(*aetGameCommon, "hit_eff00");
@@ -339,6 +372,23 @@ namespace Comfy::Studio::Editor
 				sprites.ComboNumbers[8] = findSprite(*sprGameCommon, "CMB_NUM_08");
 				sprites.ComboNumbers[9] = findSprite(*sprGameCommon, "CMB_NUM_09");
 
+				sprites.SyncInfoHoldScoreNumbers[0] = findSprite(*sprGameCommon, "SYNC_NUM_00");
+				sprites.SyncInfoHoldScoreNumbers[1] = findSprite(*sprGameCommon, "SYNC_NUM_01");
+				sprites.SyncInfoHoldScoreNumbers[2] = findSprite(*sprGameCommon, "SYNC_NUM_02");
+				sprites.SyncInfoHoldScoreNumbers[3] = findSprite(*sprGameCommon, "SYNC_NUM_03");
+				sprites.SyncInfoHoldScoreNumbers[4] = findSprite(*sprGameCommon, "SYNC_NUM_04");
+				sprites.SyncInfoHoldScoreNumbers[5] = findSprite(*sprGameCommon, "SYNC_NUM_05");
+				sprites.SyncInfoHoldScoreNumbers[6] = findSprite(*sprGameCommon, "SYNC_NUM_06");
+				sprites.SyncInfoHoldScoreNumbers[7] = findSprite(*sprGameCommon, "SYNC_NUM_07");
+				sprites.SyncInfoHoldScoreNumbers[8] = findSprite(*sprGameCommon, "SYNC_NUM_08");
+				sprites.SyncInfoHoldScoreNumbers[9] = findSprite(*sprGameCommon, "SYNC_NUM_09");
+				sprites.SyncInfoHoldScoreNumbers[10] = findSprite(*sprGameCommon, "SYNC_NUM_PLUS");
+
+				sprites.SyncInfoHoldButtonIcons[static_cast<u8>(ButtonType::Triangle)] = findSprite(*sprGameCommon, "SYNC_ICON_SANKAKU");
+				sprites.SyncInfoHoldButtonIcons[static_cast<u8>(ButtonType::Square)] = findSprite(*sprGameCommon, "SYNC_ICON_SHIKAKU");
+				sprites.SyncInfoHoldButtonIcons[static_cast<u8>(ButtonType::Cross)] = findSprite(*sprGameCommon, "SYNC_ICON_BATSU");
+				sprites.SyncInfoHoldButtonIcons[static_cast<u8>(ButtonType::Circle)] = findSprite(*sprGameCommon, "SYNC_ICON_MARU");
+
 				for (auto& spr : sprGameCommon->Sprites)
 					spr.Name = "GAM_CMN_" + spr.Name;
 			}
@@ -552,6 +602,95 @@ namespace Comfy::Studio::Editor
 
 			if (const auto* font = GetFont36(); font != nullptr && !hud.SongTitle.empty())
 				renderer.Font().DrawBorder(*font, hud.SongTitle, TryGetTransform(layers.SongTitle, playbackFrame));
+		}
+
+		SyncHoldInfoMarkerData GetSyncHoldInfoMarkerData() const
+		{
+			return markers.SyncHoldInfo;
+		}
+
+		void DrawSyncHoldInfo(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const
+		{
+			std::array<ButtonType, 4> buttonIconTypes = { ButtonType::Count, ButtonType::Count, ButtonType::Count, ButtonType::Count };
+
+			u32 syncCount = 0;
+			if (data.TypeFlags & ButtonTypeFlags_Triangle) { buttonIconTypes[syncCount++] = ButtonType::Triangle; }
+			if (data.TypeFlags & ButtonTypeFlags_Square) { buttonIconTypes[syncCount++] = ButtonType::Square; }
+			if (data.TypeFlags & ButtonTypeFlags_Cross) { buttonIconTypes[syncCount++] = ButtonType::Cross; }
+			if (data.TypeFlags & ButtonTypeFlags_Circle) { buttonIconTypes[syncCount++] = ButtonType::Circle; }
+
+			if (syncCount < 1)
+				return;
+
+			auto getSyncInfoLayer = [this](const SyncHoldInfoData& data, u32 syncCount) -> auto&
+			{
+				switch (syncCount)
+				{
+				default:
+				case 1: return layers.SyncInfoSingle;
+				case 2: return data.TypeAdded ? layers.SyncInfoDoubleAdd : layers.SyncInfoDouble;
+				case 3: return data.TypeAdded ? layers.SyncInfoTripleAdd : layers.SyncInfoTriple;
+				case 4: return data.TypeAdded ? layers.SyncInfoQuadrupleAdd : layers.SyncInfoQuadruple;
+				}
+			};
+
+			const auto* syncInfoLayer = getSyncInfoLayer(data, syncCount).get();
+			if (syncInfoLayer == nullptr || syncInfoLayer->GetCompItem() == nullptr)
+				return;
+
+			if (data.Time.ToFrames() >= syncInfoLayer->EndFrame)
+				return;
+
+			char decimalString[16] = {};
+			const auto decimalStringLen = sprintf_s(decimalString, "+%d", std::clamp(data.HoldScore, 0, 999999));
+
+			const auto& compItem = *syncInfoLayer->GetCompItem();
+			for (auto& layer : compItem.GetLayers())
+			{
+				const auto* videoItem = layer->GetVideoItem().get();
+				for (size_t digitIndex = 0; digitIndex < videos.SyncInfoScoreDigitPlaceholders.size(); digitIndex++)
+				{
+					auto* digitVideo = videos.SyncInfoScoreDigitPlaceholders[digitIndex].get();
+					if (videoItem == digitVideo)
+					{
+						const char decimalChar = (digitIndex <= decimalStringLen) ? decimalString[decimalStringLen - digitIndex] : '\0';
+						if (decimalChar == '\0' || data.HideScore)
+						{
+							layer->RenderOverride.UseTexSpr = false;
+						}
+						else
+						{
+							const i8 digit = (decimalChar == '+') ? 10 : (decimalChar - '0');
+							const auto texSpr = GetSyncInfoHoldNumerSprite(digit);
+							layer->RenderOverride.UseTexSpr = true;
+							layer->RenderOverride.Tex = texSpr.Tex;
+							layer->RenderOverride.Spr = texSpr.Spr;
+						}
+					}
+				}
+
+				for (size_t buttonIconIndex = 0; buttonIconIndex < videos.SyncInfoButtonIconPlaceholders.size(); buttonIconIndex++)
+				{
+					auto* buttonVideo = videos.SyncInfoButtonIconPlaceholders[buttonIconIndex].get();
+					if (videoItem == buttonVideo)
+					{
+						auto buttonType = buttonIconTypes[buttonIconIndex];
+						if (buttonType < ButtonType::Count)
+						{
+							const auto texSpr = GetSyncInfoHoldButtonSprite(buttonType);
+							layer->RenderOverride.UseTexSpr = true;
+							layer->RenderOverride.Tex = texSpr.Tex;
+							layer->RenderOverride.Spr = texSpr.Spr;
+						}
+						else
+						{
+							layer->RenderOverride.UseTexSpr = false;
+						}
+					}
+				}
+			}
+
+			renderer.Aet().DrawLayer(*syncInfoLayer, data.Time.ToFrames());
 		}
 
 		// HACK: This is an incredibly hacky solution but is far more simple than creating entire layer + comp copies for each variation
@@ -1156,6 +1295,22 @@ namespace Comfy::Studio::Editor
 				Render::TexSprView { sprGameCommon->TexSet.Textures[digitSprite->TextureIndex].get(), digitSprite };
 		}
 
+		Render::TexSprView GetSyncInfoHoldNumerSprite(i8 number) const
+		{
+			auto digitSprite = sprites.SyncInfoHoldScoreNumbers[number];
+			return (digitSprite == nullptr) ?
+				Render::TexSprView { nullptr, nullptr } :
+				Render::TexSprView { sprGameCommon->TexSet.Textures[digitSprite->TextureIndex].get(), digitSprite };
+		}
+
+		Render::TexSprView GetSyncInfoHoldButtonSprite(ButtonType type) const
+		{
+			auto buttonSprite = sprites.SyncInfoHoldButtonIcons[static_cast<u8>(type)];
+			return (buttonSprite == nullptr) ?
+				Render::TexSprView { nullptr, nullptr } :
+				Render::TexSprView { sprGameCommon->TexSet.Textures[buttonSprite->TextureIndex].get(), buttonSprite };
+		}
+
 		Render::TexSprView GetButtonTrailSprite() const
 		{
 			return (sprites.ButtonTrail == nullptr) ?
@@ -1210,13 +1365,14 @@ namespace Comfy::Studio::Editor
 				LevelInfoExtreme,
 				LevelInfoExExtreme,
 				SongTitle,
+				SyncInfoSingle,
 				SyncInfoDouble,
 				SyncInfoDoubleAdd,
 				SyncInfoTriple,
 				SyncInfoTripleAdd,
 				SyncInfoQuadruple,
 				SyncInfoQuadrupleAdd,
-				SyncInfoMax,
+				SyncInfoMaxAdd,
 				TargetAppearEffect;
 
 			std::array<std::shared_ptr<Aet::Layer>, 5>
@@ -1305,6 +1461,12 @@ namespace Comfy::Studio::Editor
 			std::array<std::shared_ptr<Aet::Video>, 4>
 				ComboNumberDigitPlaceholders;
 
+			std::array<std::shared_ptr<Aet::Video>, 4>
+				SyncInfoButtonIconPlaceholders;
+
+			std::array<std::shared_ptr<Aet::Video>, 8>
+				SyncInfoScoreDigitPlaceholders;
+
 			std::array<std::shared_ptr<Aet::Video>, 7>
 				ChancePointDigitPlaceholders;
 
@@ -1321,7 +1483,12 @@ namespace Comfy::Studio::Editor
 				PracticeCoverDummyParentLayer,
 				PracticeBackgroundDummyParentLayer;
 
-		} videos;
+		} videos = {};
+
+		struct MarkerCache
+		{
+			SyncHoldInfoMarkerData SyncHoldInfo;
+		} markers = {};
 
 		struct SpriteCache
 		{
@@ -1332,6 +1499,13 @@ namespace Comfy::Studio::Editor
 
 			std::array<Spr*, 10>
 				ComboNumbers;
+
+			std::array<Spr*, 11>
+				SyncInfoHoldScoreNumbers;
+
+			std::array<Spr*, EnumCount<ButtonType>()>
+				SyncInfoHoldButtonIcons;
+
 		} sprites = {};
 	};
 
@@ -1361,6 +1535,16 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const
 	{
 		impl->DrawHUD(renderer, hud);
+	}
+
+	TargetRenderHelper::SyncHoldInfoMarkerData TargetRenderHelper::GetSyncHoldInfoMarkerData() const
+	{
+		return impl->GetSyncHoldInfoMarkerData();
+	}
+
+	void TargetRenderHelper::DrawSyncHoldInfo(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const
+	{
+		impl->DrawSyncHoldInfo(renderer, data);
 	}
 
 	void TargetRenderHelper::DrawTargetAppearEffect(Render::Renderer2D& renderer, const TargetAppearData& data) const

@@ -48,6 +48,28 @@ namespace Comfy::Studio::Editor
 
 		void DrawHUD(Render::Renderer2D& renderer, const HUDData& hud) const;
 
+		struct SyncHoldInfoMarkerData
+		{
+			TimeSpan LoopStart;
+			TimeSpan LoopStartAdd;
+			TimeSpan LoopEnd;
+			TimeSpan ChargeEnd;
+		};
+
+		SyncHoldInfoMarkerData GetSyncHoldInfoMarkerData() const;
+
+		struct SyncHoldInfoData
+		{
+			TimeSpan Time;
+			ButtonTypeFlags TypeFlags;
+			bool TypeAdded;
+			bool HideScore;
+			i32 HoldScore;
+			// TODO: Hold info max
+		};
+
+		void DrawSyncHoldInfo(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const;
+
 		struct TargetAppearData
 		{
 			vec2 Position;
