@@ -73,7 +73,7 @@ namespace Comfy::Studio::Editor
 		i32 FindGridDivisionPresetIndex() const;
 		void SelectNextPresetGridDivision(i32 direction);
 
-		void AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep = false);
+		void AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep = false, i32 distanceFactor = 1);
 		void AdvanceCursorToNextTarget(i32 direction);
 
 	private:

@@ -943,11 +943,15 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		const bool useBeatStep = Gui::GetIO().KeyShift;
+		const bool isPlayback = GetIsPlayback();
+
+		const bool useBeatStep = Gui::GetIO().KeyShift || isPlayback;
+		const i32 stepDistanceFactor = isPlayback ? 2 : 1;
+
 		if (Gui::IsKeyPressed(KeyBindings::MoveCursorLeft, true))
-			AdvanceCursorByGridDivisionTick(-1, useBeatStep);
+			AdvanceCursorByGridDivisionTick(-1, useBeatStep, stepDistanceFactor);
 		if (Gui::IsKeyPressed(KeyBindings::MoveCursorRight, true))
-			AdvanceCursorByGridDivisionTick(+1, useBeatStep);
+			AdvanceCursorByGridDivisionTick(+1, useBeatStep, stepDistanceFactor);
 
 		if (Gui::IsKeyPressed(KeyBindings::IncreaseGridPrecision, true))
 			SelectNextPresetGridDivision(-1);
@@ -1913,12 +1917,12 @@ namespace Comfy::Studio::Editor
 		activeBarGridDivision = presetBarGridDivisions[nextIndex];
 	}
 
-	void TargetTimeline::AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep)
+	void TargetTimeline::AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep, i32 distanceFactor)
 	{
 		const auto beatIncrement = BeatTick::FromBeats(1);
 		const auto gridIncrement = GridDivisionTick();
 
-		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement);
+		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement) * distanceFactor;
 
 		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
 		const auto clampedCursorTick = std::max(newCursorTick, BeatTick::Zero());
@@ -1929,8 +1933,7 @@ namespace Comfy::Studio::Editor
 		PlayCursorButtonSoundsAndAnimation(clampedCursorTick);
 
 		// NOTE: Keep same relative cursor screen position though might only wanna scroll if the cursor is about to go off-screen (?)
-		if (!GetIsPlayback())
-			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+		SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
 	}
 
 	void TargetTimeline::AdvanceCursorToNextTarget(i32 direction)
