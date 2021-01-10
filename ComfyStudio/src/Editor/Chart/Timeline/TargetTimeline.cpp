@@ -1192,13 +1192,16 @@ namespace Comfy::Studio::Editor
 				auto& target = workingChart->Targets[i];
 				auto* prevTarget = IndexOrNull(i - 1, workingChart->Targets);
 
-				if (target.Tick + increment < BeatTick::Zero())
-					return false;
-
-				if (target.IsSelected && prevTarget != nullptr && !prevTarget->IsSelected)
+				if (target.IsSelected)
 				{
-					if (target.Tick + increment <= prevTarget->Tick)
+					if (target.Tick + increment < BeatTick::Zero())
 						return false;
+
+					if (prevTarget != nullptr && !prevTarget->IsSelected)
+					{
+						if (target.Tick + increment <= prevTarget->Tick)
+							return false;
+					}
 				}
 			}
 		}
