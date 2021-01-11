@@ -159,6 +159,9 @@ namespace Comfy::Studio::Editor
 			RenderBackground();
 			RenderHUDBackground();
 
+			if (drawSyncHoldInfo)
+				RenderSyncHoldInfoBackground();
+
 			auto selectedTool = GetSelectedTool();
 			if (selectedTool != nullptr)
 				selectedTool->PreRender(*workingChart, renderer);
@@ -242,6 +245,7 @@ namespace Comfy::Studio::Editor
 				{
 					Gui::Checkbox("Show Target Buttons", &layers.DrawButtons);
 					Gui::Checkbox("Show Target Grid", &drawTargetGrid);
+					Gui::Checkbox("Show Target Hold Info", &drawSyncHoldInfo);
 
 					Gui::Checkbox("Background Checkerboard", &drawCheckerboard);
 
@@ -254,6 +258,7 @@ namespace Comfy::Studio::Editor
 					Gui::EndMenu();
 				}
 
+				// TODO: Simplify these options to reduce clutter (?)
 				if (Gui::BeginMenu("Practice Background", true))
 				{
 					Gui::Checkbox("Enabled", &practiceBackground.Enabled);
@@ -348,6 +353,155 @@ namespace Comfy::Studio::Editor
 		hudData.DrawPracticeInfo = false;
 
 		renderHelper->DrawHUD(renderer, hudData);
+	}
+
+	void TargetRenderWindow::RenderSyncHoldInfoBackground()
+	{
+		const auto cursorTick = timeline.GetCursorTick();
+		const auto cursorTime = timeline.GetCursorTime();
+
+		auto checkAddHoldMaxEvent = [](std::vector<HoldEvent>& holdEventStack, TimeSpan timeToCheckAgainst)
+		{
+			if (holdEventStack.empty())
+				return;
+
+			const auto lastEvent = holdEventStack.back();
+			if (lastEvent.EvenType != HoldEventType::Start && lastEvent.EvenType != HoldEventType::Addition)
+				return;
+
+			if (timeToCheckAgainst >= lastEvent.StartTime + MaxTargetHoldDuration)
+			{
+				auto& newMaxEvent = holdEventStack.emplace_back();
+				newMaxEvent.EvenType = HoldEventType::MaxOut;
+				newMaxEvent.CombinedButtonTypes = ButtonTypeFlags_None;
+				newMaxEvent.TargetPairIndex = -1;
+				newMaxEvent.StartTime = lastEvent.StartTime + MaxTargetHoldDuration;
+			}
+		};
+
+		for (size_t i = 0; i < workingChart->Targets.size();)
+		{
+			const auto& firstTargetOfPair = workingChart->Targets[i];
+			const size_t firstTargetOfPairIndex = i;
+
+			ButtonTypeFlags pairTypes = ButtonTypeFlags_None;
+			ButtonTypeFlags pairTypesHolds = ButtonTypeFlags_None;
+
+			for (size_t pair = 0; pair < firstTargetOfPair.Flags.SyncPairCount; pair++)
+			{
+				const auto& pairTarget = workingChart->Targets[i + pair];
+				const auto pairTypeFlag = ButtonTypeToButtonTypeFlags(pairTarget.Type);
+
+				pairTypes |= pairTypeFlag;
+				pairTypesHolds |= (pairTarget.Flags.IsHold) ? pairTypeFlag : 0;
+			}
+
+			assert(firstTargetOfPair.Flags.SyncPairCount >= 1);
+			i += firstTargetOfPair.Flags.SyncPairCount;
+
+			if (firstTargetOfPair.Tick > cursorTick)
+				break;
+
+			const auto pairButtonTime = timeline.TickToTime(firstTargetOfPair.Tick);
+			checkAddHoldMaxEvent(holdEventStack, pairButtonTime);
+
+			if (pairTypesHolds == ButtonTypeFlags_None)
+			{
+				if (holdEventStack.empty())
+					continue;
+
+				auto& lastEvent = holdEventStack.back();
+				if (lastEvent.EvenType != HoldEventType::Start && lastEvent.EvenType != HoldEventType::Addition)
+					continue;
+
+				const bool newHoldConflicts = (lastEvent.CombinedButtonTypes & pairTypes);
+				if (!newHoldConflicts)
+					continue;
+			}
+
+			auto& newHoldEvent = holdEventStack.emplace_back();
+			newHoldEvent.TargetPairIndex = static_cast<i32>(firstTargetOfPairIndex);
+			newHoldEvent.StartTime = pairButtonTime;
+
+			if (pairTypesHolds == ButtonTypeFlags_None)
+			{
+				newHoldEvent.EvenType = HoldEventType::Cancel;
+				newHoldEvent.CombinedButtonTypes = ButtonTypeFlags_None;
+			}
+			else if (holdEventStack.size() <= 1)
+			{
+				newHoldEvent.EvenType = HoldEventType::Start;
+				newHoldEvent.CombinedButtonTypes = pairTypesHolds;
+			}
+			else
+			{
+				const auto& lastEvent = holdEventStack[holdEventStack.size() - 2];
+
+				const bool lastEventIsMergable = (lastEvent.EvenType == HoldEventType::Start || lastEvent.EvenType == HoldEventType::Addition);
+				const bool newHoldConflicts = (lastEvent.CombinedButtonTypes & pairTypesHolds);
+
+				if (!lastEventIsMergable || newHoldConflicts)
+				{
+					newHoldEvent.EvenType = HoldEventType::Start;
+					newHoldEvent.CombinedButtonTypes = pairTypesHolds;
+				}
+				else
+				{
+					newHoldEvent.EvenType = HoldEventType::Addition;
+					newHoldEvent.CombinedButtonTypes = (lastEvent.CombinedButtonTypes | pairTypesHolds);
+				}
+			}
+		}
+
+		checkAddHoldMaxEvent(holdEventStack, cursorTime);
+
+		if (!holdEventStack.empty())
+		{
+			const auto lastValidEvent = std::find_if(holdEventStack.rbegin(), holdEventStack.rend(), [](auto& e) { return (e.EvenType == HoldEventType::Start || e.EvenType == HoldEventType::Addition); });
+			const auto& lastEvent = holdEventStack.back();
+
+			// TODO: Calculate hold score and display max hold info (?)
+			const auto syncHoldInfoMarkers = renderHelper->GetSyncHoldInfoMarkerData();
+			TargetRenderHelper::SyncHoldInfoData syncInfoData = {};
+
+			constexpr bool noAnimation = false;
+			if (noAnimation)
+			{
+				syncInfoData.Time = syncHoldInfoMarkers.LoopStart;
+				syncInfoData.TypeFlags = lastEvent.CombinedButtonTypes;
+			}
+			else if (lastValidEvent != holdEventStack.rend())
+			{
+				const bool wasAddition = (lastValidEvent->EvenType == HoldEventType::Addition);
+
+				const auto markerLoopStart = wasAddition ? syncHoldInfoMarkers.LoopStartAdd : syncHoldInfoMarkers.LoopStart;
+				const auto markerLoopEnd = syncHoldInfoMarkers.LoopEnd;
+
+				if (lastEvent.EvenType == HoldEventType::MaxOut)
+				{
+					const auto timeSinceMaxOut = (cursorTime - lastValidEvent->StartTime - MaxTargetHoldDuration);
+					syncInfoData.Time = markerLoopEnd + timeSinceMaxOut;
+				}
+				else if (lastEvent.EvenType == HoldEventType::Cancel)
+				{
+					const auto timeSinceCancel = (cursorTime - lastEvent.StartTime);
+					syncInfoData.Time = markerLoopEnd + timeSinceCancel;
+				}
+				else
+				{
+					const auto timeSinceUpdate = (cursorTime - lastValidEvent->StartTime);
+					syncInfoData.Time = (timeSinceUpdate > markerLoopStart) ?
+						markerLoopStart + TimeSpan::FromSeconds(glm::mod((timeSinceUpdate - markerLoopStart).TotalSeconds(), (markerLoopEnd - markerLoopStart).TotalSeconds())) :
+						timeSinceUpdate;
+				}
+
+				syncInfoData.TypeFlags = lastValidEvent->CombinedButtonTypes;
+				syncInfoData.TypeAdded = wasAddition;
+			}
+
+			renderHelper->DrawSyncHoldInfo(renderer, syncInfoData);
+			holdEventStack.clear();
+		}
 	}
 
 	void TargetRenderWindow::RenderAllVisibleTargets()

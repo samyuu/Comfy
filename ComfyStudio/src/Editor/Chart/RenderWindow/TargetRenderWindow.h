@@ -68,6 +68,7 @@ namespace Comfy::Studio::Editor
 	private:
 		void RenderBackground();
 		void RenderHUDBackground();
+		void RenderSyncHoldInfoBackground();
 		void RenderAllVisibleTargets();
 		void AddVisibleTargetsToDrawBuffers();
 
@@ -96,6 +97,7 @@ namespace Comfy::Studio::Editor
 
 		bool drawCheckerboard = true;
 		bool drawTargetGrid = true;
+		bool drawSyncHoldInfo = true;
 
 		struct PracticeBackgroundData
 		{
@@ -116,5 +118,17 @@ namespace Comfy::Studio::Editor
 
 		TargetRenderHelperEx renderHelperEx = {};
 		std::vector<std::pair<vec2, u32>> centerMarkersBuffer;
+
+		enum class HoldEventType : u8 { Start, Addition, Cancel, MaxOut, Count };
+
+		struct HoldEvent
+		{
+			HoldEventType EvenType;
+			ButtonTypeFlags CombinedButtonTypes;
+			i32 TargetPairIndex;
+			TimeSpan StartTime;
+		};
+
+		std::vector<HoldEvent> holdEventStack;
 	};
 }
