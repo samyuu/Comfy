@@ -54,6 +54,10 @@ namespace Comfy::Render::D3D11
 		std::vector<ID3D11DeviceChild*> objectsToBeReleased;
 		bool runningUnderGraphicsDebugger = false;
 
+		ComPtr<IDXGIDevice> dxgiDevice = nullptr;
+		ComPtr<IDXGIAdapter> dxgiAdapter = nullptr;
+		ComPtr<IDXGIFactory> dxgiFactory = nullptr;
+
 #if COMFY_DEBUG
 		ComPtr<ID3D11Debug> debugInterface = nullptr;
 		ComPtr<ID3D11InfoQueue> infoQueue = nullptr;

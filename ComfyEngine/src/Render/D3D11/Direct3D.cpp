@@ -165,19 +165,19 @@ namespace Comfy::Render::D3D11
 	bool Direct3D::InternalCreateDeviceAndSwapchain(HWND window)
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
-		swapChainDescription.BufferCount = 2;
+		swapChainDescription.SampleDesc.Count = 1;
+		swapChainDescription.SampleDesc.Quality = 0;
 		swapChainDescription.BufferDesc.Width = 0;
 		swapChainDescription.BufferDesc.Height = 0;
 		swapChainDescription.BufferDesc.Format = RenderTargetLDRFormatRGBA;
 		swapChainDescription.BufferDesc.RefreshRate.Numerator = 0;
 		swapChainDescription.BufferDesc.RefreshRate.Denominator = 0;
-		swapChainDescription.Flags = 0;
 		swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDescription.BufferCount = 2;
 		swapChainDescription.OutputWindow = window;
-		swapChainDescription.SampleDesc.Count = 1;
-		swapChainDescription.SampleDesc.Quality = 0;
 		swapChainDescription.Windowed = true;
 		swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		swapChainDescription.Flags = 0;
 
 		D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
 #if 0
@@ -222,6 +222,17 @@ namespace Comfy::Render::D3D11
 			Logger::LogErrorLine(__FUNCTION__"(): Unable to create device and swap chain. Error: 0x%X", deviceSwapChainResult);
 			return false;
 		}
+
+		if (FAILED(Device->QueryInterface(IID_PPV_ARGS(&dxgiDevice))))
+			return false;
+
+		if (FAILED(dxgiDevice->GetParent(IID_PPV_ARGS(&dxgiAdapter))))
+			return false;
+
+		if (FAILED(dxgiAdapter->GetParent(IID_PPV_ARGS(&dxgiFactory))))
+			return false;
+
+		dxgiFactory->MakeWindowAssociation(window, DXGI_MWA_NO_ALT_ENTER);
 
 		if (!InternalSetUpDebugInterface())
 			return false;

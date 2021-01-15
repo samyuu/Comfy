@@ -13,6 +13,8 @@
 #include "ImGui/GuiRenderer.h"
 #include <shellapi.h>
 
+#define COMFY_APPLICATION_HOST_BORDERLESS_FULLSCREEN 1
+
 namespace Comfy
 {
 	HMODULE GlobalModuleHandle = NULL;
@@ -52,6 +54,8 @@ namespace Comfy
 
 			ivec2 PreFullScreenPosition = DefaultStartupWindowPosition;
 			ivec2 PreFullScreenSize = DefaultStartupWindowSize;
+			ivec4 PreFullscreenRestoreRegion = { DefaultStartupWindowPosition, DefaultStartupWindowSize };
+			bool PreFullscreenIsMaximized = false;
 
 			bool Focused = true, LastFocused = false;
 			bool FocusLostThisFrame = false, FocusGainedThisFrame = false;
@@ -235,15 +239,17 @@ namespace Comfy
 			windowClass.cbClsExtra = 0;
 			windowClass.cbWndExtra = 0;
 			windowClass.hInstance = GlobalModuleHandle;
-			windowClass.hIcon = ApplicationHost::GetComfyWindowIcon();
+			windowClass.hIcon = GlobalIconHandle;
 			windowClass.hCursor = ::LoadCursorA(NULL, IDC_ARROW);
 			windowClass.hbrBackground = NULL;
 			windowClass.lpszMenuName = NULL;
 			windowClass.lpszClassName = windowClassName.c_str();
-			windowClass.hIconSm = ApplicationHost::GetComfyWindowIcon();
+			windowClass.hIconSm = GlobalIconHandle;
 
 			if (!::RegisterClassExW(&windowClass))
 				return false;
+
+			const auto originalStartupRegion = ivec4(Window.Position, Window.Size);
 
 			auto windowStartupRegion = ClientToWindowArea(Window.Position, Window.Size);
 			windowStartupRegion.y = std::max(windowStartupRegion.y, 0);
@@ -281,6 +287,9 @@ namespace Comfy
 				windowPlacement.rcNormalPosition = { windowRestoreRegion.x, windowRestoreRegion.y, windowRestoreRegion.x + windowRestoreRegion.z, windowRestoreRegion.y + windowRestoreRegion.w };
 				::SetWindowPlacement(Window.Handle, &windowPlacement);
 			}
+
+			Window.IsFullscreenRequested = Window.IsFullscreen;
+			Window.IsFullscreen = false;
 
 			if (!Render::D3D11::D3D.Initialize(Window.Handle))
 			{
@@ -436,6 +445,53 @@ namespace Comfy
 
 			Window.IsFullscreen = Window.IsFullscreenRequested;
 
+#if COMFY_APPLICATION_HOST_BORDERLESS_FULLSCREEN
+			if (Window.IsFullscreen)
+			{
+				Window.PreFullScreenPosition = Window.Position;
+				Window.PreFullScreenSize = Window.Size;
+				Window.PreFullscreenIsMaximized = Window.IsMaximized;
+				Window.PreFullscreenRestoreRegion = Window.IsMaximized ? Window.RestoreRegion : ivec4(Window.Position, Window.Size);
+
+				::SetWindowLongPtrW(Window.Handle, GWL_STYLE, WS_POPUP);
+
+				const auto windowMonitor = ::MonitorFromWindow(Window.Handle, MONITOR_DEFAULTTONEAREST);
+				MONITORINFO windowMonitorInfo = {};
+				windowMonitorInfo.cbSize = sizeof(MONITORINFO);
+
+				::ShowWindow(Window.Handle, SW_SHOWNORMAL);
+
+				if (::GetMonitorInfoW(windowMonitor, &windowMonitorInfo))
+				{
+					::MoveWindow(Window.Handle,
+						windowMonitorInfo.rcMonitor.left,
+						windowMonitorInfo.rcMonitor.top,
+						windowMonitorInfo.rcMonitor.right - windowMonitorInfo.rcMonitor.left,
+						windowMonitorInfo.rcMonitor.bottom - windowMonitorInfo.rcMonitor.top,
+						true);
+				}
+			}
+			else
+			{
+				::SetWindowLongPtrW(Window.Handle, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+
+				Window.Position = Window.PreFullScreenPosition;
+				Window.Size = Window.PreFullScreenSize;
+				Window.IsMaximized = Window.PreFullscreenIsMaximized;
+				Window.RestoreRegion = Window.PreFullscreenRestoreRegion;
+
+				const auto windowRestoreRegion = ClientToWindowArea(Window.RestoreRegion);
+
+				WINDOWPLACEMENT windowPlacement;
+				windowPlacement.length = sizeof(WINDOWPLACEMENT);
+				windowPlacement.flags = 0;
+				windowPlacement.showCmd = Window.IsMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+				windowPlacement.ptMinPosition = { Window.Position.x, Window.Position.y };
+				windowPlacement.ptMaxPosition = { Window.Position.x, Window.Position.y };
+				windowPlacement.rcNormalPosition = { windowRestoreRegion.x, windowRestoreRegion.y, windowRestoreRegion.x + windowRestoreRegion.z, windowRestoreRegion.y + windowRestoreRegion.w };
+				::SetWindowPlacement(Window.Handle, &windowPlacement);
+			}
+#else
 			if (Window.IsFullscreen)
 			{
 				Window.PreFullScreenPosition = Window.Position;
@@ -451,6 +507,7 @@ namespace Comfy
 				Window.Size = Window.PreFullScreenSize;
 				InternalApplyWindowPositionAndSize();
 			}
+#endif
 		}
 
 		void PreUpdateFrameChangeState()
