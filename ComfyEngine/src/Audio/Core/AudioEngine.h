@@ -39,6 +39,7 @@ namespace Comfy::Audio
 		void SetPlaybackSpeed(f32 value);
 
 		TimeSpan GetPosition() const;
+		TimeSpan GetPositionSmooth() const;
 		void SetPosition(TimeSpan value);
 
 		SourceHandle GetSource() const;
@@ -92,7 +93,7 @@ namespace Comfy::Audio
 		Default = WASAPIExclusive, // WASAPIShared,
 	};
 
-	constexpr std::array<const char*, EnumCount<AudioBackend>()> AudioBackendNames = 
+	constexpr std::array<const char*, EnumCount<AudioBackend>()> AudioBackendNames =
 	{
 		"WASAPI (Shared)",
 		"WASAPI (Exclusive)",
@@ -111,13 +112,11 @@ namespace Comfy::Audio
 		static constexpr u32 OutputSampleRate = 44100;
 
 		static constexpr u32 DefaultBufferFrameCount = 64;
-		static constexpr u32 MinBufferSampleCount = 8;
-		static constexpr u32 MinBufferFrameCount = (MinBufferSampleCount / OutputChannelCount);
-		static constexpr u32 MaxBufferSampleCount = 2048;
-		static constexpr u32 MaxBufferFrameCount = (MaxBufferSampleCount / OutputChannelCount);
+		static constexpr u32 MinBufferFrameCount = 8;
+		static constexpr u32 MaxBufferFrameCount = OutputSampleRate;
 
 		static constexpr size_t CallbackDurationRingBufferSize = 64;
-		static constexpr size_t LastPlayedSamplesRingBufferFrameCount = MaxBufferSampleCount;
+		static constexpr size_t LastPlayedSamplesRingBufferFrameCount = MaxBufferFrameCount;
 
 	public:
 		AudioEngine();
@@ -183,11 +182,14 @@ namespace Comfy::Audio
 		// size_t GetDeviceCount() const;
 		// DeviceInfo GetDeviceInfo(u32 device);
 
+		i64 DebugGetTotalRenderedFrames() const;
+		TimeSpan DebugGetTotalRenderTime() const;
+
 		void DebugShowControlPanel() const;
 
 		// NOTE: Has to be large enough to store at least Engine::MaxSimultaneousVoices
 		void DebugGetAllVoices(Voice* outputVoices, size_t* outputVoiceCount);
-		
+
 		size_t DebugGetMaxSourceCount();
 
 		std::array<TimeSpan, CallbackDurationRingBufferSize> DebugGetCallbackDurations();

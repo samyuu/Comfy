@@ -78,14 +78,20 @@ namespace Comfy::Audio
 		std::atomic<i64> FramePosition;
 
 		std::atomic<f32> PlaybackSpeed;
-		std::atomic<f64> TimePositionSeconds;
+		std::atomic<f64> TimePositionSec;
 
-		std::array<char, 64> Name;
+		struct SmoothTimeData
+		{
+			std::atomic<bool> RequestUpdate;
+			std::atomic<f64> BaseSystemTimeSec;
+			std::atomic<f64> BaseVoiceTimeSec;
+		} SmoothTime;
 
 		// TODO: Loop between
 		// std::atomic<i64> LoopStartFrame, LoopEndFrame;
 
 		AtomicVoiceVolumeMap VolumeMap;
+		std::array<char, 64> Name;
 	};
 
 	struct AudioEngine::Impl
@@ -102,7 +108,8 @@ namespace Comfy::Audio
 		// TODO: Fallback backend interface
 
 	public:
-		std::mutex CallbackMutex;
+		std::mutex VoiceRenderMutex;
+		std::mutex CallbackReceiverMutex;
 
 		// NOTE: Indexed into by VoiceHandle, nullptr = free space
 		std::array<VoiceData, MaxSimultaneousVoices> VoicePool;
@@ -127,9 +134,7 @@ namespace Comfy::Audio
 		std::vector<SourceData> LoadedSources;
 
 	public:
-		static constexpr size_t TempOutputBufferSize = (MaxBufferSampleCount * OutputChannelCount);
-
-		std::array<i16, TempOutputBufferSize> TempOutputBuffer = {};
+		std::array<i16, (MaxBufferFrameCount * OutputChannelCount)> TempOutputBuffer = {};
 		u32 CurrentBufferFrameSize = DefaultBufferFrameCount;
 
 		// NOTE: For measuring performance
@@ -147,6 +152,8 @@ namespace Comfy::Audio
 
 		// NOTE: nullptr = free space
 		std::vector<CallbackReceiver*> RegisteredCallbackReceivers;
+
+		std::atomic<i64> TotalRenderedFrames = {};
 
 	public:
 		struct DebugCaptureData
@@ -213,6 +220,8 @@ namespace Comfy::Audio
 
 		void CallbackNotifyCallbackReceivers()
 		{
+			const auto lock = std::scoped_lock(CallbackReceiverMutex);
+
 			for (auto* callbackReceiver : RegisteredCallbackReceivers)
 			{
 				if (callbackReceiver != nullptr)
@@ -259,7 +268,7 @@ namespace Comfy::Audio
 				{
 					const auto frameDuration = FramesToTimeSpan(1, sampleRate) * voiceData.PlaybackSpeed;
 					const auto bufferDuration = TimeSpan::FromSeconds(frameDuration.TotalSeconds() * frameCount);
-					const auto voiceStartTime = TimeSpan::FromSeconds(voiceData.TimePositionSeconds) - bufferDuration;
+					const auto voiceStartTime = TimeSpan::FromSeconds(voiceData.TimePositionSec) - bufferDuration;
 
 					for (i64 f = 0; f < frameCount; f++)
 					{
@@ -292,10 +301,11 @@ namespace Comfy::Audio
 
 		void CallbackProcessVoices(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferSampleCount)
 		{
-			const auto lock = std::scoped_lock(CallbackMutex);
+			const auto lock = std::scoped_lock(VoiceRenderMutex);
 
-			for (auto& voiceData : VoicePool)
+			for (size_t voiceIndex = 0; voiceIndex < VoicePool.size(); voiceIndex++)
 			{
+				auto& voiceData = VoicePool[voiceIndex];
 				if (!(voiceData.Flags & VoiceFlags_Alive))
 					continue;
 
@@ -304,11 +314,27 @@ namespace Comfy::Audio
 				const bool variablePlaybackSpeed = (voiceData.Flags & VoiceFlags_VariablePlaybackSpeed);
 				const bool playPastEnd = (voiceData.Flags & VoiceFlags_PlayPastEnd);
 				bool hasReachedEnd = (sampleProvider == nullptr) ? false :
-					(variablePlaybackSpeed ? (voiceData.TimePositionSeconds >= FramesToTimeSpan(sampleProvider->GetFrameCount(), sampleProvider->GetSampleRate()).TotalSeconds()) :
+					(variablePlaybackSpeed ? (voiceData.TimePositionSec >= FramesToTimeSpan(sampleProvider->GetFrameCount(), sampleProvider->GetSampleRate()).TotalSeconds()) :
 					(voiceData.FramePosition >= sampleProvider->GetFrameCount()));
 
 				if (sampleProvider == nullptr && (voiceData.Flags & VoiceFlags_RemoveOnEnd))
 					hasReachedEnd = true;
+
+				if (voiceData.SmoothTime.RequestUpdate.exchange(false))
+				{
+					voiceData.SmoothTime.BaseSystemTimeSec = TimeSpan::GetTimeNow().TotalSeconds();
+					voiceData.SmoothTime.BaseVoiceTimeSec =
+						variablePlaybackSpeed ? voiceData.TimePositionSec.load() :
+						FramesToTimeSpan(voiceData.FramePosition, (sampleProvider != nullptr) ? sampleProvider->GetSampleRate() : OutputSampleRate).TotalSeconds();
+				}
+
+				if (voiceData.Flags & VoiceFlags_Playing)
+				{
+					if (variablePlaybackSpeed)
+						CallbackProcessVariableSpeedVoiceSamples(outputBuffer, bufferFrameCount, playPastEnd, hasReachedEnd, voiceData, sampleProvider);
+					else
+						CallbackProcessNormalSpeedVoiceSamples(outputBuffer, bufferFrameCount, playPastEnd, hasReachedEnd, voiceData, sampleProvider);
+				}
 
 				if (hasReachedEnd)
 				{
@@ -323,15 +349,9 @@ namespace Comfy::Audio
 						continue;
 					}
 				}
-
-				if (voiceData.Flags & VoiceFlags_Playing)
-				{
-					if (variablePlaybackSpeed)
-						CallbackProcessVariableSpeedVoiceSamples(outputBuffer, bufferFrameCount, playPastEnd, hasReachedEnd, voiceData, sampleProvider);
-					else
-						CallbackProcessNormalSpeedVoiceSamples(outputBuffer, bufferFrameCount, playPastEnd, hasReachedEnd, voiceData, sampleProvider);
-				}
 			}
+
+			TotalRenderedFrames += bufferFrameCount;
 		}
 
 		void CallbackProcessNormalSpeedVoiceSamples(i16* outputBuffer, const u32 bufferFrameCount, const bool playPastEnd, const bool hasReachedEnd, VoiceData& voiceData, ISampleProvider* sampleProvider)
@@ -347,8 +367,8 @@ namespace Comfy::Audio
 				framesRead = ChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
 			else
 				framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
-			voiceData.FramePosition += framesRead;
 
+			voiceData.FramePosition += framesRead;
 			if (hasReachedEnd && !playPastEnd)
 				voiceData.FramePosition = (voiceData.Flags & VoiceFlags_Looping) ? 0 : sampleProvider->GetFrameCount();
 
@@ -365,7 +385,7 @@ namespace Comfy::Audio
 
 			if (sampleProvider == nullptr || rawSamples == nullptr)
 			{
-				voiceData.TimePositionSeconds = voiceData.TimePositionSeconds + bufferDurationSec;
+				voiceData.TimePositionSec = voiceData.TimePositionSec + bufferDurationSec;
 				return;
 			}
 
@@ -376,7 +396,7 @@ namespace Comfy::Audio
 			const u32 providerChannelCount = sampleProvider->GetChannelCount();
 
 			const f64 sampleRateF64 = static_cast<f64>(sampleRate);
-			const f64 voiceStartTimeSec = voiceData.TimePositionSeconds;
+			const f64 voiceStartTimeSec = voiceData.TimePositionSec;
 
 			if (providerChannelCount != OutputChannelCount)
 			{
@@ -401,9 +421,9 @@ namespace Comfy::Audio
 				}
 			}
 
-			voiceData.TimePositionSeconds = voiceData.TimePositionSeconds + bufferDurationSec;
+			voiceData.TimePositionSec = voiceData.TimePositionSec + bufferDurationSec;
 			if (hasReachedEnd && !playPastEnd)
-				voiceData.TimePositionSeconds = (voiceData.Flags & VoiceFlags_Looping) ? 0.0 : FramesToTimeSpan(sampleProvider->GetFrameCount(), sampleRate).TotalSeconds();
+				voiceData.TimePositionSec = (voiceData.Flags & VoiceFlags_Looping) ? 0.0 : FramesToTimeSpan(sampleProvider->GetFrameCount(), sampleRate).TotalSeconds();
 
 			CallbackApplyVoiceVolumeAndMixTempBufferIntoOutput(outputBuffer, framesRead, voiceData, sampleRate);
 		}
@@ -444,13 +464,34 @@ namespace Comfy::Audio
 				CallbackDurationRingIndex = 0;
 		}
 
-		void RenderAudioCallback(i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferChannelCount)
+		void RequestUpdateSmoothTimeForAllAliveVoices()
 		{
-			auto stopwatch = Stopwatch::StartNew();;
+			for (auto& voiceData : VoicePool)
+			{
+				if (voiceData.Flags & VoiceFlags_Alive)
+					voiceData.SmoothTime.RequestUpdate = true;
+			}
+		}
 
+		void OnOpenStream()
+		{
+			RequestUpdateSmoothTimeForAllAliveVoices();
+		}
+
+		void OnCloseStream()
+		{
+			RequestUpdateSmoothTimeForAllAliveVoices();
+		}
+
+		void RenderAudioCallback(i16* outputBuffer, const u32 bufferFrameCountTarget, const u32 bufferChannelCount)
+		{
+			auto stopwatch = Stopwatch::StartNew();
+
+			const auto bufferFrameCount = std::min<u32>(bufferFrameCountTarget, static_cast<u32>(MaxBufferFrameCount));
 			const auto bufferSampleCount = (bufferFrameCount * OutputChannelCount);
-			CurrentBufferFrameSize = bufferFrameCount;
+			assert(bufferFrameCountTarget <= MaxBufferFrameCount);
 
+			CurrentBufferFrameSize = bufferFrameCountTarget;
 			CallbackStreamTime = StreamTimeStopwatch.GetElapsed();
 			CallbackFrequency = (CallbackStreamTime - LastCallbackStreamTime);
 			LastCallbackStreamTime = CallbackStreamTime;
@@ -522,6 +563,8 @@ namespace Comfy::Audio
 		if (impl->CurrentBackend == nullptr)
 			return;
 
+		impl->OnOpenStream();
+
 		const bool openStreamSuccess = impl->CurrentBackend->OpenStartStream(streamParam, [this](i16* outputBuffer, const u32 bufferFrameCount, const u32 bufferChannelCount)
 		{
 			impl->RenderAudioCallback(outputBuffer, bufferFrameCount, bufferChannelCount);
@@ -541,6 +584,7 @@ namespace Comfy::Audio
 		if (impl->CurrentBackend != nullptr)
 			impl->CurrentBackend->StopCloseStream();
 
+		impl->OnCloseStream();
 		impl->StreamTimeStopwatch.Stop();
 
 		impl->IsStreamOpenRunning = false;
@@ -585,7 +629,7 @@ namespace Comfy::Audio
 		if (sampleProvider == nullptr)
 			return SourceHandle::Invalid;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 		for (size_t i = 0; i < impl->LoadedSources.size(); i++)
 		{
 			auto& sourceData = impl->LoadedSources[i];
@@ -608,7 +652,7 @@ namespace Comfy::Audio
 		if (source == SourceHandle::Invalid)
 			return;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 
 		auto sourcePtr = IndexOrNull(static_cast<HandleBaseType>(source), impl->LoadedSources);
 		if (sourcePtr == nullptr)
@@ -625,7 +669,7 @@ namespace Comfy::Audio
 
 	VoiceHandle AudioEngine::AddVoice(SourceHandle source, std::string_view name, bool playing, f32 volume, bool playPastEnd)
 	{
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 
 		for (size_t i = 0; i < impl->VoicePool.size(); i++)
 		{
@@ -657,7 +701,7 @@ namespace Comfy::Audio
 	void AudioEngine::RemoveVoice(VoiceHandle voice)
 	{
 		// TODO: Think these locks through again
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 
 		if (auto voicePtr = IndexOrNull(static_cast<HandleBaseType>(voice), impl->VoicePool); voicePtr != nullptr)
 			voicePtr->Flags = VoiceFlags_Dead;
@@ -668,7 +712,7 @@ namespace Comfy::Audio
 		if (source == SourceHandle::Invalid)
 			return;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 
 		for (auto& voiceToUpdate : impl->VoicePool)
 		{
@@ -691,7 +735,7 @@ namespace Comfy::Audio
 		if (source == SourceHandle::Invalid)
 			nullptr;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 		return impl->GetSharedSource(source);
 	}
 
@@ -700,7 +744,7 @@ namespace Comfy::Audio
 		if (source == SourceHandle::Invalid)
 			nullptr;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 		return impl->GetSourceBaseVolume(source);
 	}
 
@@ -709,7 +753,7 @@ namespace Comfy::Audio
 		if (source == SourceHandle::Invalid)
 			nullptr;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 		return impl->SetSourceBaseVolume(source, value);
 	}
 
@@ -718,7 +762,7 @@ namespace Comfy::Audio
 		if (source == SourceHandle::Invalid)
 			nullptr;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 		return impl->GetSourceName(source, outName);
 	}
 
@@ -727,7 +771,7 @@ namespace Comfy::Audio
 		if (source == SourceHandle::Invalid)
 			nullptr;
 
-		const auto lock = std::scoped_lock(impl->CallbackMutex);
+		const auto lock = std::scoped_lock(impl->VoiceRenderMutex);
 		return impl->SetSourceName(source, newName);
 	}
 
@@ -823,6 +867,16 @@ namespace Comfy::Audio
 	ChannelMixer& AudioEngine::GetChannelMixer()
 	{
 		return impl->ChannelMixer;
+	}
+
+	i64 AudioEngine::DebugGetTotalRenderedFrames() const
+	{
+		return impl->TotalRenderedFrames;
+	}
+
+	TimeSpan AudioEngine::DebugGetTotalRenderTime() const
+	{
+		return FramesToTimeSpan(impl->TotalRenderedFrames, OutputSampleRate);
 	}
 
 	void AudioEngine::DebugShowControlPanel() const
@@ -945,19 +999,20 @@ namespace Comfy::Audio
 			if (value == 1.0f)
 			{
 				if (voice->Flags & VoiceFlags_VariablePlaybackSpeed)
-					voice->FramePosition = TimeSpanToFrames(TimeSpan::FromSeconds(voice->TimePositionSeconds), sampleRate);
+					voice->FramePosition = TimeSpanToFrames(TimeSpan::FromSeconds(voice->TimePositionSec), sampleRate);
 
 				voice->Flags &= ~VoiceFlags_VariablePlaybackSpeed;
 			}
 			else
 			{
 				if (!(voice->Flags & VoiceFlags_VariablePlaybackSpeed))
-					voice->TimePositionSeconds = FramesToTimeSpan(voice->FramePosition, sampleRate).TotalSeconds();
+					voice->TimePositionSec = FramesToTimeSpan(voice->FramePosition, sampleRate).TotalSeconds();
 
 				voice->Flags |= VoiceFlags_VariablePlaybackSpeed;
 			}
 
 			voice->PlaybackSpeed = value;
+			voice->SmoothTime.RequestUpdate = true;
 		}
 	}
 
@@ -971,9 +1026,36 @@ namespace Comfy::Audio
 			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
 
 			if (voice->Flags & VoiceFlags_VariablePlaybackSpeed)
-				return TimeSpan::FromSeconds(voice->TimePositionSeconds);
+				return TimeSpan::FromSeconds(voice->TimePositionSec);
 			else
 				return FramesToTimeSpan(voice->FramePosition, sampleRate);
+		}
+		return TimeSpan::Zero();
+	}
+
+	TimeSpan Voice::GetPositionSmooth() const
+	{
+		auto& impl = EngineInstance->impl;
+
+		if (auto voice = impl->GetVoiceData(Handle); voice != nullptr)
+		{
+			if ((voice->Flags & VoiceFlags_Playing) && !voice->SmoothTime.RequestUpdate)
+			{
+				const f64 playbackSpeed = (voice->Flags & VoiceFlags_VariablePlaybackSpeed) ? voice->PlaybackSpeed.load() : 1.0;
+
+				const auto systemTimeNow = TimeSpan::GetTimeNow();
+				const auto systemTimeThen = TimeSpan::FromSeconds(voice->SmoothTime.BaseSystemTimeSec);
+				const auto baseVoiceTime = TimeSpan::FromSeconds(voice->SmoothTime.BaseVoiceTimeSec);
+
+				const auto timeSincePlaybackStart = (systemTimeNow - systemTimeThen) * playbackSpeed;
+				const auto adjustedVoiceTime = timeSincePlaybackStart + baseVoiceTime;
+
+				return adjustedVoiceTime;
+			}
+			else
+			{
+				return GetPosition();
+			}
 		}
 		return TimeSpan::Zero();
 	}
@@ -987,7 +1069,8 @@ namespace Comfy::Audio
 			const auto source = impl->GetSource(voice->Source);
 			const auto sampleRate = (source != nullptr) ? source->GetSampleRate() : AudioEngine::OutputSampleRate;
 			voice->FramePosition = TimeSpanToFrames(value, sampleRate);
-			voice->TimePositionSeconds = value.TotalSeconds();
+			voice->TimePositionSec = value.TotalSeconds();
+			voice->SmoothTime.RequestUpdate = true;
 		}
 	}
 
@@ -1027,6 +1110,9 @@ namespace Comfy::Audio
 
 	void Voice::SetIsPlaying(bool value)
 	{
+		// HACK: Prevent randomly "stacking" playback button sounds... need to find a better solution, definitely don't want any locks like this
+		const auto lock = std::scoped_lock(EngineInstance->impl->VoiceRenderMutex);
+
 		SetInternalFlag(VoiceFlags_Playing, value);
 	}
 
@@ -1127,12 +1213,16 @@ namespace Comfy::Audio
 				voice->Flags |= voiceFlag;
 			else
 				voice->Flags &= ~voiceFlag;
+
+			if (flag & VoiceFlags_Playing)
+				voice->SmoothTime.RequestUpdate = true;
 		}
 	}
 
 	CallbackReceiver::CallbackReceiver(std::function<void(void)> callback) : OnAudioCallback(std::move(callback))
 	{
 		auto& impl = EngineInstance->impl;
+		const auto lock = std::scoped_lock(impl->CallbackReceiverMutex);
 
 		for (auto& receiver : impl->RegisteredCallbackReceivers)
 		{
@@ -1149,6 +1239,7 @@ namespace Comfy::Audio
 	CallbackReceiver::~CallbackReceiver()
 	{
 		auto& impl = EngineInstance->impl;
+		const auto lock = std::scoped_lock(impl->CallbackReceiverMutex);
 
 		for (auto& receiver : impl->RegisteredCallbackReceivers)
 		{
