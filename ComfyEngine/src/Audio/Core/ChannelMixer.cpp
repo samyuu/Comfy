@@ -8,7 +8,7 @@ namespace Comfy::Audio
 		const auto sourceChannels = sampleProvider.GetChannelCount();
 		const auto mixBuffer = GetMixSampleBuffer(framesToRead * sourceChannels);
 
-		const i64 framesRead = sampleProvider.ReadSamples(mixBuffer, frameOffset, framesToRead, sourceChannels);
+		const i64 framesRead = sampleProvider.ReadSamples(mixBuffer, frameOffset, framesToRead);
 		return MixChannels(sourceChannels, mixBuffer, framesRead, bufferToFill, frameOffset, framesToRead);
 	}
 

@@ -8,7 +8,7 @@ namespace Comfy::Audio
 	public:
 		virtual ~ISampleProvider() = default;
 
-		virtual i64 ReadSamples(i16 bufferToFill[], i64 frameOffset, i64 framesToRead, u32 channelsToFill) = 0;
+		virtual i64 ReadSamples(i16 bufferToFill[], i64 frameOffset, i64 framesToRead) = 0;
 		virtual i64 GetFrameCount() const = 0;
 
 		virtual u32 GetChannelCount() const = 0;

@@ -346,7 +346,7 @@ namespace Comfy::Audio
 			if (sampleProvider->GetChannelCount() != OutputChannelCount)
 				framesRead = ChannelMixer.MixChannels(*sampleProvider, TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
 			else
-				framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount, OutputChannelCount);
+				framesRead = sampleProvider->ReadSamples(TempOutputBuffer.data(), voiceData.FramePosition, bufferFrameCount);
 			voiceData.FramePosition += framesRead;
 
 			if (hasReachedEnd && !playPastEnd)

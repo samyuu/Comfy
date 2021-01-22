@@ -11,32 +11,33 @@ namespace Comfy::Audio
 	{
 	}
 
-	i64 MemorySampleProvider::ReadSamples(i16 bufferToFill[], i64 frameOffset, i64 framesToRead, u32 channelsToFill)
+	i64 MemorySampleProvider::ReadSamples(i16 bufferToFill[], i64 frameOffset, i64 framesToRead)
 	{
-		std::fill(bufferToFill, bufferToFill + (framesToRead * channelsToFill), 0);
+		std::fill(bufferToFill, bufferToFill + (framesToRead * channelCount), 0);
 
-		if ((frameOffset + framesToRead) <= 0 || frameOffset > GetFrameCount())
-		{
-			// NOTE: Fill the buffer with silence
+		const i64 sourceFrameCount = GetFrameCount();
+
+		if ((frameOffset + framesToRead) <= 0 || frameOffset > sourceFrameCount)
 			return framesToRead;
-		}
 
 		if (frameOffset < 0 && (frameOffset + framesToRead) > 0)
 		{
-			const i64 nonSilentSamples = (framesToRead + frameOffset) * channelsToFill;
-			i16* nonSilentBuffer = (bufferToFill - (frameOffset * channelsToFill));
+			const i64 nonSilentSamples = (framesToRead + frameOffset) * channelCount;
+			i16* nonSilentBuffer = (bufferToFill - (frameOffset * channelCount));
 
-			// NOTE: Fill a portion of the buffer
-			std::copy(sampleData.get(), sampleData.get() + nonSilentSamples, nonSilentBuffer);
+			std::copy(
+				sampleData.get(),
+				std::min<i16*>(sampleData.get() + nonSilentSamples, sampleData.get() + sampleCount),
+				std::min<i16*>(nonSilentBuffer, bufferToFill + (framesToRead * channelCount)));
+		}
+		else
+		{
+			const i16* sampleSource = &sampleData[frameOffset * channelCount];
+			const i64 framesRead = ((framesToRead + frameOffset) > sourceFrameCount) ? (sourceFrameCount - frameOffset) : framesToRead;
 
-			return framesToRead;
+			std::copy(sampleSource, sampleSource + (framesRead * channelCount), bufferToFill);
 		}
 
-		// NOTE: Fill the whole buffer
-		const i16* sampleSource = &sampleData[frameOffset * channelsToFill];
-		const i64 framesRead = ((frameOffset + framesToRead) > GetFrameCount()) ? (GetFrameCount() - frameOffset) : framesToRead;
-		
-		std::copy(sampleSource, sampleSource + (framesRead * channelsToFill), bufferToFill);
 		return framesToRead;
 	}
 
