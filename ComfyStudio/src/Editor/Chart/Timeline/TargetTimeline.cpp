@@ -187,7 +187,7 @@ namespace Comfy::Studio::Editor
 						buttonSoundController.PlayChainSoundSuccess(chainSoundSlot, startTime, externalClock);
 
 						// BUG: Sync chain slides with the left chain ending earlier than the right one. In practice this should rarely ever happen though
-						buttonSoundController.FadeOutLastChainSound(chainSoundSlot);
+						buttonSoundController.FadeOutLastChainSound(chainSoundSlot, startTime);
 					}
 				}
 				else if (IsSlideButtonType(target.Type))

@@ -62,12 +62,12 @@ namespace Comfy::Studio::Editor
 		PlayButtonSoundType(ButtonSoundType::ChainSlideFailure, slot, startTime, externalClock);
 	}
 
-	void ButtonSoundController::FadeOutLastChainSound(ChainSoundSlot slot)
+	void ButtonSoundController::FadeOutLastChainSound(ChainSoundSlot slot, TimeSpan startTime)
 	{
 		const auto slotIndex = static_cast<u8>(slot);
 		auto& voice = chainStartVoicePools[slotIndex][DecrementRingIndex<PerSlotChainVoicePoolSize>(chainStartPoolRingIndices[slotIndex])];
 
-		const auto voicePosition = voice.GetPosition();
+		const auto voicePosition = (voice.GetPosition() - startTime);
 		voice.SetVolumeMap(voicePosition, voicePosition + chainFadeOutDuration, 1.0f, 0.0f);
 
 		auto& subVoice = perSlotChainSubVoices[slotIndex];

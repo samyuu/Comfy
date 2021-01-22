@@ -46,7 +46,7 @@ namespace Comfy::Studio::Editor
 		void PlayChainSoundStart(ChainSoundSlot slot, TimeSpan startTime = TimeSpan::Zero(), std::optional<TimeSpan> externalClock = {});
 		void PlayChainSoundSuccess(ChainSoundSlot slot, TimeSpan startTime = TimeSpan::Zero(), std::optional<TimeSpan> externalClock = {});
 		void PlayChainSoundFailure(ChainSoundSlot slot, TimeSpan startTime = TimeSpan::Zero(), std::optional<TimeSpan> externalClock = {});
-		void FadeOutLastChainSound(ChainSoundSlot slot);
+		void FadeOutLastChainSound(ChainSoundSlot slot, TimeSpan startTime = TimeSpan::Zero());
 
 		void PlaySliderTouch(i32 sliderTouchIndex, f32 baseVolume = 1.0f);
 
