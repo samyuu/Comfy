@@ -571,7 +571,11 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan ChartEditor::GetPlaybackTimeAsync() const
 	{
-		return songVoice.GetPosition() - chart->StartOffset;
+#if 1 // NOTE: Pottentially less precise and reliable, especially if the audio render thread is overloaded. The improved smoothness should be well worth it however
+		return (songVoice.GetPositionSmooth() - chart->StartOffset);
+#else
+		return (songVoice.GetPosition() - chart->StartOffset);
+#endif
 	}
 
 	void ChartEditor::SetPlaybackTime(TimeSpan value)

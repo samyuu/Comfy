@@ -139,14 +139,14 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::UpdatePlaybackButtonSounds()
 	{
 		lastFrameButtonSoundCursorTime = thisFrameButtonSoundCursorTime;
-		thisFrameButtonSoundCursorTime = GetCursorTime();
+#if 0 // NOTE: Using smooth timing here seems to always result in highly irregular sound intervals
+		thisFrameButtonSoundCursorTime = (chartEditor.GetSongVoice().GetPositionSmooth() - workingChart->StartOffset);
+#else
+		thisFrameButtonSoundCursorTime = (chartEditor.GetSongVoice().GetPosition() - workingChart->StartOffset);
+#endif
 
 		const auto elapsedTime = (thisFrameButtonSoundCursorTime - lastFrameButtonSoundCursorTime);
-
-		// NOTE: To prevent stacking of button sounds that happened "too long" ago, especially when the main window went inactive.
-		//		 Should be long enough to never be reached as a normal frametime
-		constexpr auto elapsedThresholdAtWhichPlayingSoundsMakesNoSense = TimeSpan::FromSeconds(1.0 / 5.0);
-		if (elapsedTime >= elapsedThresholdAtWhichPlayingSoundsMakesNoSense)
+		if (elapsedTime >= buttonSoundThresholdAtWhichPlayingSoundsMakesNoSense)
 			return;
 
 		const auto futureOffset = (buttonSoundFutureOffset * glm::min(chartEditor.GetSongVoice().GetPlaybackSpeed(), 1.0f));

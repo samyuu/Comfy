@@ -249,7 +249,7 @@ namespace Comfy::Studio::DataTest
 			static constexpr std::array voicePropertyNames =
 			{
 				"Name",
-				"Position | Duration | Volume | Speed | Voice | Source",
+				"Position | Smooth | Duration | Volume | Speed | Voice | Source",
 				"Flags",
 			};
 
@@ -282,8 +282,9 @@ namespace Comfy::Studio::DataTest
 				static_assert(sizeof(HandleBaseType) == 2, "TODO: Update format strings");
 
 				Gui::Text(
-					"%s | %s | %.0f%% | %.0f%% | 0x%04X | 0x%04X",
+					"%s | %s | %s | %.0f%% | %.0f%% | 0x%04X | 0x%04X",
 					voice.GetPosition().FormatTime().data(),
+					voice.GetPositionSmooth().FormatTime().data(),
 					voice.GetDuration().FormatTime().data(),
 					voice.GetVolume() * 100.0f,
 					voice.GetPlaybackSpeed() * 100.0f,

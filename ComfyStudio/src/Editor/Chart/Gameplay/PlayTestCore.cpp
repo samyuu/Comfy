@@ -1113,7 +1113,11 @@ namespace Comfy::Studio::Editor
 
 		TimeSpan GetPlaybackTime() const
 		{
-			return sharedContext.SongVoice->GetPosition() - sharedContext.Chart->StartOffset;
+#if 1 // NOTE: Same thing applies here as for the chart editor
+			return (sharedContext.SongVoice->GetPositionSmooth() - sharedContext.Chart->StartOffset);
+#else
+			return (sharedContext.SongVoice->GetPosition() - sharedContext.Chart->StartOffset);
+#endif
 		}
 
 		void SetPlaybackTime(TimeSpan value)

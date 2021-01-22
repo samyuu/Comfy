@@ -181,9 +181,13 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Instead of checking if a button lies between the cursor and last frame cursor time, check if the button will have been pressed in the future
 		//		 and then play it back with a negative offset to sample-perfectly sync it to the music.
-		//		 The only requirement for this value is that is longer than the duration of any given frame and preferably is as low as possible
+		//		 The only requirement for this value is that is longer than the duration of any given frame / audio buffer and preferably is as low as possible
 		//		 to prevent artifacts when quickly changing the song tempo or offset during playback.
 		TimeSpan buttonSoundFutureOffset = TimeSpan::FromSeconds(1.0 / 25.0);
+
+		// NOTE: To prevent stacking of button sounds that happened "too long" ago, especially when the main window went inactive.
+		//		 Should be large enough to never be reached as a normal frametime and longer than the audio render buffer size
+		TimeSpan buttonSoundThresholdAtWhichPlayingSoundsMakesNoSense = TimeSpan::FromSeconds(1.0 / 5.0);
 
 		TimeSpan lastFrameButtonSoundCursorTime = {}, thisFrameButtonSoundCursorTime = {};
 
