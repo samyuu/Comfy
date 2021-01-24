@@ -74,6 +74,7 @@ namespace Comfy::Studio::Editor
 		SetColor(EditorColor_TimelineSelection, 0x20D0D0D0);
 		SetColor(EditorColor_TimelineSelectionBorder, 0x60E0E0E0);
 		SetColor(EditorColor_Bar, GetColorU32(ImGuiCol_PlotLines));
+		SetColor(EditorColor_Beat, GetColorU32(ImGuiCol_PlotLines, 0.15f));
 		SetColor(EditorColor_Cursor, 0xFFE0E0E0);
 		SetColor(EditorColor_CursorInner, GetColor(EditorColor_Cursor, 0.75f));
 		SetColor(EditorColor_AnimatedProperty, 0xFF392A24);

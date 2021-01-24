@@ -16,6 +16,7 @@ namespace Comfy::Studio::Editor
 		EditorColor_TreeViewActive,
 		EditorColor_TreeViewTextHighlight,
 		EditorColor_Bar,
+		EditorColor_Beat,
 		EditorColor_Grid,
 		EditorColor_GridAlt,
 		EditorColor_Waveform,

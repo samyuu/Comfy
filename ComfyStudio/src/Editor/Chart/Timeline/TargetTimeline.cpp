@@ -418,6 +418,7 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::OnDrawTimlineDivisors()
 	{
 		const auto barColor = GetColor(EditorColor_Bar);
+		const auto beatColor = GetColor(EditorColor_Beat);
 		const auto gridColor = GetColor(EditorColor_Grid);
 		const auto gridAltColor = GetColor(EditorColor_GridAlt);
 		const auto barTextColor = Gui::GetColorU32(ImGuiCol_Text);
@@ -449,7 +450,7 @@ namespace Comfy::Studio::Editor
 
 			const auto start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.35f));
 			const auto end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
-			baseDrawList->AddLine(start, end, (divisions % 2 == 0 ? gridColor : gridAltColor));
+			baseDrawList->AddLine(start, end, (tick % BeatTick::TicksPerBeat == 0) ? beatColor : (divisions % 2 == 0 ? gridColor : gridAltColor));
 		}
 
 		auto lastBarTimelineX = -barSpacingThreshold;
