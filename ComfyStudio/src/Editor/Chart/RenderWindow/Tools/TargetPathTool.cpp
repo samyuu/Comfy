@@ -83,10 +83,19 @@ namespace Comfy::Studio::Editor
 			Gui::EndMenu();
 		}
 
+		// TODO: Implement keybinding string conversion with support for modifiers
+		static_assert(KeyBindings::PathToolApplyAngleIncrementsPositive == Input::KeyCode_F);
+		static_assert(KeyBindings::PathToolApplyAngleIncrementsNegative == Input::KeyCode_V);
+
 		if (Gui::MenuItem("Apply Angle Increment Positive", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsPositive), false, (selectionCount > 0)))
-			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f);
+			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, false);
 		if (Gui::MenuItem("Apply Angle Increment Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsNegative), false, (selectionCount > 0)))
-			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f);
+			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, false);
+
+		if (Gui::MenuItem("Apply Angle Increment Positive [<<]", "Alt + F", false, (selectionCount > 0)))
+			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, true);
+		if (Gui::MenuItem("Apply Angle Increment Negative [<<]", "Alt + V", false, (selectionCount > 0)))
+			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, true);
 
 		Gui::Separator();
 	}
@@ -205,10 +214,12 @@ namespace Comfy::Studio::Editor
 				InterpolateSelectedTargetAngles(undoManager, chart, true);
 			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateCounterclockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, false);
+
+			const bool backwards = Gui::GetIO().KeyAlt;
 			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleIncrementsPositive, false))
-				ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f);
+				ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, backwards);
 			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleIncrementsNegative, false))
-				ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f);
+				ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, backwards);
 		}
 	}
 
@@ -401,7 +412,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<InterpolateTargetListAngles>(chart, std::move(targetData));
 	}
 
-	void TargetPathTool::ApplySelectedTargetAngleIncrements(Undo::UndoManager& undoManager, Chart& chart, f32 direction)
+	void TargetPathTool::ApplySelectedTargetAngleIncrements(Undo::UndoManager& undoManager, Chart& chart, f32 direction, bool backwards)
 	{
 		assert(std::isnormal(direction));
 
@@ -422,44 +433,54 @@ namespace Comfy::Studio::Editor
 			data.NewValue = Rules::TryGetProperties(chart.Targets[i]);
 		}
 
-		if (angleIncrement.UseFixedStepIncrement)
+		auto applyUsingForwardOrReverseIterators = [this, &chart, direction](auto beginIt, auto endIt)
 		{
-			for (size_t i = 1; i < targetData.size(); i++)
+			auto prevDataIt = beginIt;
+			auto thisDataIt = beginIt + 1;
+
+			if (angleIncrement.UseFixedStepIncrement)
 			{
-				auto& prevData = targetData[i - 1];
-				auto& thisData = targetData[i];
+				while (thisDataIt != endIt)
+				{
+					const auto& thisTarget = chart.Targets[thisDataIt->TargetIndex];
+					const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
+						0.0f : (-angleIncrement.FixedStepIncrementPerTarget * direction);
 
-				const auto& thisTarget = chart.Targets[thisData.TargetIndex];
+					thisDataIt->NewValue.Angle = Rules::NormalizeAngle(prevDataIt->NewValue.Angle + finalIncrement);
 
-				const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
-					0.0f : (-angleIncrement.FixedStepIncrementPerTarget * direction);
-
-				thisData.NewValue.Angle = Rules::NormalizeAngle(prevData.NewValue.Angle + finalIncrement);
+					prevDataIt++;
+					thisDataIt++;
+				}
 			}
-		}
+			else
+			{
+				while (thisDataIt != endIt)
+				{
+					const auto& prevTarget = chart.Targets[prevDataIt->TargetIndex];
+					const auto& thisTarget = chart.Targets[thisDataIt->TargetIndex];
+
+					const auto tickDifference = (prevTarget.Tick - thisTarget.Tick);
+
+					const auto directionToLastTarget = glm::normalize(prevDataIt->NewValue.Position - thisDataIt->NewValue.Position);
+					const auto angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
+					const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
+
+					const auto incrementPerBeat = (isSlope ? angleIncrement.IncrementPerBeatSlope : angleIncrement.IncrementPerBeat);
+					const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
+						0.0f : (tickDifference.BeatsFraction() * incrementPerBeat * direction);
+
+					thisDataIt->NewValue.Angle = Rules::NormalizeAngle(prevDataIt->NewValue.Angle + finalIncrement);
+
+					prevDataIt++;
+					thisDataIt++;
+				}
+			}
+		};
+
+		if (backwards)
+			applyUsingForwardOrReverseIterators(targetData.rbegin(), targetData.rend());
 		else
-		{
-			for (size_t i = 1; i < targetData.size(); i++)
-			{
-				auto& prevData = targetData[i - 1];
-				auto& thisData = targetData[i];
-
-				const auto& prevTarget = chart.Targets[prevData.TargetIndex];
-				const auto& thisTarget = chart.Targets[thisData.TargetIndex];
-
-				const auto tickDifference = (prevTarget.Tick - thisTarget.Tick);
-
-				const auto directionToLastTarget = glm::normalize(prevData.NewValue.Position - thisData.NewValue.Position);
-				const auto angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
-				const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
-
-				const auto incrementPerBeat = (isSlope ? angleIncrement.IncrementPerBeatSlope : angleIncrement.IncrementPerBeat);
-				const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
-					0.0f : (tickDifference.BeatsFraction() * incrementPerBeat * direction);
-
-				thisData.NewValue.Angle = Rules::NormalizeAngle(prevData.NewValue.Angle + finalIncrement);
-			}
-		}
+			applyUsingForwardOrReverseIterators(targetData.begin(), targetData.end());
 
 		undoManager.DisallowMergeForLastCommand();
 		undoManager.Execute<ApplyTargetListAngleIncrements>(chart, std::move(targetData));

@@ -44,8 +44,14 @@ namespace Comfy::Studio::Editor
 		if (Gui::MenuItem("Flip Targets Vertically", Input::GetKeyCodeName(KeyBindings::PositionToolFlipVertical), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, false);
 
+		// TODO: Implement keybinding string conversion with support for modifiers
+		static_assert(KeyBindings::PositionToolPositionInRow == Input::KeyCode_U);
+
 		if (Gui::MenuItem("Position in Row", Input::GetKeyCodeName(KeyBindings::PositionToolPositionInRow), false, (lastFrameSelectionCount > 0)))
-			PositionSelectedTargetInRowAutoDirection(undoManager, chart);
+			PositionSelectedTargetInRowAutoDirection(undoManager, chart, false);
+		if (Gui::MenuItem("Position in Row [<<]", "Alt + U", false, (lastFrameSelectionCount > 0)))
+			PositionSelectedTargetInRowAutoDirection(undoManager, chart, true);
+
 		if (Gui::MenuItem("Interpolate Positions", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolate), false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositions(undoManager, chart);
 
@@ -232,8 +238,10 @@ namespace Comfy::Studio::Editor
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipVertical, false))
 				FlipSelectedTargets(undoManager, chart, false);
 
+			const bool backwards = Gui::GetIO().KeyAlt;
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolPositionInRow, false))
-				PositionSelectedTargetInRowAutoDirection(undoManager, chart);
+				PositionSelectedTargetInRowAutoDirection(undoManager, chart, backwards);
+
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolate, false))
 				InterpolateSelectedTargetPositions(undoManager, chart);
 		}
@@ -482,19 +490,19 @@ namespace Comfy::Studio::Editor
 			undoManager.Execute<FlipTargetListPropertiesVertical>(chart, std::move(targetData));
 	}
 
-	void TargetPositionTool::PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart)
+	void TargetPositionTool::PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart, bool backwards)
 	{
 		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
-		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
-		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
-		if (firstTarget.Tick == lastTarget.Tick)
+		const auto& firstFoundTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto& lastFoundTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+		if (firstFoundTarget.Tick == lastFoundTarget.Tick)
 			return;
 
-		const auto startPosition = Rules::TryGetProperties(firstTarget).Position;
-		const auto endPosition = Rules::TryGetProperties(lastTarget).Position;
+		const auto startPosition = Rules::TryGetProperties(firstFoundTarget).Position;
+		const auto endPosition = Rules::TryGetProperties(lastFoundTarget).Position;
 		const auto rowDirection = glm::normalize(endPosition - startPosition);
 
 		std::vector<ChangeTargetListPositionsRow::Data> targetData;
@@ -514,36 +522,43 @@ namespace Comfy::Studio::Editor
 		}
 		else
 		{
-			auto lastTargetPosition = startPosition;
-			const auto* lastTarget = &firstTarget;
-
-			for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+			auto applyUsingForwardOrReverseIterators = [this, &chart, &targetData, rowDirection](auto beginIt, auto endIt)
 			{
-				const auto& thisTarget = chart.Targets[i];
-				if (!thisTarget.IsSelected)
-					continue;
+				vec2 prevTargetPosition = {};
+				auto prevTargetIt = beginIt;
 
-				auto& data = targetData.emplace_back();
-				data.TargetIndex = i;
-
-				if (&thisTarget == &firstTarget)
+				for (auto thisTargetIt = beginIt; thisTargetIt != endIt; thisTargetIt++)
 				{
-					data.NewValue.Position = startPosition;
+					if (!thisTargetIt->IsSelected)
+						continue;
+
+					auto& data = targetData.emplace_back();
+					data.TargetIndex = static_cast<i32>(std::distance(&chart.Targets[0], &(*thisTargetIt)));
+
+					if (targetData.size() == 1)
+					{
+						data.NewValue.Position = Rules::TryGetProperties(*thisTargetIt).Position;
+					}
+					else
+					{
+						const auto tickDistance = (thisTargetIt->Tick - prevTargetIt->Tick);
+
+						auto distance = (prevTargetIt->Flags.IsChain && !prevTargetIt->Flags.IsChainEnd) ? Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistance);
+						if (prevTargetIt->Flags.IsChainEnd)
+							distance += Rules::ChainFragmentStartEndOffsetDistance;
+
+						data.NewValue.Position = prevTargetPosition + (rowDirection * distance);
+					}
+
+					prevTargetPosition = data.NewValue.Position;
+					prevTargetIt = thisTargetIt;
 				}
-				else
-				{
-					const auto tickDistance = (thisTarget.Tick - lastTarget->Tick);
+			};
 
-					auto distance = (lastTarget->Flags.IsChain && !lastTarget->Flags.IsChainEnd) ? Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistance);
-					if (lastTarget->Flags.IsChainEnd)
-						distance += Rules::ChainFragmentStartEndOffsetDistance;
-
-					data.NewValue.Position = lastTargetPosition + (rowDirection * distance);
-				}
-
-				lastTargetPosition = data.NewValue.Position;
-				lastTarget = &chart.Targets[i];
-			}
+			if (backwards)
+				applyUsingForwardOrReverseIterators(chart.Targets.rbegin(), chart.Targets.rend());
+			else
+				applyUsingForwardOrReverseIterators(chart.Targets.begin(), chart.Targets.end());
 		}
 
 		undoManager.DisallowMergeForLastCommand();
@@ -556,16 +571,16 @@ namespace Comfy::Studio::Editor
 		if (selectionCount < 1)
 			return;
 
-		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
-		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
-		if (firstTarget.Tick == lastTarget.Tick)
+		const auto& firstFoundTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto& lastFoundTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+		if (firstFoundTarget.Tick == lastFoundTarget.Tick)
 			return;
 
-		const auto startPosition = Rules::TryGetProperties(firstTarget).Position;
-		const auto endPosition = Rules::TryGetProperties(lastTarget).Position;
+		const auto startPosition = Rules::TryGetProperties(firstFoundTarget).Position;
+		const auto endPosition = Rules::TryGetProperties(lastFoundTarget).Position;
 
-		const auto startTick = firstTarget.Tick.Ticks();
-		const auto endTick = lastTarget.Tick.Ticks();
+		const auto startTick = firstFoundTarget.Tick.Ticks();
+		const auto endTick = lastFoundTarget.Tick.Ticks();
 
 		std::vector<InterpolateTargetListPositions::Data> targetData;
 		targetData.reserve(selectionCount);

@@ -41,7 +41,7 @@ namespace Comfy::Studio::Editor
 
 		void FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, bool horizontal);
 
-		void PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart);
+		void PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart, bool backwards);
 		void InterpolateSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart);
 
 		i32 GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const;
