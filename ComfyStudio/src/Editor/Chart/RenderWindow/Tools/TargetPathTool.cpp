@@ -89,11 +89,11 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::MenuItem("Apply Angle Increment Positive", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsPositive), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, false);
-		if (Gui::MenuItem("Apply Angle Increment Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsNegative), false, (selectionCount > 0)))
-			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, false);
-
 		if (Gui::MenuItem("Apply Angle Increment Positive [<<]", "Alt + F", false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, true);
+		
+		if (Gui::MenuItem("Apply Angle Increment Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsNegative), false, (selectionCount > 0)))
+			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, false);
 		if (Gui::MenuItem("Apply Angle Increment Negative [<<]", "Alt + V", false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, true);
 
