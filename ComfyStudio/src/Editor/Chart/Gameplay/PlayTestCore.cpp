@@ -6,7 +6,7 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		enum class InputSlideType
+		enum class SlidePositionType : u8
 		{
 			None,
 			Left,
@@ -17,60 +17,61 @@ namespace Comfy::Studio::Editor
 		struct PlayTestInputBinding
 		{
 			ButtonTypeFlags ButtonTypes;
-			InputSlideType SlideType;
+			SlidePositionType SlidePosition;
 			std::variant<Input::KeyCode, Input::DS4Button> InputSource;
 		};
 
 		constexpr std::array PlayTestInputBindings =
 		{
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, InputSlideType::None, Input::KeyCode_W },
-			PlayTestInputBinding { ButtonTypeFlags_Square, InputSlideType::None, Input::KeyCode_A },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, InputSlideType::None, Input::KeyCode_S },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, InputSlideType::None, Input::KeyCode_D },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, InputSlideType::Left, Input::KeyCode_Q },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, InputSlideType::Right, Input::KeyCode_E },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::KeyCode_W },
+			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::KeyCode_A },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::KeyCode_S },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::KeyCode_D },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Left, Input::KeyCode_Q },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Left, Input::KeyCode_E },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, InputSlideType::None, Input::KeyCode_I },
-			PlayTestInputBinding { ButtonTypeFlags_Square, InputSlideType::None, Input::KeyCode_J },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, InputSlideType::None, Input::KeyCode_K },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, InputSlideType::None, Input::KeyCode_L },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, InputSlideType::Left, Input::KeyCode_U },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, InputSlideType::Right, Input::KeyCode_O },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::KeyCode_I },
+			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::KeyCode_J },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::KeyCode_K },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::KeyCode_L },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Right, Input::KeyCode_U },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Right, Input::KeyCode_O },
 
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_1 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_2 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_3 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_4 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_1 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_2 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_3 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_4 },
 
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_7 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_8 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_9 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::KeyCode_0 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_7 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_8 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_9 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_0 },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, InputSlideType::None, Input::DS4Button::Triangle },
-			PlayTestInputBinding { ButtonTypeFlags_Square, InputSlideType::None, Input::DS4Button::Square },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, InputSlideType::None, Input::DS4Button::Cross },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, InputSlideType::None, Input::DS4Button::Circle },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::DS4Button::Triangle },
+			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::DS4Button::Square },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::DS4Button::Cross },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::DS4Button::Circle },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, InputSlideType::None, Input::DS4Button::DPad_Up },
-			PlayTestInputBinding { ButtonTypeFlags_Square, InputSlideType::None, Input::DS4Button::DPad_Left },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, InputSlideType::None, Input::DS4Button::DPad_Down },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, InputSlideType::None, Input::DS4Button::DPad_Right },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::DS4Button::DPad_Up },
+			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::DS4Button::DPad_Left },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::DS4Button::DPad_Down },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::DS4Button::DPad_Right },
 
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, InputSlideType::Any, Input::DS4Button::L1 },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, InputSlideType::Any, Input::DS4Button::R1 },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, InputSlideType::Left, Input::DS4Button::L_Stick_Left },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, InputSlideType::Right, Input::DS4Button::L_Stick_Right },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, InputSlideType::Left, Input::DS4Button::R_Stick_Left },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, InputSlideType::Right, Input::DS4Button::R_Stick_Right },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::/*Any*/Left, Input::DS4Button::L1 },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::/*Any*/Right, Input::DS4Button::R1 },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Left, Input::DS4Button::L_Stick_Left },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Left, Input::DS4Button::L_Stick_Right },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Right, Input::DS4Button::R_Stick_Left },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Right, Input::DS4Button::R_Stick_Right },
 
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::DS4Button::L_Trigger },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, InputSlideType::None, Input::DS4Button::R_Trigger },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::DS4Button::L_Trigger },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::DS4Button::R_Trigger },
 		};
 
 		struct PlayTestTarget
 		{
 			ButtonType Type;
+			SlidePositionType SlidePosition;
 			TargetFlags Flags;
 			TargetProperties Properties;
 
@@ -114,6 +115,56 @@ namespace Comfy::Studio::Editor
 			TimeSpan SoundInterval = TimeSpan::FromMilliseconds(50.0);
 		};
 
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+		// TODO: Correctly handle hold switches and macros
+
+		constexpr ButtonTypeFlags GetSyncPairTypeFlags(const PlayTestSyncPair& syncPair)
+		{
+			ButtonTypeFlags holdFlags = ButtonTypeFlags_None;
+
+			for (size_t i = 0; i < syncPair.TargetCount; i++)
+				holdFlags |= ButtonTypeToButtonTypeFlags(syncPair.Targets[i].Type);
+
+			return holdFlags;
+		}
+
+		constexpr ButtonTypeFlags GetSyncPairHoldTypeFlags(const PlayTestSyncPair& syncPair)
+		{
+			ButtonTypeFlags holdFlags = ButtonTypeFlags_None;
+
+			for (size_t i = 0; i < syncPair.TargetCount; i++)
+			{
+				if (syncPair.Targets[i].Flags.IsHold)
+					holdFlags |= ButtonTypeToButtonTypeFlags(syncPair.Targets[i].Type);
+			}
+
+			return holdFlags;
+		}
+#endif
+
+		constexpr bool AnyInSyncPairHasBeenHitByPlayer(const PlayTestSyncPair& syncPair)
+		{
+			for (size_t i = 0; i < syncPair.TargetCount; i++)
+			{
+				if (syncPair.Targets[i].HasBeenHit && !syncPair.Targets[i].HasTimedOut)
+					return true;
+			}
+
+			return false;
+		}
+
+		constexpr bool AllInSyncPairHaveBeenHitByPlayer(const PlayTestSyncPair& syncPair)
+		{
+			for (size_t i = 0; i < syncPair.TargetCount; i++)
+			{
+				if (!syncPair.Targets[i].HasBeenHit || syncPair.Targets[i].HasTimedOut)
+					return false;
+			}
+
+			return true;
+		}
+
 		constexpr bool AllInSyncPairHaveBeenHit(const PlayTestSyncPair& syncPair)
 		{
 			for (size_t i = 0; i < syncPair.TargetCount; i++)
@@ -149,6 +200,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
+		// BUG: Need to check window focus for DS4
 		inline bool IsBindingPressed(const PlayTestInputBinding& binding)
 		{
 			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
@@ -187,9 +239,21 @@ namespace Comfy::Studio::Editor
 
 					auto& newTarget = newPair.Targets[i];
 					newTarget.Type = sourceTarget.Type;
+					newTarget.SlidePosition = SlidePositionType::None;
 					newTarget.Flags = sourceTarget.Flags;
 					newTarget.Properties = Rules::TryGetProperties(sourceTarget);
 				}
+
+				for (size_t i = 0; i < newPair.TargetCount; i++)
+				{
+					auto& thisSyncSlide = newPair.Targets[i];
+					if (thisSyncSlide.Flags.IsSync && IsSlideButtonType(thisSyncSlide.Type))
+					{
+						auto& otherSyncSlide = newPair.Targets[(i == 0) ? 1 : 0];
+						thisSyncSlide.SlidePosition = (thisSyncSlide.Properties.Position.x <= otherSyncSlide.Properties.Position.x) ? SlidePositionType::Left : SlidePositionType::Right;
+					}
+				}
+
 				newPair.TargetTime = std::max(chart.TimelineMap.GetTimeAt(frontPairSourceTarget.Tick - BeatTick::FromBars(1)), TimeSpan::Zero());
 				newPair.ButtonTime = chart.TimelineMap.GetTimeAt(frontPairSourceTarget.Tick);
 				newPair.FlyDuration = (newPair.ButtonTime - newPair.TargetTime);
@@ -201,6 +265,59 @@ namespace Comfy::Studio::Editor
 				assert(frontPairSourceTarget.Flags.SyncPairCount >= 1);
 				targetIndex += frontPairSourceTarget.Flags.SyncPairCount;
 			}
+		}
+
+		inline PlayTestSyncPair* FindBestSuitableUnhitSyncPairToEvaluateNext(std::vector<PlayTestSyncPair>& onScreenTargetPairs, TimeSpan playbackTime)
+		{
+			for (auto& onScreenPair : onScreenTargetPairs)
+			{
+				if (onScreenPair.NoLongerValid || AllInSyncPairHaveBeenHit(onScreenPair))
+					continue;
+
+				const auto remainingTime = (onScreenPair.ButtonTime - playbackTime);
+				if (remainingTime <= HitThreshold::Sad && remainingTime >= -HitThreshold::Worst)
+					return &onScreenPair;
+			}
+
+			return nullptr;
+		}
+
+		constexpr PlayTestTarget* FindBestSuitableUnhitTargetToEvaluateNext(PlayTestSyncPair& syncPair, ButtonType inputButtonType, SlidePositionType inputSlidePosition)
+		{
+			if (IsSlideButtonType(inputButtonType))
+			{
+				// NOTE: Prioritize slide position type
+				for (size_t i = 0; i < syncPair.TargetCount; i++)
+				{
+					auto& target = syncPair.Targets[i];
+					if (!target.HasBeenHit && !target.HasTimedOut && !target.Flags.IsChain && target.Type == inputButtonType && target.SlidePosition == inputSlidePosition)
+						return &target;
+				}
+
+				for (size_t i = 0; i < syncPair.TargetCount; i++)
+				{
+					auto& target = syncPair.Targets[i];
+					if (!target.HasBeenHit && !target.HasTimedOut && !target.Flags.IsChain && target.Type == inputButtonType)
+						return &target;
+				}
+			}
+
+			// NOTE: Prioritize button type
+			for (size_t i = 0; i < syncPair.TargetCount; i++)
+			{
+				auto& target = syncPair.Targets[i];
+				if (!target.HasBeenHit && !target.HasTimedOut && !target.Flags.IsChain && target.Type == inputButtonType)
+					return &target;
+			}
+
+			for (size_t i = 0; i < syncPair.TargetCount; i++)
+			{
+				auto& target = syncPair.Targets[i];
+				if (!target.HasBeenHit && !target.HasTimedOut && !target.Flags.IsChain)
+					return &target;
+			}
+
+			return nullptr;
 		}
 	}
 
@@ -344,6 +461,27 @@ namespace Comfy::Studio::Editor
 
 				if (!autoplayEnabled)
 				{
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+					// TODO: Correctly handle multi type input binding hold switch behavior and autoplay auto holds
+					if (context.Score.HoldTypes != ButtonTypeFlags_None)
+					{
+						for (size_t typeIndex = 0; typeIndex < EnumCount<ButtonType>(); typeIndex++)
+						{
+							const auto buttonTypeFlag = ButtonTypeToButtonTypeFlags(static_cast<ButtonType>(typeIndex));
+							if (!(context.Score.HoldTypes & buttonTypeFlag))
+								continue;
+
+							const bool anyCorrespondingBindingHeldForType = std::any_of(
+								PlayTestInputBindings.begin(),
+								PlayTestInputBindings.end(),
+								[buttonTypeFlag](auto& b) { return (b.ButtonTypes & buttonTypeFlag) && IsBindingDown(b); });
+
+							if (!anyCorrespondingBindingHeldForType)
+								context.Score.HoldTypes = ButtonTypeFlags_None;
+						}
+					}
+#endif
+
 					i32 chainSlideHoldCountL = 0, chainSlideHoldCountR = 0;
 
 					for (const auto& binding : PlayTestInputBindings)
@@ -383,6 +521,14 @@ namespace Comfy::Studio::Editor
 			backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
 			backgroundData.BackgroundSprite = sharedContext.Chart->Properties.Image.Background.GetTexSprView();
 			sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+			// TODO: Animate based on history
+			TargetRenderHelper::SyncHoldInfoData syncInfo = {};
+			syncInfo.Time = TimeSpan::FromFrames(20.0f);
+			syncInfo.TypeFlags = context.Score.HoldTypes;
+			sharedContext.RenderHelper->DrawSyncHoldInfo(*sharedContext.Renderer, syncInfo);
+#endif
 		}
 
 		void DrawUpdateOnScreenTargets()
@@ -499,6 +645,11 @@ namespace Comfy::Studio::Editor
 
 						if (onScreenTarget.WrongTypeOnTimeOut && IsSlideButtonType(onScreenTarget.Type))
 							sharedContext.ButtonSoundController->PlaySlideSound();
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+						if (/*AnyInSyncPairHasBeenHitByPlayer(onScreenPair)*/AllInSyncPairHaveBeenHitByPlayer(onScreenPair))
+							context.Score.HoldTypes = ButtonTypeFlags_None;
+#endif
 
 						context.Score.ComboCount = 0;
 					}
@@ -900,70 +1051,37 @@ namespace Comfy::Studio::Editor
 			if (!IsBindingPressed(binding))
 				return;
 
-			if (binding.SlideType == InputSlideType::None)
-				sharedContext.ButtonSoundController->PlayButtonSound();
-
 			const auto playbackTime = GetPlaybackTime();
+			PlayTestSyncPair* nextPairToHit = FindBestSuitableUnhitSyncPairToEvaluateNext(onScreenTargetPairs, playbackTime);
 
-			PlayTestSyncPair* nextPairToHit = nullptr;
-			for (auto& onScreenPair : onScreenTargetPairs)
+			bool anyTargetWasHit = false;
+
+			if (nextPairToHit != nullptr)
 			{
-				if (onScreenPair.NoLongerValid || AllInSyncPairHaveBeenHit(onScreenPair))
-					continue;
-
-				const auto remainingTime = (onScreenPair.ButtonTime - playbackTime);
-				if (remainingTime <= HitThreshold::Sad && remainingTime >= -HitThreshold::Worst)
+				for (u8 buttonTypeIndex = 0; buttonTypeIndex < EnumCount<ButtonType>(); buttonTypeIndex++)
 				{
-					nextPairToHit = &onScreenPair;
-					break;
-				}
-			}
+					const auto inputButtonType = static_cast<ButtonType>(buttonTypeIndex);
+					const auto inputButtonTypeFlag = ButtonTypeToButtonTypeFlags(inputButtonType);
 
-			if (nextPairToHit == nullptr)
-				return;
+					if ((binding.ButtonTypes & inputButtonTypeFlag) == 0)
+						continue;
 
-			for (u8 buttonTypeIndex = 0; buttonTypeIndex < EnumCount<ButtonType>(); buttonTypeIndex++)
-			{
-				const auto inputButtonType = static_cast<ButtonType>(buttonTypeIndex);
-				if ((binding.ButtonTypes & ButtonTypeToButtonTypeFlags(inputButtonType)) == 0)
-					continue;
+					const auto remainingTime = nextPairToHit->ButtonTime - playbackTime;
 
-				const auto remainingTime = nextPairToHit->ButtonTime - playbackTime;
+					PlayTestTarget* nextTargetToHit = FindBestSuitableUnhitTargetToEvaluateNext(*nextPairToHit, inputButtonType, binding.SlidePosition);
+					if (nextTargetToHit == nullptr)
+						continue;
 
-				PlayTestTarget* firstUnhitTarget = nullptr;
+					if (IsSlideButtonType(nextTargetToHit->Type) != IsSlideButtonType(inputButtonType))
+						continue;
 
-				if (IsSlideButtonType(inputButtonType))
-				{
-					for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
+					if (IsSlideButtonType(nextTargetToHit->Type) && nextTargetToHit->Type != inputButtonType)
 					{
-						if (!nextPairToHit->Targets[i].HasBeenHit && !nextPairToHit->Targets[i].HasTimedOut && !nextPairToHit->Targets[i].Flags.IsChain && nextPairToHit->Targets[i].Type == inputButtonType)
-						{
-							firstUnhitTarget = &nextPairToHit->Targets[i];
-							break;
-						}
-					}
-				}
-
-				if (firstUnhitTarget == nullptr)
-				{
-					for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
-					{
-						if (!nextPairToHit->Targets[i].HasBeenHit && !nextPairToHit->Targets[i].HasTimedOut && !nextPairToHit->Targets[i].Flags.IsChain)
-						{
-							firstUnhitTarget = &nextPairToHit->Targets[i];
-							break;
-						}
-					}
-				}
-
-				if (firstUnhitTarget != nullptr && (IsSlideButtonType(firstUnhitTarget->Type) == IsSlideButtonType(inputButtonType)))
-				{
-					// TODO: Correctly handle sync slide binding.SlideType
-					if (IsSlideButtonType(firstUnhitTarget->Type) && firstUnhitTarget->Type != inputButtonType)
-					{
-						firstUnhitTarget->WrongTypeOnTimeOut = true;
+						nextTargetToHit->WrongTypeOnTimeOut = true;
 						break;
 					}
+
+					anyTargetWasHit = true;
 
 					bool inputTypeMatchesAny = false;
 					for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
@@ -972,7 +1090,7 @@ namespace Comfy::Studio::Editor
 							inputTypeMatchesAny = true;
 					}
 
-					bool matchingType = inputTypeMatchesAny || (firstUnhitTarget->Type == inputButtonType);
+					bool matchingType = inputTypeMatchesAny || (nextTargetToHit->Type == inputButtonType);
 
 					if (ButtonTypeToButtonTypeFlags(inputButtonType) != binding.ButtonTypes)
 					{
@@ -988,46 +1106,46 @@ namespace Comfy::Studio::Editor
 						}
 					}
 
-					const auto coolThreshold = IsSlideButtonType(firstUnhitTarget->Type) ? HitThreshold::CoolSlide : HitThreshold::Cool;
-					const auto fineThreshold = IsSlideButtonType(firstUnhitTarget->Type) ? HitThreshold::FineSlide : HitThreshold::Fine;
+					const auto coolThreshold = IsSlideButtonType(nextTargetToHit->Type) ? HitThreshold::CoolSlide : HitThreshold::Cool;
+					const auto fineThreshold = IsSlideButtonType(nextTargetToHit->Type) ? HitThreshold::FineSlide : HitThreshold::Fine;
 
 					bool successfulHit = false;
 
-					if (matchingType && IsSlideButtonType(firstUnhitTarget->Type))
+					if (matchingType && IsSlideButtonType(nextTargetToHit->Type))
 					{
 						sharedContext.ButtonSoundController->PlaySlideSound();
 						lastSlideActionStopwatch.Restart();
 					}
 
-					firstUnhitTarget->HasBeenHit = true;
-					firstUnhitTarget->RemainingTimeOnHit = remainingTime;
+					nextTargetToHit->HasBeenHit = true;
+					nextTargetToHit->RemainingTimeOnHit = remainingTime;
 
 					if (remainingTime <= coolThreshold && remainingTime >= -coolThreshold)
 					{
-						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Cool : HitEvaluation::WrongCool;
-						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, coolThreshold);
+						nextTargetToHit->HitEvaluation = matchingType ? HitEvaluation::Cool : HitEvaluation::WrongCool;
+						nextTargetToHit->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, coolThreshold);
 						successfulHit = true;
 					}
 					else if (remainingTime <= fineThreshold && remainingTime >= -fineThreshold)
 					{
-						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Fine : HitEvaluation::WrongFine;
-						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, fineThreshold);
+						nextTargetToHit->HitEvaluation = matchingType ? HitEvaluation::Fine : HitEvaluation::WrongFine;
+						nextTargetToHit->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, fineThreshold);
 						successfulHit = true;
 					}
 					else if (remainingTime <= HitThreshold::Safe && remainingTime >= -HitThreshold::Safe)
 					{
-						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Safe : HitEvaluation::WrongSafe;
-						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Safe);
+						nextTargetToHit->HitEvaluation = matchingType ? HitEvaluation::Safe : HitEvaluation::WrongSafe;
+						nextTargetToHit->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Safe);
 					}
 					else if (remainingTime <= HitThreshold::Sad && remainingTime >= -HitThreshold::Sad)
 					{
-						firstUnhitTarget->HitEvaluation = matchingType ? HitEvaluation::Sad : HitEvaluation::WrongSad;
-						firstUnhitTarget->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Sad);
+						nextTargetToHit->HitEvaluation = matchingType ? HitEvaluation::Sad : HitEvaluation::WrongSad;
+						nextTargetToHit->HitPrecision = HitThreshold::EvaluatePrecision(remainingTime, HitThreshold::Sad);
 					}
 					else
 					{
-						firstUnhitTarget->HitEvaluation = HitEvaluation::Worst;
-						firstUnhitTarget->HitPrecision = HitPrecision::Late;
+						nextTargetToHit->HitEvaluation = HitEvaluation::Worst;
+						nextTargetToHit->HitPrecision = HitPrecision::Late;
 					}
 
 					if (!inputTypeMatchesAny)
@@ -1037,8 +1155,8 @@ namespace Comfy::Studio::Editor
 							auto& target = nextPairToHit->Targets[i];
 							target.HasBeenHit = true;
 							target.RemainingTimeOnHit = remainingTime;
-							target.HitEvaluation = firstUnhitTarget->HitEvaluation;
-							target.HitPrecision = firstUnhitTarget->HitPrecision;
+							target.HitEvaluation = nextTargetToHit->HitEvaluation;
+							target.HitPrecision = nextTargetToHit->HitPrecision;
 						}
 					}
 
@@ -1051,7 +1169,50 @@ namespace Comfy::Studio::Editor
 					{
 						context.Score.ComboCount = 0;
 					}
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+					if (inputTypeMatchesAny /*&& successfulHit*/)
+					{
+						if (AllInSyncPairHaveBeenHit(*nextPairToHit))
+						{
+							const ButtonTypeFlags pairHoldTypes = GetSyncPairHoldTypeFlags(*nextPairToHit);
+							const ButtonTypeFlags pairTypes = GetSyncPairTypeFlags(*nextPairToHit);
+
+							const bool typeIsAlreadyBeingHeld = context.Score.HoldTypes & /*pairHoldTypes*/pairTypes;
+
+							if (/*target.Flags.IsHold*/pairHoldTypes != ButtonTypeFlags_None)
+							{
+								if (typeIsAlreadyBeingHeld)
+									context.Score.HoldTypes = pairHoldTypes;
+								else
+									context.Score.HoldTypes |= pairHoldTypes;
+							}
+							else if (typeIsAlreadyBeingHeld)
+							{
+								context.Score.HoldTypes = ButtonTypeFlags_None;
+							}
+						}
+					}
+					else
+					{
+						const bool inputTypeIsBeingHeld = context.Score.HoldTypes & /*inputButtonTypeFlag*/binding.ButtonTypes;
+						if (inputTypeIsBeingHeld)
+							context.Score.HoldTypes = ButtonTypeFlags_None;
+					}
+#endif
 				}
+			}
+
+			if ((binding.SlidePosition == SlidePositionType::None))
+			{
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+				const bool allBindingTypesAreHeldDown = ((context.Score.HoldTypes & binding.ButtonTypes) == binding.ButtonTypes);
+
+				if (anyTargetWasHit || !allBindingTypesAreHeldDown)
+					sharedContext.ButtonSoundController->PlayButtonSound();
+#else
+				sharedContext.ButtonSoundController->PlayButtonSound();
+#endif
 			}
 		}
 
