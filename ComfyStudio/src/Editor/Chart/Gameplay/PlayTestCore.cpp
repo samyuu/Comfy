@@ -133,14 +133,20 @@ namespace Comfy::Studio::Editor
 
 		struct PlayTestHoldState
 		{
-			ButtonTypeFlags CurrentHoldTypes;
+			ButtonTypeFlags CurrentHoldTypes = ButtonTypeFlags_None;
 
-			// TODO: ...
-			// std::array<const PlayTestInputBinding*, EnumCount<ButtonType>()> PerTypeHeldDownBinding;
 			// std::vector<PlayTestHoldEvent> EventHistory;
+
+			// TODO: Store indices to avoid potential pointer invalidations, although that would make the code slightly less readable
+			std::array<std::vector<const PlayTestInputBinding*>, EnumCount<ButtonType>()> PerTypeHeldDownBindings = {};
+
+			void ClearAllHeldDownBindings()
+			{
+				for (auto& bindings : PerTypeHeldDownBindings)
+					bindings.clear();
+			}
 		};
 
-		// TODO: Correctly handle hold switches and macros
 		constexpr ButtonTypeFlags GetSyncPairTypeFlags(const PlayTestSyncPair& syncPair)
 		{
 			ButtonTypeFlags holdFlags = ButtonTypeFlags_None;
@@ -240,6 +246,17 @@ namespace Comfy::Studio::Editor
 				return Gui::IsKeyDown(*key);
 			else if (auto button = std::get_if<Input::DS4Button>(&binding.InputSource))
 				return Input::DualShock4::IsDown(*button);
+			else
+				assert(false);
+			return false;
+		}
+
+		inline bool IsBindingReleased(const PlayTestInputBinding& binding)
+		{
+			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
+				return Gui::IsKeyReleased(*key);
+			else if (auto button = std::get_if<Input::DS4Button>(&binding.InputSource))
+				return Input::DualShock4::IsReleased(*button);
 			else
 				assert(false);
 			return false;
@@ -484,22 +501,21 @@ namespace Comfy::Studio::Editor
 				if (!autoplayEnabled)
 				{
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-					// TODO: Correctly handle multi type input binding hold switch behavior
 					if (holdState.CurrentHoldTypes != ButtonTypeFlags_None)
 					{
-						for (size_t typeIndex = 0; typeIndex < EnumCount<ButtonType>(); typeIndex++)
+						for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
 						{
-							const auto buttonTypeFlag = ButtonTypeToButtonTypeFlags(static_cast<ButtonType>(typeIndex));
-							if (!(holdState.CurrentHoldTypes & buttonTypeFlag))
+							auto& heldDownBindings = holdState.PerTypeHeldDownBindings[i];
+							if (heldDownBindings.empty())
 								continue;
 
-							const bool anyCorrespondingBindingHeldForType = std::any_of(
-								PlayTestInputBindings.begin(),
-								PlayTestInputBindings.end(),
-								[buttonTypeFlag](auto& b) { return (b.ButtonTypes & buttonTypeFlag) && IsBindingDown(b); });
+							heldDownBindings.erase(std::remove_if(heldDownBindings.begin(), heldDownBindings.end(), [](auto* b) { return !IsBindingDown(*b); }), heldDownBindings.end());
 
-							if (!anyCorrespondingBindingHeldForType)
+							if (heldDownBindings.empty())
+							{
 								holdState.CurrentHoldTypes = ButtonTypeFlags_None;
+								holdState.ClearAllHeldDownBindings();
+							}
 						}
 					}
 #endif
@@ -895,6 +911,49 @@ namespace Comfy::Studio::Editor
 					sharedContext.Renderer->Font().DrawBorder(font, textBuffer, Graphics::Transform2D(textPosition));
 				});
 			}
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST && COMFY_DEBUG && 0
+			static std::string holdDebugString;
+			holdDebugString.clear();
+
+			for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
+			{
+				const auto& heldDownBindings = holdState.PerTypeHeldDownBindings[i];
+				static constexpr std::array buttonTypeNames = { "Triangle", "Square", "Cross", "Circle", "SlideL", "SlideR" };
+
+				holdDebugString += buttonTypeNames[i];
+				if (heldDownBindings.empty())
+				{
+					holdDebugString += ": <none>\n";
+				}
+				else
+				{
+					auto inputSourceToString = [](const PlayTestInputBinding& binding)
+					{
+						if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
+							return Input::GetKeyCodeName(*key);
+						else if (auto button = std::get_if<Input::DS4Button>(&binding.InputSource))
+							return "DS4::??";
+						else
+							return "WTF";
+					};
+
+					holdDebugString += ": ";
+					for (const auto* heldDownBindingForType : heldDownBindings)
+					{
+						holdDebugString += inputSourceToString(*heldDownBindingForType);
+						if (heldDownBindingForType != heldDownBindings.back())
+							holdDebugString += ", ";
+					}
+					holdDebugString += '\n';
+				}
+			}
+
+			sharedContext.RenderHelper->WithFont36([&](auto& font)
+			{
+				sharedContext.Renderer->Font().DrawBorder(font, holdDebugString, Graphics::Transform2D(vec2(40.0f, 80.0f)));
+			});
+#endif
 		}
 
 		void DrawFadeInFadeOut()
@@ -1197,16 +1256,21 @@ namespace Comfy::Studio::Editor
 					}
 
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-					if (inputTypeMatchesAny /*&& successfulHit*/)
+					if (inputTypeMatchesAny)
 					{
+#if 1
+						if (nextTargetToHit->Flags.IsHold)
+							holdState.PerTypeHeldDownBindings[static_cast<size_t>(nextTargetToHit->Type)].push_back(&binding);
+#endif
+
 						if (AllInSyncPairHaveBeenHit(*nextPairToHit))
 						{
 							const ButtonTypeFlags pairHoldTypes = GetSyncPairHoldTypeFlags(*nextPairToHit);
 							const ButtonTypeFlags pairTypes = GetSyncPairTypeFlags(*nextPairToHit);
 
-							const bool typeIsAlreadyBeingHeld = holdState.CurrentHoldTypes & /*pairHoldTypes*/pairTypes;
+							const bool typeIsAlreadyBeingHeld = (holdState.CurrentHoldTypes & pairTypes);
 
-							if (/*target.Flags.IsHold*/pairHoldTypes != ButtonTypeFlags_None)
+							if (pairHoldTypes != ButtonTypeFlags_None)
 							{
 								if (typeIsAlreadyBeingHeld)
 									holdState.CurrentHoldTypes = pairHoldTypes;
@@ -1216,6 +1280,7 @@ namespace Comfy::Studio::Editor
 							else if (typeIsAlreadyBeingHeld)
 							{
 								holdState.CurrentHoldTypes = ButtonTypeFlags_None;
+								holdState.ClearAllHeldDownBindings();
 							}
 						}
 					}
@@ -1223,7 +1288,10 @@ namespace Comfy::Studio::Editor
 					{
 						const bool inputTypeIsBeingHeld = holdState.CurrentHoldTypes & /*inputButtonTypeFlag*/binding.ButtonTypes;
 						if (inputTypeIsBeingHeld)
+						{
 							holdState.CurrentHoldTypes = ButtonTypeFlags_None;
+							holdState.ClearAllHeldDownBindings();
+						}
 					}
 #endif
 				}
@@ -1232,6 +1300,25 @@ namespace Comfy::Studio::Editor
 			if ((binding.SlidePosition == SlidePositionType::None))
 			{
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+
+				if (!anyTargetWasHit)
+				{
+					for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
+					{
+						const auto buttonType = static_cast<ButtonType>(i);
+						auto& heldDownBindingsForType = holdState.PerTypeHeldDownBindings[i];
+
+						if (heldDownBindingsForType.empty())
+							continue;
+
+						if (binding.ButtonTypes & ButtonTypeToButtonTypeFlags(buttonType))
+						{
+							assert(std::find(heldDownBindingsForType.begin(), heldDownBindingsForType.end(), &binding) == heldDownBindingsForType.end());
+							heldDownBindingsForType.push_back(&binding);
+						}
+					}
+				}
+
 				const bool allBindingTypesAreHeldDown = ((holdState.CurrentHoldTypes & binding.ButtonTypes) == binding.ButtonTypes);
 
 				if (anyTargetWasHit || !allBindingTypesAreHeldDown)
