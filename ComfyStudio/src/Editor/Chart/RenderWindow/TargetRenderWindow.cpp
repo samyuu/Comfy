@@ -438,11 +438,7 @@ namespace Comfy::Studio::Editor
 				const auto& lastEvent = holdEventStack[holdEventStack.size() - 2];
 
 				const bool lastEventIsMergable = (lastEvent.EvenType == HoldEventType::Start || lastEvent.EvenType == HoldEventType::Addition);
-#if 0 // BUG: Switching from one half hold sync pair to another doesn't behave correctly
-				const bool newHoldConflicts = (lastEvent.CombinedButtonTypes & pairTypesHolds);
-#else // ... this one is correct (?)
 				const bool newHoldConflicts = (lastEvent.CombinedButtonTypes & pairTypes);
-#endif
 
 				if (!lastEventIsMergable || newHoldConflicts)
 				{

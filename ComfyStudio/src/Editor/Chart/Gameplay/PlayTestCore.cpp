@@ -2,6 +2,8 @@
 #include "PlayTestWindow.h"
 #include "Time/Stopwatch.h"
 
+#define COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST 1
+
 namespace Comfy::Studio::Editor
 {
 	namespace
@@ -117,8 +119,28 @@ namespace Comfy::Studio::Editor
 
 
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-		// TODO: Correctly handle hold switches and macros
+		enum class PlayTestEventType
+		{
+			// TODO: ...
+			Count
+		};
 
+		struct PlayTestHoldEvent
+		{
+			PlayTestEventType Type;
+			// TODO: ...
+		};
+
+		struct PlayTestHoldState
+		{
+			ButtonTypeFlags CurrentHoldTypes;
+
+			// TODO: ...
+			// std::array<const PlayTestInputBinding*, EnumCount<ButtonType>()> PerTypeHeldDownBinding;
+			// std::vector<PlayTestHoldEvent> EventHistory;
+		};
+
+		// TODO: Correctly handle hold switches and macros
 		constexpr ButtonTypeFlags GetSyncPairTypeFlags(const PlayTestSyncPair& syncPair)
 		{
 			ButtonTypeFlags holdFlags = ButtonTypeFlags_None;
@@ -462,13 +484,13 @@ namespace Comfy::Studio::Editor
 				if (!autoplayEnabled)
 				{
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-					// TODO: Correctly handle multi type input binding hold switch behavior and autoplay auto holds
-					if (context.Score.HoldTypes != ButtonTypeFlags_None)
+					// TODO: Correctly handle multi type input binding hold switch behavior
+					if (holdState.CurrentHoldTypes != ButtonTypeFlags_None)
 					{
 						for (size_t typeIndex = 0; typeIndex < EnumCount<ButtonType>(); typeIndex++)
 						{
 							const auto buttonTypeFlag = ButtonTypeToButtonTypeFlags(static_cast<ButtonType>(typeIndex));
-							if (!(context.Score.HoldTypes & buttonTypeFlag))
+							if (!(holdState.CurrentHoldTypes & buttonTypeFlag))
 								continue;
 
 							const bool anyCorrespondingBindingHeldForType = std::any_of(
@@ -477,7 +499,7 @@ namespace Comfy::Studio::Editor
 								[buttonTypeFlag](auto& b) { return (b.ButtonTypes & buttonTypeFlag) && IsBindingDown(b); });
 
 							if (!anyCorrespondingBindingHeldForType)
-								context.Score.HoldTypes = ButtonTypeFlags_None;
+								holdState.CurrentHoldTypes = ButtonTypeFlags_None;
 						}
 					}
 #endif
@@ -526,7 +548,7 @@ namespace Comfy::Studio::Editor
 			// TODO: Animate based on history
 			TargetRenderHelper::SyncHoldInfoData syncInfo = {};
 			syncInfo.Time = TimeSpan::FromFrames(20.0f);
-			syncInfo.TypeFlags = context.Score.HoldTypes;
+			syncInfo.TypeFlags = holdState.CurrentHoldTypes;
 			sharedContext.RenderHelper->DrawSyncHoldInfo(*sharedContext.Renderer, syncInfo);
 #endif
 		}
@@ -647,8 +669,8 @@ namespace Comfy::Studio::Editor
 							sharedContext.ButtonSoundController->PlaySlideSound();
 
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-						if (/*AnyInSyncPairHasBeenHitByPlayer(onScreenPair)*/AllInSyncPairHaveBeenHitByPlayer(onScreenPair))
-							context.Score.HoldTypes = ButtonTypeFlags_None;
+						if (AllInSyncPairHaveBeenHitByPlayer(onScreenPair))
+							holdState.CurrentHoldTypes = ButtonTypeFlags_None;
 #endif
 
 						context.Score.ComboCount = 0;
@@ -986,6 +1008,10 @@ namespace Comfy::Studio::Editor
 
 		void UpdateAutoplayInput()
 		{
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+			// TODO: Implement auto holds
+#endif
+
 			const auto playbackTime = GetPlaybackTime();
 			const auto deltaPerfectHitThreshold = TimeSpan::FromSeconds(Gui::GetIO().DeltaTime * 0.5f);
 
@@ -1178,26 +1204,26 @@ namespace Comfy::Studio::Editor
 							const ButtonTypeFlags pairHoldTypes = GetSyncPairHoldTypeFlags(*nextPairToHit);
 							const ButtonTypeFlags pairTypes = GetSyncPairTypeFlags(*nextPairToHit);
 
-							const bool typeIsAlreadyBeingHeld = context.Score.HoldTypes & /*pairHoldTypes*/pairTypes;
+							const bool typeIsAlreadyBeingHeld = holdState.CurrentHoldTypes & /*pairHoldTypes*/pairTypes;
 
 							if (/*target.Flags.IsHold*/pairHoldTypes != ButtonTypeFlags_None)
 							{
 								if (typeIsAlreadyBeingHeld)
-									context.Score.HoldTypes = pairHoldTypes;
+									holdState.CurrentHoldTypes = pairHoldTypes;
 								else
-									context.Score.HoldTypes |= pairHoldTypes;
+									holdState.CurrentHoldTypes |= pairHoldTypes;
 							}
 							else if (typeIsAlreadyBeingHeld)
 							{
-								context.Score.HoldTypes = ButtonTypeFlags_None;
+								holdState.CurrentHoldTypes = ButtonTypeFlags_None;
 							}
 						}
 					}
 					else
 					{
-						const bool inputTypeIsBeingHeld = context.Score.HoldTypes & /*inputButtonTypeFlag*/binding.ButtonTypes;
+						const bool inputTypeIsBeingHeld = holdState.CurrentHoldTypes & /*inputButtonTypeFlag*/binding.ButtonTypes;
 						if (inputTypeIsBeingHeld)
-							context.Score.HoldTypes = ButtonTypeFlags_None;
+							holdState.CurrentHoldTypes = ButtonTypeFlags_None;
 					}
 #endif
 				}
@@ -1206,7 +1232,7 @@ namespace Comfy::Studio::Editor
 			if ((binding.SlidePosition == SlidePositionType::None))
 			{
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-				const bool allBindingTypesAreHeldDown = ((context.Score.HoldTypes & binding.ButtonTypes) == binding.ButtonTypes);
+				const bool allBindingTypesAreHeldDown = ((holdState.CurrentHoldTypes & binding.ButtonTypes) == binding.ButtonTypes);
 
 				if (anyTargetWasHit || !allBindingTypesAreHeldDown)
 					sharedContext.ButtonSoundController->PlayButtonSound();
@@ -1297,6 +1323,10 @@ namespace Comfy::Studio::Editor
 		TimeSpan restartPoint = TimeSpan::Zero();
 		TimeSpan chartDuration = TimeSpan::FromMinutes(1.0);
 		std::vector<PlayTestSyncPair> availableTargetPairs, onScreenTargetPairs;
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+		PlayTestHoldState holdState = {};
+#endif
 
 		bool autoplayEnabled = false;
 

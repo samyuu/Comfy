@@ -13,9 +13,6 @@
 #include "ImGui/Extensions/CheckerboardTexture.h"
 #include "Input/Input.h"
 
-// DEBUG:
-#define COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST 1
-
 namespace Comfy::Studio::Editor
 {
 	struct PlayTestContext
@@ -31,11 +28,6 @@ namespace Comfy::Studio::Editor
 			// TODO: Eventually (?)
 			// i32 ScoreNumber;
 			// i32 ScoreNumberRolling;
-
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-			// TODO: Create hold state struct that keeps track of previous hold inputs to calculate score, max holds and animate the sync info display
-			ButtonTypeFlags HoldTypes;
-#endif
 		} Score;
 	};
 
