@@ -388,6 +388,8 @@ namespace Comfy::Studio::Editor
 			if (sharedContext.SongVoice->GetIsPlaying() && autoplayEnabled)
 				UpdateAutoplayInput();
 
+			CheckUpdateHoldStateMaxOut();
+
 			DrawBackground();
 			DrawUpdateOnScreenTargets();
 
@@ -475,6 +477,12 @@ namespace Comfy::Studio::Editor
 		void SetAutoplayEnabled(bool value)
 		{
 			autoplayEnabled = value;
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+			// TODO: Think about handling this in a more optimal way
+			if (!value)
+				holdState.ClearAll();
+#endif
 		}
 
 		bool GetIsPlayback() const
@@ -492,7 +500,7 @@ namespace Comfy::Studio::Editor
 				FadeOutThenExit();
 
 			if (Gui::IsKeyPressed(Input::KeyCode_F1, false))
-				autoplayEnabled ^= true;
+				SetAutoplayEnabled(!GetAutoplayEnabled());
 
 			if (Gui::IsKeyPressed(Input::KeyCode_Space, false) || Input::DualShock4::IsTapped(Input::DS4Button::Options))
 				TogglePause();
@@ -524,11 +532,7 @@ namespace Comfy::Studio::Editor
 							heldDownBindings.erase(std::remove_if(heldDownBindings.begin(), heldDownBindings.end(), [](auto* b) { return !IsBindingDown(*b); }), heldDownBindings.end());
 
 							if (heldDownBindings.empty())
-							{
-								holdState.CurrentHoldTypes = ButtonTypeFlags_None;
-								holdState.EventHistory.push_back({ PlayTestHoldEventType::Cancel, holdState.CurrentHoldTypes, GetPlaybackTime(), nullptr });
-								holdState.ClearAllHeldDownBindings();
-							}
+								ProcessHoldStateCancelNow();
 						}
 					}
 #endif
@@ -556,23 +560,6 @@ namespace Comfy::Studio::Editor
 					else
 						sliderTouchPointR.NormalizedPosition = 0.5f;
 				}
-
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-				if (holdState.CurrentHoldTypes != ButtonTypeFlags_None && !holdState.EventHistory.empty())
-				{
-					const auto lastEvent = holdState.EventHistory.back();
-					if (lastEvent.EventType == PlayTestHoldEventType::Start || lastEvent.EventType == PlayTestHoldEventType::Addition)
-					{
-						const auto timeSinceLastEvent = (GetPlaybackTime() - lastEvent.PlaybackTime);
-						if (timeSinceLastEvent >= MaxTargetHoldDuration)
-						{
-							holdState.EventHistory.push_back({ PlayTestHoldEventType::MaxOut, holdState.CurrentHoldTypes, GetPlaybackTime(), nullptr });
-							holdState.CurrentHoldTypes = ButtonTypeFlags_None;
-							holdState.ClearAllHeldDownBindings();
-						}
-					}
-				}
-#endif
 			}
 		}
 
@@ -756,10 +743,7 @@ namespace Comfy::Studio::Editor
 
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 						if (AllInSyncPairHaveBeenHitByPlayer(onScreenPair))
-						{
-							holdState.CurrentHoldTypes = ButtonTypeFlags_None;
-							holdState.EventHistory.push_back({ PlayTestHoldEventType::Cancel, holdState.CurrentHoldTypes, GetPlaybackTime(), nullptr });
-						}
+							ProcessHoldStateCancelNow();
 #endif
 
 						context.Score.ComboCount = 0;
@@ -1101,10 +1085,6 @@ namespace Comfy::Studio::Editor
 
 		void UpdateAutoplayInput()
 		{
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-			// TODO: Implement auto holds
-#endif
-
 			const auto playbackTime = GetPlaybackTime();
 			const auto deltaPerfectHitThreshold = TimeSpan::FromSeconds(Gui::GetIO().DeltaTime * 0.5f);
 
@@ -1133,7 +1113,14 @@ namespace Comfy::Studio::Editor
 						target.HitPrecision = HitPrecision::Just;
 
 						if (AllInSyncPairHaveBeenHit(onScreenPair))
+						{
 							context.Score.ComboCount++;
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+							ProcessHoldStateForFullyHitSyncPair(onScreenPair);
+#endif
+						}
+
 					}
 				}
 			}
@@ -1163,6 +1150,26 @@ namespace Comfy::Studio::Editor
 					}
 				}
 			}
+		}
+
+		void CheckUpdateHoldStateMaxOut()
+		{
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+			if (holdState.CurrentHoldTypes != ButtonTypeFlags_None && !holdState.EventHistory.empty())
+			{
+				const auto lastEvent = holdState.EventHistory.back();
+				if (lastEvent.EventType == PlayTestHoldEventType::Start || lastEvent.EventType == PlayTestHoldEventType::Addition)
+				{
+					const auto timeSinceLastEvent = (GetPlaybackTime() - lastEvent.PlaybackTime);
+					if (timeSinceLastEvent >= MaxTargetHoldDuration)
+					{
+						holdState.EventHistory.push_back({ PlayTestHoldEventType::MaxOut, holdState.CurrentHoldTypes, GetPlaybackTime(), nullptr });
+						holdState.CurrentHoldTypes = ButtonTypeFlags_None;
+						holdState.ClearAllHeldDownBindings();
+					}
+				}
+			}
+#endif
 		}
 
 		void UpdateInputBindingButtonInputs(const PlayTestInputBinding& binding)
@@ -1292,48 +1299,17 @@ namespace Comfy::Studio::Editor
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 					if (inputTypeMatchesAny)
 					{
-#if 1
+						if (AllInSyncPairHaveBeenHit(*nextPairToHit))
+							ProcessHoldStateForFullyHitSyncPair(*nextPairToHit);
+
 						if (nextTargetToHit->Flags.IsHold)
 							holdState.PerTypeHeldDownBindings[static_cast<size_t>(nextTargetToHit->Type)].push_back(&binding);
-#endif
-
-						if (AllInSyncPairHaveBeenHit(*nextPairToHit))
-						{
-							const ButtonTypeFlags pairHoldTypes = GetSyncPairHoldTypeFlags(*nextPairToHit);
-							const ButtonTypeFlags pairTypes = GetSyncPairTypeFlags(*nextPairToHit);
-
-							const bool typeIsAlreadyBeingHeld = (holdState.CurrentHoldTypes & pairTypes);
-
-							if (pairHoldTypes != ButtonTypeFlags_None)
-							{
-								if (typeIsAlreadyBeingHeld || (holdState.CurrentHoldTypes == ButtonTypeFlags_None))
-								{
-									holdState.CurrentHoldTypes = pairHoldTypes;
-									holdState.EventHistory.push_back({ PlayTestHoldEventType::Start, holdState.CurrentHoldTypes, GetPlaybackTime(), nextPairToHit });
-								}
-								else
-								{
-									holdState.CurrentHoldTypes |= pairHoldTypes;
-									holdState.EventHistory.push_back({ PlayTestHoldEventType::Addition, holdState.CurrentHoldTypes, GetPlaybackTime(), nextPairToHit });
-								}
-							}
-							else if (typeIsAlreadyBeingHeld)
-							{
-								holdState.CurrentHoldTypes = ButtonTypeFlags_None;
-								holdState.EventHistory.push_back({ PlayTestHoldEventType::Cancel, holdState.CurrentHoldTypes, GetPlaybackTime(), nullptr });
-								holdState.ClearAllHeldDownBindings();
-							}
-						}
 					}
 					else
 					{
-						const bool inputTypeIsBeingHeld = holdState.CurrentHoldTypes & /*inputButtonTypeFlag*/binding.ButtonTypes;
+						const bool inputTypeIsBeingHeld = holdState.CurrentHoldTypes & binding.ButtonTypes;
 						if (inputTypeIsBeingHeld)
-						{
-							holdState.CurrentHoldTypes = ButtonTypeFlags_None;
-							holdState.EventHistory.push_back({ PlayTestHoldEventType::Cancel, holdState.CurrentHoldTypes, GetPlaybackTime(), nullptr });
-							holdState.ClearAllHeldDownBindings();
-						}
+							ProcessHoldStateCancelNow();
 					}
 #endif
 				}
@@ -1342,7 +1318,6 @@ namespace Comfy::Studio::Editor
 			if ((binding.SlidePosition == SlidePositionType::None))
 			{
 #if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
-
 				if (!anyTargetWasHit)
 				{
 					for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
@@ -1426,6 +1401,42 @@ namespace Comfy::Studio::Editor
 				}
 			}
 		}
+
+#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
+		void ProcessHoldStateCancelNow()
+		{
+			holdState.CurrentHoldTypes = ButtonTypeFlags_None;
+			holdState.EventHistory.push_back({ PlayTestHoldEventType::Cancel, holdState.CurrentHoldTypes, GetPlaybackTime(), nullptr });
+			holdState.ClearAllHeldDownBindings();
+		}
+
+		void ProcessHoldStateForFullyHitSyncPair(const PlayTestSyncPair& syncPair)
+		{
+			const ButtonTypeFlags pairHoldTypes = GetSyncPairHoldTypeFlags(syncPair);
+			const ButtonTypeFlags pairTypes = GetSyncPairTypeFlags(syncPair);
+
+			const bool typeIsAlreadyBeingHeld = (holdState.CurrentHoldTypes & pairTypes);
+
+			if (pairHoldTypes != ButtonTypeFlags_None)
+			{
+				if (typeIsAlreadyBeingHeld || (holdState.CurrentHoldTypes == ButtonTypeFlags_None))
+				{
+					holdState.CurrentHoldTypes = pairHoldTypes;
+					holdState.EventHistory.push_back({ PlayTestHoldEventType::Start, holdState.CurrentHoldTypes, GetPlaybackTime(), &syncPair });
+					holdState.ClearAllHeldDownBindings();
+				}
+				else
+				{
+					holdState.CurrentHoldTypes |= pairHoldTypes;
+					holdState.EventHistory.push_back({ PlayTestHoldEventType::Addition, holdState.CurrentHoldTypes, GetPlaybackTime(), &syncPair });
+				}
+			}
+			else if (typeIsAlreadyBeingHeld)
+			{
+				ProcessHoldStateCancelNow();
+			}
+		}
+#endif
 
 		TimeSpan GetPlaybackTime() const
 		{
