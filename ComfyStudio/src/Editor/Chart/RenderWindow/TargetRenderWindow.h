@@ -123,7 +123,7 @@ namespace Comfy::Studio::Editor
 
 		struct HoldEvent
 		{
-			HoldEventType EvenType;
+			HoldEventType EventType;
 			ButtonTypeFlags CombinedButtonTypes;
 			i32 TargetPairIndex;
 			TimeSpan StartTime;

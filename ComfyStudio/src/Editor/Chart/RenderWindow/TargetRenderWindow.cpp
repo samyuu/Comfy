@@ -366,13 +366,13 @@ namespace Comfy::Studio::Editor
 				return;
 
 			const auto lastEvent = holdEventStack.back();
-			if (lastEvent.EvenType != HoldEventType::Start && lastEvent.EvenType != HoldEventType::Addition)
+			if (lastEvent.EventType != HoldEventType::Start && lastEvent.EventType != HoldEventType::Addition)
 				return;
 
 			if (timeToCheckAgainst >= lastEvent.StartTime + MaxTargetHoldDuration)
 			{
 				auto& newMaxEvent = holdEventStack.emplace_back();
-				newMaxEvent.EvenType = HoldEventType::MaxOut;
+				newMaxEvent.EventType = HoldEventType::MaxOut;
 				newMaxEvent.CombinedButtonTypes = ButtonTypeFlags_None;
 				newMaxEvent.TargetPairIndex = -1;
 				newMaxEvent.StartTime = lastEvent.StartTime + MaxTargetHoldDuration;
@@ -411,7 +411,7 @@ namespace Comfy::Studio::Editor
 					continue;
 
 				auto& lastEvent = holdEventStack.back();
-				if (lastEvent.EvenType != HoldEventType::Start && lastEvent.EvenType != HoldEventType::Addition)
+				if (lastEvent.EventType != HoldEventType::Start && lastEvent.EventType != HoldEventType::Addition)
 					continue;
 
 				const bool newHoldConflicts = (lastEvent.CombinedButtonTypes & pairTypes);
@@ -425,29 +425,29 @@ namespace Comfy::Studio::Editor
 
 			if (pairTypesHolds == ButtonTypeFlags_None)
 			{
-				newHoldEvent.EvenType = HoldEventType::Cancel;
+				newHoldEvent.EventType = HoldEventType::Cancel;
 				newHoldEvent.CombinedButtonTypes = ButtonTypeFlags_None;
 			}
 			else if (holdEventStack.size() <= 1)
 			{
-				newHoldEvent.EvenType = HoldEventType::Start;
+				newHoldEvent.EventType = HoldEventType::Start;
 				newHoldEvent.CombinedButtonTypes = pairTypesHolds;
 			}
 			else
 			{
 				const auto& lastEvent = holdEventStack[holdEventStack.size() - 2];
 
-				const bool lastEventIsMergable = (lastEvent.EvenType == HoldEventType::Start || lastEvent.EvenType == HoldEventType::Addition);
+				const bool lastEventIsMergable = (lastEvent.EventType == HoldEventType::Start || lastEvent.EventType == HoldEventType::Addition);
 				const bool newHoldConflicts = (lastEvent.CombinedButtonTypes & pairTypes);
 
 				if (!lastEventIsMergable || newHoldConflicts)
 				{
-					newHoldEvent.EvenType = HoldEventType::Start;
+					newHoldEvent.EventType = HoldEventType::Start;
 					newHoldEvent.CombinedButtonTypes = pairTypesHolds;
 				}
 				else
 				{
-					newHoldEvent.EvenType = HoldEventType::Addition;
+					newHoldEvent.EventType = HoldEventType::Addition;
 					newHoldEvent.CombinedButtonTypes = (lastEvent.CombinedButtonTypes | pairTypesHolds);
 				}
 			}
@@ -457,7 +457,7 @@ namespace Comfy::Studio::Editor
 
 		if (!holdEventStack.empty())
 		{
-			const auto lastValidEvent = std::find_if(holdEventStack.rbegin(), holdEventStack.rend(), [](auto& e) { return (e.EvenType == HoldEventType::Start || e.EvenType == HoldEventType::Addition); });
+			const auto lastValidEvent = std::find_if(holdEventStack.rbegin(), holdEventStack.rend(), [](auto& e) { return (e.EventType == HoldEventType::Start || e.EventType == HoldEventType::Addition); });
 			const auto& lastEvent = holdEventStack.back();
 
 			// TODO: Calculate hold score and display max hold info (?)
@@ -472,17 +472,17 @@ namespace Comfy::Studio::Editor
 			}
 			else if (lastValidEvent != holdEventStack.rend())
 			{
-				const bool wasAddition = (lastValidEvent->EvenType == HoldEventType::Addition);
+				const bool wasAddition = (lastValidEvent->EventType == HoldEventType::Addition);
 
 				const auto markerLoopStart = wasAddition ? syncHoldInfoMarkers.LoopStartAdd : syncHoldInfoMarkers.LoopStart;
 				const auto markerLoopEnd = syncHoldInfoMarkers.LoopEnd;
 
-				if (lastEvent.EvenType == HoldEventType::MaxOut)
+				if (lastEvent.EventType == HoldEventType::MaxOut)
 				{
 					const auto timeSinceMaxOut = (cursorTime - lastValidEvent->StartTime - MaxTargetHoldDuration);
 					syncInfoData.Time = markerLoopEnd + timeSinceMaxOut;
 				}
-				else if (lastEvent.EvenType == HoldEventType::Cancel)
+				else if (lastEvent.EventType == HoldEventType::Cancel)
 				{
 					const auto timeSinceCancel = (cursorTime - lastEvent.StartTime);
 					syncInfoData.Time = markerLoopEnd + timeSinceCancel;
