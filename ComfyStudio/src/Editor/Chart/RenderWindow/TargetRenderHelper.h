@@ -54,6 +54,9 @@ namespace Comfy::Studio::Editor
 			TimeSpan LoopStartAdd;
 			TimeSpan LoopEnd;
 			TimeSpan ChargeEnd;
+			TimeSpan MaxLoopStart;
+			TimeSpan MaxChargeEnd;
+			TimeSpan MaxLoopEnd;
 		};
 
 		SyncHoldInfoMarkerData GetSyncHoldInfoMarkerData() const;
@@ -65,10 +68,10 @@ namespace Comfy::Studio::Editor
 			bool TypeAdded;
 			bool HideScore;
 			i32 HoldScore;
-			// TODO: Hold info max
 		};
 
 		void DrawSyncHoldInfo(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const;
+		void DrawSyncHoldInfoMax(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const;
 
 		struct TargetAppearData
 		{

@@ -135,6 +135,13 @@ namespace Comfy::Studio::Editor
 					markers.SyncHoldInfo.LoopStartAdd = TimeSpan::FromFrames(layer->FindMarkerFrame("loop_start").value_or(0.0f));
 				}
 
+				if (auto* layer = layers.SyncInfoMaxAdd.get(); layer != nullptr)
+				{
+					markers.SyncHoldInfo.MaxLoopStart = TimeSpan::FromFrames(layer->FindMarkerFrame("loop_start").value_or(0.0f));
+					markers.SyncHoldInfo.MaxChargeEnd = TimeSpan::FromFrames(layer->FindMarkerFrame("charge_end").value_or(0.0f));
+					markers.SyncHoldInfo.MaxLoopEnd = TimeSpan::FromFrames(layer->FindMarkerFrame("loop_end").value_or(0.0f));
+				}
+
 				layers.TargetAppearEffect = findLayer(*aetGameCommon, "target_eff");
 
 				layers.HitEffects[0] = findLayer(*aetGameCommon, "hit_eff00");
@@ -691,6 +698,47 @@ namespace Comfy::Studio::Editor
 			}
 
 			renderer.Aet().DrawLayer(*syncInfoLayer, data.Time.ToFrames());
+		}
+
+		void DrawSyncHoldInfoMax(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const
+		{
+			const auto* syncInfoMaxLayer = layers.SyncInfoMaxAdd.get();
+			if (syncInfoMaxLayer == nullptr)
+				return;
+
+			if (data.Time.ToFrames() >= syncInfoMaxLayer->EndFrame)
+				return;
+
+			char decimalString[16] = {};
+			const auto decimalStringLen = sprintf_s(decimalString, "+%d", std::clamp(data.HoldScore, 0, 999999));
+
+			const auto& compItem = *syncInfoMaxLayer->GetCompItem();
+			for (auto& layer : compItem.GetLayers())
+			{
+				const auto* videoItem = layer->GetVideoItem().get();
+				for (size_t digitIndex = 0; digitIndex < videos.SyncInfoScoreDigitPlaceholders.size(); digitIndex++)
+				{
+					auto* digitVideo = videos.SyncInfoScoreDigitPlaceholders[digitIndex].get();
+					if (videoItem == digitVideo)
+					{
+						const char decimalChar = (digitIndex <= decimalStringLen) ? decimalString[decimalStringLen - digitIndex] : '\0';
+						if (decimalChar == '\0' || data.HideScore)
+						{
+							layer->RenderOverride.UseTexSpr = false;
+						}
+						else
+						{
+							const i8 digit = (decimalChar == '+') ? 10 : (decimalChar - '0');
+							const auto texSpr = GetSyncInfoHoldNumerSprite(digit);
+							layer->RenderOverride.UseTexSpr = true;
+							layer->RenderOverride.Tex = texSpr.Tex;
+							layer->RenderOverride.Spr = texSpr.Spr;
+						}
+					}
+				}
+			}
+
+			renderer.Aet().DrawLayer(*syncInfoMaxLayer, data.Time.ToFrames());
 		}
 
 		// HACK: This is an incredibly hacky solution but is far more simple than creating entire layer + comp copies for each variation
@@ -1287,6 +1335,8 @@ namespace Comfy::Studio::Editor
 			return (sprGame == nullptr || fontMap == nullptr) ? nullptr : IndexOrNull(fontPracticeNumIndex, fontMap->Fonts);
 		}
 
+		// TODO: Write util to easily and efficiently deal with aet number / character placeholders
+
 		Render::TexSprView GetComboNumberSprite(i8 number) const
 		{
 			auto digitSprite = sprites.ComboNumbers[number];
@@ -1545,6 +1595,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::DrawSyncHoldInfo(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const
 	{
 		impl->DrawSyncHoldInfo(renderer, data);
+	}
+
+	void TargetRenderHelper::DrawSyncHoldInfoMax(Render::Renderer2D& renderer, const SyncHoldInfoData& data) const
+	{
+		impl->DrawSyncHoldInfoMax(renderer, data);
 	}
 
 	void TargetRenderHelper::DrawTargetAppearEffect(Render::Renderer2D& renderer, const TargetAppearData& data) const
