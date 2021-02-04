@@ -119,6 +119,7 @@ namespace Comfy::Studio::Editor
 		TargetRenderHelperEx renderHelperEx = {};
 		std::vector<std::pair<vec2, u32>> centerMarkersBuffer;
 
+		// TODO: Refactor to use same hold event code for both the editor hold preview and the playtest mode
 		enum class HoldEventType : u8 { Start, Addition, Cancel, MaxOut, Count };
 
 		struct HoldEvent

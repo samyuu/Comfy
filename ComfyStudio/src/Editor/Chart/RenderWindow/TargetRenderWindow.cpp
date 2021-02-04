@@ -480,7 +480,18 @@ namespace Comfy::Studio::Editor
 				if (lastEvent.EventType == HoldEventType::MaxOut)
 				{
 					const auto timeSinceMaxOut = (cursorTime - lastValidEvent->StartTime - MaxTargetHoldDuration);
-					syncInfoData.Time = markerLoopEnd + timeSinceMaxOut;
+					syncInfoData.Time = (timeSinceMaxOut < syncHoldInfoMarkers.MaxLoopEnd) ?
+						markerLoopStart + TimeSpan::FromSeconds(glm::mod((timeSinceMaxOut - markerLoopStart).TotalSeconds(), (markerLoopEnd - markerLoopStart).TotalSeconds())) :
+						markerLoopEnd + (timeSinceMaxOut - syncHoldInfoMarkers.MaxLoopEnd);
+
+					i32 heldButtonCount = 0;
+					for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
+						heldButtonCount += static_cast<bool>(lastValidEvent->CombinedButtonTypes & ButtonTypeToButtonTypeFlags(static_cast<ButtonType>(i)));
+
+					TargetRenderHelper::SyncHoldInfoData syncInfoMaxData = {};
+					syncInfoMaxData.Time = timeSinceMaxOut;
+					syncInfoMaxData.HoldScore = (heldButtonCount * (6000 / 4));
+					renderHelper->DrawSyncHoldInfoMax(renderer, syncInfoMaxData);
 				}
 				else if (lastEvent.EventType == HoldEventType::Cancel)
 				{

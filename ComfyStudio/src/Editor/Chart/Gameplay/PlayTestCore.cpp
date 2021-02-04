@@ -385,7 +385,7 @@ namespace Comfy::Studio::Editor
 		{
 			UpdateUserInput();
 
-			if (sharedContext.SongVoice->GetIsPlaying() && autoplayEnabled)
+			if (GetIsPlayback() && autoplayEnabled)
 				UpdateAutoplayInput();
 
 			CheckUpdateHoldStateMaxOut();
@@ -409,7 +409,7 @@ namespace Comfy::Studio::Editor
 			{
 				contextMenuOpen = true;
 
-				if (Gui::MenuItem(sharedContext.SongVoice->GetIsPlaying() ? "Pause" : "Resume", Input::GetKeyCodeName(Input::KeyCode_Space)))
+				if (Gui::MenuItem(GetIsPlayback() ? "Pause" : "Resume", Input::GetKeyCodeName(Input::KeyCode_Space)))
 					TogglePause();
 
 				if (Gui::MenuItem("Restart from Reset Point", Input::GetKeyCodeName(Input::KeyCode_Enter)))
@@ -508,7 +508,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::IsKeyPressed(Input::KeyCode_Enter, false) || Input::DualShock4::IsTapped(Input::DS4Button::R3))
 				RestartFromRestartPoint();
 
-			if (sharedContext.SongVoice->GetIsPlaying())
+			if (GetIsPlayback())
 			{
 				const bool shiftDown = Gui::GetIO().KeyShift;
 
@@ -565,13 +565,15 @@ namespace Comfy::Studio::Editor
 
 		void DrawBackground()
 		{
+			const auto playbackTime = GetPlaybackTime();
+
 			TargetRenderHelper::BackgroundData backgroundData = {};
 			backgroundData.DrawGrid = true;
 			backgroundData.DrawDim = true;
 			backgroundData.DrawCover = true;
 			backgroundData.DrawLogo = true;
 			backgroundData.DrawBackground = true;
-			backgroundData.PlaybackTime = GetPlaybackTime();
+			backgroundData.PlaybackTime = playbackTime;
 			backgroundData.CoverSprite = sharedContext.Chart->Properties.Image.Cover.GetTexSprView();
 			backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
 			backgroundData.BackgroundSprite = sharedContext.Chart->Properties.Image.Background.GetTexSprView();
@@ -592,7 +594,6 @@ namespace Comfy::Studio::Editor
 					const auto syncHoldInfoMarkers = sharedContext.RenderHelper->GetSyncHoldInfoMarkerData();
 					TargetRenderHelper::SyncHoldInfoData syncInfoData = {};
 
-					const auto playbackTime = GetPlaybackTime();
 					const bool wasAddition = (lastValidEvent->EventType == PlayTestHoldEventType::Addition);
 
 					const auto markerLoopStart = wasAddition ? syncHoldInfoMarkers.LoopStartAdd : syncHoldInfoMarkers.LoopStart;
@@ -601,7 +602,18 @@ namespace Comfy::Studio::Editor
 					if (lastEvent.EventType == PlayTestHoldEventType::MaxOut)
 					{
 						const auto timeSinceMaxOut = (playbackTime - lastValidEvent->PlaybackTime - MaxTargetHoldDuration);
-						syncInfoData.Time = markerLoopEnd + timeSinceMaxOut;
+						syncInfoData.Time = (timeSinceMaxOut < syncHoldInfoMarkers.MaxLoopEnd) ?
+							markerLoopStart + TimeSpan::FromSeconds(glm::mod((timeSinceMaxOut - markerLoopStart).TotalSeconds(), (markerLoopEnd - markerLoopStart).TotalSeconds())) :
+							markerLoopEnd + (timeSinceMaxOut - syncHoldInfoMarkers.MaxLoopEnd);
+
+						i32 heldButtonCount = 0;
+						for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
+							heldButtonCount += static_cast<bool>(lastValidEvent->ButtonTypes & ButtonTypeToButtonTypeFlags(static_cast<ButtonType>(i)));
+
+						TargetRenderHelper::SyncHoldInfoData syncInfoMaxData = {};
+						syncInfoMaxData.Time = timeSinceMaxOut;
+						syncInfoMaxData.HoldScore = (heldButtonCount * (6000 / 4));
+						sharedContext.RenderHelper->DrawSyncHoldInfoMax(*sharedContext.Renderer, syncInfoMaxData);
 					}
 					else if (lastEvent.EventType == PlayTestHoldEventType::Cancel)
 					{
@@ -618,9 +630,8 @@ namespace Comfy::Studio::Editor
 
 					syncInfoData.TypeFlags = lastValidEvent->ButtonTypes;
 					syncInfoData.TypeAdded = wasAddition;
-					sharedContext.RenderHelper->DrawSyncHoldInfo(*sharedContext.Renderer, syncInfoData);
 
-					// TODO: Draw hold maxout
+					sharedContext.RenderHelper->DrawSyncHoldInfo(*sharedContext.Renderer, syncInfoData);
 				}
 			}
 #endif
@@ -914,7 +925,7 @@ namespace Comfy::Studio::Editor
 		void DrawPauseToggleFade()
 		{
 			pauseFade.PlaybackLastFrame = pauseFade.PlaybackThisFrame;
-			pauseFade.PlaybackThisFrame = sharedContext.SongVoice->GetIsPlaying();
+			pauseFade.PlaybackThisFrame = GetIsPlayback();
 
 			if (pauseFade.PlaybackLastFrame && !pauseFade.PlaybackThisFrame)
 				pauseFade.InStopwatch.Restart();
@@ -948,7 +959,7 @@ namespace Comfy::Studio::Editor
 		void DrawOverlayText()
 		{
 			char textBuffer[64] = {};
-			if (!sharedContext.SongVoice->GetIsPlaying())
+			if (!GetIsPlayback())
 				strcat_s(textBuffer, "PAUSED");
 
 			if (autoplayEnabled)
@@ -1004,7 +1015,7 @@ namespace Comfy::Studio::Editor
 
 		void TogglePause()
 		{
-			const bool isPlaying = sharedContext.SongVoice->GetIsPlaying();
+			const bool isPlaying = GetIsPlayback();
 			PlayOneShotSoundEffect(isPlaying ? "se_ft_sys_dialog_open" : "se_ft_sys_dialog_close");
 			sharedContext.SongVoice->SetIsPlaying(!isPlaying);
 
@@ -1045,7 +1056,7 @@ namespace Comfy::Studio::Editor
 
 		void RestartInitializeChart(TimeSpan startTime, bool resetScore = true)
 		{
-			if (sharedContext.SongVoice->GetIsPlaying())
+			if (GetIsPlayback())
 			{
 				for (size_t i = 0; i < EnumCount<ChainSoundSlot>(); i++)
 					sharedContext.ButtonSoundController->FadeOutLastChainSound(static_cast<ChainSoundSlot>(i));
