@@ -606,13 +606,9 @@ namespace Comfy::Studio::Editor
 							markerLoopStart + TimeSpan::FromSeconds(glm::mod((timeSinceMaxOut - markerLoopStart).TotalSeconds(), (markerLoopEnd - markerLoopStart).TotalSeconds())) :
 							markerLoopEnd + (timeSinceMaxOut - syncHoldInfoMarkers.MaxLoopEnd);
 
-						i32 heldButtonCount = 0;
-						for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
-							heldButtonCount += static_cast<bool>(lastValidEvent->ButtonTypes & ButtonTypeToButtonTypeFlags(static_cast<ButtonType>(i)));
-
 						TargetRenderHelper::SyncHoldInfoData syncInfoMaxData = {};
 						syncInfoMaxData.Time = timeSinceMaxOut;
-						syncInfoMaxData.HoldScore = (heldButtonCount * (6000 / 4));
+						syncInfoMaxData.HoldScore = (ButtonTypeFlagsBitCount(lastValidEvent->ButtonTypes) * (6000 / 4));
 						sharedContext.RenderHelper->DrawSyncHoldInfoMax(*sharedContext.Renderer, syncInfoMaxData);
 					}
 					else if (lastEvent.EventType == PlayTestHoldEventType::Cancel)

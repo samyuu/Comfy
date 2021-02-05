@@ -80,6 +80,14 @@ namespace Comfy::Studio::Editor
 		return static_cast<ButtonTypeFlags>(1 << static_cast<u32>(type));
 	}
 
+	constexpr i32 ButtonTypeFlagsBitCount(ButtonTypeFlags types)
+	{
+		i32 bitCount = 0;
+		for (u8 typeIndex = 0; typeIndex < static_cast<u8>(EnumCount<ButtonType>()); typeIndex++)
+			bitCount += static_cast<bool>(types & (1 << typeIndex));
+		return bitCount;
+	}
+
 	struct TargetProperties
 	{
 		vec2 Position;
