@@ -2,8 +2,6 @@
 #include "PlayTestWindow.h"
 #include "Time/Stopwatch.h"
 
-#define COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST 1
-
 namespace Comfy::Studio::Editor
 {
 	namespace
@@ -118,7 +116,6 @@ namespace Comfy::Studio::Editor
 		};
 
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 		enum class PlayTestHoldEventType : u8
 		{
 			Start,
@@ -181,7 +178,6 @@ namespace Comfy::Studio::Editor
 
 			return holdFlags;
 		}
-#endif
 
 		constexpr bool AnyInSyncPairHasBeenHitByPlayer(const PlayTestSyncPair& syncPair)
 		{
@@ -478,11 +474,9 @@ namespace Comfy::Studio::Editor
 		{
 			autoplayEnabled = value;
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 			// TODO: Think about handling this in a more optimal way
 			if (!value)
 				holdState.ClearAll();
-#endif
 		}
 
 		bool GetIsPlayback() const
@@ -520,7 +514,6 @@ namespace Comfy::Studio::Editor
 
 				if (!autoplayEnabled)
 				{
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 					if (holdState.CurrentHoldTypes != ButtonTypeFlags_None)
 					{
 						for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
@@ -535,7 +528,6 @@ namespace Comfy::Studio::Editor
 								ProcessHoldStateCancelNow();
 						}
 					}
-#endif
 
 					i32 chainSlideHoldCountL = 0, chainSlideHoldCountR = 0;
 
@@ -579,7 +571,6 @@ namespace Comfy::Studio::Editor
 			backgroundData.BackgroundSprite = sharedContext.Chart->Properties.Image.Background.GetTexSprView();
 			sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 			if (!holdState.EventHistory.empty())
 			{
 				const auto lastValidEvent = std::find_if(holdState.EventHistory.rbegin(), holdState.EventHistory.rend(), [&](const auto& e)
@@ -627,10 +618,29 @@ namespace Comfy::Studio::Editor
 					syncInfoData.TypeFlags = lastValidEvent->ButtonTypes;
 					syncInfoData.TypeAdded = wasAddition;
 
+					const auto& events = holdState.EventHistory;
+					const auto lastStartEventIndex = FindLastIndexOf(events, [](auto& e) { return e.EventType == PlayTestHoldEventType::Start; });
+
+					syncInfoData.HoldScore = 0;
+
+					for (size_t i = lastStartEventIndex; i < events.size(); i++)
+					{
+						if (events[i].EventType == PlayTestHoldEventType::MaxOut)
+							break;
+
+						auto getEventTime = [](const PlayTestHoldEvent& e) { return (e.SyncPair != nullptr) ? e.SyncPair->ButtonTime : e.PlaybackTime; };
+						const auto endTime = (i + 1 == events.size()) ? playbackTime : getEventTime(events[i + 1]);
+
+						const auto duration = (endTime - getEventTime(events[i]));
+						const auto durationSixtyFPS = static_cast<i32>(glm::round(duration.ToFrames(60.0f)));
+
+						constexpr i32 scorePerSixtyFPSFramePerTarget = 10;
+						syncInfoData.HoldScore += (ButtonTypeFlagsBitCount(events[i].ButtonTypes) * scorePerSixtyFPSFramePerTarget * durationSixtyFPS);
+					}
+
 					sharedContext.RenderHelper->DrawSyncHoldInfo(*sharedContext.Renderer, syncInfoData);
 				}
 			}
-#endif
 		}
 
 		void DrawUpdateOnScreenTargets()
@@ -748,10 +758,8 @@ namespace Comfy::Studio::Editor
 						if (onScreenTarget.WrongTypeOnTimeOut && IsSlideButtonType(onScreenTarget.Type))
 							sharedContext.ButtonSoundController->PlaySlideSound();
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 						if (AllInSyncPairHaveBeenHitByPlayer(onScreenPair))
 							ProcessHoldStateCancelNow();
-#endif
 
 						context.Score.ComboCount = 0;
 					}
@@ -1058,9 +1066,7 @@ namespace Comfy::Studio::Editor
 					sharedContext.ButtonSoundController->FadeOutLastChainSound(static_cast<ChainSoundSlot>(i));
 			}
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 			holdState.ClearAll();
-#endif
 
 			SetPlaybackTime(startTime);
 			sharedContext.SongVoice->SetIsPlaying(true);
@@ -1123,9 +1129,7 @@ namespace Comfy::Studio::Editor
 						{
 							context.Score.ComboCount++;
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 							ProcessHoldStateForFullyHitSyncPair(onScreenPair);
-#endif
 						}
 
 					}
@@ -1161,7 +1165,6 @@ namespace Comfy::Studio::Editor
 
 		void CheckUpdateHoldStateMaxOut()
 		{
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 			if (holdState.CurrentHoldTypes != ButtonTypeFlags_None && !holdState.EventHistory.empty())
 			{
 				const auto lastEvent = holdState.EventHistory.back();
@@ -1176,7 +1179,6 @@ namespace Comfy::Studio::Editor
 					}
 				}
 			}
-#endif
 		}
 
 		void UpdateInputBindingButtonInputs(const PlayTestInputBinding& binding)
@@ -1303,7 +1305,6 @@ namespace Comfy::Studio::Editor
 						context.Score.ComboCount = 0;
 					}
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 					if (inputTypeMatchesAny)
 					{
 						if (AllInSyncPairHaveBeenHit(*nextPairToHit))
@@ -1318,13 +1319,11 @@ namespace Comfy::Studio::Editor
 						if (inputTypeIsBeingHeld)
 							ProcessHoldStateCancelNow();
 					}
-#endif
 				}
 			}
 
 			if ((binding.SlidePosition == SlidePositionType::None))
 			{
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 				if (!anyTargetWasHit)
 				{
 					for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
@@ -1347,9 +1346,6 @@ namespace Comfy::Studio::Editor
 
 				if (anyTargetWasHit || !allBindingTypesAreHeldDown)
 					sharedContext.ButtonSoundController->PlayButtonSound();
-#else
-				sharedContext.ButtonSoundController->PlayButtonSound();
-#endif
 			}
 		}
 
@@ -1409,7 +1405,6 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 		void ProcessHoldStateCancelNow()
 		{
 			holdState.CurrentHoldTypes = ButtonTypeFlags_None;
@@ -1443,7 +1438,6 @@ namespace Comfy::Studio::Editor
 				ProcessHoldStateCancelNow();
 			}
 		}
-#endif
 
 		TimeSpan GetPlaybackTime() const
 		{
@@ -1471,9 +1465,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan chartDuration = TimeSpan::FromMinutes(1.0);
 		std::vector<PlayTestSyncPair> availableTargetPairs, onScreenTargetPairs;
 
-#if COMFY_STUDIO_CHARTEDITOR_PLAYTEST_HOLDTEST
 		PlayTestHoldState holdState = {};
-#endif
 
 		bool autoplayEnabled = false;
 
