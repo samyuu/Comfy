@@ -268,9 +268,9 @@ namespace Comfy
 		const Layout& View() const { static_assert(sizeof(Layout) < sizeof(Param)); assert(Type == Layout::CommandType); return *reinterpret_cast<const Layout*>(Param.data()); }
 
 		template <typename Layout>
-		Layout* TryView() { return (Type == Layout::CommandType) ? &View<Layout*>() : nullptr; }
+		Layout* TryView() { return (Type == Layout::CommandType) ? &View<Layout>() : nullptr; }
 		template <typename Layout>
-		const Layout* TryView() const { return (Type == Layout::CommandType) ? &View<const Layout*>() : nullptr; }
+		const Layout* TryView() const { return (Type == Layout::CommandType) ? &View<const Layout>() : nullptr; }
 	};
 
 	namespace PVCommandLayout
@@ -387,6 +387,9 @@ namespace Comfy
 		{
 			i32 BeatsPerMinute;
 			i32 TimeSignature;
+
+			BarTimeSet() = default;
+			constexpr operator TimeSpan() const { return TimeSpan::FromSeconds(static_cast<f64>((60 * (TimeSignature + 1))) / static_cast<f64>(BeatsPerMinute)); }
 		};
 
 		struct PVEnd : LayoutBase<PVEnd, PVCommandType::PVEnd> {};
@@ -398,7 +401,7 @@ namespace Comfy
 			TargetFlyingTime() = default;
 			TargetFlyingTime(i32 timeMS) : DurationMS(timeMS) {}
 			TargetFlyingTime(TimeSpan time) : DurationMS(static_cast<i32>(glm::round(time.TotalMilliseconds()))) {}
-			operator TargetFlyingTime() const { return TimeSpan::FromMilliseconds(static_cast<f64>(DurationMS)); }
+			constexpr operator TimeSpan() const { return TimeSpan::FromMilliseconds(static_cast<f64>(DurationMS)); }
 		};
 	}
 
@@ -409,6 +412,9 @@ namespace Comfy
 
 	class PVScript : public IO::IBufferParsable, public IO::IStreamWritable
 	{
+	public:
+		static constexpr std::string_view Extension = ".dsc";
+
 	public:
 		PVScriptVersion Version = PVScriptVersion::Current;
 		std::vector<PVCommand> Commands;
