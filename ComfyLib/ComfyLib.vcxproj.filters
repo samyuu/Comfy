@@ -249,6 +249,9 @@
     <ClInclude Include="src\Database\Game\PvDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Misc\BezierCurve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp">
