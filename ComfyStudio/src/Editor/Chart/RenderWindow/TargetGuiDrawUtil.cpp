@@ -125,4 +125,9 @@ namespace Comfy::Studio::Editor
 		drawList.AddLine(headEndL, headEnd, color, thickness);
 		drawList.AddLine(headEndR, headEnd, color, thickness);
 	}
+
+	void DrawButtonPathArrowHeadCentered(TargetRenderWindow& renderWindow, ImDrawList& drawList, vec2 targetSpacePos, vec2 direction, u32 color, f32 thickness)
+	{
+		DrawButtonPathArrowHead(renderWindow, drawList, targetSpacePos - (vec2(ArrowSettings.HeadSize * 0.25f) * direction), direction, color, thickness);
+	}
 }

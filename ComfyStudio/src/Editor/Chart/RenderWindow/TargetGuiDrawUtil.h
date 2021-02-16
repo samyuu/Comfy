@@ -28,4 +28,5 @@ namespace Comfy::Studio::Editor
 	void DrawCurvedButtonPathLine(TargetRenderWindow& renderWindow, ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness);
 	void DrawCurvedButtonPathLineArrowHeads(TargetRenderWindow& renderWindow, ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness);
 	void DrawButtonPathArrowHead(TargetRenderWindow& renderWindow, ImDrawList& drawList, vec2 targetSpacePos, vec2 direction, u32 color, f32 thickness);
+	void DrawButtonPathArrowHeadCentered(TargetRenderWindow& renderWindow, ImDrawList& drawList, vec2 targetSpacePos, vec2 direction, u32 color, f32 thickness);
 }
