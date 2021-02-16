@@ -616,6 +616,10 @@ namespace Comfy::Studio::Editor
 		if (!parentApplication.GetHost().IsWindowFocused() || Gui::GetActiveID() != 0)
 			return;
 
+		// HACK: Not quite sure about this one yet but seems reasonable..?
+		if (Gui::GetCurrentContext()->OpenPopupStack.Size > 0)
+			return;
+
 		const bool shift = Gui::GetIO().KeyShift;
 
 		if (Gui::IsKeyPressed(KeyBindings::StartPlaytestFromStart, false))
