@@ -460,4 +460,47 @@ namespace Comfy::Studio::Editor
 
 		return 0;
 	}
+
+	void ApplySequencePresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const SequencePreset& preset, const SequencePresetSettings& settings)
+	{
+		// TODO: ...
+
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](const auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		std::vector<ApplySequencePreset::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		if (preset.Type == SequencePresetType::Circle)
+		{
+			const BeatTick tickOffset = ((settings.ApplyFirstTargetTickAsOffset) ?
+				std::find_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; })->Tick : BeatTick::Zero()) - settings.TickOffset;
+
+			for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+			{
+				const auto& target = chart.Targets[i];
+				if (!target.IsSelected)
+					continue;
+
+				auto& data = targetData.emplace_back();
+				data.TargetIndex = i;
+				data.NewValue = Rules::TryGetProperties(target);
+
+				const BeatTick circularTick = (target.Tick - tickOffset) % preset.Circle.Duration;
+				const f32 angleForTargetTick = ((circularTick == BeatTick::Zero() ? 0.0f :
+					static_cast<f32>(circularTick.Ticks()) / static_cast<f32>(preset.Circle.Duration.Ticks()) * 360.0f) * preset.Circle.Direction - 90.0f);
+
+				data.NewValue.Position.x = preset.Circle.Center.x + (glm::cos(glm::radians(angleForTargetTick)) * preset.Circle.Radius);
+				data.NewValue.Position.y = preset.Circle.Center.y + (glm::sin(glm::radians(angleForTargetTick)) * preset.Circle.Radius);
+				data.NewValue.Angle = Rules::NormalizeAngle(angleForTargetTick + 90.0f);
+			}
+		}
+
+		if (!targetData.empty())
+		{
+			undoManager.DisallowMergeForLastCommand();
+			undoManager.Execute<ApplySequencePreset>(chart, std::move(targetData), TargetPropertyFlags_All);
+		}
+	}
 }

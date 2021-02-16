@@ -17,8 +17,10 @@ namespace Comfy::Studio::Editor
 		~PresetWindow() = default;
 
 	public:
+		// NOTE: Expected to be called together within a single frame but split into different functions to treat them as seperate windows
 		void SyncGui(Chart& chart);
 		void SequenceGui(Chart& chart);
+		void UpdateStateAfterBothGuiPartsHaveBeenDrawn();
 
 		void OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer);
 		void OnRenderWindowOverlayGui(Chart& chart, TargetRenderWindow& renderWindow, ImDrawList& drawList);
@@ -36,24 +38,39 @@ namespace Comfy::Studio::Editor
 		DynamicSyncPresetSettings dynamicSyncPresetSettings = {};
 		std::vector<StaticSyncPreset> staticSyncPresets;
 
+		SequencePresetSettings sequencePresetSettings = {};
+		std::vector<SequencePreset> sequencePresets;
+
 		struct HoverData
 		{
-			bool AnyChildWindow;
-			bool DynamincSyncPresetChild;
-			bool StaticSyncPresetChild;
-			bool AddPresetChild;
-			bool ContextMenu;
-			std::optional<DynamicSyncPreset> DynamicSyncPreset;
-			std::optional<size_t> StaticSyncPreset;
+			struct SyncPresetData
+			{
+				bool AnyChildWindow;
+				bool DynamincChildWindow;
+				bool StaticChildWindow;
+				bool AddChildWindow;
+				bool ContextMenu;
+				std::optional<DynamicSyncPreset> DynamicPreset;
+				std::optional<size_t> StaticPreset;
+			} Sync;
+
+			struct SequencePresetData
+			{
+				// TODO: Future additions, at least to configure the sequencePresetSettings
+				bool AnyChildWindow;
+				bool ChildWindow;
+				std::optional<size_t> Preset;
+			} Sequence;
+
 			bool AnyHoveredThisFrame, AnyHoveredLastFrame;
 			Stopwatch LastHoverStopwatch;
 		} hovered = {};
 
-		struct PresetPreviewData
+		struct SyncPresetPreviewData
 		{
 			u32 TargetCount;
 			std::array<PresetTargetData, Rules::MaxSyncPairCount> Targets;
-		} presetPreview = {};
+		} syncPresetPreview = {};
 
 		const Graphics::SprSet* editorSprites;
 		struct SpriteCache

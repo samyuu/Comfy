@@ -8,6 +8,15 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
+		constexpr vec2 PresetButtonSpacing = vec2(2.0f);
+
+		constexpr f32 DynamicSyncButtonHeight = 44.0f;
+		constexpr f32 StaticSyncButtonHeight = 22.0f;
+		constexpr f32 SyncSettingsButtonWidth = 26.0f;
+
+		constexpr f32 SingleLineSequenceButtonHeight = StaticSyncButtonHeight;
+		constexpr f32 SameLineSequenceButtonHeight = DynamicSyncButtonHeight;
+
 		template <size_t TargetCount>
 		StaticSyncPreset ConstructStaticSyncPreset(std::string name, std::array<PresetTargetData, TargetCount> targetData)
 		{
@@ -94,56 +103,102 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	// TODO: Sequence preset option to round position to nearest pixel and angle to nearest whole (?)
-
 	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager), staticSyncPresets(GetTestStaticSyncPresets())
 	{
+#if 1 // DEBUG: Testing things out for now...
+		constexpr vec2 circleCenterSmall = vec2(960.0f, 552.0f);
+		constexpr vec2 circleCenterLarge = vec2(960.0f, 552.0f + 24.0f - 48.0f);
+		constexpr f32 circleRadiusSmall = 120.0f;
+		constexpr f32 circleRadiusLarge = 240.0f;
+
+		// sequencePresetSettings.TickOffset = BeatTick::FromBeats(2);
+		sequencePresetSettings.ApplyFirstTargetTickAsOffset = true;
+
+		sequencePresets =
+		{
+			SequencePreset
+			{
+				SequencePresetType::Circle,
+				SequencePresetButtonType::SameLine,
+				"Small Circle Counterclockwise",
+				SequencePreset::CircleData { BeatTick::FromBars(1), circleRadiusSmall, SequencePresetCircleCounterclockwiseDirection, circleCenterSmall },
+				{},
+			},
+			SequencePreset
+			{
+				SequencePresetType::Circle,
+				SequencePresetButtonType::SameLine,
+				"Small Circle Clockwise",
+				SequencePreset::CircleData { BeatTick::FromBars(1), circleRadiusSmall, SequencePresetCircleClockwiseDirection, circleCenterSmall },
+				{},
+			},
+			SequencePreset
+			{
+				SequencePresetType::Circle,
+				SequencePresetButtonType::SameLine,
+				"Large Circle Counterclockwise",
+				SequencePreset::CircleData { BeatTick::FromBars(2), circleRadiusLarge, SequencePresetCircleCounterclockwiseDirection, circleCenterLarge },
+				{},
+			},
+			SequencePreset
+			{
+				SequencePresetType::Circle,
+				SequencePresetButtonType::SameLine,
+				"Large Circle Clockwise",
+				SequencePreset::CircleData { BeatTick::FromBars(2), circleRadiusLarge, SequencePresetCircleClockwiseDirection, circleCenterLarge },
+				{},
+			},
+
+			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Small Heart", {}, SequencePreset::BezierPathData {} },
+			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Triangle Clockwise", {}, SequencePreset::BezierPathData {} },
+			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Triangle Counterclockwise", {}, SequencePreset::BezierPathData {} },
+			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy A", {}, SequencePreset::BezierPathData {} },
+			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy B", {}, SequencePreset::BezierPathData {} },
+			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy C", {}, SequencePreset::BezierPathData {} },
+			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy D", {}, SequencePreset::BezierPathData {} },
+		};
+#endif
 	}
 
 	void PresetWindow::SyncGui(Chart& chart)
 	{
-		hovered.DynamicSyncPreset = {};
-		hovered.StaticSyncPreset = {};
-		hovered.AnyChildWindow = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+		hovered.Sync.DynamicPreset = {};
+		hovered.Sync.StaticPreset = {};
+		hovered.Sync.AnyChildWindow = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
 
 		const auto& style = Gui::GetStyle();
 		const auto presetSettingsContextMenuID = Gui::GetCurrentWindow()->GetID("PresetWindowSyncSettingsContextMenu");
 
-		constexpr auto buttonSpacing = vec2(2.0f);
-		constexpr auto dynamicButtonHeight = 44.0f; // 46.0f;
-		constexpr auto staticButtonHeight = 22.0f; // 26.0f;
-		constexpr auto settingsButtonWidth = 26.0f;
-
 		const bool anySyncTargetSelected = std::any_of(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return (t.IsSelected && t.Flags.IsSync); });
 
 		// TODO: Correctly factor in window padding and other missing stlye vars (?)
-		const auto dynamicChildHeight = (dynamicButtonHeight + buttonSpacing.y) * 3.0f + (style.WindowPadding.y * 2.0f) - buttonSpacing.y;
-		const auto addChildHeight = (staticButtonHeight + buttonSpacing.y + style.WindowPadding.y);
-		const auto minStaticChildHeight = ((staticButtonHeight + buttonSpacing.y) * 2.5f);
-		const auto staticChildHeight = std::max(addChildHeight + dynamicChildHeight + minStaticChildHeight + (style.WindowPadding.y * 2.0f), Gui::GetContentRegionAvail().y) - addChildHeight - dynamicChildHeight - (style.WindowPadding.y * 2.0f); // (staticButtonHeight + buttonSpacing.y) * (staticSyncPresets.size()) + (style.WindowPadding.y * 2.0f) - buttonSpacing.y;
+		const f32 dynamicChildHeight = (DynamicSyncButtonHeight + PresetButtonSpacing.y) * 3.0f + (style.WindowPadding.y * 2.0f) - PresetButtonSpacing.y;
+		const f32 addChildHeight = (StaticSyncButtonHeight + PresetButtonSpacing.y + style.WindowPadding.y);
+		const f32 minStaticChildHeight = ((StaticSyncButtonHeight + PresetButtonSpacing.y) * 2.5f);
+		const f32 staticChildHeight = std::max(addChildHeight + dynamicChildHeight + minStaticChildHeight + (style.WindowPadding.y * 2.0f), Gui::GetContentRegionAvail().y) - addChildHeight - dynamicChildHeight - (style.WindowPadding.y * 2.0f);
 
 		Gui::BeginChild("DynamicSyncPresetsChild", vec2(0.0f, dynamicChildHeight), true);
 		{
-			hovered.DynamincSyncPresetChild = Gui::IsWindowHovered();
+			hovered.Sync.DynamincChildWindow = Gui::IsWindowHovered();
 
-			const auto halfWidth = (Gui::GetContentRegionAvailWidth() - buttonSpacing.x) / 2.0f;
+			const f32 halfWidth = (Gui::GetContentRegionAvailWidth() - PresetButtonSpacing.x) / 2.0f;
 			std::array<ImRect, EnumCount<DynamicSyncPreset>()> presetIconRectsToDraw;
 
 			auto dynamicSyncPresetButton = [&](DynamicSyncPreset preset)
 			{
 				Gui::PushID(static_cast<int>(preset));
-				if (Gui::ButtonEx("##DynamicSyncPresetButton", vec2(halfWidth, dynamicButtonHeight)))
+				if (Gui::ButtonEx("##DynamicSyncPresetButton", vec2(halfWidth, DynamicSyncButtonHeight)))
 					ApplyDynamicSyncPresetToSelectedTargets(undoManager, chart, preset, dynamicSyncPresetSettings);
 				Gui::PopID();
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-					hovered.DynamicSyncPreset = preset;
+					hovered.Sync.DynamicPreset = preset;
 
 				const auto rect = [r = Gui::FitFixedAspectRatio(Gui::GetCurrentWindowRead()->DC.LastItemRect, 1.0f)]() mutable { r.Expand(-4.0f); return r; }();
 				presetIconRectsToDraw[static_cast<size_t>(preset)] = rect;
 			};
 
-			Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, buttonSpacing);
+			Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, PresetButtonSpacing);
 			{
 				Gui::PushItemDisabledAndTextColorIf(!anySyncTargetSelected);
 				for (size_t i = 0; i < EnumCount<DynamicSyncPreset>(); i += 2)
@@ -170,7 +225,7 @@ namespace Comfy::Studio::Editor
 
 		Gui::BeginChild("StaticSyncPresetsChild", vec2(0.0f, staticChildHeight), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		{
-			hovered.StaticSyncPresetChild = Gui::IsWindowHovered();
+			hovered.Sync.StaticChildWindow = Gui::IsWindowHovered();
 
 			for (const auto& staticSyncPreset : staticSyncPresets)
 			{
@@ -178,14 +233,14 @@ namespace Comfy::Studio::Editor
 				Gui::PushID(&staticSyncPreset);
 				Gui::PushItemDisabledAndTextColorIf(presetDisabled);
 
-				if (Gui::ButtonEx(staticSyncPreset.Name.c_str(), vec2(Gui::GetContentRegionAvailWidth(), staticButtonHeight)))
+				if (Gui::ButtonEx(staticSyncPreset.Name.c_str(), vec2(Gui::GetContentRegionAvailWidth(), StaticSyncButtonHeight)))
 					ApplyStaticSyncPresetToSelectedTargets(undoManager, chart, staticSyncPreset);
 
 				Gui::PopItemDisabledAndTextColorIf(presetDisabled);
 				Gui::PopID();
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-					hovered.StaticSyncPreset = static_cast<size_t>(std::distance(&*staticSyncPresets.cbegin(), &staticSyncPreset));
+					hovered.Sync.StaticPreset = static_cast<size_t>(std::distance(&*staticSyncPresets.cbegin(), &staticSyncPreset));
 
 				// TODO: At least basic item context menu for changing the name, move up/down and delete
 			}
@@ -194,12 +249,12 @@ namespace Comfy::Studio::Editor
 
 		Gui::BeginChild("AddPresetsChild", vec2(0.0f, addChildHeight), true);
 		{
-			hovered.AddPresetChild = Gui::IsWindowHovered();
+			hovered.Sync.AddChildWindow = Gui::IsWindowHovered();
 
 			const bool addNewEnabled = COMFY_DEBUG_RELEASE_SWITCH(anySyncTargetSelected, false);
 			Gui::PushItemDisabledAndTextColorIf(!addNewEnabled);
 
-			if (Gui::ButtonEx("Add New...", vec2(Gui::GetContentRegionAvailWidth() - settingsButtonWidth, staticButtonHeight)))
+			if (Gui::ButtonEx("Add New...", vec2(Gui::GetContentRegionAvailWidth() - SyncSettingsButtonWidth, StaticSyncButtonHeight)))
 			{
 #if COMFY_DEBUG && 1 // TODO:
 				if (const auto firstSelectedTarget = FindIfOrNull(chart.Targets.GetRawView(), [&](auto& t) { return (t.IsSelected && t.Flags.IsSync); }); firstSelectedTarget != nullptr)
@@ -229,7 +284,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::BeginPopupEx(presetSettingsContextMenuID, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking)))
 		{
-			hovered.ContextMenu = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+			hovered.Sync.ContextMenu = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
 
 			Gui::TextUnformatted("Sync Preset Settings  " ICON_FA_COG);
 			Gui::Separator();
@@ -267,18 +322,96 @@ namespace Comfy::Studio::Editor
 
 			Gui::EndPopup();
 		}
-
-		hovered.AnyHoveredLastFrame = hovered.AnyHoveredThisFrame;
-		hovered.AnyHoveredThisFrame = ((hovered.AnyChildWindow && !hovered.AddPresetChild && !hovered.ContextMenu) || hovered.DynamicSyncPreset.has_value() || hovered.StaticSyncPreset.has_value());
-
-		if (hovered.AnyHoveredThisFrame)
-			hovered.LastHoverStopwatch.Restart();
 	}
 
 	void PresetWindow::SequenceGui(Chart& chart)
 	{
-		// TODO: Implement at least least circle presets
-		Gui::TextDisabled("TODO:");
+
+		hovered.Sequence.Preset = {};
+		hovered.Sequence.AnyChildWindow = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+
+		const auto& style = Gui::GetStyle();
+		const bool anyTargetSelected = std::any_of(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return (t.IsSelected); });
+
+		const f32 addChildHeight = 0.0f; // (StaticSyncButtonHeight + PresetButtonSpacing.y + style.WindowPadding.y);
+		const f32 childHeight = std::max(addChildHeight + (style.WindowPadding.y * 2.0f), Gui::GetContentRegionAvail().y) - addChildHeight - (style.WindowPadding.y * 2.0f);
+
+		Gui::BeginChild("SequencePresetsChild", vec2(0.0f, childHeight), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+		{
+			hovered.Sequence.ChildWindow = Gui::IsWindowHovered();
+
+			const f32 fullWidth = Gui::GetContentRegionAvailWidth();
+			const f32 halfWidth = (fullWidth - PresetButtonSpacing.x) / 2.0f;
+
+			Gui::PushItemDisabledAndTextColorIf(!anyTargetSelected);
+			for (size_t i = 0; i < sequencePresets.size(); i++)
+			{
+				const auto& thisSequencePreset = sequencePresets[i];
+				Gui::PushID(&thisSequencePreset);
+
+				if (thisSequencePreset.ButtonType == SequencePresetButtonType::SingleLine)
+				{
+					if (Gui::ButtonEx(thisSequencePreset.Name.c_str(), vec2(fullWidth, SingleLineSequenceButtonHeight)))
+						ApplySequencePresetToSelectedTargets(undoManager, chart, thisSequencePreset, sequencePresetSettings);
+					if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						hovered.Sequence.Preset = i;
+				}
+				else if (thisSequencePreset.ButtonType == SequencePresetButtonType::SameLine)
+				{
+					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, PresetButtonSpacing);
+
+					if (Gui::ButtonEx(thisSequencePreset.Name.c_str(), vec2(halfWidth, SameLineSequenceButtonHeight)))
+						ApplySequencePresetToSelectedTargets(undoManager, chart, thisSequencePreset, sequencePresetSettings);
+					if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						hovered.Sequence.Preset = i;
+
+					if (i + 1 < sequencePresets.size())
+					{
+						Gui::SameLine();
+
+						const auto& nextSequencePreset = sequencePresets[i + 1];
+						Gui::PushID(&nextSequencePreset);
+
+						if (Gui::ButtonEx(nextSequencePreset.Name.c_str(), vec2(halfWidth, SameLineSequenceButtonHeight)))
+							ApplySequencePresetToSelectedTargets(undoManager, chart, nextSequencePreset, sequencePresetSettings);
+						if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+							hovered.Sequence.Preset = i + 1;
+
+						Gui::PopID();
+						++i;
+					}
+
+					Gui::PopStyleVar();
+
+				}
+
+				Gui::PopID();
+			}
+			Gui::PopItemDisabledAndTextColorIf(!anyTargetSelected);
+		}
+		Gui::EndChild();
+	}
+
+	void PresetWindow::UpdateStateAfterBothGuiPartsHaveBeenDrawn()
+	{
+		bool anyHovered = false;
+
+		if (hovered.Sync.AnyChildWindow && !hovered.Sync.AddChildWindow && !hovered.Sync.ContextMenu)
+			anyHovered = true;
+		if (hovered.Sync.DynamicPreset.has_value() || hovered.Sync.StaticPreset.has_value())
+			anyHovered = true;
+
+		// TODO: Add checks for future additions
+		if (hovered.Sequence.AnyChildWindow)
+			anyHovered = true;
+		if (hovered.Sequence.Preset.has_value())
+			anyHovered = true;
+
+		hovered.AnyHoveredLastFrame = hovered.AnyHoveredThisFrame;
+		hovered.AnyHoveredThisFrame = anyHovered;
+
+		if (anyHovered)
+			hovered.LastHoverStopwatch.Restart();
 	}
 
 	void PresetWindow::OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer)
@@ -288,21 +421,22 @@ namespace Comfy::Studio::Editor
 		if (const auto dimness = GetPresetPreviewDimness(false); dimness > 0.0f)
 			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, dimness)));
 
-		presetPreview.TargetCount = 0;
-		if (!hovered.DynamicSyncPreset.has_value() && !hovered.StaticSyncPreset.has_value())
-			return;
-
-		if (hovered.DynamicSyncPreset.has_value())
+		syncPresetPreview.TargetCount = 0;
+		if (hovered.Sync.DynamicPreset.has_value())
 		{
-			presetPreview.TargetCount = FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(chart, hovered.DynamicSyncPreset.value(), dynamicSyncPresetSettings, presetPreview.Targets);
-			RenderSyncPresetPreview(renderer, renderHelper, presetPreview.TargetCount, presetPreview.Targets);
+			syncPresetPreview.TargetCount = FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(chart, hovered.Sync.DynamicPreset.value(), dynamicSyncPresetSettings, syncPresetPreview.Targets);
+			RenderSyncPresetPreview(renderer, renderHelper, syncPresetPreview.TargetCount, syncPresetPreview.Targets);
 		}
-		else if (hovered.StaticSyncPreset.has_value())
+		else if (hovered.Sync.StaticPreset.has_value())
 		{
-			const auto& hoveredPreset = staticSyncPresets[*hovered.StaticSyncPreset];
-			presetPreview.TargetCount = hoveredPreset.TargetCount;
-			presetPreview.Targets = hoveredPreset.Targets;
+			const auto& hoveredPreset = staticSyncPresets[*hovered.Sync.StaticPreset];
+			syncPresetPreview.TargetCount = hoveredPreset.TargetCount;
+			syncPresetPreview.Targets = hoveredPreset.Targets;
 			RenderSyncPresetPreview(renderer, renderHelper, hoveredPreset.TargetCount, hoveredPreset.Targets);
+		}
+		else if (hovered.Sequence.Preset.has_value())
+		{
+			// TODO: ...
 		}
 	}
 
@@ -312,19 +446,42 @@ namespace Comfy::Studio::Editor
 		if (const auto dimness = GetPresetPreviewDimness(true); dimness > 0.0f)
 			drawList.AddRectFilled(windowRect.GetTL(), windowRect.GetBR(), ImColor(0.0f, 0.0f, 0.0f, dimness));
 
-		if (!hovered.DynamicSyncPreset.has_value() && !hovered.StaticSyncPreset.has_value())
-			return;
-
-		for (u32 i = 0; i < presetPreview.TargetCount; i++)
+		if (hovered.Sync.DynamicPreset.has_value() || hovered.Sync.StaticPreset.has_value())
 		{
-			const auto& presetTarget = presetPreview.Targets[i];
+			for (u32 i = 0; i < syncPresetPreview.TargetCount; i++)
+			{
+				const auto& presetTarget = syncPresetPreview.Targets[i];
 
-			const auto color = GetButtonTypeColorU32(presetTarget.Type);
-			DrawCurvedButtonPathLine(renderWindow, drawList, presetTarget.Properties, color, 2.0f);
+				const auto color = GetButtonTypeColorU32(presetTarget.Type);
+				DrawCurvedButtonPathLine(renderWindow, drawList, presetTarget.Properties, color, 2.0f);
 
-			const auto targetPos = GetButtonPathSinePoint(1.0f, presetTarget.Properties);
-			const auto targetPosTangent = glm::normalize(GetButtonPathSinePoint(1.0f - CurvedButtonPathStepDistance, presetTarget.Properties) - targetPos);
-			DrawButtonPathArrowHead(renderWindow, drawList, targetPos, targetPosTangent, color, 2.0f);
+				const auto targetPos = GetButtonPathSinePoint(1.0f, presetTarget.Properties);
+				const auto targetPosTangent = glm::normalize(GetButtonPathSinePoint(1.0f - CurvedButtonPathStepDistance, presetTarget.Properties) - targetPos);
+				DrawButtonPathArrowHead(renderWindow, drawList, targetPos, targetPosTangent, color, 2.0f);
+			}
+		}
+		else if (hovered.Sequence.Preset.has_value())
+		{
+			// TODO: Proper implementation...
+			const auto& preset = sequencePresets[hovered.Sequence.Preset.value()];
+
+			if (preset.Type == SequencePresetType::Circle)
+			{
+				const u32 circleColor = 0xFFB1B1B1; // 0xFF65C486; // Gui::GetColorU32(ImGuiCol_Text); // GetButtonTypeColorU32(ButtonType::Circle);
+				drawList.AddCircle(renderWindow.TargetAreaToScreenSpace(preset.Circle.Center), preset.Circle.Radius * renderWindow.GetCamera().Zoom, circleColor, 64, 2.0f);
+
+				constexpr i32 arrowCount = 8; // 4;
+				for (i32 i = 0; i < arrowCount; i++)
+				{
+					const f32 angleRadians = static_cast<f32>(i) * (glm::two_pi<f32>() / static_cast<f32>(arrowCount)) * preset.Circle.Direction;
+
+					const vec2 normal = vec2(glm::cos(angleRadians), glm::sin(angleRadians));
+					const vec2 tangent = vec2(normal.y, -normal.x) * preset.Circle.Direction;
+					const vec2 pointOnCircle = preset.Circle.Center + normal * preset.Circle.Radius;
+
+					DrawButtonPathArrowHeadCentered(renderWindow, drawList, pointOnCircle, tangent, circleColor, 2.0f);
+				}
+			}
 		}
 	}
 
@@ -352,15 +509,15 @@ namespace Comfy::Studio::Editor
 	{
 		// TODO: Rework this to avoid annoying accidental fades
 		constexpr f32 maxDimRender = 0.15f, maxDimOverlay = 0.45f, transitionMS = 75.0f;
-		const auto max = overlayPass ? maxDimOverlay : maxDimRender;
+		const f32 max = overlayPass ? maxDimOverlay : maxDimRender;
 
 		if (!hovered.LastHoverStopwatch.IsRunning())
 			return 0.0f;
 		if (hovered.AnyHoveredThisFrame)
 			return max;
 
-		const auto sinceHoverMS = static_cast<f32>(hovered.LastHoverStopwatch.GetElapsed().TotalMilliseconds());
-		const auto dim = ConvertRange<f32>(0.0f, transitionMS, max, 0.0f, sinceHoverMS);
+		const f32 sinceHoverMS = static_cast<f32>(hovered.LastHoverStopwatch.GetElapsed().TotalMilliseconds());
+		const f32 dim = ConvertRange<f32>(0.0f, transitionMS, max, 0.0f, sinceHoverMS);
 		return std::clamp(dim, 0.0f, max);
 	}
 

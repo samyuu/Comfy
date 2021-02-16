@@ -461,6 +461,15 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Apply Sync Preset"; }
 	};
 
+	class ApplySequencePreset : public ChangeTargetListProperties
+	{
+	public:
+		using ChangeTargetListProperties::ChangeTargetListProperties;
+
+	public:
+		std::string_view GetName() const override { return "Apply Sequence Preset"; }
+	};
+
 	class ChangeTargetListHasProperties : public Undo::Command
 	{
 	public:

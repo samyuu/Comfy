@@ -42,52 +42,55 @@ namespace Comfy::Studio::Editor
 		std::array<PresetTargetData, Rules::MaxSyncPairCount> Targets;
 	};
 
-	// TODO: Implement as bezier curve points (?)
-	/*
-	enum class SequencePreset : u8
-	{
-		LowerLineLeftRight,
-		LowerLineRightLeft,
-
-		UpperLineLeftRight,
-		UpperLineRightLeft,
-
-		RoundTripLineLowerLeft,
-		RoundTripLineLowerRight,
-
-		TwoTimesRoundTripLineLowerLeft,
-		TwoTimesRoundTripLineLowerRight,
-
-		VerticalLineUpperLeft,
-		VerticalLineUpperRight,
-
-		ArcingLinePeakLeftRight,
-		ArcingLinePeakRightLeft,
-
-		ArcingLineDipLeftRight,
-		ArcingLineDipRightLeft,
-
-		ParallelogramClockwise,
-		ParallelogramCounterclockwise,
-
-		ParallelogramAltClockwise,
-		ParallelogramAltCounterclockwise,
-
-		EquilateralTriangleClockwise,
-		EquilateralTriangleCounterclockwise,
-
-		SmallCircleClockwise,
-		SmallCircleCounterclockwise,
-
-		LargeCircleClockwise,
-		LargeCircleCounterclockwise,
-
-		Count
-	};
-	*/
-
 	void ApplyDynamicSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings);
 	void ApplyStaticSyncPresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const StaticSyncPreset& preset);
 
 	u32 FindFirstApplicableDynamicSyncPresetDataForSelectedTargets(const Chart& chart, const DynamicSyncPreset preset, const DynamicSyncPresetSettings& settings, std::array<PresetTargetData, Rules::MaxSyncPairCount>& outPresetTargets);
+
+	enum class SequencePresetType : u8
+	{
+		Circle,
+		BezierPath,
+		Count
+	};
+
+	enum class SequencePresetButtonType : u8
+	{
+		SingleLine,
+		SameLine,
+		Count
+	};
+
+	constexpr f32 SequencePresetCircleClockwiseDirection = +1.0f;
+	constexpr f32 SequencePresetCircleCounterclockwiseDirection = -1.0f;
+
+	struct SequencePreset
+	{
+		SequencePresetType Type;
+		SequencePresetButtonType ButtonType;
+		std::string Name;
+
+		struct CircleData
+		{
+			BeatTick Duration;
+			f32 Radius;
+			f32 Direction;
+			vec2 Center;
+		} Circle;
+
+		struct BezierPathData
+		{
+			struct Key { vec2 Point, ControlStart, ControlEnd; };
+			std::vector<Key> Keys;
+		} BezierPath;
+	};
+
+	struct SequencePresetSettings
+	{
+		// TODO: ...
+		BeatTick TickOffset;
+		bool ApplyFirstTargetTickAsOffset;
+	};
+
+	void ApplySequencePresetToSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, const SequencePreset& preset, const SequencePresetSettings& settings);
 }

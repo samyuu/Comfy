@@ -703,12 +703,10 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sync Target Presets", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SyncGui(*chart);
 		Gui::End();
-
-#if 0 // TODO:
 		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sequence Target Presets", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SequenceGui(*chart);
 		Gui::End();
-#endif
+		presetWindow.UpdateStateAfterBothGuiPartsHaveBeenDrawn();
 
 		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
 			timeline->DrawTimelineGui();
