@@ -28,6 +28,8 @@ namespace Comfy::Studio::Editor
 		const char* GetName() const override;
 
 	private:
+		enum class FlipMode : u8 { Horizontal, Vertical, HorizontalLocal, VerticalLocal, Count };
+
 		void DrawTickDistanceGuides(Chart& chart, ImDrawList& drawList);
 		void DrawRowDirectionGuide(Chart& chart, ImDrawList& drawList);
 
@@ -39,7 +41,7 @@ namespace Comfy::Studio::Editor
 		void IncrementSelectedTargetPositionsBy(Undo::UndoManager& undoManager, Chart& chart, vec2 positionIncrement);
 		void ArrangeSelectedTargetsInRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards);
 
-		void FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, bool horizontal);
+		void FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, FlipMode flipMode);
 
 		void PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart, bool backwards);
 		void InterpolateSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart);

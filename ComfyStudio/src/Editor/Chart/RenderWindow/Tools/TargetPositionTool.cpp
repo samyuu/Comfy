@@ -4,6 +4,7 @@
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
 #include "Editor/Chart/KeyBindings.h"
+#include <numeric>
 
 namespace Comfy::Studio::Editor
 {
@@ -40,17 +41,25 @@ namespace Comfy::Studio::Editor
 	void TargetPositionTool::OnContextMenuGUI(Chart& chart)
 	{
 		if (Gui::MenuItem("Flip Targets Horizontally", Input::GetKeyCodeName(KeyBindings::PositionToolFlipHorizontal), false, (lastFrameSelectionCount > 0)))
-			FlipSelectedTargets(undoManager, chart, true);
+			FlipSelectedTargets(undoManager, chart, FlipMode::Horizontal);
+		if (Gui::MenuItem("Flip Targets Horizontally (Local)", "Alt + H", false, (lastFrameSelectionCount > 0)))
+			FlipSelectedTargets(undoManager, chart, FlipMode::HorizontalLocal);
+
 		if (Gui::MenuItem("Flip Targets Vertically", Input::GetKeyCodeName(KeyBindings::PositionToolFlipVertical), false, (lastFrameSelectionCount > 0)))
-			FlipSelectedTargets(undoManager, chart, false);
+			FlipSelectedTargets(undoManager, chart, FlipMode::Vertical);
+		if (Gui::MenuItem("Flip Targets Vertically (Local)", "Alt + J", false, (lastFrameSelectionCount > 0)))
+			FlipSelectedTargets(undoManager, chart, FlipMode::VerticalLocal);
+
+		Gui::Separator();
 
 		// TODO: Implement keybinding string conversion with support for modifiers
 		static_assert(KeyBindings::PositionToolPositionInRow == Input::KeyCode_U);
 
 		if (Gui::MenuItem("Position in Row", Input::GetKeyCodeName(KeyBindings::PositionToolPositionInRow), false, (lastFrameSelectionCount > 0)))
 			PositionSelectedTargetInRowAutoDirection(undoManager, chart, false);
-		if (Gui::MenuItem("Position in Row [<<]", "Alt + U", false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Position in Row (Back)", "Alt + U", false, (lastFrameSelectionCount > 0)))
 			PositionSelectedTargetInRowAutoDirection(undoManager, chart, true);
+		Gui::Separator();
 
 		if (Gui::MenuItem("Interpolate Positions", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolate), false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositions(undoManager, chart);
@@ -116,7 +125,7 @@ namespace Comfy::Studio::Editor
 		if (std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; }) > MaxDistanceGuideCirclesToRender)
 			return;
 
-		const auto cameraZoom = renderWindow.GetCamera().Zoom;
+		const f32 cameraZoom = renderWindow.GetCamera().Zoom;
 
 		// NOTE: For each pair, if any is selected within, draw distance guide around each target in previous pair
 		for (size_t i = 0; i < chart.Targets.size();)
@@ -140,14 +149,14 @@ namespace Comfy::Studio::Editor
 				if (lastTargetOfPrevPair.Flags.IsChainEnd)
 					radius += Rules::ChainFragmentStartEndOffsetDistance;
 
-				const auto screenRadius = (radius * cameraZoom);
+				const f32 screenRadius = (radius * cameraZoom);
 
 				assert(lastTargetOfPrevPair.Flags.SyncPairCount >= 1);
 				for (size_t pair = 0; pair < lastTargetOfPrevPair.Flags.SyncPairCount; pair++)
 				{
 					const auto& prevPairTarget = chart.Targets[(i + pair - lastTargetOfPrevPair.Flags.SyncPairCount)];
 
-					const auto screenPosition = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(prevPairTarget).Position);
+					const vec2 screenPosition = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(prevPairTarget).Position);
 					drawList.AddCircle(screenPosition, screenRadius, GetButtonTypeColorU32(prevPairTarget.Type, 0x84), GetCircleSegmentCount(screenRadius));
 				}
 			}
@@ -163,11 +172,11 @@ namespace Comfy::Studio::Editor
 			return;
 
 		const auto cardinal = AngleToNearestCardinal(row.Angle);
-		const auto direction = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
+		const vec2 direction = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
 
-		const auto whiteColor = Gui::GetColorU32(ImGuiCol_Text);
-		const auto dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
-		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.75f);
+		const u32 whiteColor = Gui::GetColorU32(ImGuiCol_Text);
+		const u32 dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
+		const u32 dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.75f);
 
 		constexpr auto guideRadius = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
 		drawList.AddCircleFilled(row.Start, guideRadius, dimColor, 32);
@@ -190,19 +199,19 @@ namespace Comfy::Studio::Editor
 
 		auto drawArrowHeader = [](ImDrawList& drawList, vec2 position, vec2 direction, ImU32 color, f32 thickness = 1.0f)
 		{
-			const auto angleRadians = glm::atan(direction.y, direction.x);
+			const f32 angleRadians = glm::atan(direction.y, direction.x);
 
-			const auto headRadiansL = (angleRadians - glm::radians(arrowSettings.HeadAngle));
-			const auto headRadiansR = (angleRadians + glm::radians(arrowSettings.HeadAngle));
-			const auto headDirectionL = vec2(glm::cos(headRadiansL), glm::sin(headRadiansL));
-			const auto headDirectionR = vec2(glm::cos(headRadiansR), glm::sin(headRadiansR));
-			const auto backgroundColor = Gui::ColorConvertFloat4ToU32(arrowSettings.BackgroundColor * Gui::ColorConvertU32ToFloat4(color));
+			const f32 headRadiansL = (angleRadians - glm::radians(arrowSettings.HeadAngle));
+			const f32 headRadiansR = (angleRadians + glm::radians(arrowSettings.HeadAngle));
+			const vec2 headDirectionL = vec2(glm::cos(headRadiansL), glm::sin(headRadiansL));
+			const vec2 headDirectionR = vec2(glm::cos(headRadiansR), glm::sin(headRadiansR));
+			const u32 backgroundColor = Gui::ColorConvertFloat4ToU32(arrowSettings.BackgroundColor * Gui::ColorConvertU32ToFloat4(color));
 
-			const auto headStart = position;
-			const auto headEnd = headStart + ((arrowSettings.HeadSpacing * arrowSettings.HeadEndSpacingFactor) * direction);
+			const vec2 headStart = position;
+			const vec2 headEnd = headStart + ((arrowSettings.HeadSpacing * arrowSettings.HeadEndSpacingFactor) * direction);
 
-			const auto headEndL = headStart + (headDirectionL * (arrowSettings.HeadSize * 0.5f));
-			const auto headEndR = headStart + (headDirectionR * (arrowSettings.HeadSize * 0.5f));
+			const vec2 headEndL = headStart + (headDirectionL * (arrowSettings.HeadSize * 0.5f));
+			const vec2 headEndR = headStart + (headDirectionR * (arrowSettings.HeadSize * 0.5f));
 
 			drawList.AddLine(headStart, headEnd, backgroundColor, 1.0f);
 			drawList.AddTriangleFilled(headStart, headEndL, headEnd, backgroundColor);
@@ -214,7 +223,7 @@ namespace Comfy::Studio::Editor
 			drawList.AddLine(headEndR, headEnd, color, thickness);
 		};
 
-		const auto arrowPosition = row.Start + (direction * (row.Backwards ? (guideRadius - arrowSettings.Size) : guideRadius));
+		const vec2 arrowPosition = row.Start + (direction * (row.Backwards ? (guideRadius - arrowSettings.Size) : guideRadius));
 
 		drawList.AddCircleFilled(row.Start, 2.0f, whiteColor, 9);
 		drawList.AddLine(row.Start, arrowPosition, whiteColor, 1.0f);
@@ -222,8 +231,8 @@ namespace Comfy::Studio::Editor
 
 		char textBuffer[32];
 		const auto textView = std::string_view(textBuffer, sprintf_s(textBuffer, "[%s]", CardinalDirectionAbbreviations[static_cast<u8>(cardinal)]));
-		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
-		const auto textPos = row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f);
+		const vec2 textSize = Gui::CalcTextSize(Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
+		const vec2 textPos = row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f);
 
 		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
 		drawList.AddText(textPos, whiteColor, Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
@@ -233,10 +242,11 @@ namespace Comfy::Studio::Editor
 	{
 		if (Gui::IsWindowFocused() && Gui::GetActiveID() == 0)
 		{
+			const bool local = Gui::GetIO().KeyAlt;;
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipHorizontal, false))
-				FlipSelectedTargets(undoManager, chart, true);
+				FlipSelectedTargets(undoManager, chart, local ? FlipMode::HorizontalLocal : FlipMode::Horizontal);
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipVertical, false))
-				FlipSelectedTargets(undoManager, chart, false);
+				FlipSelectedTargets(undoManager, chart, local ? FlipMode::VerticalLocal : FlipMode::Vertical);
 
 			const bool backwards = Gui::GetIO().KeyAlt;
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolPositionInRow, false))
@@ -267,16 +277,16 @@ namespace Comfy::Studio::Editor
 	{
 		// TODO: Not just snap to grid but also be able to snap to other aligned targets (?) similarly to PS
 
-		const auto mousePos = Gui::GetMousePos();
+		const vec2 mousePos = Gui::GetMousePos();
 
 		grab.HoveredTargetIndex = -1;
 		if (Gui::IsWindowHovered() && !selectedTargetsBuffer.empty())
 		{
 			const auto hoveredTarget = std::find_if(selectedTargetsBuffer.rbegin(), selectedTargetsBuffer.rend(), [&](auto* t)
 			{
-				const auto position = Rules::TryGetProperties(*t).Position;
-				const auto tl = renderWindow.TargetAreaToScreenSpace(position - TargetRenderWindow::TargetHitboxSize);
-				const auto br = renderWindow.TargetAreaToScreenSpace(position + TargetRenderWindow::TargetHitboxSize);
+				const vec2 position = Rules::TryGetProperties(*t).Position;
+				const vec2 tl = renderWindow.TargetAreaToScreenSpace(position - TargetRenderWindow::TargetHitboxSize);
+				const vec2 br = renderWindow.TargetAreaToScreenSpace(position + TargetRenderWindow::TargetHitboxSize);
 
 				return ImRect(tl, br).Contains(mousePos);
 			});
@@ -316,11 +326,11 @@ namespace Comfy::Studio::Editor
 
 			if ((grab.ThisPos != grab.LastPos) || (grab.ThisGridSnap != grab.LastGridSnap))
 			{
-				auto grabbedMovedPosition = glm::round(grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom));
+				vec2 grabbedMovedPosition = glm::round(grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom));
 				if (Gui::GetIO().KeyShift)
 					grabbedMovedPosition = SnapPositionToGrid(grabbedMovedPosition);
 
-				const auto increment = (grabbedMovedPosition - Rules::TryGetProperties(chart.Targets[grab.GrabbedTargetIndex]).Position);
+				const vec2 increment = (grabbedMovedPosition - Rules::TryGetProperties(chart.Targets[grab.GrabbedTargetIndex]).Position);
 				if (increment != vec2(0.0f))
 					IncrementSelectedTargetPositionsBy(undoManager, chart, increment);
 			}
@@ -357,7 +367,7 @@ namespace Comfy::Studio::Editor
 			row.SteepThisFrame = Gui::GetIO().KeyShift;
 
 			const auto cardinal = AngleToNearestCardinal(row.Angle);
-			const auto rowDirection = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
+			const vec2 rowDirection = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
 
 			const bool mouseWasMoved = (Gui::GetIO().MouseDelta.x != 0.0f || Gui::GetIO().MouseDelta.y != 0.0f);
 			const bool steepStateChanged = (row.SteepThisFrame != row.SteepLastFrame);
@@ -396,7 +406,7 @@ namespace Comfy::Studio::Editor
 		if (selectedTargetsBuffer.size() < 2)
 			return;
 
-		const auto rowAngle = glm::degrees(glm::atan(rowDirection.y, rowDirection.x));
+		const f32 rowAngle = glm::degrees(glm::atan(rowDirection.y, rowDirection.x));
 		const auto rowCardinal = AngleToNearestCardinal(rowAngle);
 
 		const auto horizontalCardinal =
@@ -404,7 +414,7 @@ namespace Comfy::Studio::Editor
 			(rowCardinal == CardinalDirection::NorthEast || rowCardinal == CardinalDirection::SouthEast) ? CardinalDirection::East :
 			rowCardinal;
 
-		const auto horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal, useStairDistance);
+		const vec2 horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal, useStairDistance);
 
 		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, BeatTick tickDistance, bool chain, bool chainEnd) -> vec2
 		{
@@ -456,14 +466,20 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<ChangeTargetListPositionsRow>(chart, std::move(targetData));
 	}
 
-	void TargetPositionTool::FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, bool horizontal)
+	void TargetPositionTool::FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, FlipMode flipMode)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
-		auto flipHorizontal = [](vec2 pos) -> vec2 { return vec2(Rules::PlacementAreaSize.x, pos.y) - vec2(pos.x, 0.0f); };
-		auto flipVertical = [](vec2 pos) -> vec2 { return vec2(pos.x, Rules::PlacementAreaSize.y) - vec2(0.0f, pos.y); };
+		const bool isHorizontal = (flipMode == FlipMode::Horizontal || flipMode == FlipMode::HorizontalLocal);
+		const bool isLocal = (flipMode == FlipMode::HorizontalLocal || flipMode == FlipMode::VerticalLocal);
+
+		const vec2 selectionCenter = std::accumulate(chart.Targets.begin(), chart.Targets.end(), vec2(0.0f),
+			[](vec2 p, auto& t) { return t.IsSelected ? p + Rules::TryGetProperties(t).Position : p; }) / static_cast<f32>(selectionCount);
+
+		const vec2 flipCenter = isLocal ? selectionCenter : Rules::PlacementAreaCenter;
+		const vec2 componentFlipMask = isHorizontal ? vec2(-1.0f, +1.0f) : vec2(+1.0f, -1.0f);
 
 		std::vector<ChangeTargetListProperties::Data> targetData;
 		targetData.reserve(selectionCount);
@@ -478,13 +494,13 @@ namespace Comfy::Studio::Editor
 			auto& data = targetData.emplace_back();
 			data.TargetIndex = i;
 			data.NewValue = properties;
-			data.NewValue.Position = horizontal ? flipHorizontal(properties.Position) : flipVertical(properties.Position);
-			data.NewValue.Angle = (horizontal) ? Rules::NormalizeAngle(-data.NewValue.Angle) : Rules::NormalizeAngle(data.NewValue.Angle - 180.0f);
+			data.NewValue.Position = ((properties.Position - flipCenter) * componentFlipMask) + flipCenter;
+			data.NewValue.Angle = isHorizontal ? Rules::NormalizeAngle(-data.NewValue.Angle) : Rules::NormalizeAngle(data.NewValue.Angle - 180.0f);
 			data.NewValue.Frequency *= -1.0f;
 		}
 
 		undoManager.DisallowMergeForLastCommand();
-		if (horizontal)
+		if (isHorizontal)
 			undoManager.Execute<FlipTargetListPropertiesHorizontal>(chart, std::move(targetData));
 		else
 			undoManager.Execute<FlipTargetListPropertiesVertical>(chart, std::move(targetData));
@@ -492,7 +508,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart, bool backwards)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -501,9 +517,9 @@ namespace Comfy::Studio::Editor
 		if (firstFoundTarget.Tick == lastFoundTarget.Tick)
 			return;
 
-		const auto startPosition = Rules::TryGetProperties(firstFoundTarget).Position;
-		const auto endPosition = Rules::TryGetProperties(lastFoundTarget).Position;
-		const auto rowDirection = glm::normalize(endPosition - startPosition);
+		const vec2 startPosition = Rules::TryGetProperties(firstFoundTarget).Position;
+		const vec2 endPosition = Rules::TryGetProperties(lastFoundTarget).Position;
+		const vec2 rowDirection = glm::normalize(endPosition - startPosition);
 
 		std::vector<ChangeTargetListPositionsRow::Data> targetData;
 		targetData.reserve(selectionCount);
