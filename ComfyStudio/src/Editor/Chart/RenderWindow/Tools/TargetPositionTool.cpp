@@ -40,6 +40,9 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::OnContextMenuGUI(Chart& chart)
 	{
+		static_assert(KeyBindings::PositionToolFlipHorizontal == Input::KeyCode_H);
+		static_assert(KeyBindings::PositionToolFlipVertical == Input::KeyCode_J);
+
 		if (Gui::MenuItem("Flip Targets Horizontally", Input::GetKeyCodeName(KeyBindings::PositionToolFlipHorizontal), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, FlipMode::Horizontal);
 		if (Gui::MenuItem("Flip Targets Horizontally (Local)", "Alt + H", false, (lastFrameSelectionCount > 0)))
@@ -61,8 +64,15 @@ namespace Comfy::Studio::Editor
 			PositionSelectedTargetInRowAutoDirection(undoManager, chart, true);
 		Gui::Separator();
 
-		if (Gui::MenuItem("Interpolate Positions", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolate), false, (lastFrameSelectionCount > 0)))
-			InterpolateSelectedTargetPositions(undoManager, chart);
+		if (Gui::MenuItem("Interpolate Positions Linear", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolateLinear), false, (lastFrameSelectionCount > 0)))
+			InterpolateSelectedTargetPositionsLinear(undoManager, chart);
+
+		static_assert(KeyBindings::PositionToolInterpolateCircular == Input::KeyCode_O);
+
+		if (Gui::MenuItem("Interpolate Positions Circular", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolateCircular), false, (lastFrameSelectionCount > 0)))
+			InterpolateSelectedTargetPositionsCircular(undoManager, chart, +1.0f);
+		if (Gui::MenuItem("Interpolate Positions Circular (Flip)", "Alt + O", false, (lastFrameSelectionCount > 0)))
+			InterpolateSelectedTargetPositionsCircular(undoManager, chart, -1.0f);
 
 #if COMFY_DEBUG && 0 // TODO: Two step rotation tool
 		Gui::MenuItem("Rotate Targets...", "?", false, false);
@@ -252,8 +262,12 @@ namespace Comfy::Studio::Editor
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolPositionInRow, false))
 				PositionSelectedTargetInRowAutoDirection(undoManager, chart, backwards);
 
-			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolate, false))
-				InterpolateSelectedTargetPositions(undoManager, chart);
+			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolateLinear, false))
+				InterpolateSelectedTargetPositionsLinear(undoManager, chart);
+
+			const bool flip = Gui::GetIO().KeyAlt;
+			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolateCircular, false))
+				InterpolateSelectedTargetPositionsCircular(undoManager, chart, flip ? -1.0f : +1.0f);
 		}
 	}
 
@@ -581,9 +595,9 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<ChangeTargetListPositionsRow>(chart, std::move(targetData));
 	}
 
-	void TargetPositionTool::InterpolateSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart)
+	void TargetPositionTool::InterpolateSelectedTargetPositionsLinear(Undo::UndoManager& undoManager, Chart& chart)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -592,11 +606,12 @@ namespace Comfy::Studio::Editor
 		if (firstFoundTarget.Tick == lastFoundTarget.Tick)
 			return;
 
-		const auto startPosition = Rules::TryGetProperties(firstFoundTarget).Position;
-		const auto endPosition = Rules::TryGetProperties(lastFoundTarget).Position;
+		const vec2 startPosition = Rules::TryGetProperties(firstFoundTarget).Position;
+		const vec2 endPosition = Rules::TryGetProperties(lastFoundTarget).Position;
 
-		const auto startTick = firstFoundTarget.Tick.Ticks();
-		const auto endTick = lastFoundTarget.Tick.Ticks();
+		const i32 startTicks = firstFoundTarget.Tick.Ticks();
+		const i32 endTicks = lastFoundTarget.Tick.Ticks();
+		const f32 tickSpanReciprocal = 1.0f / static_cast<f32>(endTicks - startTicks);
 
 		std::vector<InterpolateTargetListPositions::Data> targetData;
 		targetData.reserve(selectionCount);
@@ -606,10 +621,53 @@ namespace Comfy::Studio::Editor
 			if (!chart.Targets[i].IsSelected)
 				continue;
 
-			const auto ticks = chart.Targets[i].Tick.Ticks();
+			const f32 t = static_cast<f32>(chart.Targets[i].Tick.Ticks() - startTicks) * tickSpanReciprocal;
 			auto& data = targetData.emplace_back();
 			data.TargetIndex = i;
-			data.NewValue.Position = (startPosition * static_cast<f32>(endTick - ticks) + endPosition * static_cast<f32>(ticks - startTick)) / static_cast<f32>(endTick - startTick);
+			data.NewValue.Position = ((1.0f - t) * startPosition) + (t * endPosition);
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		undoManager.Execute<InterpolateTargetListPositions>(chart, std::move(targetData));
+	}
+
+	void TargetPositionTool::InterpolateSelectedTargetPositionsCircular(Undo::UndoManager& undoManager, Chart& chart, f32 direction)
+	{
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		const auto& firstFoundTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const auto& lastFoundTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+		if (firstFoundTarget.Tick == lastFoundTarget.Tick)
+			return;
+
+		const vec2 startPosition = Rules::TryGetProperties(firstFoundTarget).Position;
+		const vec2 endPosition = Rules::TryGetProperties(lastFoundTarget).Position;
+		const vec2 centerPosition = (startPosition + endPosition) * 0.5f;
+
+		const f32 startAngle = glm::atan(startPosition.y - centerPosition.y, startPosition.x - centerPosition.x);
+		const f32 radius = glm::distance(startPosition, centerPosition);
+
+		const i32 startTicks = firstFoundTarget.Tick.Ticks();
+		const i32 endTicks = lastFoundTarget.Tick.Ticks();
+		const f32 tickSpanReciprocal = 1.0f / static_cast<f32>(endTicks - startTicks);
+
+		std::vector<InterpolateTargetListPositions::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		{
+			if (!chart.Targets[i].IsSelected)
+				continue;
+
+			const f32 t = static_cast<f32>(chart.Targets[i].Tick.Ticks() - startTicks) * tickSpanReciprocal;
+			const f32 angle = startAngle - (t * glm::pi<f32>() * direction);
+			const vec2 pointOnCircle = vec2(glm::cos(angle), glm::sin(angle)) * radius;
+
+			auto& data = targetData.emplace_back();
+			data.TargetIndex = i;
+			data.NewValue.Position = centerPosition + pointOnCircle;
 		}
 
 		undoManager.DisallowMergeForLastCommand();
