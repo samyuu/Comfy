@@ -26,14 +26,17 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::OnContextMenuGUI(Chart& chart)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 
 		if (Gui::MenuItem("Invert Target Frequencies", Input::GetKeyCodeName(KeyBindings::PathToolInvertFrequencies), false, (selectionCount > 0)))
 			InvertSelectedTargetFrequencies(undoManager, chart);
+		Gui::Separator();
+
 		if (Gui::MenuItem("Interpolate Angles Clockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateClockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, true);
 		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateCounterclockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, false);
+		Gui::Separator();
 
 		if (Gui::BeginMenu("Angle Increment Settings"))
 		{
@@ -89,12 +92,12 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::MenuItem("Apply Angle Increment Positive", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsPositive), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, false);
-		if (Gui::MenuItem("Apply Angle Increment Positive [<<]", "Alt + F", false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Increment Positive (Back)", "Alt + F", false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, true);
-		
+
 		if (Gui::MenuItem("Apply Angle Increment Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsNegative), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, false);
-		if (Gui::MenuItem("Apply Angle Increment Negative [<<]", "Alt + V", false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Increment Negative (Back)", "Alt + V", false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, true);
 
 		Gui::Separator();
@@ -168,15 +171,15 @@ namespace Comfy::Studio::Editor
 		if (!angleDrag.Active && !angleScroll.Active)
 			return;
 
-		const auto dragTarget = IndexOrNull(angleDrag.Active ? angleDrag.TargetIndex : angleScroll.TargetIndex, chart.Targets);
+		const auto* dragTarget = IndexOrNull(angleDrag.Active ? angleDrag.TargetIndex : angleScroll.TargetIndex, chart.Targets);
 		if (dragTarget == nullptr)
 			return;
 
 		const auto targetProperties = Rules::TryGetProperties(*dragTarget);
-		const auto screenPosition = renderWindow.TargetAreaToScreenSpace(targetProperties.Position);
-		const auto cameraZoom = renderWindow.GetCamera().Zoom;
+		const vec2 screenPosition = renderWindow.TargetAreaToScreenSpace(targetProperties.Position);
+		const f32 cameraZoom = renderWindow.GetCamera().Zoom;
 
-		const auto buttonTypeColor = GetButtonTypeColorU32(dragTarget->Type, 0x80);
+		const u32 buttonTypeColor = GetButtonTypeColorU32(dragTarget->Type, 0x80);
 
 		drawList.AddLine(
 			screenPosition,
@@ -184,8 +187,8 @@ namespace Comfy::Studio::Editor
 			buttonTypeColor,
 			2.0f);
 
-		const auto radius = Rules::TickToDistance(BeatTick::FromBars(1) / 8) * cameraZoom;
-		const auto angle = Rules::NormalizeAngle(targetProperties.Angle) - 90.0f;
+		const f32 radius = Rules::TickToDistance(BeatTick::FromBars(1) / 8) * cameraZoom;
+		const f32 angle = Rules::NormalizeAngle(targetProperties.Angle) - 90.0f;
 
 		drawList.PathArcTo(screenPosition, radius - 0.5f, glm::radians(-90.0f), glm::radians(angle), 32);
 		drawList.PathStroke(buttonTypeColor, false, 2.0f);
@@ -193,13 +196,13 @@ namespace Comfy::Studio::Editor
 		char buffer[64];
 		const auto bufferView = std::string_view(buffer, sprintf_s(buffer, ("%.2f" DEGREE_SIGN), targetProperties.Angle));
 
-		const auto textPadding = vec2(3.0f, 1.0f);
-		const auto textSize = Gui::CalcTextSize(Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView)) + textPadding;
-		const auto textPos = renderWindow.TargetAreaToScreenSpace(
+		const vec2 textPadding = vec2(3.0f, 1.0f);
+		const vec2 textSize = Gui::CalcTextSize(Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView)) + textPadding;
+		const vec2 textPos = renderWindow.TargetAreaToScreenSpace(
 			targetProperties.Position + vec2(Rules::TickToDistance(BeatTick::FromBars(1) / 10)) * vec2(1.0f, -1.0f)) - (textSize / 2.0f);
 
 		// TODO: Turn into tooltip (?) just like for the Position Tool
-		const auto dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);
+		const u32 dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);
 		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
 		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
 	}
@@ -232,7 +235,7 @@ namespace Comfy::Studio::Editor
 				constexpr f32 roughAngleStep = 5.0f, preciseAngleStep = 0.1f, angleStep = 1.0f;
 				constexpr f32 scrollDirection = -1.0f;
 
-				const auto angleIncrement = io.KeyShift ? roughAngleStep : io.KeyAlt ? preciseAngleStep : angleStep;
+				const f32 angleIncrement = io.KeyShift ? roughAngleStep : io.KeyAlt ? preciseAngleStep : angleStep;
 				IncrementSelectedTargetAnglesBy(undoManager, chart, (angleIncrement * io.MouseWheel * scrollDirection));
 
 				angleScroll.LastScroll.Restart();
@@ -263,7 +266,7 @@ namespace Comfy::Studio::Editor
 			{
 				angleDrag.UseLastTarget = Gui::GetIO().KeyAlt;
 
-				const auto targetIndex = angleDrag.UseLastTarget ?
+				const size_t targetIndex = angleDrag.UseLastTarget ?
 					FindLastIndexOf(chart.Targets, [](auto& t) { return t.IsSelected; }) :
 					FindIndexOf(chart.Targets, [](auto& t) { return t.IsSelected; });
 
@@ -298,10 +301,10 @@ namespace Comfy::Studio::Editor
 			{
 				constexpr f32 roughAngleSnap = 15.0f, preciseAngleSnap = 0.1f, angleSnap = 1.0f;
 
-				const auto snap = angleDrag.RoughStep ? roughAngleSnap : angleDrag.PreciseStep ? preciseAngleSnap : angleSnap;
+				const f32 snap = angleDrag.RoughStep ? roughAngleSnap : angleDrag.PreciseStep ? preciseAngleSnap : angleSnap;
 				angleDrag.DegreesTargetAngle = Rules::NormalizeAngle(glm::round(angleDrag.DegreesTargetAngle / snap) * snap);
 
-				constexpr auto distanceThreshold = 4.0f;
+				constexpr f32 distanceThreshold = 4.0f;
 				if (glm::distance(angleDrag.StartTarget, angleDrag.EndMouse) > distanceThreshold)
 					SetSelectedTargetAnglesTo(undoManager, chart, angleDrag.DegreesTargetAngle);
 			}
@@ -310,7 +313,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::IncrementSelectedTargetAnglesBy(Undo::UndoManager& undoManager, Chart& chart, f32 increment)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -332,7 +335,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::SetSelectedTargetAnglesTo(Undo::UndoManager& undoManager, Chart& chart, f32 newAngle)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -354,7 +357,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::InvertSelectedTargetFrequencies(Undo::UndoManager& undoManager, Chart& chart)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -367,7 +370,7 @@ namespace Comfy::Studio::Editor
 			if (!target.IsSelected)
 				continue;
 
-			const auto targetFrequency = Rules::TryGetProperties(target).Frequency;
+			const f32 targetFrequency = Rules::TryGetProperties(target).Frequency;
 
 			auto& data = targetData.emplace_back();
 			data.TargetIndex = i;
@@ -380,7 +383,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::InterpolateSelectedTargetAngles(Undo::UndoManager& undoManager, Chart& chart, bool clockwise)
 	{
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -388,8 +391,8 @@ namespace Comfy::Studio::Editor
 		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [](auto& t) { return t.IsSelected; });
 
 		// BUG: Negative -> position angles not handled correctly (?)
-		const auto startAngle = Rules::TryGetProperties(firstTarget).Angle;
-		const auto endAngle = clockwise ? Rules::TryGetProperties(lastTarget).Angle : (Rules::TryGetProperties(lastTarget).Angle - 360.0f);
+		const f32 startAngle = Rules::TryGetProperties(firstTarget).Angle;
+		const f32 endAngle = clockwise ? Rules::TryGetProperties(lastTarget).Angle : (Rules::TryGetProperties(lastTarget).Angle - 360.0f);
 
 		const auto startTick = firstTarget.Tick.Ticks();
 		const auto endTick = lastTarget.Tick.Ticks();
@@ -402,7 +405,7 @@ namespace Comfy::Studio::Editor
 			if (!chart.Targets[i].IsSelected)
 				continue;
 
-			const auto ticks = chart.Targets[i].Tick.Ticks();
+			const i32 ticks = chart.Targets[i].Tick.Ticks();
 			auto& data = targetData.emplace_back();
 			data.TargetIndex = i;
 			data.NewValue.Angle = Rules::NormalizeAngle(((startAngle * static_cast<f32>(endTick - ticks) + endAngle * static_cast<f32>(ticks - startTick)) / static_cast<f32>(endTick - startTick)));
@@ -416,7 +419,7 @@ namespace Comfy::Studio::Editor
 	{
 		assert(std::isnormal(direction));
 
-		const auto selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
 			return;
 
@@ -443,7 +446,7 @@ namespace Comfy::Studio::Editor
 				while (thisDataIt != endIt)
 				{
 					const auto& thisTarget = chart.Targets[thisDataIt->TargetIndex];
-					const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
+					const f32 finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
 						0.0f : (-angleIncrement.FixedStepIncrementPerTarget * direction);
 
 					thisDataIt->NewValue.Angle = Rules::NormalizeAngle(prevDataIt->NewValue.Angle + finalIncrement);
@@ -461,12 +464,12 @@ namespace Comfy::Studio::Editor
 
 					const auto tickDifference = (prevTarget.Tick - thisTarget.Tick);
 
-					const auto directionToLastTarget = glm::normalize(prevDataIt->NewValue.Position - thisDataIt->NewValue.Position);
-					const auto angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
+					const vec2 directionToLastTarget = glm::normalize(prevDataIt->NewValue.Position - thisDataIt->NewValue.Position);
+					const f32 angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
 					const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
 
-					const auto incrementPerBeat = (isSlope ? angleIncrement.IncrementPerBeatSlope : angleIncrement.IncrementPerBeat);
-					const auto finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
+					const f32 incrementPerBeat = (isSlope ? angleIncrement.IncrementPerBeatSlope : angleIncrement.IncrementPerBeat);
+					const f32 finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
 						0.0f : (tickDifference.BeatsFraction() * incrementPerBeat * direction);
 
 					thisDataIt->NewValue.Angle = Rules::NormalizeAngle(prevDataIt->NewValue.Angle + finalIncrement);
