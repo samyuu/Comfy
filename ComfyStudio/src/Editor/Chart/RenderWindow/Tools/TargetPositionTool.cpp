@@ -13,12 +13,18 @@ namespace Comfy::Studio::Editor
 		// NOTE: To both prevent needless visual overload and to not overflow 16bit vertex indices too easily
 		constexpr size_t MaxDistanceGuideCirclesToRender = 64;
 
-		constexpr auto PreciseStepDistance = 1.0f;
-		constexpr auto GridStepDistance = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
+		constexpr f32 PreciseStepDistance = 1.0f;
+		constexpr f32 GridStepDistance = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
 
+		constexpr vec2 SnapPositionTo(vec2 position, f32 snapDistance)
+		{
+			return glm::round(position / snapDistance) * snapDistance;
+		}
+
+		// TODO: Move to Rules:: namespace (?)
 		constexpr vec2 SnapPositionToGrid(vec2 position)
 		{
-			return glm::round(position / GridStepDistance) * GridStepDistance;
+			return SnapPositionTo(position, GridStepDistance);
 		}
 	}
 
@@ -73,6 +79,31 @@ namespace Comfy::Studio::Editor
 			InterpolateSelectedTargetPositionsCircular(undoManager, chart, +1.0f);
 		if (Gui::MenuItem("Interpolate Positions Circular (Flip)", "Alt + O", false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositionsCircular(undoManager, chart, -1.0f);
+		Gui::Separator();
+
+		if (Gui::BeginMenu("Snap Positions", (lastFrameSelectionCount > 0)))
+		{
+			if (Gui::MenuItem("Nearest Whole", "(1 px)"))
+				SnapSelectedTargetPositions(undoManager, chart, 1.0f);
+
+			static_assert(GridStepDistance == 48.0f);
+			if (Gui::MenuItem("Nearest Grid", "(48 px)"))
+				SnapSelectedTargetPositions(undoManager, chart, GridStepDistance);
+
+			for (const i32 division : std::array { 24, 32, 48, 64, 96, 192 })
+			{
+				const f32 snapDistance = Rules::TickToDistance(BeatTick::FromBars(1) / division);
+				char labelBuffer[16], shortcutBuffer[8];
+
+				sprintf_s(labelBuffer, "Nearest 1 / %d", division);
+				sprintf_s(shortcutBuffer, "(%.f px)", snapDistance);
+
+				if (Gui::MenuItem(labelBuffer, shortcutBuffer))
+					SnapSelectedTargetPositions(undoManager, chart, snapDistance);
+			}
+
+			Gui::EndMenu();
+		}
 
 #if COMFY_DEBUG && 0 // TODO: Two step rotation tool
 		Gui::MenuItem("Rotate Targets...", "?", false, false);
@@ -518,6 +549,29 @@ namespace Comfy::Studio::Editor
 			undoManager.Execute<FlipTargetListPropertiesHorizontal>(chart, std::move(targetData));
 		else
 			undoManager.Execute<FlipTargetListPropertiesVertical>(chart, std::move(targetData));
+	}
+
+	void TargetPositionTool::SnapSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart, f32 snapDistance)
+	{
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		std::vector<SnapTargetListPositions::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		{
+			if (!chart.Targets[i].IsSelected)
+				continue;
+
+			auto& data = targetData.emplace_back();
+			data.TargetIndex = i;
+			data.NewValue.Position = SnapPositionTo(Rules::TryGetProperties(chart.Targets[i]).Position, snapDistance);
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		undoManager.Execute<SnapTargetListPositions>(chart, std::move(targetData));
 	}
 
 	void TargetPositionTool::PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart, bool backwards)

@@ -416,6 +416,15 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Interpolate Target Positions"; }
 	};
 
+	class SnapTargetListPositions : public ChangeTargetListPositions
+	{
+	public:
+		using ChangeTargetListPositions::ChangeTargetListPositions;
+
+	public:
+		std::string_view GetName() const override { return "Snap Target Positions"; }
+	};
+
 	class ChangeTargetListAngles : public ChangeTargetListProperties
 	{
 	public:
