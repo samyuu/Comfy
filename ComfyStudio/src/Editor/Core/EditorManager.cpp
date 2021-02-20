@@ -61,6 +61,9 @@ namespace Comfy::Studio::Editor
 		SetColor(EditorColor_Grid, 0xFF373737);
 		SetColor(EditorColor_GridAlt, 0xFF343434);
 
+		SetColor(EditorColor_GridTuplet, 0xFF29373B);
+		SetColor(EditorColor_GridTupletAlt, 0xFF2B3538);
+
 		SetColor(EditorColor_Waveform, 0x40616161);
 		SetColor(EditorColor_WaveformChannel0, ImColor(0.380f, 0.380f, 0.380f, 0.25f));
 		SetColor(EditorColor_WaveformChannel1, ImColor(0.533f, 0.533f, 0.533f, 0.25f));

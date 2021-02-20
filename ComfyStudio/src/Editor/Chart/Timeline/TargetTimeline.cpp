@@ -417,30 +417,32 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnDrawTimlineDivisors()
 	{
-		const auto barColor = GetColor(EditorColor_Bar);
-		const auto beatColor = GetColor(EditorColor_Beat);
-		const auto gridColor = GetColor(EditorColor_Grid);
-		const auto gridAltColor = GetColor(EditorColor_GridAlt);
-		const auto barTextColor = Gui::GetColorU32(ImGuiCol_Text);
-		const auto barTimeColor = Gui::GetColorU32(ImGuiCol_Text, 0.5f);
+		const bool isTupletDivision = (activeBarGridDivision % 3 == 0);
+
+		const u32 barColor = GetColor(EditorColor_Bar);
+		const u32 beatColor = GetColor(EditorColor_Beat);
+		const u32 gridColor = GetColor(isTupletDivision ? EditorColor_GridTuplet : EditorColor_Grid);
+		const u32 gridAltColor = GetColor(isTupletDivision ? EditorColor_GridTupletAlt : EditorColor_GridAlt);
+		const u32 barTextColor = Gui::GetColorU32(ImGuiCol_Text);
+		const u32 barTimeColor = Gui::GetColorU32(ImGuiCol_Text, 0.5f);
 
 		const i32 songDurationTicks = TimeToTick(workingChart->DurationOrDefault()).Ticks();
 		const i32 gridTickStep = GridDivisionTick().Ticks();
 
-		const auto scrollX = GetScrollX();
+		const f32 scrollX = GetScrollX();
 
-		constexpr auto beatSpacingThreshold = 10.0f;
-		constexpr auto barSpacingThreshold = 64.0f;
+		constexpr f32 beatSpacingThreshold = 10.0f;
+		constexpr f32 barSpacingThreshold = 64.0f;
 
-		auto lastBeatTimelineX = -beatSpacingThreshold;
+		f32 lastBeatTimelineX = -beatSpacingThreshold;
 		for (i32 tick = 0, divisions = 0; tick < songDurationTicks; tick += gridTickStep, divisions++)
 		{
-			const auto timelineX = GetTimelinePosition(BeatTick(tick));
+			const f32 timelineX = GetTimelinePosition(BeatTick(tick));
 			if (const auto lastDrawnDistance = (timelineX - lastBeatTimelineX); lastDrawnDistance < beatSpacingThreshold)
 				continue;
 			lastBeatTimelineX = timelineX;
 
-			const auto screenX = glm::round(timelineX - scrollX);
+			const f32 screenX = glm::round(timelineX - scrollX);
 			const auto visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
@@ -448,20 +450,20 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const auto start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.35f));
-			const auto end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
+			const vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.35f));
+			const vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
 			baseDrawList->AddLine(start, end, (tick % BeatTick::TicksPerBeat == 0) ? beatColor : (divisions % 2 == 0 ? gridColor : gridAltColor));
 		}
 
-		auto lastBarTimelineX = -barSpacingThreshold;
+		f32 lastBarTimelineX = -barSpacingThreshold;
 		workingChart->TempoMap.ForEachBar([&](const BeatTick barTick, const size_t barIndex)
 		{
-			const auto timelineX = GetTimelinePosition(barTick);
-			if (const auto lastDrawnDistance = (timelineX - lastBarTimelineX); lastDrawnDistance < barSpacingThreshold)
+			const f32 timelineX = GetTimelinePosition(barTick);
+			if (const f32 lastDrawnDistance = (timelineX - lastBarTimelineX); lastDrawnDistance < barSpacingThreshold)
 				return false;
 			lastBarTimelineX = timelineX;
 
-			const auto screenX = glm::round(timelineX - scrollX);
+			const f32 screenX = glm::round(timelineX - scrollX);
 			const auto visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
@@ -470,8 +472,8 @@ namespace Comfy::Studio::Editor
 				return true;
 
 			char buffer[32];
-			const auto start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.85f));
-			const auto end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
+			const vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.85f));
+			const vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
 			baseDrawList->AddLine(start, end, barColor);
 			baseDrawList->AddText(nullptr, 14.0f, start + vec2(3.0f, -4.0f), barTextColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
 			baseDrawList->AddText(nullptr, 13.0f, start + vec2(3.0f, -4.0f + 9.0f), barTimeColor, workingChart->TimelineMap.GetTimeAt(barTick).FormatTime().data());
@@ -498,7 +500,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Time drag text
 		{
-			constexpr auto dragSpeed = 4.0f;
+			constexpr f32 dragSpeed = 4.0f;
 			auto cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
 
 			if (Gui::ComfyDragText("TimeDragText::TargetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
