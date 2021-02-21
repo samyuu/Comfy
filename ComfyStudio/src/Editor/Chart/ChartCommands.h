@@ -233,6 +233,16 @@ namespace Comfy::Studio::Editor
 		i32 minIndex, maxIndex;
 	};
 
+	// BUG: Undoing doesn't work correctly because the target indices may be invalidated after resorting
+	class MirrorTargetListTypes : public ChangeTargetListTypes
+	{
+	public:
+		using ChangeTargetListTypes::ChangeTargetListTypes;
+
+	public:
+		std::string_view GetName() const override { return "Mirror Target Types"; }
+	};
+
 	class MoveTargetListTicks : public Undo::Command
 	{
 	public:

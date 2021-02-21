@@ -75,6 +75,20 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	constexpr ButtonType MirrorButtonType(ButtonType type)
+	{
+		switch (type)
+		{
+		case ButtonType::Triangle: return ButtonType::Circle;
+		case ButtonType::Square: return ButtonType::Cross;
+		case ButtonType::Cross: return ButtonType::Square;
+		case ButtonType::Circle: return ButtonType::Triangle;
+		case ButtonType::SlideL: return ButtonType::SlideR;
+		case ButtonType::SlideR: return ButtonType::SlideL;
+		default: return type;
+		}
+	}
+
 	constexpr ButtonTypeFlags ButtonTypeToButtonTypeFlags(ButtonType type)
 	{
 		return static_cast<ButtonTypeFlags>(1 << static_cast<u32>(type));

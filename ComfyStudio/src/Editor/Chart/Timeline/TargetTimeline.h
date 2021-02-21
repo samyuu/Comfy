@@ -145,6 +145,9 @@ namespace Comfy::Studio::Editor
 
 		void RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount = {});
 
+		// TODO: Refactor all functions to explicitly take in an undoManager parameter if they perform undoable actions
+		void MirrorSelectedTargetTypes(Undo::UndoManager& undoManager, Chart& chart);
+
 	private:
 		void PlayTargetButtonTypeSound(ButtonType type);
 

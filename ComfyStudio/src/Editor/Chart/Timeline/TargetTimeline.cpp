@@ -1364,6 +1364,37 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::MenuItem("Toggle Target Holds", Input::GetKeyCodeName(KeyBindings::ToggleTargetHolds), nullptr, (selectionCount > 0)))
 				ToggleSelectedTargetsHolds(*workingChart);
+
+			if (Gui::BeginMenu("Modify Targets", (selectionCount > 0)))
+			{
+				if (Gui::MenuItem("Mirror Types"))
+					MirrorSelectedTargetTypes(undoManager, *workingChart);
+
+#if 0 // TODO: Implement, refine and come up with additional options
+				if (Gui::MenuItem("Randomize Types"))
+				{
+				}
+
+				if (Gui::BeginMenu("Expand Time"))
+				{
+					if (Gui::MenuItem("2:1 (8th to 4th)")) {}
+					if (Gui::MenuItem("3:2 (12th to 8th)")) {}
+					if (Gui::MenuItem("4:3 (16th to 12th)")) {}
+					Gui::EndMenu();
+				}
+
+				if (Gui::BeginMenu("Compress Time"))
+				{
+					if (Gui::MenuItem("1:2 (4th to 8th)")) {}
+					if (Gui::MenuItem("2:3 (8th to 12th)")) {}
+					if (Gui::MenuItem("3:4 (12th to 16th)")) {}
+					Gui::EndMenu();
+				}
+#endif
+
+				Gui::EndMenu();
+			}
+
 			Gui::Separator();
 
 			if (Gui::MenuItem("Cut", "Ctrl + X", nullptr, (selectionCount > 0)))
@@ -1374,13 +1405,6 @@ namespace Comfy::Studio::Editor
 				ClipboardPasteSelection();
 
 			Gui::Separator();
-
-#if 0 // TODO:
-			if (Gui::MenuItem("Insert Tempo Change", "Ctrl + ?", nullptr, false)) {}
-			if (Gui::MenuItem("Remove Tempo Change", "Ctrl + ?", nullptr, false)) {}
-
-			Gui::Separator();
-#endif
 
 			if (Gui::MenuItem("Select All", "", nullptr, (workingChart->Targets.size() > 0)))
 				SelectAllTargets(*workingChart);
@@ -1795,6 +1819,38 @@ namespace Comfy::Studio::Editor
 
 		assert(targetsToRemove.size() == selectionCount);
 		undoManager.Execute<RemoveTargetList>(*workingChart, std::move(targetsToRemove));
+	}
+
+	void TargetTimeline::MirrorSelectedTargetTypes(Undo::UndoManager& undoManager, Chart& chart)
+	{
+		const size_t selectionCount = CountSelectedTargets();
+		if (selectionCount < 1)
+			return;
+
+		std::vector<MirrorTargetListTypes::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		{
+			if (!chart.Targets[i].IsSelected)
+				continue;
+
+			const auto mirroredType = MirrorButtonType(chart.Targets[i].Type);
+
+			const auto* existingTarget = IndexOrNull(chart.Targets.FindIndex(chart.Targets[i].Tick, mirroredType), chart.Targets);
+			if (existingTarget != nullptr && !existingTarget->IsSelected)
+				continue;
+
+			auto& data = targetData.emplace_back();
+			data.TargetIndex = i;
+			data.NewValue = mirroredType;
+		}
+
+		if (!targetData.empty())
+		{
+			undoManager.DisallowMergeForLastCommand();
+			undoManager.Execute<MirrorTargetListTypes>(chart, std::move(targetData));
+		}
 	}
 
 	void TargetTimeline::PlayTargetButtonTypeSound(ButtonType type)
