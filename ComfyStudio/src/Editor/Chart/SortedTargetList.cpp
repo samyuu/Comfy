@@ -1,5 +1,6 @@
 #include "SortedTargetList.h"
 #include <algorithm>
+#include <atomic>
 
 namespace Comfy::Studio::Editor
 {
@@ -20,6 +21,13 @@ namespace Comfy::Studio::Editor
 		{
 			return GetTargetSortWeight(target.Tick, target.Type);
 		}
+
+		std::atomic<std::underlying_type_t<TimelineTargetID>> GlobalTimelineTargetIDCounter = {};
+	}
+
+	TimelineTargetID SortedTargetList::GetNextUniqueID()
+	{
+		return static_cast<TimelineTargetID>(++GlobalTimelineTargetIDCounter);
 	}
 
 	SortedTargetList::SortedTargetList()
@@ -28,25 +36,23 @@ namespace Comfy::Studio::Editor
 		targets.reserve(reasonableInitialCapacity);
 	}
 
-	void SortedTargetList::Add(TimelineTarget newTarget)
+	TimelineTargetID SortedTargetList::Add(TimelineTarget newTarget)
 	{
-#if 1 // NOTE: Sorted insertion, appears to be much faster
-		{
-			const auto insertionIndex = FindSortedInsertionIndex(newTarget.Tick, newTarget.Type);
-			targets.emplace(targets.begin() + insertionIndex, newTarget);
+		if (newTarget.ID == TimelineTargetID::Null)
+			newTarget.ID = GetNextUniqueID();
 
-			UpdateTargetInternalFlagsAround(static_cast<i32>(insertionIndex));
-		}
-#else // NOTE: However a post emplace sort is useful for error checking
-		{
-			targets.push_back(newTarget);
-			std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
+		const auto insertionIndex = FindSortedInsertionIndex(newTarget.Tick, newTarget.Type);
+		targets.emplace(targets.begin() + insertionIndex, newTarget);
 
-			UpdateTargetInternalFlagsInRange();
-		}
-#endif
+		for (i32 i = static_cast<i32>(insertionIndex); i < static_cast<i32>(targets.size()); i++)
+			idToIndexMap[targets[i].ID] = i;
 
+		UpdateTargetInternalFlagsAround(static_cast<i32>(insertionIndex));
+
+		assert(DebugFullyValidateIDToIndexMap());
 		assert(std::is_sorted(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); }));
+
+		return newTarget.ID;
 	}
 
 	void SortedTargetList::Remove(TimelineTarget target)
@@ -59,8 +65,17 @@ namespace Comfy::Studio::Editor
 		if (!InBounds(static_cast<size_t>(index), targets))
 			return;
 
+		assert(DebugFullyValidateIDToIndexMap());
+
+		for (i32 i = index + 1; i < static_cast<i32>(targets.size()); i++)
+			idToIndexMap.find(targets[i].ID)->second--;
+
+		idToIndexMap.erase(targets[index].ID);
 		targets.erase(begin() + index);
+
 		UpdateTargetInternalFlagsAround(index);
+
+		assert(DebugFullyValidateIDToIndexMap());
 	}
 
 	i32 SortedTargetList::FindIndex(BeatTick tick) const
@@ -77,9 +92,29 @@ namespace Comfy::Studio::Editor
 		return InBounds(foundIndex, targets) ? static_cast<i32>(foundIndex) : -1;
 	}
 
+	i32 SortedTargetList::FindIndex(TimelineTargetID id) const
+	{
+#if COMFY_DEBUG && 0
+		const auto linearFoundIndex = FindIndexOf(targets, [id](auto& t) { return t.ID == id; });
+		return InBounds(linearFoundIndex, targets) ? static_cast<i32>(linearFoundIndex) : -1;
+#endif
+
+		assert(id != TimelineTargetID::Null);
+		assert(DebugFullyValidateIDToIndexMap());
+
+		const auto foundIt = idToIndexMap.find(id);
+		if (foundIt == idToIndexMap.end())
+			return -1;
+
+		const auto foundIndex = foundIt->second;
+		assert(InBounds(foundIndex, targets) && targets[foundIndex].ID == id);
+		return foundIndex;
+	}
+
 	void SortedTargetList::Clear()
 	{
 		targets.clear();
+		idToIndexMap.clear();
 	}
 
 	void SortedTargetList::ExplicitlyUpdateFlagsAndSort(i32 startIndex, i32 endIndex)
@@ -98,12 +133,29 @@ namespace Comfy::Studio::Editor
 			std::clamp(targets.begin() + endIndex, targets.begin(), targets.end()),
 			[&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
 
+		for (i32 i = startIndex; i <= endIndex; i++)
+		{
+			if (InBounds(i, targets))
+				idToIndexMap[targets[i].ID] = i;
+		}
+
 		UpdateTargetInternalFlagsInRange(startIndex, endIndex);
+
+		assert(DebugFullyValidateIDToIndexMap());
 	}
 
 	void SortedTargetList::operator=(std::vector<TimelineTarget>&& newTargets)
 	{
 		targets = std::move(newTargets);
+
+		idToIndexMap.clear();
+		idToIndexMap.reserve(targets.size());
+
+		for (i32 i = 0; i < static_cast<i32>(targets.size()); i++)
+		{
+			assert(targets[i].ID == TimelineTargetID::Null);
+			idToIndexMap[targets[i].ID = GetNextUniqueID()] = i;
+		}
 
 		std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
 		UpdateTargetInternalFlagsInRange();
@@ -289,5 +341,25 @@ namespace Comfy::Studio::Editor
 			back.Flags.IsChainEnd = true;
 
 		slideTargetBuffer.clear();
+	}
+
+	bool SortedTargetList::DebugFullyValidateIDToIndexMap() const
+	{
+		if (targets.size() != idToIndexMap.size())
+			return false;
+
+		for (i32 index = 0; index < static_cast<i32>(targets.size()); index++)
+		{
+			const auto& target = targets[index];
+			const auto foundIDToIndexEntry = idToIndexMap.find(target.ID);
+
+			if (foundIDToIndexEntry == idToIndexMap.end())
+				return false;
+
+			if (foundIDToIndexEntry->second != index)
+				return false;
+		}
+
+		return true;
 	}
 }

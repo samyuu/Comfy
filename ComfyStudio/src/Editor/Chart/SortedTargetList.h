@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 #include "BeatTick.h"
 #include "Time/TimeSpan.h"
+#include <unordered_map>
 
 namespace Comfy::Studio::Editor
 {
@@ -145,6 +146,9 @@ namespace Comfy::Studio::Editor
 
 	static_assert(sizeof(TargetFlags) == sizeof(u32));
 
+	// NOTE: Stable ID to be used by undoable commands instead of indices
+	enum class TimelineTargetID : u32 { Null = 0 };
+
 	struct TimelineTarget
 	{
 		TimelineTarget() = default;
@@ -155,24 +159,31 @@ namespace Comfy::Studio::Editor
 		bool IsSelected = false;
 		TargetFlags Flags = {};
 		TargetProperties Properties = {};
+		TimelineTargetID ID = {};
 	};
 
-	static_assert(sizeof(TimelineTarget) == 36);
+	static_assert(sizeof(TimelineTarget) == 40);
 
 	class SortedTargetList : NonCopyable
 	{
+	public:
+		// NOTE: Should be called and assigned the very first time a target is created but never overwriten afterwards
+		static TimelineTargetID GetNextUniqueID();
+
 	public:
 		SortedTargetList();
 		~SortedTargetList() = default;
 
 	public:
-		void Add(TimelineTarget newTarget);
+		COMFY_NODISCARD TimelineTargetID Add(TimelineTarget newTarget);
 
 		void Remove(TimelineTarget target);
 		void RemoveAt(i32 index);
 
 		i32 FindIndex(BeatTick tick) const;
 		i32 FindIndex(BeatTick tick, ButtonType type) const;
+		i32 FindIndex(TimelineTargetID id) const;
+
 		void Clear();
 
 		void ExplicitlyUpdateFlagsAndSort(i32 startIndex = -1, i32 endIndex = -1);
@@ -198,9 +209,6 @@ namespace Comfy::Studio::Editor
 		const std::vector<TimelineTarget>& GetRawView() const { return targets; }
 
 	private:
-		std::vector<TimelineTarget> targets;
-		std::vector<TimelineTarget*> slideTargetBuffer;
-
 		size_t FindSortedInsertionIndex(BeatTick tick, ButtonType type) const;
 
 		void UpdateTargetInternalFlagsAround(i32 index);
@@ -215,5 +223,13 @@ namespace Comfy::Studio::Editor
 
 		void UpdateChainFlagsInRange(i32 startIndex, i32 endIndex);
 		void UpdateChainFlagsForDirection(i32 startIndex, i32 endIndex, ButtonType slideDirection);
+
+		bool DebugFullyValidateIDToIndexMap() const;
+
+	private:
+		std::vector<TimelineTarget> targets;
+		std::vector<TimelineTarget*> slideTargetBuffer;
+
+		std::unordered_map<TimelineTargetID, i32> idToIndexMap;
 	};
 }
