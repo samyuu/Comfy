@@ -48,8 +48,6 @@ namespace Comfy::Studio::Editor
 		void InterpolateSelectedTargetPositionsLinear(Undo::UndoManager& undoManager, Chart& chart);
 		void InterpolateSelectedTargetPositionsCircular(Undo::UndoManager& undoManager, Chart& chart, f32 direction);
 
-		i32 GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const;
-
 	private:
 		std::vector<TimelineTarget*> selectedTargetsBuffer;
 		size_t lastFrameSelectionCount = 0;
@@ -58,7 +56,7 @@ namespace Comfy::Studio::Editor
 
 		struct GrabData
 		{
-			i32 GrabbedTargetIndex = -1, HoveredTargetIndex = -1;
+			TimelineTargetID GrabbedTargetID = {}, HoveredTargetID = {};
 
 			vec2 MouseOnGrab;
 			vec2 TargetPositionOnGrab;

@@ -205,7 +205,7 @@ namespace Comfy::Studio::Editor
 						continue;
 
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
+					data.ID = targetView.Target->ID;
 					data.NewValue = newValue;
 				}
 
@@ -220,7 +220,7 @@ namespace Comfy::Studio::Editor
 				targetData.reserve(selectedTargets.size());
 
 				for (const auto& targetView : selectedTargets)
-					targetData.emplace_back().TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
+					targetData.emplace_back().ID = targetView.Target->ID;
 
 				if (!targetData.empty())
 					undoManager.Execute<ChangeTargetListHasProperties>(chart, std::move(targetData), !newValue);
@@ -340,7 +340,7 @@ namespace Comfy::Studio::Editor
 				for (const auto& targetView : selectedTargets)
 				{
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
+					data.ID = targetView.Target->ID;
 					data.NewValue[property] = commonValue;
 				}
 			}
@@ -349,7 +349,7 @@ namespace Comfy::Studio::Editor
 				for (const auto& targetView : selectedTargets)
 				{
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = GetSelectedTargetIndex(chart, targetView.Target);
+					data.ID = targetView.Target->ID;
 					data.NewValue[property] = (valueGetter(targetView) + outIncrement);
 				}
 			}
@@ -364,11 +364,5 @@ namespace Comfy::Studio::Editor
 		}
 
 		propertyInputWidgetActiveStates[property] = itemIsActive;
-	}
-
-	i32 TargetInspector::GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const
-	{
-		assert(chart.Targets.size() > 0);
-		return static_cast<i32>(std::distance(&chart.Targets[0], selectedTarget));
 	}
 }

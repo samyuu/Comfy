@@ -351,7 +351,7 @@ namespace Comfy::Studio::Editor
 				for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
 				{
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = (i + j);
+					data.ID = chart.Targets[i + j].ID;
 					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
 				}
 
@@ -402,7 +402,7 @@ namespace Comfy::Studio::Editor
 				for (i32 j = 0; j < firstTargetOfPair.Flags.SyncPairCount; j++)
 				{
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = (i + j);
+					data.ID = chart.Targets[i + j].ID;
 					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
 				}
 
@@ -438,7 +438,7 @@ namespace Comfy::Studio::Editor
 				for (i32 j = 0; j < syncPairCount; j++)
 				{
 					auto& data = tempProperties[j];
-					data.TargetIndex = (i + j);
+					data.ID = chart.Targets[i + j].ID;
 					data.NewValue = Rules::TryGetProperties(chart.Targets[i + j]);
 				}
 
@@ -446,7 +446,7 @@ namespace Comfy::Studio::Editor
 				{
 					for (i32 j = 0; j < syncPairCount; j++)
 					{
-						outPresetTargets[j].Type = chart.Targets[tempProperties[j].TargetIndex].Type;
+						outPresetTargets[j].Type = chart.Targets[chart.Targets.FindIndex(tempProperties[j].ID)].Type;
 						outPresetTargets[j].Properties = tempProperties[j].NewValue;
 					}
 
@@ -477,14 +477,13 @@ namespace Comfy::Studio::Editor
 			const BeatTick tickOffset = ((settings.ApplyFirstTargetTickAsOffset) ?
 				std::find_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; })->Tick : BeatTick::Zero()) - settings.TickOffset;
 
-			for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+			for (const auto& target : chart.Targets)
 			{
-				const auto& target = chart.Targets[i];
 				if (!target.IsSelected)
 					continue;
 
 				auto& data = targetData.emplace_back();
-				data.TargetIndex = i;
+				data.ID = target.ID;
 				data.NewValue = Rules::TryGetProperties(target);
 
 				const BeatTick circularTick = (target.Tick - tickOffset) % preset.Circle.Duration;

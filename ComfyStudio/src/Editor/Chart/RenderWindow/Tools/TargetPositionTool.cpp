@@ -324,7 +324,7 @@ namespace Comfy::Studio::Editor
 
 		const vec2 mousePos = Gui::GetMousePos();
 
-		grab.HoveredTargetIndex = -1;
+		grab.HoveredTargetID = TimelineTargetID::Null;
 		if (Gui::IsWindowHovered() && !selectedTargetsBuffer.empty())
 		{
 			const auto hoveredTarget = std::find_if(selectedTargetsBuffer.rbegin(), selectedTargetsBuffer.rend(), [&](auto* t)
@@ -336,13 +336,13 @@ namespace Comfy::Studio::Editor
 				return ImRect(tl, br).Contains(mousePos);
 			});
 
-			grab.HoveredTargetIndex = (hoveredTarget == selectedTargetsBuffer.rend()) ? -1 : GetSelectedTargetIndex(chart, *hoveredTarget);
+			grab.HoveredTargetID = (hoveredTarget == selectedTargetsBuffer.rend()) ? TimelineTargetID::Null : (*hoveredTarget)->ID;
 
-			if (Gui::IsMouseClicked(0) && InBounds(grab.HoveredTargetIndex, chart.Targets))
+			if (Gui::IsMouseClicked(0) && (grab.HoveredTargetID != TimelineTargetID::Null))
 			{
-				grab.GrabbedTargetIndex = grab.HoveredTargetIndex;
+				grab.GrabbedTargetID = grab.HoveredTargetID;
 				grab.MouseOnGrab = mousePos;
-				grab.TargetPositionOnGrab = Rules::TryGetProperties(chart.Targets[grab.GrabbedTargetIndex]).Position;
+				grab.TargetPositionOnGrab = Rules::TryGetProperties(chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)]).Position;
 				undoManager.DisallowMergeForLastCommand();
 			}
 		}
@@ -350,7 +350,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsMouseReleased(0))
 			grab = {};
 
-		if (Gui::IsMouseDown(0) && InBounds(grab.GrabbedTargetIndex, chart.Targets))
+		if (Gui::IsMouseDown(0) && (grab.GrabbedTargetID != TimelineTargetID::Null))
 		{
 			grab.LastPos = grab.ThisPos;
 			grab.ThisPos = mousePos;
@@ -362,10 +362,10 @@ namespace Comfy::Studio::Editor
 			Gui::SetWindowFocus();
 		}
 
-		if (InBounds(grab.HoveredTargetIndex, chart.Targets) || InBounds(grab.GrabbedTargetIndex, chart.Targets))
+		if ((grab.HoveredTargetID != TimelineTargetID::Null) || (grab.GrabbedTargetID != TimelineTargetID::Null))
 			Gui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
 
-		if (InBounds(grab.GrabbedTargetIndex, chart.Targets))
+		if (grab.GrabbedTargetID != TimelineTargetID::Null)
 		{
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
@@ -375,7 +375,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::GetIO().KeyShift)
 					grabbedMovedPosition = SnapPositionToGrid(grabbedMovedPosition);
 
-				const vec2 increment = (grabbedMovedPosition - Rules::TryGetProperties(chart.Targets[grab.GrabbedTargetIndex]).Position);
+				const vec2 increment = (grabbedMovedPosition - Rules::TryGetProperties(chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)]).Position);
 				if (increment != vec2(0.0f))
 					IncrementSelectedTargetPositionsBy(undoManager, chart, increment);
 			}
@@ -439,7 +439,7 @@ namespace Comfy::Studio::Editor
 		for (auto* selectedTarget : selectedTargetsBuffer)
 		{
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = GetSelectedTargetIndex(chart, selectedTarget);
+			data.ID = selectedTarget->ID;
 			data.NewValue.Position = (Rules::TryGetProperties(*selectedTarget).Position + positionIncrement);
 		}
 
@@ -479,7 +479,7 @@ namespace Comfy::Studio::Editor
 
 		if (backwards)
 		{
-			targetData.back().TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer.back());
+			targetData.back().ID = selectedTargetsBuffer.back()->ID;
 			targetData.back().NewValue.Position = Rules::TryGetProperties(*selectedTargetsBuffer.back()).Position;
 
 			for (i32 i = static_cast<i32>(selectedTargetsBuffer.size()) - 2; i >= 0; i--)
@@ -488,13 +488,13 @@ namespace Comfy::Studio::Editor
 				const auto& nextTarget = *selectedTargetsBuffer[i + 1];
 				const auto tickDistance = (nextTarget.Tick - thisTarget.Tick);
 
-				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, &thisTarget);
+				targetData[i].ID = thisTarget.ID;
 				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, thisTarget.Flags.IsChain, thisTarget.Flags.IsChainEnd);
 			}
 		}
 		else
 		{
-			targetData.front().TargetIndex = GetSelectedTargetIndex(chart, selectedTargetsBuffer.front());
+			targetData.front().ID = selectedTargetsBuffer.front()->ID;
 			targetData.front().NewValue.Position = Rules::TryGetProperties(*selectedTargetsBuffer.front()).Position;
 
 			for (i32 i = 1; i < static_cast<i32>(selectedTargetsBuffer.size()); i++)
@@ -503,7 +503,7 @@ namespace Comfy::Studio::Editor
 				const auto& prevTarget = *selectedTargetsBuffer[i - 1];
 				const auto tickDistance = (thisTarget.Tick - prevTarget.Tick);
 
-				targetData[i].TargetIndex = GetSelectedTargetIndex(chart, &thisTarget);
+				targetData[i].ID = thisTarget.ID;
 				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, prevTarget.Flags.IsChain, prevTarget.Flags.IsChainEnd);
 			}
 		}
@@ -529,15 +529,14 @@ namespace Comfy::Studio::Editor
 		std::vector<ChangeTargetListProperties::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			auto& target = chart.Targets[i];
 			if (!target.IsSelected)
 				continue;
 
 			const auto properties = Rules::TryGetProperties(target);
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
+			data.ID = target.ID;
 			data.NewValue = properties;
 			data.NewValue.Position = ((properties.Position - flipCenter) * componentFlipMask) + flipCenter;
 			data.NewValue.Angle = isHorizontal ? Rules::NormalizeAngle(-data.NewValue.Angle) : Rules::NormalizeAngle(data.NewValue.Angle - 180.0f);
@@ -560,14 +559,14 @@ namespace Comfy::Studio::Editor
 		std::vector<SnapTargetListPositions::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (!chart.Targets[i].IsSelected)
+			if (!target.IsSelected)
 				continue;
 
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
-			data.NewValue.Position = SnapPositionTo(Rules::TryGetProperties(chart.Targets[i]).Position, snapDistance);
+			data.ID = target.ID;
+			data.NewValue.Position = SnapPositionTo(Rules::TryGetProperties(target).Position, snapDistance);
 		}
 
 		undoManager.DisallowMergeForLastCommand();
@@ -594,13 +593,13 @@ namespace Comfy::Studio::Editor
 
 		if (startPosition == endPosition)
 		{
-			for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+			for (const auto& target : chart.Targets)
 			{
-				if (!chart.Targets[i].IsSelected)
+				if (!target.IsSelected)
 					continue;
 
 				auto& data = targetData.emplace_back();
-				data.TargetIndex = i;
+				data.ID = target.ID;
 				data.NewValue.Position = startPosition;
 			}
 		}
@@ -617,7 +616,7 @@ namespace Comfy::Studio::Editor
 						continue;
 
 					auto& data = targetData.emplace_back();
-					data.TargetIndex = static_cast<i32>(std::distance(&chart.Targets[0], &(*thisTargetIt)));
+					data.ID = thisTargetIt->ID;
 
 					if (targetData.size() == 1)
 					{
@@ -670,14 +669,14 @@ namespace Comfy::Studio::Editor
 		std::vector<InterpolateTargetListPositions::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (!chart.Targets[i].IsSelected)
+			if (!target.IsSelected)
 				continue;
 
-			const f32 t = static_cast<f32>(chart.Targets[i].Tick.Ticks() - startTicks) * tickSpanReciprocal;
+			const f32 t = static_cast<f32>(target.Tick.Ticks() - startTicks) * tickSpanReciprocal;
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
+			data.ID = target.ID;
 			data.NewValue.Position = ((1.0f - t) * startPosition) + (t * endPosition);
 		}
 
@@ -710,27 +709,21 @@ namespace Comfy::Studio::Editor
 		std::vector<InterpolateTargetListPositions::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (!chart.Targets[i].IsSelected)
+			if (!target.IsSelected)
 				continue;
 
-			const f32 t = static_cast<f32>(chart.Targets[i].Tick.Ticks() - startTicks) * tickSpanReciprocal;
+			const f32 t = static_cast<f32>(target.Tick.Ticks() - startTicks) * tickSpanReciprocal;
 			const f32 angle = startAngle - (t * glm::pi<f32>() * direction);
 			const vec2 pointOnCircle = vec2(glm::cos(angle), glm::sin(angle)) * radius;
 
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
+			data.ID = target.ID;
 			data.NewValue.Position = centerPosition + pointOnCircle;
 		}
 
 		undoManager.DisallowMergeForLastCommand();
 		undoManager.Execute<InterpolateTargetListPositions>(chart, std::move(targetData));
-	}
-
-	i32 TargetPositionTool::GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const
-	{
-		assert(chart.Targets.size() > 0);
-		return static_cast<i32>(std::distance(&chart.Targets[0], selectedTarget));
 	}
 }

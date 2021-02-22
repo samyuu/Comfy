@@ -320,14 +320,14 @@ namespace Comfy::Studio::Editor
 		std::vector<ChangeTargetListProperties::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (const auto& target = chart.Targets[i]; target.IsSelected)
-			{
-				auto& data = targetData.emplace_back();
-				data.TargetIndex = i;
-				data.NewValue.Angle = Rules::NormalizeAngle(Rules::TryGetProperties(target).Angle + increment);
-			}
+			if (!target.IsSelected)
+				continue;
+
+			auto& data = targetData.emplace_back();
+			data.ID = target.ID;
+			data.NewValue.Angle = Rules::NormalizeAngle(Rules::TryGetProperties(target).Angle + increment);
 		}
 
 		undoManager.Execute<ChangeTargetListAngles>(chart, std::move(targetData));
@@ -342,14 +342,14 @@ namespace Comfy::Studio::Editor
 		std::vector<ChangeTargetListProperties::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (const auto& target = chart.Targets[i]; target.IsSelected)
-			{
-				auto& data = targetData.emplace_back();
-				data.TargetIndex = i;
-				data.NewValue.Angle = newAngle;
-			}
+			if (!target.IsSelected)
+				continue;
+
+			auto& data = targetData.emplace_back();
+			data.ID = target.ID;
+			data.NewValue.Angle = newAngle;
 		}
 
 		undoManager.Execute<ChangeTargetListAngles>(chart, std::move(targetData));
@@ -364,16 +364,15 @@ namespace Comfy::Studio::Editor
 		std::vector<ChangeTargetListProperties::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			auto& target = chart.Targets[i];
 			if (!target.IsSelected)
 				continue;
 
 			const f32 targetFrequency = Rules::TryGetProperties(target).Frequency;
 
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
+			data.ID = target.ID;
 			data.NewValue.Frequency = (targetFrequency == 0.0f) ? 0.0f : (targetFrequency * -1.0f);
 		}
 
@@ -400,14 +399,14 @@ namespace Comfy::Studio::Editor
 		std::vector<InterpolateTargetListAngles::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (!chart.Targets[i].IsSelected)
+			if (!target.IsSelected)
 				continue;
 
-			const i32 ticks = chart.Targets[i].Tick.Ticks();
+			const i32 ticks = target.Tick.Ticks();
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
+			data.ID = target.ID;
 			data.NewValue.Angle = Rules::NormalizeAngle(((startAngle * static_cast<f32>(endTick - ticks) + endAngle * static_cast<f32>(ticks - startTick)) / static_cast<f32>(endTick - startTick)));
 		}
 
@@ -426,14 +425,14 @@ namespace Comfy::Studio::Editor
 		std::vector<ChangeTargetListAngles::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (!chart.Targets[i].IsSelected)
+			if (!target.IsSelected)
 				continue;
 
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
-			data.NewValue = Rules::TryGetProperties(chart.Targets[i]);
+			data.ID = target.ID;
+			data.NewValue = Rules::TryGetProperties(target);
 		}
 
 		auto applyUsingForwardOrReverseIterators = [this, &chart, direction](auto beginIt, auto endIt)
@@ -445,7 +444,7 @@ namespace Comfy::Studio::Editor
 			{
 				while (thisDataIt != endIt)
 				{
-					const auto& thisTarget = chart.Targets[thisDataIt->TargetIndex];
+					const auto& thisTarget = chart.Targets[chart.Targets.FindIndex(thisDataIt->ID)];
 					const f32 finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
 						0.0f : (-angleIncrement.FixedStepIncrementPerTarget * direction);
 
@@ -459,8 +458,8 @@ namespace Comfy::Studio::Editor
 			{
 				while (thisDataIt != endIt)
 				{
-					const auto& prevTarget = chart.Targets[prevDataIt->TargetIndex];
-					const auto& thisTarget = chart.Targets[thisDataIt->TargetIndex];
+					const auto& prevTarget = chart.Targets[chart.Targets.FindIndex(prevDataIt->ID)];
+					const auto& thisTarget = chart.Targets[chart.Targets.FindIndex(thisDataIt->ID)];
 
 					const auto tickDifference = (prevTarget.Tick - thisTarget.Tick);
 

@@ -25,8 +25,6 @@ namespace Comfy::Studio::Editor
 
 		void PropertyGui(Chart& chart, std::string_view label, TargetPropertyType property, f32 dragSpeed = 1.0f, bool isPropertyI32 = false, bool degreeUnits = false);
 
-		i32 GetSelectedTargetIndex(const Chart& chart, const TimelineTarget* selectedTarget) const;
-
 	private:
 		Undo::UndoManager& undoManager;
 

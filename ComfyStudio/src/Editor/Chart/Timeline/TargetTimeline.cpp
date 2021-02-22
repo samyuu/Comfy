@@ -904,7 +904,7 @@ namespace Comfy::Studio::Editor
 		UpdateKeyboardCtrlInput();
 		UpdateCursorKeyboardInput();
 
-		UpdateInputSelectionDragging();
+		UpdateInputSelectionDragging(undoManager, *workingChart);
 		UpdateInputCursorClick();
 		UpdateInputCursorScrubbing();
 		UpdateInputTargetPlacement();
@@ -928,13 +928,13 @@ namespace Comfy::Studio::Editor
 		if (Gui::GetIO().KeyCtrl && Gui::GetActiveID() == 0)
 		{
 			if (Gui::IsKeyPressed(KeyBindings::Cut, false))
-				ClipboardCutSelection();
+				ClipboardCutSelection(undoManager, *workingChart);
 
 			if (Gui::IsKeyPressed(KeyBindings::Copy, false))
-				ClipboardCopySelection();
+				ClipboardCopySelection(undoManager, *workingChart);
 
 			if (Gui::IsKeyPressed(KeyBindings::Paste, false))
-				ClipboardPasteSelection();
+				ClipboardPasteSelection(undoManager, *workingChart);
 		}
 	}
 
@@ -986,7 +986,7 @@ namespace Comfy::Studio::Editor
 			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 
 		if (Gui::IsKeyPressed(KeyBindings::ToggleTargetHolds, false))
-			ToggleSelectedTargetsHolds(*workingChart);
+			ToggleSelectedTargetsHolds(undoManager, *workingChart);
 	}
 
 	namespace
@@ -1028,7 +1028,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetTimeline::UpdateInputSelectionDragging()
+	void TargetTimeline::UpdateInputSelectionDragging(Undo::UndoManager& undoManager, Chart& chart)
 	{
 		if (!selectionDrag.IsDragging)
 		{
@@ -1045,7 +1045,7 @@ namespace Comfy::Studio::Editor
 		{
 			// TODO: Min max visible tick range check optimization 
 			const f32 iconHitboxHalfSize = (iconHitboxSize / 2.0f);
-			for (auto& target : workingChart->Targets)
+			for (const auto& target : chart.Targets)
 			{
 				if (!target.IsSelected)
 					continue;
@@ -1106,24 +1106,22 @@ namespace Comfy::Studio::Editor
 					std::vector<ChangeTargetListTypes::Data> targetTypeData;
 					targetTypeData.reserve(selectedTargetCount);
 
-					for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
+					for (const auto& target : chart.Targets)
 					{
-						auto& target = workingChart->Targets[i];
 						if (!target.IsSelected)
 							continue;
 
-						auto& data = targetTypeData.emplace_back();
-						data.TargetIndex = i;
-
 						const auto newType = GetNextClampedButtonType(target, typeIncrementDirection);
-						data.NewValue = IsChangedTargetButtonTypeNotBlocked(workingChart->Targets, target, newType, typeIncrementDirection) ? newType : target.Type;
+						auto& data = targetTypeData.emplace_back();
+						data.ID = target.ID;
+						data.NewValue = IsChangedTargetButtonTypeNotBlocked(chart.Targets, target, newType, typeIncrementDirection) ? newType : target.Type;
 
 						if (target.Tick == cursorTick && data.NewValue != target.Type)
 							PlaySingleTargetButtonSoundAndAnimation(data.NewValue, target.Tick);
 					}
 
 					if (!targetTypeData.empty())
-						undoManager.Execute<ChangeTargetListTypes>(*workingChart, std::move(targetTypeData));
+						undoManager.Execute<ChangeTargetListTypes>(chart, std::move(targetTypeData));
 				}
 			}
 			else
@@ -1133,21 +1131,20 @@ namespace Comfy::Studio::Editor
 				{
 					selectionDrag.TicksMovedSoFar -= dragTickIncrement;
 
-					std::vector<i32> targetMoveIndices;
-					targetMoveIndices.reserve(CountSelectedTargets());
+					std::vector<TimelineTargetID> targetMoveIDs;
+					targetMoveIDs.reserve(CountSelectedTargets());
 
-					for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
+					for (const auto& target : chart.Targets)
 					{
-						const auto& target = workingChart->Targets[i];
 						if (!target.IsSelected)
 							continue;
 
-						targetMoveIndices.push_back(i);
+						targetMoveIDs.push_back(target.ID);
 						if (const auto movedTick = (target.Tick + dragTickIncrement); movedTick == cursorTick)
 							PlaySingleTargetButtonSoundAndAnimation(target.Type, movedTick);
 					}
 
-					undoManager.Execute<MoveTargetListTicks>(*workingChart, std::move(targetMoveIndices), dragTickIncrement);
+					undoManager.Execute<MoveTargetListTicks>(chart, std::move(targetMoveIDs), dragTickIncrement);
 				}
 			}
 		}
@@ -1274,14 +1271,14 @@ namespace Comfy::Studio::Editor
 			if (Gui::IsKeyPressed(keyCode, false))
 			{
 				if (Gui::GetIO().KeyShift && rangeSelection.IsActive && rangeSelection.HasEnd)
-					FillInRangeSelectionTargets(buttonType);
+					FillInRangeSelectionTargets(undoManager, *workingChart, buttonType);
 				else
-					PlaceOrRemoveTarget(RoundTickToGrid(GetCursorTick()), buttonType);
+					PlaceOrRemoveTarget(undoManager, *workingChart, RoundTickToGrid(GetCursorTick()), buttonType);
 			}
 		}
 
 		if (Gui::IsKeyPressed(KeyBindings::DeleteSelection, false))
-			RemoveAllSelectedTargets();
+			RemoveAllSelectedTargets(undoManager, *workingChart);
 	}
 
 	void TargetTimeline::UpdateInputContextMenu()
@@ -1363,7 +1360,7 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 
 			if (Gui::MenuItem("Toggle Target Holds", Input::GetKeyCodeName(KeyBindings::ToggleTargetHolds), nullptr, (selectionCount > 0)))
-				ToggleSelectedTargetsHolds(*workingChart);
+				ToggleSelectedTargetsHolds(undoManager, *workingChart);
 
 			if (Gui::BeginMenu("Modify Targets", (selectionCount > 0)))
 			{
@@ -1398,11 +1395,11 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 
 			if (Gui::MenuItem("Cut", "Ctrl + X", nullptr, (selectionCount > 0)))
-				ClipboardCutSelection();
+				ClipboardCutSelection(undoManager, *workingChart);
 			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0)))
-				ClipboardCopySelection();
+				ClipboardCopySelection(undoManager, *workingChart);
 			if (Gui::MenuItem("Paste", "Ctrl + V", nullptr, true))
-				ClipboardPasteSelection();
+				ClipboardPasteSelection(undoManager, *workingChart);
 
 			Gui::Separator();
 
@@ -1429,7 +1426,7 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 
 			if (Gui::MenuItem("Remove Targets", "Del", nullptr, (selectionCount > 0)))
-				RemoveAllSelectedTargets(selectionCount);
+				RemoveAllSelectedTargets(undoManager, *workingChart, selectionCount);
 
 			Gui::EndPopup();
 		}
@@ -1523,7 +1520,7 @@ namespace Comfy::Studio::Editor
 			[](const auto& t) { return t.IsSelected; });
 	}
 
-	void TargetTimeline::ToggleSelectedTargetsHolds(Chart& chart)
+	void TargetTimeline::ToggleSelectedTargetsHolds(Undo::UndoManager& undoManager, Chart& chart)
 	{
 		const auto selectedTargetCount = CountSelectedTargets();
 		if (selectedTargetCount < 1)
@@ -1535,14 +1532,13 @@ namespace Comfy::Studio::Editor
 		std::vector<ToggleTargetListIsHold::Data> commandData;
 		commandData.reserve(selectedTargetCount);
 
-		for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
+		for (const auto& target : workingChart->Targets)
 		{
-			const auto& target = workingChart->Targets[i];
 			if (!target.IsSelected || IsSlideButtonType(target.Type))
 				continue;
 
 			auto& data = commandData.emplace_back();
-			data.TargetIndex = i;
+			data.ID = target.ID;
 			data.NewValue = !target.Flags.IsHold;
 
 			if (target.Tick == cursorTick && target.Flags.IsHold != data.NewValue)
@@ -1556,10 +1552,10 @@ namespace Comfy::Studio::Editor
 		{
 			if (!hasAnyButtonSoundBeenPlayed)
 			{
-				const auto& frontTarget = chart.Targets[commandData.front().TargetIndex];
+				const auto& frontTarget = chart.Targets[chart.Targets.FindIndex(commandData.front().ID)];
 				for (const auto& data : commandData)
 				{
-					const auto& target = chart.Targets[data.TargetIndex];
+					const auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 					if (target.Tick != frontTarget.Tick)
 						break;
 
@@ -1664,7 +1660,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TargetTimeline::ClipboardCutSelection()
+	void TargetTimeline::ClipboardCutSelection(Undo::UndoManager& undoManager, Chart& chart)
 	{
 		const auto selectionCount = CountSelectedTargets();
 		if (selectionCount < 1)
@@ -1672,13 +1668,13 @@ namespace Comfy::Studio::Editor
 
 		std::vector<TimelineTarget> selectedTargets;
 		selectedTargets.reserve(selectionCount);
-		std::copy_if(workingChart->Targets.begin(), workingChart->Targets.end(), std::back_inserter(selectedTargets), [&](auto& t) { return t.IsSelected; });
+		std::copy_if(chart.Targets.begin(), chart.Targets.end(), std::back_inserter(selectedTargets), [&](auto& t) { return t.IsSelected; });
 
 		clipboardHelper.TimelineCopySelectedTargets(selectedTargets);
-		undoManager.Execute<CutTargetList>(*workingChart, std::move(selectedTargets));
+		undoManager.Execute<CutTargetList>(chart, std::move(selectedTargets));
 	}
 
-	void TargetTimeline::ClipboardCopySelection()
+	void TargetTimeline::ClipboardCopySelection(Undo::UndoManager& undoManager, Chart& chart)
 	{
 		const auto selectionCount = CountSelectedTargets();
 		if (selectionCount < 1)
@@ -1686,12 +1682,12 @@ namespace Comfy::Studio::Editor
 
 		std::vector<TimelineTarget> selectedTargets;
 		selectedTargets.reserve(selectionCount);
-		std::copy_if(workingChart->Targets.begin(), workingChart->Targets.end(), std::back_inserter(selectedTargets), [&](auto& t) { return t.IsSelected; });
+		std::copy_if(chart.Targets.begin(), chart.Targets.end(), std::back_inserter(selectedTargets), [&](auto& t) { return t.IsSelected; });
 
 		clipboardHelper.TimelineCopySelectedTargets(selectedTargets);
 	}
 
-	void TargetTimeline::ClipboardPasteSelection()
+	void TargetTimeline::ClipboardPasteSelection(Undo::UndoManager& undoManager, Chart& chart)
 	{
 		auto optionalPasteTargets = clipboardHelper.TimelineTryGetPasteTargets();
 		if (!optionalPasteTargets.has_value() || optionalPasteTargets->empty())
@@ -1703,7 +1699,7 @@ namespace Comfy::Studio::Editor
 		for (auto& target : pasteTargets)
 			target.Tick += baseTick;
 
-		auto targetAlreadyExists = [&](const auto& t) { return (workingChart->Targets.FindIndex(t.Tick, t.Type) > -1); };
+		auto targetAlreadyExists = [&](const auto& t) { return (chart.Targets.FindIndex(t.Tick, t.Type) > -1); };
 		pasteTargets.erase(std::remove_if(pasteTargets.begin(), pasteTargets.end(), targetAlreadyExists), pasteTargets.end());
 
 		if (!pasteTargets.empty())
@@ -1716,11 +1712,11 @@ namespace Comfy::Studio::Editor
 					break;
 			}
 
-			undoManager.Execute<PasteTargetList>(*workingChart, std::move(pasteTargets));
+			undoManager.Execute<PasteTargetList>(chart, std::move(pasteTargets));
 		}
 	}
 
-	void TargetTimeline::FillInRangeSelectionTargets(ButtonType type)
+	void TargetTimeline::FillInRangeSelectionTargets(Undo::UndoManager& undoManager, Chart& chart, ButtonType type)
 	{
 		const auto startTick = RoundTickToGrid(std::min(rangeSelection.StartTick, rangeSelection.EndTick));
 		const auto endTick = RoundTickToGrid(std::max(rangeSelection.StartTick, rangeSelection.EndTick));
@@ -1737,7 +1733,7 @@ namespace Comfy::Studio::Editor
 		for (i32 i = 0; i < targetCount; i++)
 		{
 			const auto tick = BeatTick(startTick.Ticks() + (i * divisionTick.Ticks()));
-			if (workingChart->Targets.FindIndex(tick, type) <= -1)
+			if (chart.Targets.FindIndex(tick, type) <= -1)
 			{
 				auto& target = targets.emplace_back(tick, type);
 
@@ -1749,14 +1745,14 @@ namespace Comfy::Studio::Editor
 		if (!targets.empty())
 		{
 			PlaySingleTargetButtonSoundAndAnimation(targets.front());
-			undoManager.Execute<AddTargetList>(*workingChart, std::move(targets));
+			undoManager.Execute<AddTargetList>(chart, std::move(targets));
 		}
 	}
 
-	void TargetTimeline::PlaceOrRemoveTarget(BeatTick tick, ButtonType type)
+	void TargetTimeline::PlaceOrRemoveTarget(Undo::UndoManager& undoManager, Chart& chart, BeatTick tick, ButtonType type)
 	{
-		const auto existingTargetIndex = workingChart->Targets.FindIndex(tick, type);
-		const auto* existingTarget = IndexOrNull(existingTargetIndex, workingChart->Targets);
+		const auto existingTargetIndex = chart.Targets.FindIndex(tick, type);
+		const auto* existingTarget = IndexOrNull(existingTargetIndex, chart.Targets);
 
 		// NOTE: Double hit sound if a target gets placed in front of the cursor position.
 		//		 Keeping it this way could make it easier to notice when real time targets are not placed accurately to the beat (?)
@@ -1775,7 +1771,7 @@ namespace Comfy::Studio::Editor
 
 				if (existingTarget->Flags.SameTypeSyncCount == 1)
 				{
-					undoManager.Execute<RemoveTarget>(*workingChart, *existingTarget);
+					undoManager.Execute<RemoveTarget>(chart, *existingTarget);
 				}
 				else
 				{
@@ -1784,17 +1780,17 @@ namespace Comfy::Studio::Editor
 					for (size_t i = 0; i < existingTarget->Flags.SameTypeSyncCount; i++)
 						sameTypeSyncTargets.push_back(existingTarget[i]);
 
-					undoManager.Execute<RemoveTargetList>(*workingChart, std::move(sameTypeSyncTargets));
+					undoManager.Execute<RemoveTargetList>(chart, std::move(sameTypeSyncTargets));
 				}
 			}
 		}
 		else
 		{
-			const bool isPartOfExistingSyncPair = (workingChart->Targets.FindIndex(tick) > -1);
+			const bool isPartOfExistingSyncPair = (chart.Targets.FindIndex(tick) > -1);
 			if (buttonSoundOnSuccessfulPlacementOnly && (!GetIsPlayback() || !isPartOfExistingSyncPair))
 				PlayTargetButtonTypeSound(type);
 
-			undoManager.Execute<AddTarget>(*workingChart, TimelineTarget(tick, type));
+			undoManager.Execute<AddTarget>(chart, TimelineTarget(tick, type));
 		}
 
 		const auto buttonIndex = static_cast<size_t>(type);
@@ -1802,7 +1798,7 @@ namespace Comfy::Studio::Editor
 		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 	}
 
-	void TargetTimeline::RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount)
+	void TargetTimeline::RemoveAllSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, std::optional<size_t> preCalculatedSelectionCount)
 	{
 		const auto selectionCount = [&] { return (preCalculatedSelectionCount.has_value()) ? preCalculatedSelectionCount.value() : CountSelectedTargets(); }();
 		if (selectionCount < 1)
@@ -1812,13 +1808,13 @@ namespace Comfy::Studio::Editor
 		targetsToRemove.reserve(selectionCount);
 
 		std::copy_if(
-			workingChart->Targets.begin(),
-			workingChart->Targets.end(),
+			chart.Targets.begin(),
+			chart.Targets.end(),
 			std::back_inserter(targetsToRemove),
 			[](const auto& t) { return t.IsSelected; });
 
 		assert(targetsToRemove.size() == selectionCount);
-		undoManager.Execute<RemoveTargetList>(*workingChart, std::move(targetsToRemove));
+		undoManager.Execute<RemoveTargetList>(chart, std::move(targetsToRemove));
 	}
 
 	void TargetTimeline::MirrorSelectedTargetTypes(Undo::UndoManager& undoManager, Chart& chart)
@@ -1830,19 +1826,19 @@ namespace Comfy::Studio::Editor
 		std::vector<MirrorTargetListTypes::Data> targetData;
 		targetData.reserve(selectionCount);
 
-		for (i32 i = 0; i < static_cast<i32>(chart.Targets.size()); i++)
+		for (const auto& target : chart.Targets)
 		{
-			if (!chart.Targets[i].IsSelected)
+			if (!target.IsSelected)
 				continue;
 
-			const auto mirroredType = MirrorButtonType(chart.Targets[i].Type);
+			const auto mirroredType = MirrorButtonType(target.Type);
 
-			const auto* existingTarget = IndexOrNull(chart.Targets.FindIndex(chart.Targets[i].Tick, mirroredType), chart.Targets);
+			const auto* existingTarget = IndexOrNull(chart.Targets.FindIndex(target.Tick, mirroredType), chart.Targets);
 			if (existingTarget != nullptr && !existingTarget->IsSelected)
 				continue;
 
 			auto& data = targetData.emplace_back();
-			data.TargetIndex = i;
+			data.ID = target.ID;
 			data.NewValue = mirroredType;
 		}
 

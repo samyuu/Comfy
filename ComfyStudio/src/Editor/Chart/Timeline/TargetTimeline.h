@@ -113,7 +113,7 @@ namespace Comfy::Studio::Editor
 		void UpdateKeyboardCtrlInput();
 		void UpdateCursorKeyboardInput();
 
-		void UpdateInputSelectionDragging();
+		void UpdateInputSelectionDragging(Undo::UndoManager& undoManager, Chart& chart);
 		bool CheckIsAnySyncPairPartiallySelected() const;
 		bool CheckIsSelectionNotBlocked(BeatTick increment) const;
 
@@ -126,7 +126,7 @@ namespace Comfy::Studio::Editor
 	private:
 		size_t CountSelectedTargets() const;
 
-		void ToggleSelectedTargetsHolds(Chart& chart);
+		void ToggleSelectedTargetsHolds(Undo::UndoManager& undoManager, Chart& chart);
 
 		void SelectAllTargets(Chart& chart);
 		void DeselectAllTargets(Chart& chart);
@@ -136,16 +136,15 @@ namespace Comfy::Studio::Editor
 		void RefineTargetSelectionBySyncPairsOnly(Chart& chart);
 		void SelectAllParticallySelectedSyncPairs(Chart& chart);
 
-		void ClipboardCutSelection();
-		void ClipboardCopySelection();
-		void ClipboardPasteSelection();
+		void ClipboardCutSelection(Undo::UndoManager& undoManager, Chart& chart);
+		void ClipboardCopySelection(Undo::UndoManager& undoManager, Chart& chart);
+		void ClipboardPasteSelection(Undo::UndoManager& undoManager, Chart& chart);
 
-		void FillInRangeSelectionTargets(ButtonType type);
-		void PlaceOrRemoveTarget(BeatTick tick, ButtonType type);
+		void FillInRangeSelectionTargets(Undo::UndoManager& undoManager, Chart& chart, ButtonType type);
+		void PlaceOrRemoveTarget(Undo::UndoManager& undoManager, Chart& chart, BeatTick tick, ButtonType type);
 
-		void RemoveAllSelectedTargets(std::optional<size_t> preCalculatedSelectionCount = {});
+		void RemoveAllSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, std::optional<size_t> preCalculatedSelectionCount = {});
 
-		// TODO: Refactor all functions to explicitly take in an undoManager parameter if they perform undoable actions
 		void MirrorSelectedTargetTypes(Undo::UndoManager& undoManager, Chart& chart);
 
 	private:

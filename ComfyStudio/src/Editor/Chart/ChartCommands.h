@@ -68,7 +68,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void Undo() override { chart.Targets.Remove(target); }
-		void Redo() override { chart.Targets.Add(target); }
+		void Redo() override { target.ID = chart.Targets.Add(target); }
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
 		std::string_view GetName() const override { return "Add Target"; }
@@ -93,8 +93,8 @@ namespace Comfy::Studio::Editor
 		void Redo() override
 		{
 			// TODO: Optimizations for working on known size lists
-			for (const auto& target : targets)
-				chart.Targets.Add(target);
+			for (auto& target : targets)
+				target.ID = chart.Targets.Add(target);
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
@@ -117,11 +117,10 @@ namespace Comfy::Studio::Editor
 	class RemoveTarget : public Undo::Command
 	{
 	public:
-		// TODO: i32 targetIndex then store old properties
 		RemoveTarget(Chart& chart, TimelineTarget target) : chart(chart), target(target) {}
 
 	public:
-		void Undo() override { chart.Targets.Add(target); }
+		void Undo() override { target.ID = chart.Targets.Add(target); }
 		void Redo() override { chart.Targets.Remove(target); }
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
@@ -135,14 +134,13 @@ namespace Comfy::Studio::Editor
 	class RemoveTargetList : public Undo::Command
 	{
 	public:
-		// TODO: i32 targetIndex then store old properties
 		RemoveTargetList(Chart& chart, std::vector<TimelineTarget> targets) : chart(chart), targets(std::move(targets)) {}
 
 	public:
 		void Undo() override
 		{
 			for (auto& target : targets)
-				chart.Targets.Add(target);
+				target.ID = chart.Targets.Add(target);
 		}
 
 		void Redo() override
@@ -173,7 +171,7 @@ namespace Comfy::Studio::Editor
 	public:
 		struct Data
 		{
-			i32 TargetIndex;
+			TimelineTargetID ID;
 			ButtonType NewValue, OldValue;
 		};
 
@@ -181,26 +179,38 @@ namespace Comfy::Studio::Editor
 		ChangeTargetListTypes(Chart& chart, std::vector<Data> data)
 			: chart(chart), targetData(std::move(data))
 		{
-			auto compareIndex = [](auto& a, auto& b) { return (a.TargetIndex < b.TargetIndex); };
-			minIndex = targetData.empty() ? 0 : std::min_element(targetData.begin(), targetData.end(), compareIndex)->TargetIndex - 1;
-			maxIndex = targetData.empty() ? 0 : std::max_element(targetData.begin(), targetData.end(), compareIndex)->TargetIndex + 1;
+			minIndex = 0;
+			maxIndex = 0;
 
+			// TODO: Confirm this is working correctly
 			for (auto& data : targetData)
-				data.OldValue = chart.Targets[data.TargetIndex].Type;
+			{
+				const auto index = chart.Targets.FindIndex(data.ID);
+				minIndex = std::min(minIndex, index);
+				maxIndex = std::max(maxIndex, index);
+				data.OldValue = chart.Targets[index].Type;
+			}
+
+			minIndex = (minIndex > 0) ? (minIndex - 1) : minIndex;
+			maxIndex = (maxIndex + 1);
 		}
 
 	public:
 		void Undo() override
 		{
 			for (const auto& data : targetData)
-				chart.Targets[data.TargetIndex].Type = data.OldValue;
+				chart.Targets[chart.Targets.FindIndex(data.ID)].Type = data.OldValue;
 			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
 		}
 
 		void Redo() override
 		{
 			for (const auto& data : targetData)
-				chart.Targets[data.TargetIndex].Type = data.NewValue;
+			{
+				const auto index = chart.Targets.FindIndex(data.ID);
+				assert(index >= 0 && index < static_cast<i32>(chart.Targets.size()));
+				chart.Targets[index].Type = data.NewValue;
+			}
 			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
 		}
 
@@ -215,7 +225,7 @@ namespace Comfy::Studio::Editor
 
 			for (size_t i = 0; i < targetData.size(); i++)
 			{
-				if (targetData[i].TargetIndex != other->targetData[i].TargetIndex)
+				if (targetData[i].ID != other->targetData[i].ID)
 					return Undo::MergeResult::Failed;
 			}
 
@@ -233,7 +243,6 @@ namespace Comfy::Studio::Editor
 		i32 minIndex, maxIndex;
 	};
 
-	// BUG: Undoing doesn't work correctly because the target indices may be invalidated after resorting
 	class MirrorTargetListTypes : public ChangeTargetListTypes
 	{
 	public:
@@ -246,25 +255,36 @@ namespace Comfy::Studio::Editor
 	class MoveTargetListTicks : public Undo::Command
 	{
 	public:
-		MoveTargetListTicks(Chart& chart, std::vector<i32> indices, BeatTick tickIncrement)
-			: chart(chart), targetIndices(std::move(indices)), tickIncrement(tickIncrement)
+		MoveTargetListTicks(Chart& chart, std::vector<TimelineTargetID> ids, BeatTick tickIncrement)
+			: chart(chart), targetIDs(std::move(ids)), tickIncrement(tickIncrement)
 		{
-			minIndex = targetIndices.empty() ? 0 : *std::min_element(targetIndices.begin(), targetIndices.end()) - 1;
-			maxIndex = targetIndices.empty() ? 0 : *std::max_element(targetIndices.begin(), targetIndices.end()) + 1;
+			minIndex = 0;
+			maxIndex = 0;
+
+			// TODO: Confirm this is working correctly
+			for (const auto id : targetIDs)
+			{
+				const auto index = chart.Targets.FindIndex(id);
+				minIndex = std::min(minIndex, index);
+				maxIndex = std::max(maxIndex, index);
+			}
+
+			minIndex = (minIndex > 0) ? (minIndex - 1) : minIndex;
+			maxIndex = (maxIndex + 1);
 		}
 
 	public:
 		void Undo() override
 		{
-			for (const auto index : targetIndices)
-				chart.Targets[index].Tick -= tickIncrement;
+			for (const auto id : targetIDs)
+				chart.Targets[chart.Targets.FindIndex(id)].Tick -= tickIncrement;
 			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
 		}
 
 		void Redo() override
 		{
-			for (const auto index : targetIndices)
-				chart.Targets[index].Tick += tickIncrement;
+			for (const auto id : targetIDs)
+				chart.Targets[chart.Targets.FindIndex(id)].Tick += tickIncrement;
 			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
 		}
 
@@ -274,11 +294,11 @@ namespace Comfy::Studio::Editor
 			if (&other->chart != &chart)
 				return Undo::MergeResult::Failed;
 
-			if (!std::equal(targetIndices.begin(), targetIndices.end(), other->targetIndices.begin(), other->targetIndices.end()))
+			if (!std::equal(targetIDs.begin(), targetIDs.end(), other->targetIDs.begin(), other->targetIDs.end()))
 				return Undo::MergeResult::Failed;
 
-			for (const auto index : targetIndices)
-				chart.Targets[index].Tick -= tickIncrement;
+			for (const auto id : targetIDs)
+				chart.Targets[chart.Targets.FindIndex(id)].Tick -= tickIncrement;
 			tickIncrement += other->tickIncrement;
 
 			return Undo::MergeResult::ValueUpdated;
@@ -288,7 +308,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Chart& chart;
-		std::vector<i32> targetIndices;
+		std::vector<TimelineTargetID> targetIDs;
 		BeatTick tickIncrement;
 		i32 minIndex, maxIndex;
 	};
@@ -298,7 +318,7 @@ namespace Comfy::Studio::Editor
 	public:
 		struct Data
 		{
-			i32 TargetIndex;
+			TimelineTargetID ID;
 			bool HadProperties;
 			TargetProperties NewValue, OldValue;
 		};
@@ -309,7 +329,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (auto& data : targetData)
 			{
-				auto& target = chart.Targets[data.TargetIndex];
+				auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 				data.HadProperties = target.Flags.HasProperties;
 				data.OldValue = target.Properties;
 			}
@@ -320,7 +340,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto& data : targetData)
 			{
-				auto& target = chart.Targets[data.TargetIndex];
+				auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 				for (TargetPropertyType p = 0; p < TargetPropertyType_Count; p++)
 				{
 					if (propertyFlags & (1 << p))
@@ -336,7 +356,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto& data : targetData)
 			{
-				auto& target = chart.Targets[data.TargetIndex];
+				auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 
 				if (!data.HadProperties)
 				{
@@ -363,7 +383,7 @@ namespace Comfy::Studio::Editor
 
 			for (size_t i = 0; i < targetData.size(); i++)
 			{
-				if (targetData[i].TargetIndex != other->targetData[i].TargetIndex)
+				if (targetData[i].ID != other->targetData[i].ID)
 					return Undo::MergeResult::Failed;
 			}
 
@@ -494,7 +514,7 @@ namespace Comfy::Studio::Editor
 	public:
 		struct Data
 		{
-			i32 TargetIndex;
+			TimelineTargetID ID;
 			bool HadProperties;
 			TargetProperties OldProperties;
 		};
@@ -505,7 +525,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (auto& data : targetData)
 			{
-				const auto& target = chart.Targets[data.TargetIndex];
+				const auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 				data.HadProperties = target.Flags.HasProperties;
 				data.OldProperties = target.Properties;
 			}
@@ -516,7 +536,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto& data : targetData)
 			{
-				auto& target = chart.Targets[data.TargetIndex];
+				auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 				target.Flags.HasProperties = data.HadProperties;
 				target.Properties = data.OldProperties;
 			}
@@ -526,7 +546,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto& data : targetData)
 			{
-				auto& target = chart.Targets[data.TargetIndex];
+				auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 
 				if (target.Flags.HasProperties != newHasProperties)
 				{
@@ -554,7 +574,7 @@ namespace Comfy::Studio::Editor
 	public:
 		struct Data
 		{
-			i32 TargetIndex;
+			TimelineTargetID ID;
 			bool NewValue, OldValue;
 		};
 
@@ -564,7 +584,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (auto& data : targetData)
 			{
-				const auto& target = chart.Targets[data.TargetIndex];
+				const auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 				data.OldValue = target.Flags.IsHold;
 			}
 		}
@@ -574,7 +594,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto& data : targetData)
 			{
-				auto& target = chart.Targets[data.TargetIndex];
+				auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 				target.Flags.IsHold = data.OldValue;
 			}
 		}
@@ -583,7 +603,7 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto& data : targetData)
 			{
-				auto& target = chart.Targets[data.TargetIndex];
+				auto& target = chart.Targets[chart.Targets.FindIndex(data.ID)];
 				target.Flags.IsHold = data.NewValue;
 			}
 		}
