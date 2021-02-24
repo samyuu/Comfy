@@ -23,6 +23,103 @@ namespace Comfy::Studio::Editor
 		}
 
 		std::atomic<std::underlying_type_t<TimelineTargetID>> GlobalTimelineTargetIDCounter = {};
+
+#if COMFY_DEBUG
+		void AssertTargetListOrder(const std::vector<TimelineTarget>& targets)
+		{
+			assert(std::is_sorted(targets.begin(), targets.end(), [&](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); }));
+		}
+
+		void AssertTargetListFlags(const std::vector<TimelineTarget>& targets)
+		{
+			for (i32 targetIndex = 0; targetIndex < static_cast<i32>(targets.size());)
+			{
+				const i32 remainigTargets = static_cast<i32>(targets.size()) - (targetIndex + 1);
+				const auto& firstPairTarget = targets[targetIndex];
+
+				if (firstPairTarget.Flags.SyncPairCount == 0 || (firstPairTarget.Flags.SyncPairCount - 1) > remainigTargets)
+					assert(false);
+
+				if (firstPairTarget.Flags.SameTypeSyncCount > firstPairTarget.Flags.SyncPairCount)
+					assert(false);
+
+				if (firstPairTarget.Flags.IsSync && (firstPairTarget.Flags.SyncPairCount <= 1))
+					assert(false);
+
+				for (i32 withinPairIndex = 0; withinPairIndex < firstPairTarget.Flags.SyncPairCount; withinPairIndex++)
+				{
+					const auto& otherPairTarget = targets[targetIndex + withinPairIndex];
+					if (otherPairTarget.Flags.SyncPairCount != firstPairTarget.Flags.SyncPairCount)
+						assert(false);
+
+					if (otherPairTarget.Tick != firstPairTarget.Tick)
+						assert(false);
+
+					if (otherPairTarget.Flags.IndexWithinSyncPair != withinPairIndex)
+						assert(false);
+				}
+
+				for (i32 withinPairIndex = 0; withinPairIndex < firstPairTarget.Flags.SyncPairCount;)
+				{
+					const auto& firstSameTypeTarget = targets[targetIndex + withinPairIndex];
+
+					const i32 remainigTargetsWithinPair = static_cast<i32>(firstPairTarget.Flags.SyncPairCount - (withinPairIndex + 1));
+					if ((firstSameTypeTarget.Flags.SameTypeSyncCount - 1) > remainigTargetsWithinPair)
+						assert(false);
+
+					for (i32 withinSameTypePairIndex = 0; withinSameTypePairIndex < firstSameTypeTarget.Flags.SameTypeSyncCount; withinSameTypePairIndex++)
+					{
+						const auto& otherSameTypeTarget = targets[targetIndex + withinPairIndex + withinSameTypePairIndex];
+						if (otherSameTypeTarget.Type != firstSameTypeTarget.Type)
+							assert(false);
+
+						if (otherSameTypeTarget.Flags.SameTypeSyncIndex != withinSameTypePairIndex)
+							assert(false);
+					}
+
+					withinPairIndex += firstSameTypeTarget.Flags.SameTypeSyncCount;
+				}
+
+				if (firstPairTarget.Flags.SyncPairCount <= remainigTargets)
+				{
+					const auto& targetFollowingThisPair = targets[targetIndex + firstPairTarget.Flags.SyncPairCount];
+					if (targetFollowingThisPair.Tick == firstPairTarget.Tick)
+						assert(false);
+				}
+
+				targetIndex += firstPairTarget.Flags.SyncPairCount;
+			}
+		}
+
+		void AssertTargetIDToIndexMap(const std::vector<TimelineTarget>& targets, const std::unordered_map<TimelineTargetID, i32>& idToIndexMap)
+		{
+			if (targets.size() != idToIndexMap.size())
+				assert(false);
+
+			for (i32 index = 0; index < static_cast<i32>(targets.size()); index++)
+			{
+				const auto& target = targets[index];
+				const auto foundIDToIndexEntry = idToIndexMap.find(target.ID);
+
+				if (foundIDToIndexEntry == idToIndexMap.end())
+					assert(false);
+
+				if (foundIDToIndexEntry->second != index)
+					assert(false);
+			}
+		}
+#else
+		inline void AssertTargetListOrder(const std::vector<TimelineTarget>& targets) {}
+		inline void AssertTargetListFlags(const std::vector<TimelineTarget>& targets) {}
+		inline void AssertTargetIDToIndexMap(const std::vector<TimelineTarget>& targets, const std::unordered_map<TimelineTargetID, i32>& idToIndexMap) {}
+#endif
+
+		inline void AssertSortedTargetListEntireState(const std::vector<TimelineTarget>& targets, const std::unordered_map<TimelineTargetID, i32>& idToIndexMap)
+		{
+			AssertTargetListOrder(targets);
+			AssertTargetListFlags(targets);
+			AssertTargetIDToIndexMap(targets, idToIndexMap);
+		}
 	}
 
 	TimelineTargetID SortedTargetList::GetNextUniqueID()
@@ -49,8 +146,9 @@ namespace Comfy::Studio::Editor
 
 		UpdateTargetInternalFlagsAround(static_cast<i32>(insertionIndex));
 
-		assert(DebugFullyValidateIDToIndexMap());
-		assert(std::is_sorted(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); }));
+		// AssertTargetListOrder(targets);
+		// AssertTargetIDToIndexMap(targets, idToIndexMap);
+		AssertSortedTargetListEntireState(targets, idToIndexMap);
 
 		return newTarget.ID;
 	}
@@ -65,7 +163,7 @@ namespace Comfy::Studio::Editor
 		if (!InBounds(static_cast<size_t>(index), targets))
 			return;
 
-		assert(DebugFullyValidateIDToIndexMap());
+		AssertTargetIDToIndexMap(targets, idToIndexMap);
 
 		for (i32 i = index + 1; i < static_cast<i32>(targets.size()); i++)
 			idToIndexMap.find(targets[i].ID)->second--;
@@ -75,7 +173,7 @@ namespace Comfy::Studio::Editor
 
 		UpdateTargetInternalFlagsAround(index);
 
-		assert(DebugFullyValidateIDToIndexMap());
+		AssertTargetIDToIndexMap(targets, idToIndexMap);
 	}
 
 	i32 SortedTargetList::FindIndex(BeatTick tick) const
@@ -100,7 +198,7 @@ namespace Comfy::Studio::Editor
 #endif
 
 		assert(id != TimelineTargetID::Null);
-		assert(DebugFullyValidateIDToIndexMap());
+		AssertTargetIDToIndexMap(targets, idToIndexMap);
 
 		const auto foundIt = idToIndexMap.find(id);
 		if (foundIt == idToIndexMap.end())
@@ -117,21 +215,24 @@ namespace Comfy::Studio::Editor
 		idToIndexMap.clear();
 	}
 
-	void SortedTargetList::ExplicitlyUpdateFlagsAndSort(i32 startIndex, i32 endIndex)
+	void SortedTargetList::ExplicitlyUpdateFlagsAndSortIndexRange(i32 startIndex, i32 endIndex)
 	{
 		if (targets.empty())
 			return;
 
 		if (startIndex <= -1)
 			startIndex = 0;
+
 		if (endIndex <= -1)
 			endIndex = static_cast<i32>(targets.size());
 
-		// TODO: Is this how this should work (?)
+		startIndex = FloorIndexToSyncPairStart(startIndex);
+		endIndex = CeilIndexToSyncPairEnd(endIndex);
+
 		std::sort(
 			std::clamp(targets.begin() + startIndex, targets.begin(), targets.end()),
 			std::clamp(targets.begin() + endIndex, targets.begin(), targets.end()),
-			[&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
+			[&](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
 
 		for (i32 i = startIndex; i <= endIndex; i++)
 		{
@@ -141,7 +242,29 @@ namespace Comfy::Studio::Editor
 
 		UpdateTargetInternalFlagsInRange(startIndex, endIndex);
 
-		assert(DebugFullyValidateIDToIndexMap());
+		// AssertTargetListFlags(targets);
+		// AssertTargetIDToIndexMap(targets, idToIndexMap);
+		AssertSortedTargetListEntireState(targets, idToIndexMap);
+	}
+
+	void SortedTargetList::ExplicitlyUpdateFlagsAndSortTickRange(BeatTick startTick, BeatTick endTick)
+	{
+		if (targets.empty())
+			return;
+
+		i32 startIndex = -1, endIndex = -1;
+		for (i32 i = 0; i < static_cast<i32>(targets.size()); i++)
+		{
+			if (targets[i].Tick <= startTick)
+				startIndex = i;
+			if (targets[i].Tick <= endTick)
+				endIndex = i;
+		}
+
+		startIndex = std::max(startIndex - 1, 0);
+		endIndex = std::min(endIndex + 1, static_cast<i32>(targets.size() - 1));
+
+		ExplicitlyUpdateFlagsAndSortIndexRange(startIndex, endIndex);
 	}
 
 	void SortedTargetList::operator=(std::vector<TimelineTarget>&& newTargets)
@@ -157,7 +280,7 @@ namespace Comfy::Studio::Editor
 			idToIndexMap[targets[i].ID = GetNextUniqueID()] = i;
 		}
 
-		std::sort(targets.begin(), targets.end(), [&](const auto& a, const auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
+		std::sort(targets.begin(), targets.end(), [&](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
 		UpdateTargetInternalFlagsInRange();
 	}
 
@@ -341,25 +464,5 @@ namespace Comfy::Studio::Editor
 			back.Flags.IsChainEnd = true;
 
 		slideTargetBuffer.clear();
-	}
-
-	bool SortedTargetList::DebugFullyValidateIDToIndexMap() const
-	{
-		if (targets.size() != idToIndexMap.size())
-			return false;
-
-		for (i32 index = 0; index < static_cast<i32>(targets.size()); index++)
-		{
-			const auto& target = targets[index];
-			const auto foundIDToIndexEntry = idToIndexMap.find(target.ID);
-
-			if (foundIDToIndexEntry == idToIndexMap.end())
-				return false;
-
-			if (foundIDToIndexEntry->second != index)
-				return false;
-		}
-
-		return true;
 	}
 }

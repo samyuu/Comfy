@@ -1144,7 +1144,7 @@ namespace Comfy::Studio::Editor
 							PlaySingleTargetButtonSoundAndAnimation(target.Type, movedTick);
 					}
 
-					undoManager.Execute<MoveTargetListTicks>(chart, std::move(targetMoveIDs), dragTickIncrement);
+					undoManager.Execute<IncrementTargetListTicks>(chart, std::move(targetMoveIDs), dragTickIncrement);
 				}
 			}
 		}

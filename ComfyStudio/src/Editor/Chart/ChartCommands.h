@@ -179,20 +179,15 @@ namespace Comfy::Studio::Editor
 		ChangeTargetListTypes(Chart& chart, std::vector<Data> data)
 			: chart(chart), targetData(std::move(data))
 		{
-			minIndex = 0;
-			maxIndex = 0;
-
-			// TODO: Confirm this is working correctly
 			for (auto& data : targetData)
-			{
-				const auto index = chart.Targets.FindIndex(data.ID);
-				minIndex = std::min(minIndex, index);
-				maxIndex = std::max(maxIndex, index);
-				data.OldValue = chart.Targets[index].Type;
-			}
+				data.OldValue = chart.Targets[chart.Targets.FindIndex(data.ID)].Type;
 
-			minIndex = (minIndex > 0) ? (minIndex - 1) : minIndex;
-			maxIndex = (maxIndex + 1);
+			if (!targetData.empty())
+			{
+				auto idToTick = [&chart](TimelineTargetID id) { return chart.Targets[chart.Targets.FindIndex(id)].Tick; };
+				const auto[minTick, maxTick] = std::minmax_element(targetData.begin(), targetData.end(), [&idToTick](auto& dataA, auto& dataB) { return idToTick(dataA.ID) < idToTick(dataB.ID); });
+				minMaxTick = { idToTick(minTick->ID), idToTick(maxTick->ID) };
+			}
 		}
 
 	public:
@@ -200,18 +195,16 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto& data : targetData)
 				chart.Targets[chart.Targets.FindIndex(data.ID)].Type = data.OldValue;
-			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
+			if (!targetData.empty())
+				chart.Targets.ExplicitlyUpdateFlagsAndSortTickRange(minMaxTick[0], minMaxTick[1]);
 		}
 
 		void Redo() override
 		{
 			for (const auto& data : targetData)
-			{
-				const auto index = chart.Targets.FindIndex(data.ID);
-				assert(index >= 0 && index < static_cast<i32>(chart.Targets.size()));
-				chart.Targets[index].Type = data.NewValue;
-			}
-			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
+				chart.Targets[chart.Targets.FindIndex(data.ID)].Type = data.NewValue;
+			if (!targetData.empty())
+				chart.Targets.ExplicitlyUpdateFlagsAndSortTickRange(minMaxTick[0], minMaxTick[1]);
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -240,7 +233,7 @@ namespace Comfy::Studio::Editor
 	private:
 		Chart& chart;
 		std::vector<Data> targetData;
-		i32 minIndex, maxIndex;
+		std::array<BeatTick, 2> minMaxTick;
 	};
 
 	class MirrorTargetListTypes : public ChangeTargetListTypes
@@ -252,25 +245,20 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Mirror Target Types"; }
 	};
 
-	class MoveTargetListTicks : public Undo::Command
+	class IncrementTargetListTicks : public Undo::Command
 	{
 	public:
-		MoveTargetListTicks(Chart& chart, std::vector<TimelineTargetID> ids, BeatTick tickIncrement)
+		IncrementTargetListTicks(Chart& chart, std::vector<TimelineTargetID> ids, BeatTick tickIncrement)
 			: chart(chart), targetIDs(std::move(ids)), tickIncrement(tickIncrement)
 		{
-			minIndex = 0;
-			maxIndex = 0;
-
-			// TODO: Confirm this is working correctly
-			for (const auto id : targetIDs)
+			if (!targetIDs.empty())
 			{
-				const auto index = chart.Targets.FindIndex(id);
-				minIndex = std::min(minIndex, index);
-				maxIndex = std::max(maxIndex, index);
-			}
+				auto idToTick = [&chart](TimelineTargetID id) { return chart.Targets[chart.Targets.FindIndex(id)].Tick; };
+				const auto[minTick, maxTick] = std::minmax_element(targetIDs.begin(), targetIDs.end(), [&idToTick](auto& idA, auto& idB) { return idToTick(idA) < idToTick(idB); });
 
-			minIndex = (minIndex > 0) ? (minIndex - 1) : minIndex;
-			maxIndex = (maxIndex + 1);
+				const auto absTickIncrement = BeatTick::FromTicks(glm::abs(tickIncrement.Ticks()));
+				minMaxTick = { idToTick(*minTick) - absTickIncrement, idToTick(*maxTick) + absTickIncrement };
+			}
 		}
 
 	public:
@@ -278,14 +266,16 @@ namespace Comfy::Studio::Editor
 		{
 			for (const auto id : targetIDs)
 				chart.Targets[chart.Targets.FindIndex(id)].Tick -= tickIncrement;
-			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
+			if (!targetIDs.empty())
+				chart.Targets.ExplicitlyUpdateFlagsAndSortTickRange(minMaxTick[0], minMaxTick[1]);
 		}
 
 		void Redo() override
 		{
 			for (const auto id : targetIDs)
 				chart.Targets[chart.Targets.FindIndex(id)].Tick += tickIncrement;
-			chart.Targets.ExplicitlyUpdateFlagsAndSort(minIndex, maxIndex);
+			if (!targetIDs.empty())
+				chart.Targets.ExplicitlyUpdateFlagsAndSortTickRange(minMaxTick[0], minMaxTick[1]);
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -301,6 +291,9 @@ namespace Comfy::Studio::Editor
 				chart.Targets[chart.Targets.FindIndex(id)].Tick -= tickIncrement;
 			tickIncrement += other->tickIncrement;
 
+			const auto absTickIncrement = BeatTick::FromTicks(glm::abs(other->tickIncrement.Ticks()));
+			minMaxTick = { minMaxTick[0] - absTickIncrement, minMaxTick[1] + absTickIncrement };
+
 			return Undo::MergeResult::ValueUpdated;
 		}
 
@@ -310,7 +303,7 @@ namespace Comfy::Studio::Editor
 		Chart& chart;
 		std::vector<TimelineTargetID> targetIDs;
 		BeatTick tickIncrement;
-		i32 minIndex, maxIndex;
+		std::array<BeatTick, 2> minMaxTick;
 	};
 
 	class ChangeTargetListProperties : public Undo::Command

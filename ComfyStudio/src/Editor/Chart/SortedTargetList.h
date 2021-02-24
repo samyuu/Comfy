@@ -186,7 +186,8 @@ namespace Comfy::Studio::Editor
 
 		void Clear();
 
-		void ExplicitlyUpdateFlagsAndSort(i32 startIndex = -1, i32 endIndex = -1);
+		void ExplicitlyUpdateFlagsAndSortIndexRange(i32 startIndex = -1, i32 endIndex = -1);
+		void ExplicitlyUpdateFlagsAndSortTickRange(BeatTick startTick, BeatTick endTick);
 
 	public:
 		auto begin() { return targets.begin(); }
@@ -223,8 +224,6 @@ namespace Comfy::Studio::Editor
 
 		void UpdateChainFlagsInRange(i32 startIndex, i32 endIndex);
 		void UpdateChainFlagsForDirection(i32 startIndex, i32 endIndex, ButtonType slideDirection);
-
-		bool DebugFullyValidateIDToIndexMap() const;
 
 	private:
 		std::vector<TimelineTarget> targets;
