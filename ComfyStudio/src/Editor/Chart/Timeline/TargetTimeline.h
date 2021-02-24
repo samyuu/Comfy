@@ -146,6 +146,7 @@ namespace Comfy::Studio::Editor
 		void RemoveAllSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, std::optional<size_t> preCalculatedSelectionCount = {});
 
 		void MirrorSelectedTargetTypes(Undo::UndoManager& undoManager, Chart& chart);
+		void CompressOrExpandSelectedTargetTimes(Undo::UndoManager& undoManager, Chart& chart, std::array<i32, 2> ratio);
 
 	private:
 		void PlayTargetButtonTypeSound(ButtonType type);

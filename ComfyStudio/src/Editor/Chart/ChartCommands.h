@@ -308,6 +308,24 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Move Targets"; }
 	};
 
+	class CompressTargetListTicks : public ChangeTargetListTicks
+	{
+	public:
+		using ChangeTargetListTicks::ChangeTargetListTicks;
+
+	public:
+		std::string_view GetName() const override { return "Compress Target Times"; }
+	};
+
+	class ExpandTargetListTicks : public ChangeTargetListTicks
+	{
+	public:
+		using ChangeTargetListTicks::ChangeTargetListTicks;
+
+	public:
+		std::string_view GetName() const override { return "Expand Target Times"; }
+	};
+
 	class ChangeTargetListProperties : public Undo::Command
 	{
 	public:

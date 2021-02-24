@@ -1370,27 +1370,27 @@ namespace Comfy::Studio::Editor
 				if (Gui::MenuItem("Mirror Types"))
 					MirrorSelectedTargetTypes(undoManager, *workingChart);
 
-#if 0 // TODO: Implement, refine and come up with additional options
-				if (Gui::MenuItem("Randomize Types"))
-				{
-				}
-
 				if (Gui::BeginMenu("Expand Time"))
 				{
-					if (Gui::MenuItem("2:1 (8th to 4th)")) {}
-					if (Gui::MenuItem("3:2 (12th to 8th)")) {}
-					if (Gui::MenuItem("4:3 (16th to 12th)")) {}
+					if (Gui::MenuItem("2:1 (8th to 4th)"))
+						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 2, 1 });
+					if (Gui::MenuItem("3:2 (12th to 8th)"))
+						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 3, 2 });
+					if (Gui::MenuItem("4:3 (16th to 12th)"))
+						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 4, 3 });
 					Gui::EndMenu();
 				}
 
 				if (Gui::BeginMenu("Compress Time"))
 				{
-					if (Gui::MenuItem("1:2 (4th to 8th)")) {}
-					if (Gui::MenuItem("2:3 (8th to 12th)")) {}
-					if (Gui::MenuItem("3:4 (12th to 16th)")) {}
+					if (Gui::MenuItem("1:2 (4th to 8th)"))
+						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 1, 2 });
+					if (Gui::MenuItem("2:3 (8th to 12th)"))
+						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 2, 3 });
+					if (Gui::MenuItem("3:4 (12th to 16th)"))
+						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 3, 4 });
 					Gui::EndMenu();
 				}
-#endif
 
 				Gui::EndMenu();
 			}
@@ -1849,6 +1849,42 @@ namespace Comfy::Studio::Editor
 		{
 			undoManager.DisallowMergeForLastCommand();
 			undoManager.Execute<MirrorTargetListTypes>(chart, std::move(targetData));
+		}
+	}
+
+	void TargetTimeline::CompressOrExpandSelectedTargetTimes(Undo::UndoManager& undoManager, Chart& chart, std::array<i32, 2> ratio)
+	{
+		assert(ratio[0] > 0 && ratio[1] > 0 && ratio[0] != ratio[1]);
+
+		const size_t selectionCount = CountSelectedTargets();
+		if (selectionCount < 1)
+			return;
+
+		std::optional<BeatTick> firstTick = {};
+
+		std::vector<ChangeTargetListTicks::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (const auto& target : chart.Targets)
+		{
+			if (!target.IsSelected)
+				continue;
+
+			if (!firstTick.has_value())
+				firstTick = target.Tick;
+
+			auto& data = targetData.emplace_back();
+			data.ID = target.ID;
+			data.NewValue = (((target.Tick - *firstTick) / ratio[1]) * ratio[0]) + *firstTick;
+		}
+
+		if (!targetData.empty())
+		{
+			undoManager.DisallowMergeForLastCommand();
+			if (ratio[0] < ratio[1])
+				undoManager.Execute<CompressTargetListTicks>(chart, std::move(targetData));
+			else
+				undoManager.Execute<ExpandTargetListTicks>(chart, std::move(targetData));
 		}
 	}
 
