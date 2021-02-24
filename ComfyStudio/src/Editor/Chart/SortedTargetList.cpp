@@ -27,7 +27,7 @@ namespace Comfy::Studio::Editor
 #if COMFY_DEBUG
 		void AssertTargetListOrder(const std::vector<TimelineTarget>& targets)
 		{
-			assert(std::is_sorted(targets.begin(), targets.end(), [&](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); }));
+			assert(std::is_sorted(targets.begin(), targets.end(), [](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); }));
 		}
 
 		void AssertTargetListFlags(const std::vector<TimelineTarget>& targets)
@@ -215,6 +215,11 @@ namespace Comfy::Studio::Editor
 		idToIndexMap.clear();
 	}
 
+	void SortedTargetList::ExplicitlyUpdateFlagsAndSortEverything()
+	{
+		ExplicitlyUpdateFlagsAndSortIndexRange(-1, -1);
+	}
+
 	void SortedTargetList::ExplicitlyUpdateFlagsAndSortIndexRange(i32 startIndex, i32 endIndex)
 	{
 		if (targets.empty())
@@ -223,7 +228,7 @@ namespace Comfy::Studio::Editor
 		if (startIndex <= -1)
 			startIndex = 0;
 
-		if (endIndex <= -1)
+		if (endIndex <= -1 || endIndex > targets.size())
 			endIndex = static_cast<i32>(targets.size());
 
 		startIndex = FloorIndexToSyncPairStart(startIndex);
@@ -245,26 +250,6 @@ namespace Comfy::Studio::Editor
 		// AssertTargetListFlags(targets);
 		// AssertTargetIDToIndexMap(targets, idToIndexMap);
 		AssertSortedTargetListEntireState(targets, idToIndexMap);
-	}
-
-	void SortedTargetList::ExplicitlyUpdateFlagsAndSortTickRange(BeatTick startTick, BeatTick endTick)
-	{
-		if (targets.empty())
-			return;
-
-		i32 startIndex = -1, endIndex = -1;
-		for (i32 i = 0; i < static_cast<i32>(targets.size()); i++)
-		{
-			if (targets[i].Tick <= startTick)
-				startIndex = i;
-			if (targets[i].Tick <= endTick)
-				endIndex = i;
-		}
-
-		startIndex = std::max(startIndex - 1, 0);
-		endIndex = std::min(endIndex + 1, static_cast<i32>(targets.size() - 1));
-
-		ExplicitlyUpdateFlagsAndSortIndexRange(startIndex, endIndex);
 	}
 
 	void SortedTargetList::operator=(std::vector<TimelineTarget>&& newTargets)

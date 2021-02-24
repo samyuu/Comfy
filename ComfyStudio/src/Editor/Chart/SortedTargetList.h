@@ -186,8 +186,8 @@ namespace Comfy::Studio::Editor
 
 		void Clear();
 
-		void ExplicitlyUpdateFlagsAndSortIndexRange(i32 startIndex = -1, i32 endIndex = -1);
-		void ExplicitlyUpdateFlagsAndSortTickRange(BeatTick startTick, BeatTick endTick);
+		void ExplicitlyUpdateFlagsAndSortEverything();
+		void ExplicitlyUpdateFlagsAndSortIndexRange(i32 startIndex, i32 endIndex);
 
 	public:
 		auto begin() { return targets.begin(); }

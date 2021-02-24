@@ -1131,20 +1131,23 @@ namespace Comfy::Studio::Editor
 				{
 					selectionDrag.TicksMovedSoFar -= dragTickIncrement;
 
-					std::vector<TimelineTargetID> targetMoveIDs;
-					targetMoveIDs.reserve(CountSelectedTargets());
+					std::vector<IncrementTargetListTicks::Data> targetData;
+					targetData.reserve(CountSelectedTargets());
 
 					for (const auto& target : chart.Targets)
 					{
 						if (!target.IsSelected)
 							continue;
 
-						targetMoveIDs.push_back(target.ID);
-						if (const auto movedTick = (target.Tick + dragTickIncrement); movedTick == cursorTick)
-							PlaySingleTargetButtonSoundAndAnimation(target.Type, movedTick);
+						auto& data = targetData.emplace_back();
+						data.ID = target.ID;
+						data.NewValue = target.Tick + dragTickIncrement;
+
+						if (data.NewValue == cursorTick)
+							PlaySingleTargetButtonSoundAndAnimation(target.Type, data.NewValue);
 					}
 
-					undoManager.Execute<IncrementTargetListTicks>(chart, std::move(targetMoveIDs), dragTickIncrement);
+					undoManager.Execute<IncrementTargetListTicks>(chart, std::move(targetData));
 				}
 			}
 		}
