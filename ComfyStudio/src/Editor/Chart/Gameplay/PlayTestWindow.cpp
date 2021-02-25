@@ -35,9 +35,9 @@ namespace Comfy::Studio::Editor
 		core.OverlayGui();
 	}
 
-	bool PlayTestWindow::ExitRequestedThisFrame()
+	PlayTestExitType PlayTestWindow::GetAndClearExitRequestThisFrame()
 	{
-		return core.ExitRequestedThisFrame();
+		return core.GetAndClearExitRequestThisFrame();
 	}
 
 	void PlayTestWindow::SetWorkingChart(Chart* chart)

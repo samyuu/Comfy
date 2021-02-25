@@ -15,6 +15,13 @@
 
 namespace Comfy::Studio::Editor
 {
+	enum class PlayTestExitType : u8
+	{
+		None,
+		ReturnCurrentTime,
+		ReturnPrePlayTestTime,
+	};
+
 	struct PlayTestContext
 	{
 		Render::Camera2D Camera = {};
@@ -50,7 +57,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void ExclusiveGui();
-		bool ExitRequestedThisFrame();
+		PlayTestExitType GetAndClearExitRequestThisFrame();
 
 		void SetWorkingChart(Chart* chart);
 		void Restart(TimeSpan startTime);
@@ -72,7 +79,5 @@ namespace Comfy::Studio::Editor
 
 		ImRect windowRect = {}, renderRegionRect = {};
 		std::optional<Gui::CheckerboardTexture> windowBackgroundCheckerboard;
-
-		bool exitRequestedThisFrame = false;
 	};
 }

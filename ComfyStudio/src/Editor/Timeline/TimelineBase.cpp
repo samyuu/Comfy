@@ -113,6 +113,18 @@ namespace Comfy::Studio::Editor
 		SetScrollX(GetScrollX() + postPosition - prePosition);
 	}
 
+	void TimelineBase::CenterCursor()
+	{
+		const float center = GetCursorTimelinePosition() - (timelineContentRegion.GetWidth() / 2.0f);
+		SetScrollX(center);
+	}
+
+	bool TimelineBase::IsCursorOnScreen() const
+	{
+		const auto cursorPosition = GetCursorTimelinePosition() - GetScrollX();
+		return cursorPosition >= 0.0f && cursorPosition <= timelineContentRegion.GetWidth();
+	}
+
 	void TimelineBase::UpdateInfoColumnInput()
 	{
 		const auto& io = Gui::GetIO();
@@ -237,18 +249,6 @@ namespace Comfy::Studio::Editor
 			if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
 				autoScrollCursorEnabled = true;
 		}
-	}
-
-	void TimelineBase::CenterCursor()
-	{
-		const float center = GetCursorTimelinePosition() - (timelineContentRegion.GetWidth() / 2.0f);
-		SetScrollX(center);
-	}
-
-	bool TimelineBase::IsCursorOnScreen() const
-	{
-		const auto cursorPosition = GetCursorTimelinePosition() - GetScrollX();
-		return cursorPosition >= 0.0f && cursorPosition <= timelineContentRegion.GetWidth();
 	}
 
 	void TimelineBase::UpdateAllInput()

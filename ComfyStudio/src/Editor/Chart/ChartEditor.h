@@ -92,7 +92,7 @@ namespace Comfy::Studio::Editor
 
 		PlayTestWindow& GetOrCreatePlayTestWindow();
 		void StartPlaytesting(bool startFromCursor);
-		void StopPlaytesting();
+		void StopPlaytesting(PlayTestExitType exitType);
 
 	private:
 		bool applicationExitRequested = false;
@@ -142,5 +142,6 @@ namespace Comfy::Studio::Editor
 		bool isPlaying = false;
 		TimeSpan playbackTimeOnPlaybackStart = {};
 		TimeSpan playbackTimeOnPlaytestStart = {};
+		f32 timelineScrollXOnPlaytestStart = {};
 	};
 }

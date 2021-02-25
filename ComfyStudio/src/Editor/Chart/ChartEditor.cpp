@@ -182,13 +182,17 @@ namespace Comfy::Studio::Editor
 			Gui::EndMenu();
 		}
 
-#if COMFY_DEBUG || 1 // TODO:
-		static bool debugPopupPlaytestWindow = false;
-		if (debugPopupPlaytestWindow)
+		constexpr bool debugPopupPlaytestWindowEnabled = false;
+		static bool debugPopupPlaytestWindowOpen = false;
+
+		if constexpr (debugPopupPlaytestWindowEnabled)
 		{
-			if (Gui::Begin("Popout Playtest Window (Debug)", &debugPopupPlaytestWindow, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking)))
-				OnExclusiveGui();
-			Gui::End();
+			if (debugPopupPlaytestWindowOpen)
+			{
+				if (Gui::Begin("Popout Playtest Window (Debug)", &debugPopupPlaytestWindowOpen, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking)))
+					OnExclusiveGui();
+				Gui::End();
+			}
 		}
 
 		if (Gui::BeginMenu("Playtest"))
@@ -204,13 +208,11 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Autoplay Enabled", nullptr, &autoplayEnabled))
 				GetOrCreatePlayTestWindow().SetAutoplayEnabled(autoplayEnabled);
 
-#if COMFY_DEBUG && 0
-			if (Gui::MenuItem("Popout Playtest Window (Debug)", nullptr, &debugPopupPlaytestWindow)) {}
-#endif
+			if constexpr (debugPopupPlaytestWindowEnabled)
+				Gui::MenuItem("Popout Playtest Window (Debug)", nullptr, &debugPopupPlaytestWindowOpen);
 
 			Gui::EndMenu();
 		}
-#endif
 	}
 
 	void ChartEditor::OnEditorComponentMadeActive()
@@ -223,7 +225,7 @@ namespace Comfy::Studio::Editor
 		if (undoManager.GetHasPendingChanged())
 		{
 			if (parentApplication.GetExclusiveFullscreenGui())
-				StopPlaytesting();
+				StopPlaytesting(PlayTestExitType::ReturnCurrentTime);
 
 			applicationExitRequested = true;
 			return ApplicationHostCloseResponse::SupressExit;
@@ -239,8 +241,8 @@ namespace Comfy::Studio::Editor
 		auto& playTestWindow = GetOrCreatePlayTestWindow();
 		playTestWindow.ExclusiveGui();
 
-		if (playTestWindow.ExitRequestedThisFrame())
-			StopPlaytesting();
+		if (const auto exitType = playTestWindow.GetAndClearExitRequestThisFrame(); exitType != PlayTestExitType::None)
+			StopPlaytesting(exitType);
 	}
 
 	bool ChartEditor::OpenLoadAudioFileDialog()
@@ -818,6 +820,7 @@ namespace Comfy::Studio::Editor
 	{
 		PausePlayback();
 		playbackTimeOnPlaytestStart = GetPlaybackTimeAsync();
+		timelineScrollXOnPlaytestStart = timeline->GetScrollX();
 
 		parentApplication.SetExclusiveFullscreenGui(true);
 		const auto cursorTime = std::max(timeline->TickToTime(timeline->TimeToTick(playbackTimeOnPlaytestStart) - BeatTick::FromBars(1)), TimeSpan::Zero());
@@ -826,13 +829,22 @@ namespace Comfy::Studio::Editor
 		playTestWindow.Restart(startFromCursor ? cursorTime : TimeSpan::Zero());
 	}
 
-	void ChartEditor::StopPlaytesting()
+	void ChartEditor::StopPlaytesting(PlayTestExitType exitType)
 	{
+		assert(exitType != PlayTestExitType::None);
 		parentApplication.SetExclusiveFullscreenGui(false);
 
-		// TODO: Option to continue at playtest replay point (?)
 		PausePlayback();
-		timeline->SetCursorTime(playbackTimeOnPlaytestStart);
+		if (exitType == PlayTestExitType::ReturnCurrentTime)
+		{
+			timeline->SetCursorTime(GetPlaybackTimeAsync());
+			timeline->CenterCursor();
+		}
+		else if (exitType == PlayTestExitType::ReturnPrePlayTestTime)
+		{
+			timeline->SetCursorTime(playbackTimeOnPlaytestStart);
+			timeline->SetScrollX(timelineScrollXOnPlaytestStart);
+		}
 	}
 
 	bool ChartEditor::GetIsPlayback() const

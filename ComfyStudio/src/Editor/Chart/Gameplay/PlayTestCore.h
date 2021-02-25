@@ -5,6 +5,7 @@
 
 namespace Comfy::Studio::Editor
 {
+	enum class PlayTestExitType : u8;
 	class PlayTestWindow;
 	struct PlayTestContext;
 	struct PlayTestSharedContext;
@@ -18,7 +19,7 @@ namespace Comfy::Studio::Editor
 	public:
 		void UpdateTick();
 		void OverlayGui();
-		bool ExitRequestedThisFrame();
+		PlayTestExitType GetAndClearExitRequestThisFrame();
 		void Restart(TimeSpan startTime);
 
 		bool GetAutoplayEnabled() const;

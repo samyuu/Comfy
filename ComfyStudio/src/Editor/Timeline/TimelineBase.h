@@ -41,7 +41,7 @@ namespace Comfy::Studio::Editor
 		inline float GetMaxScrollY() const { return maxScroll.y; }
 		inline float GetScrollY() const { return scroll.y; }
 
-	protected:
+	public:
 		void SetZoomCenteredAroundCursor(float newZoom);
 		void SetZoomCenteredAroundTime(float newZoom, TimeSpan timeToCenter);
 
@@ -49,6 +49,9 @@ namespace Comfy::Studio::Editor
 
 		inline void SetMaxScrollY(float value) { maxScroll.y = value; }
 		inline void SetScrollY(float value) { scroll.y = value; }
+
+		virtual void CenterCursor();
+		virtual bool IsCursorOnScreen() const;
 
 	protected:
 		TimeSpan cursorTime = {};
@@ -154,9 +157,6 @@ namespace Comfy::Studio::Editor
 
 		virtual float GetTimelineSize() const = 0;
 		virtual float GetTimelineHeight() const { return 0.0f; }
-
-		virtual void CenterCursor();
-		virtual bool IsCursorOnScreen() const;
 
 	private:
 		vec2 scroll = vec2(0.0f, 0.0f);

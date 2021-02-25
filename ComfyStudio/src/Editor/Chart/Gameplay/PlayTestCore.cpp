@@ -419,10 +419,15 @@ namespace Comfy::Studio::Editor
 					MoveResetPointBackward();
 
 				Gui::Separator();
-				Gui::MenuItem("Autoplay Enabled", Input::GetKeyCodeName(Input::KeyCode_F1), &autoplayEnabled);
 
-				if (Gui::MenuItem("Return to Editor", Input::GetKeyCodeName(Input::KeyCode_Escape)))
-					FadeOutThenExit();
+				Gui::MenuItem("Autoplay Enabled", Input::GetKeyCodeName(Input::KeyCode_F1), &autoplayEnabled);
+				Gui::Separator();
+
+				if (Gui::MenuItem("Return to Editor (Current)", Input::GetKeyCodeName(Input::KeyCode_Escape)))
+					FadeOutThenExit(PlayTestExitType::ReturnCurrentTime);
+
+				if (Gui::MenuItem("Return to Editor (Pre Playtest)", "Shift + Escape"))
+					FadeOutThenExit(PlayTestExitType::ReturnPrePlayTestTime);
 
 #if COMFY_DEBUG
 				Gui::Separator();
@@ -444,18 +449,18 @@ namespace Comfy::Studio::Editor
 			if (auto delta = Gui::GetIO().MouseDelta; delta.x != 0.0f || delta.y != 0.0f)
 				mouseHide.LastMovementStopwatch.Restart();
 
-			if (!contextMenuOpen && Gui::IsWindowHovered())
+			if (!contextMenuOpen && Gui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
 			{
 				if (mouseHide.LastMovementStopwatch.GetElapsed() > mouseHide.AutoHideThreshold)
 					Gui::SetMouseCursor(ImGuiMouseCursor_None);
 			}
 		}
 
-		bool ExitRequestedThisFrame()
+		PlayTestExitType GetAndClearExitRequestThisFrame()
 		{
-			const bool result = exitRequestedThisFrame;
-			exitRequestedThisFrame = false;
-			return result;
+			const auto exitRequest = exitRequestThisFrame;
+			exitRequestThisFrame = PlayTestExitType::None;
+			return exitRequest;
 		}
 
 		void Restart(TimeSpan startTime)
@@ -491,7 +496,7 @@ namespace Comfy::Studio::Editor
 				return;
 
 			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
-				FadeOutThenExit();
+				FadeOutThenExit(Gui::GetIO().KeyShift ? PlayTestExitType::ReturnPrePlayTestTime : PlayTestExitType::ReturnCurrentTime);
 
 			if (Gui::IsKeyPressed(Input::KeyCode_F1, false))
 				SetAutoplayEnabled(!GetAutoplayEnabled());
@@ -628,6 +633,7 @@ namespace Comfy::Studio::Editor
 						if (events[i].EventType == PlayTestHoldEventType::MaxOut)
 							break;
 
+						// TODO: Or always use PlaybackTime..?
 						auto getEventTime = [](const PlayTestHoldEvent& e) { return (e.SyncPair != nullptr) ? e.SyncPair->ButtonTime : e.PlaybackTime; };
 						const auto endTime = (i + 1 == events.size()) ? playbackTime : getEventTime(events[i + 1]);
 
@@ -1003,7 +1009,7 @@ namespace Comfy::Studio::Editor
 
 				if (elapsed > fadeInOut.OutDuration)
 				{
-					exitRequestedThisFrame = true;
+					exitRequestThisFrame = fadeInOut.OutExitType;
 					fadeInOut.OutExitStopwatch.Stop();
 				}
 			}
@@ -1030,10 +1036,15 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		void FadeOutThenExit()
+		void FadeOutThenExit(PlayTestExitType exitType)
 		{
+			assert(exitType != PlayTestExitType::None);
+
 			if (!fadeInOut.OutExitStopwatch.IsRunning())
+			{
 				fadeInOut.OutExitStopwatch.Restart();
+				fadeInOut.OutExitType = exitType;
+			}
 		}
 
 		void RestartFromRestartPoint()
@@ -1459,7 +1470,7 @@ namespace Comfy::Studio::Editor
 		PlayTestSharedContext& sharedContext;
 
 	private:
-		bool exitRequestedThisFrame = false;
+		PlayTestExitType exitRequestThisFrame = PlayTestExitType::None;
 
 		TimeSpan restartPoint = TimeSpan::Zero();
 		TimeSpan chartDuration = TimeSpan::FromMinutes(1.0);
@@ -1484,6 +1495,7 @@ namespace Comfy::Studio::Editor
 		struct FadeInOutData
 		{
 			Stopwatch InStopwatch = {}, OutExitStopwatch = {};
+			PlayTestExitType OutExitType = PlayTestExitType::None;
 			const TimeSpan InDuration = TimeSpan::FromSeconds(0.75);
 			const TimeSpan OutDuration = TimeSpan::FromSeconds(0.20);
 		} fadeInOut = {};
@@ -1514,9 +1526,9 @@ namespace Comfy::Studio::Editor
 		return impl->OverlayGui();
 	}
 
-	bool PlayTestCore::ExitRequestedThisFrame()
+	PlayTestExitType PlayTestCore::GetAndClearExitRequestThisFrame()
 	{
-		return impl->ExitRequestedThisFrame();
+		return impl->GetAndClearExitRequestThisFrame();
 	}
 
 	void PlayTestCore::Restart(TimeSpan startTime)
