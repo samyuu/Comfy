@@ -35,8 +35,8 @@ namespace Comfy::Studio::Editor
 
 	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-		if (auto recentFiles = System::Config.GetStr(ApplicationConfigIDs::RecentFiles))
-			recentChartFiles.FromNewLineString(recentFiles.value());
+		if (auto recentFilesConfigString = System::Config.GetStr(ApplicationConfigIDs::RecentFiles))
+			recentChartFilesList.FromNewLineString(recentFilesConfigString.value());
 
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
@@ -60,7 +60,7 @@ namespace Comfy::Studio::Editor
 
 		const auto fileToOpen = parentApplication.GetFileToOpenOnStartup();
 		if (!fileToOpen.empty() && Util::MatchesInsensitive(IO::Path::GetExtension(fileToOpen), ComfyStudioChartFile::Extension))
-			LoadChartFileSync(fileToOpen);
+			LoadNativeChartFileSync(fileToOpen);
 	}
 
 	const char* ChartEditor::GetName() const
@@ -85,7 +85,9 @@ namespace Comfy::Studio::Editor
 		UpdateApplicationWindowTitle();
 		UpdateAsyncSongSourceLoading();
 
-		GuiSubWindows();
+		GuiChildWindows();
+
+		GuiFileNotFoundPopup();
 		GuiSaveConfirmationPopup();
 
 		undoManager.FlushExecuteEndOfFrameCommands();
@@ -99,13 +101,13 @@ namespace Comfy::Studio::Editor
 				CheckOpenSaveConfirmationPopupThenCall([this] { CreateNewChart(); });
 
 			if (Gui::MenuItem("Open...", "Ctrl + O", false, true))
-				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
+				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });
 
-			if (Gui::BeginMenu("Open Recent", !recentChartFiles.View().empty()))
+			if (Gui::BeginMenu("Open Recent", !recentChartFilesList.View().empty()))
 			{
 				size_t reserveFileIndex = 0, indexToRemove = std::numeric_limits<size_t>::max();
 
-				const auto& recentFilesView = recentChartFiles.View();
+				const auto& recentFilesView = recentChartFilesList.View();
 				std::for_each(recentFilesView.rbegin(), recentFilesView.rend(), [&](const auto& path)
 				{
 					// NOTE: No actual keyboard input yet but still help with reading the list
@@ -113,11 +115,22 @@ namespace Comfy::Studio::Editor
 
 					if (Gui::MenuItem(path.c_str(), shortcutBuffer))
 					{
-						// TODO: Promp the user with a warning dialog box instead if the file can not be found (?)
 						if (IO::File::Exists(path))
-							CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadChartFileSync(path); });
+						{
+							CheckOpenSaveConfirmationPopupThenCall([this, path] { LoadNativeChartFileSync(path); });
+						}
 						else
-							indexToRemove = (recentFilesView.size() - (reserveFileIndex + 1));
+						{
+							fileNotFoundPopup.OpenOnNextFrame = true;
+							fileNotFoundPopup.NotFoundPath = path;
+							fileNotFoundPopup.QuestionToTheUser = "Remove from Recent Files list?";
+							fileNotFoundPopup.OnYesClickedFunction = [this]()
+							{
+								recentChartFilesList.Remove(fileNotFoundPopup.NotFoundPath);
+								System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
+							};
+
+						}
 					}
 					reserveFileIndex++;
 				});
@@ -125,14 +138,8 @@ namespace Comfy::Studio::Editor
 				Gui::Separator();
 				if (Gui::MenuItem("Clear Items"))
 				{
-					recentChartFiles.Clear();
-					System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
-				}
-
-				if (InBounds(indexToRemove, recentChartFiles.View()))
-				{
-					recentChartFiles.RemoveAt(indexToRemove);
-					System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
+					recentChartFilesList.Clear();
+					System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
 				}
 
 				Gui::EndMenu();
@@ -148,16 +155,29 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 
 			if (Gui::MenuItem("Save", "Ctrl + S", false, true))
-				TrySaveChartFileOrOpenDialog();
+				TrySaveNativeChartFileOrOpenDialog();
 			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S", false, true))
-				OpenSaveChartFileDialog();
+				OpenSaveNativeChartFileDialog();
 			Gui::Separator();
 
-			if (Gui::MenuItem("Import...", nullptr, false, true))
-				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportChartFileDialog(); });
+			if (Gui::BeginMenu("Import"))
+			{
+				if (Gui::MenuItem("Import UPDC Chart...", nullptr, false, true))
+					CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPJEChartFileDialog(); });
 
-			if (Gui::MenuItem("Export As...", nullptr, false, true))
-				OpenSaveExportChartFileDialog();
+				// TODO: Import popup window that makes precision loss clear, previews the script and allows offsetting targets / modify tempo changes
+				if (Gui::MenuItem("Import PV Script Targets...", nullptr, false, false)) {}
+
+				Gui::EndMenu();
+			}
+
+			if (Gui::BeginMenu("Export"))
+			{
+				if (Gui::MenuItem("Export UPDC Chart...", nullptr, false, true))
+					OpenSaveExportPJEChartFileDialog();
+
+				Gui::EndMenu();
+			}
 
 			Gui::Separator();
 
@@ -273,7 +293,7 @@ namespace Comfy::Studio::Editor
 	{
 		if (Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
 		{
-			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)] { LoadChartFileSync(path); });
+			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)] { LoadNativeChartFileSync(path); });
 			return true;
 		}
 
@@ -353,13 +373,13 @@ namespace Comfy::Studio::Editor
 		timeline->ResetScrollAndZoom();
 	}
 
-	void ChartEditor::LoadChartFileSync(std::string_view filePath)
+	void ChartEditor::LoadNativeChartFileSync(std::string_view filePath)
 	{
 		if (!Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
 			return;
 
-		recentChartFiles.Add(filePath);
-		System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
+		recentChartFilesList.Add(filePath);
+		System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
 
 		// TODO: Display error GUI if unable to load
 		const auto chartFile = IO::File::Load<ComfyStudioChartFile>(filePath);
@@ -389,7 +409,7 @@ namespace Comfy::Studio::Editor
 		timeline->ResetScrollAndZoom();
 	}
 
-	void ChartEditor::SaveChartFileAsync(std::string_view filePath)
+	void ChartEditor::SaveNativeChartFileAsync(std::string_view filePath)
 	{
 		if (!filePath.empty())
 			chart->ChartFilePath = filePath;
@@ -407,12 +427,12 @@ namespace Comfy::Studio::Editor
 
 			undoManager.ClearPendingChangesFlag();
 
-			recentChartFiles.Add(chart->ChartFilePath);
-			System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFiles.ToNewLineString());
+			recentChartFilesList.Add(chart->ChartFilePath);
+			System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
 		}
 	}
 
-	bool ChartEditor::OpenReadChartFileDialog()
+	bool ChartEditor::OpenReadNativeChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
 		fileDialog.Title = "Open Chart";
@@ -423,11 +443,11 @@ namespace Comfy::Studio::Editor
 		if (!fileDialog.OpenRead())
 			return false;
 
-		LoadChartFileSync(fileDialog.OutFilePath);
+		LoadNativeChartFileSync(fileDialog.OutFilePath);
 		return true;
 	}
 
-	bool ChartEditor::OpenSaveChartFileDialog()
+	bool ChartEditor::OpenSaveNativeChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
 		fileDialog.Title = "Save Chart As";
@@ -459,20 +479,20 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		SaveChartFileAsync(fileDialog.OutFilePath);
+		SaveNativeChartFileAsync(fileDialog.OutFilePath);
 		return true;
 	}
 
-	bool ChartEditor::TrySaveChartFileOrOpenDialog()
+	bool ChartEditor::TrySaveNativeChartFileOrOpenDialog()
 	{
 		if (chart->ChartFilePath.empty())
-			return OpenSaveChartFileDialog();
+			return OpenSaveNativeChartFileDialog();
 		else
-			SaveChartFileAsync();
+			SaveNativeChartFileAsync();
 		return true;
 	}
 
-	void ChartEditor::ImportChartFileSync(std::string_view filePath)
+	void ChartEditor::ImportPJEChartFileSync(std::string_view filePath)
 	{
 		// DEBUG: Only support pje for now
 		const auto pjeFile = Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension) ? IO::File::Load<Legacy::PJEFile>(filePath) : nullptr;
@@ -489,7 +509,7 @@ namespace Comfy::Studio::Editor
 		SyncWorkingChartPointers();
 	}
 
-	void ChartEditor::ExportChartFileSync(std::string_view filePath)
+	void ChartEditor::ExportPJEChartFileSync(std::string_view filePath)
 	{
 		// TODO: Implement different export options
 		if (Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension))
@@ -499,10 +519,10 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	bool ChartEditor::OpenReadImportChartFileDialog()
+	bool ChartEditor::OpenReadImportPJEChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Import Chart";
+		fileDialog.Title = "Import UPDC Chart";
 		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
 		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
 		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
@@ -510,14 +530,14 @@ namespace Comfy::Studio::Editor
 		if (!fileDialog.OpenRead())
 			return false;
 
-		ImportChartFileSync(fileDialog.OutFilePath);
+		ImportPJEChartFileSync(fileDialog.OutFilePath);
 		return true;
 	}
 
-	bool ChartEditor::OpenSaveExportChartFileDialog()
+	bool ChartEditor::OpenSaveExportPJEChartFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Export Chart As";
+		fileDialog.Title = "Export As UPDC Chart";
 		fileDialog.FileName = GetChartSaveDialogFileName(*chart);
 		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
 		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
@@ -526,7 +546,7 @@ namespace Comfy::Studio::Editor
 		if (!fileDialog.OpenSave())
 			return false;
 
-		ExportChartFileSync(fileDialog.OutFilePath);
+		ExportPJEChartFileSync(fileDialog.OutFilePath);
 		return true;
 	}
 
@@ -639,13 +659,13 @@ namespace Comfy::Studio::Editor
 				undoManager.Redo();
 
 			if (Gui::IsKeyPressed(Input::KeyCode_O, false) && !shift)
-				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadChartFileDialog(); });
+				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });
 
 			if (Gui::IsKeyPressed(Input::KeyCode_S, false) && !shift)
-				TrySaveChartFileOrOpenDialog();
+				TrySaveNativeChartFileOrOpenDialog();
 
 			if (Gui::IsKeyPressed(Input::KeyCode_S, false) && shift)
-				OpenSaveChartFileDialog();
+				OpenSaveNativeChartFileDialog();
 		}
 	}
 
@@ -700,7 +720,7 @@ namespace Comfy::Studio::Editor
 		timeline->OnSongLoaded();
 	}
 
-	void ChartEditor::GuiSubWindows()
+	void ChartEditor::GuiChildWindows()
 	{
 		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sync Target Presets", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SyncGui(*chart);
@@ -737,6 +757,53 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 	}
 
+	void ChartEditor::GuiFileNotFoundPopup()
+	{
+		constexpr const char* fileNotFoundPopupID = ICON_FA_INFO_CIRCLE "  Comfy Studio - File Not Found##FileNotFoundPopup";
+
+		if (fileNotFoundPopup.OpenOnNextFrame)
+		{
+			Gui::OpenPopup(fileNotFoundPopupID);
+			fileNotFoundPopup.OpenOnNextFrame = false;
+		}
+
+		const auto* viewport = Gui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
+
+		bool isOpen = true;
+		if (Gui::BeginPopupModal(fileNotFoundPopupID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			constexpr vec2 buttonSize = vec2(120.0f, 0.0f);
+			Gui::BeginChild("FileNotFoundPopupText", vec2(0.0f, Gui::GetFontSize() * 4.0f), true, ImGuiWindowFlags_NoBackground);
+			Gui::AlignTextToFramePadding();
+			Gui::TextWrapped("The file '%.*s' could not be found. %.*s",
+				static_cast<i32>(fileNotFoundPopup.NotFoundPath.size()), fileNotFoundPopup.NotFoundPath.c_str(),
+				static_cast<i32>(fileNotFoundPopup.QuestionToTheUser.size()), fileNotFoundPopup.QuestionToTheUser.data());
+			Gui::EndChild();
+
+			Gui::InvisibleButton("##Dummy", vec2(buttonSize.x * 2.0f, 1.0f));
+			Gui::SameLine();
+
+			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Yes", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Enter, false));
+			Gui::SameLine();
+
+			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   No", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape, false));
+			Gui::SameLine();
+
+			if (clickedYes && fileNotFoundPopup.OnYesClickedFunction)
+				fileNotFoundPopup.OnYesClickedFunction();
+
+			if (clickedYes || clickedNo)
+			{
+				fileNotFoundPopup.NotFoundPath.clear();
+				fileNotFoundPopup.QuestionToTheUser = {};
+				Gui::CloseCurrentPopup();
+			}
+
+			Gui::EndPopup();
+		}
+	}
+
 	void ChartEditor::GuiSaveConfirmationPopup()
 	{
 		constexpr const char* saveConfirmationPopupID = ICON_FA_INFO_CIRCLE "  Comfy Studio - Unsaved Changes##SaveConfirmationPopup";
@@ -753,11 +820,11 @@ namespace Comfy::Studio::Editor
 		bool isOpen = true;
 		if (Gui::BeginPopupModal(saveConfirmationPopupID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			constexpr auto buttonSize = vec2(120.0f, 0.0f);
-
+			constexpr vec2 buttonSize = vec2(120.0f, 0.0f);
+			Gui::BeginChild("SaveConfirmationPopupText", vec2(0.0f, Gui::GetFontSize() * 3.0f), true, ImGuiWindowFlags_NoBackground);
 			Gui::AlignTextToFramePadding();
-			Gui::Text("  Save changes to the current file?\n\n\n");
-			Gui::Separator();
+			Gui::Text("Save changes to the current file?");
+			Gui::EndChild();
 
 			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Enter, false));
 			Gui::SameLine();
@@ -769,7 +836,7 @@ namespace Comfy::Studio::Editor
 
 			if (clickedYes || clickedNo || clickedCancel)
 			{
-				const bool saveDialogCanceled = clickedYes ? !TrySaveChartFileOrOpenDialog() : false;
+				const bool saveDialogCanceled = clickedYes ? !TrySaveNativeChartFileOrOpenDialog() : false;
 				UpdateApplicationWindowTitle();
 
 				if (saveConfirmationPopup.OnSuccessFunction)

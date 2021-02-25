@@ -76,6 +76,13 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void RecentFilesList::Remove(std::string_view filePath)
+	{
+		const auto existingIndex = FindIndexOf(filePaths, [&](const auto& p) { return p == filePath; });
+		if (InBounds(existingIndex, filePaths))
+			filePaths.erase(filePaths.begin() + existingIndex);
+	}
+
 	void RecentFilesList::RemoveAt(size_t index)
 	{
 		assert(index < filePaths.size());

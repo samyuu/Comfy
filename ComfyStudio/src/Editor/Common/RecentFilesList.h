@@ -17,6 +17,8 @@ namespace Comfy::Studio::Editor
 		const std::vector<std::string>& View() const;
 
 		void Add(std::string_view filePath);
+
+		void Remove(std::string_view filePath);
 		void RemoveAt(size_t index);
 
 		void Clear();

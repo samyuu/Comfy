@@ -44,18 +44,18 @@ namespace Comfy::Studio::Editor
 		void UnloadSong();
 
 		void CreateNewChart();
-		void LoadChartFileSync(std::string_view filePath);
-		void SaveChartFileAsync(std::string_view filePath = "");
+		void LoadNativeChartFileSync(std::string_view filePath);
+		void SaveNativeChartFileAsync(std::string_view filePath = "");
 
-		bool OpenReadChartFileDialog();
-		bool OpenSaveChartFileDialog();
-		bool TrySaveChartFileOrOpenDialog();
+		bool OpenReadNativeChartFileDialog();
+		bool OpenSaveNativeChartFileDialog();
+		bool TrySaveNativeChartFileOrOpenDialog();
 
-		void ImportChartFileSync(std::string_view filePath);
-		void ExportChartFileSync(std::string_view filePath);
+		void ImportPJEChartFileSync(std::string_view filePath);
+		void ExportPJEChartFileSync(std::string_view filePath);
 
-		bool OpenReadImportChartFileDialog();
-		bool OpenSaveExportChartFileDialog();
+		bool OpenReadImportPJEChartFileDialog();
+		bool OpenSaveExportPJEChartFileDialog();
 
 		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
 
@@ -85,7 +85,9 @@ namespace Comfy::Studio::Editor
 		void UpdateApplicationWindowTitle();
 		void UpdateAsyncSongSourceLoading();
 
-		void GuiSubWindows();
+		void GuiChildWindows();
+
+		void GuiFileNotFoundPopup();
 		void GuiSaveConfirmationPopup();
 
 		void SyncWorkingChartPointers();
@@ -126,10 +128,18 @@ namespace Comfy::Studio::Editor
 			std::function<void()> OnSuccessFunction;
 		} saveConfirmationPopup = {};
 
+		struct FileNotFoundPopupData
+		{
+			bool OpenOnNextFrame;
+			std::string NotFoundPath;
+			std::string_view QuestionToTheUser;
+			std::function<void()> OnYesClickedFunction;
+		} fileNotFoundPopup = {};
+
 		std::future<bool> chartSaveFileFuture;
 		std::unique_ptr<ComfyStudioChartFile> lastSavedChartFile;
 
-		RecentFilesList recentChartFiles = {};
+		RecentFilesList recentChartFilesList;
 
 	private:
 		std::string songSourceFilePathAbsolute;
