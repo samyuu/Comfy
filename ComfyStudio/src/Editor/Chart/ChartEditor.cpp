@@ -291,24 +291,32 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::OnFileDropped(std::string_view filePath)
 	{
-		if (Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
+		const auto extension = IO::Path::GetExtension(filePath);
+
+		if (IO::Path::DoesAnyPackedExtensionMatch(extension, ComfyStudioChartFile::Extension))
 		{
 			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)] { LoadNativeChartFileSync(path); });
 			return true;
 		}
 
-		if (IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".flac;.ogg;.mp3;.wav"))
+		if (IO::Path::DoesAnyPackedExtensionMatch(extension, Legacy::PJEFile::Extension))
+		{
+			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)] { ImportPJEChartFileSync(path); });
+			return true;
+		}
+
+		if (IO::Path::DoesAnyPackedExtensionMatch(extension, ".flac;.ogg;.mp3;.wav"))
 		{
 			LoadSongAsync(filePath);
 			undoManager.SetChangesWereMade();
 			return true;
 		}
 
-		if (IO::Path::DoesAnyPackedExtensionMatch(IO::Path::GetExtension(filePath), ".png;.jpg;.jpeg;.bmp;.gif"))
+		if (IO::Path::DoesAnyPackedExtensionMatch(extension, ".png;.jpg;.jpeg;.bmp;.gif"))
 		{
-			auto setAndLoad = [&](std::string& outFileName, AsyncLoadedImageFile& image)
+			auto setAndLoad = [&](std::string& outFileName, AsyncLoadedImageFile& outImage)
 			{
-				image.TryLoad(filePath);
+				outImage.TryLoad(filePath);
 				outFileName = IO::Path::TryMakeRelative(filePath, chart->ChartFilePath);
 				undoManager.SetChangesWereMade();
 				return true;
@@ -375,38 +383,27 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::LoadNativeChartFileSync(std::string_view filePath)
 	{
-		if (!Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension))
-			return;
+		assert(Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension));
 
 		recentChartFilesList.Add(filePath);
 		System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
 
-		// TODO: Display error GUI if unable to load
+		// TODO: Display error GUI if unable to load (?)
+		CreateNewChart();
 		const auto chartFile = IO::File::Load<ComfyStudioChartFile>(filePath);
 
-		undoManager.ClearAll();
-
-		// TODO: Additional processing, setting up file paths etc.
 		chart = (chartFile != nullptr) ? chartFile->MoveToChart() : std::make_unique<Chart>();
 		chart->UpdateMapTimes();
 		chart->ChartFilePath = std::string(filePath);
 
 		if (!chart->SongFileName.empty())
 			LoadSongAsync(chart->SongFileName);
-		else
-			UnloadSong();
 
 		chart->Properties.Image.Cover.TryLoad(chart->Properties.Image.CoverFileName, chart->ChartFilePath);
 		chart->Properties.Image.Logo.TryLoad(chart->Properties.Image.LogoFileName, chart->ChartFilePath);
 		chart->Properties.Image.Background.TryLoad(chart->Properties.Image.BackgroundFileName, chart->ChartFilePath);
 
 		SyncWorkingChartPointers();
-
-		if (isPlaying)
-			timeline->StopPlayback();
-
-		timeline->SetCursorTime(TimeSpan::Zero());
-		timeline->ResetScrollAndZoom();
 	}
 
 	void ChartEditor::SaveNativeChartFileAsync(std::string_view filePath)
@@ -494,11 +491,10 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::ImportPJEChartFileSync(std::string_view filePath)
 	{
-		// DEBUG: Only support pje for now
-		const auto pjeFile = Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension) ? IO::File::Load<Legacy::PJEFile>(filePath) : nullptr;
+		assert(Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension));
 
-		undoManager.ClearAll();
-		undoManager.SetChangesWereMade();
+		CreateNewChart();
+		const auto pjeFile = IO::File::Load<Legacy::PJEFile>(filePath);
 
 		chart = (pjeFile != nullptr) ? pjeFile->ToChart() : std::make_unique<Chart>();
 		chart->UpdateMapTimes();
@@ -507,16 +503,15 @@ namespace Comfy::Studio::Editor
 		LoadSongAsync((pjeFile != nullptr) ? pjeFile->TryFindSongFilePath(filePath) : "");
 
 		SyncWorkingChartPointers();
+		undoManager.SetChangesWereMade();
 	}
 
 	void ChartEditor::ExportPJEChartFileSync(std::string_view filePath)
 	{
-		// TODO: Implement different export options
-		if (Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension))
-		{
-			auto pjeFile = Legacy::PJEFile(*chart);
-			IO::File::Save(filePath, pjeFile);
-		}
+		assert(Util::EndsWithInsensitive(filePath, Legacy::PJEFile::Extension));
+
+		auto pjeFile = Legacy::PJEFile(*chart);
+		IO::File::Save(filePath, pjeFile);
 	}
 
 	bool ChartEditor::OpenReadImportPJEChartFileDialog()
