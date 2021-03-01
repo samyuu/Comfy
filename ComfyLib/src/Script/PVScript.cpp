@@ -109,17 +109,23 @@ namespace Comfy
 
 	std::string PVScript::ToString() const
 	{
-		std::string out;
-		out.reserve(Commands.size() * 32);
+		std::string outString;
+		AppendToString(outString);
+		return outString;
+	}
+
+	void PVScript::AppendToString(std::string& outString) const
+	{
+		outString.reserve(outString.size() + (Commands.size() * 32));
 
 		for (const auto& command : Commands)
 		{
-			out += command.Name();
+			outString += command.Name();
 
-			out += '(';
+			outString += '(';
 			if (command.Type == PVCommandType::Time)
 			{
-				out += TimeSpan(command.View<PVCommandLayout::Time>()).FormatTime().data();
+				outString += TimeSpan(command.View<PVCommandLayout::Time>()).FormatTime().data();
 			}
 			else
 			{
@@ -128,18 +134,16 @@ namespace Comfy
 				{
 					char intStrBuffer[34];
 					::_itoa_s(static_cast<i32>(command.Param[i]), intStrBuffer, 10);
-					out += intStrBuffer;
+					outString += intStrBuffer;
 
 					if (i + 1 != paramCount)
-						out += ", ";
+						outString += ", ";
 				}
 			}
-			out += ");";
+			outString += ");";
 
 			if (&command != &Commands.back())
-				out += '\n';
+				outString += '\n';
 		}
-
-		return out;
 	}
 }

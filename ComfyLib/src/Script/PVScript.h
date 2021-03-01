@@ -77,7 +77,7 @@ namespace Comfy
 		MotSmooth,
 		PVBranchMode,
 		DataCameraStart,
-		MovePlay,
+		MoviePlay,
 		MovieDisp,
 		Wind,
 		OsageStep,
@@ -197,7 +197,7 @@ namespace Comfy
 		{ PVCommandType::MotSmooth, 2, "MOT_SMOOTH", },
 		{ PVCommandType::PVBranchMode, 1, "PV_BRANCH_MODE", },
 		{ PVCommandType::DataCameraStart, 2, "DATA_CAMERA_START", },
-		{ PVCommandType::MovePlay, 1, "MOVIE_PLAY", },
+		{ PVCommandType::MoviePlay, 1, "MOVIE_PLAY", },
 		{ PVCommandType::MovieDisp, 1, "MOVIE_DISP", },
 		{ PVCommandType::Wind, 3, "WIND", },
 		{ PVCommandType::OsageStep, 3, "OSAGE_STEP", },
@@ -383,6 +383,12 @@ namespace Comfy
 
 		struct MusicPlay : LayoutBase<MusicPlay, PVCommandType::MusicPlay> {};
 
+		struct ModeSelect : LayoutBase<ModeSelect, PVCommandType::ModeSelect>
+		{
+			u32 DifficultyFlags;
+			i32 ModeType;
+		};
+
 		struct BarTimeSet : LayoutBase<BarTimeSet, PVCommandType::BarTimeSet>
 		{
 			i32 BeatsPerMinute;
@@ -402,6 +408,18 @@ namespace Comfy
 			TargetFlyingTime(i32 timeMS) : DurationMS(timeMS) {}
 			TargetFlyingTime(TimeSpan time) : DurationMS(static_cast<i32>(glm::round(time.TotalMilliseconds()))) {}
 			constexpr operator TimeSpan() const { return TimeSpan::FromMilliseconds(static_cast<f64>(DurationMS)); }
+		};
+
+		enum class PVBranchModeType : i32
+		{
+			Default = 0,
+			Failure = 1,
+			Success = 2,
+		};
+
+		struct PVBranchMode : LayoutBase<PVBranchMode, PVCommandType::PVBranchMode>
+		{
+			PVBranchModeType Mode;
 		};
 	}
 
@@ -425,6 +443,7 @@ namespace Comfy
 
 	public:
 		std::string ToString() const;
+		void AppendToString(std::string& outString) const;
 	};
 
 	class PVScriptBuilder
