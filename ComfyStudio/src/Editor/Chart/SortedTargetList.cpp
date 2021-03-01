@@ -256,6 +256,9 @@ namespace Comfy::Studio::Editor
 	{
 		targets = std::move(newTargets);
 
+		std::sort(targets.begin(), targets.end(), [&](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
+		UpdateTargetInternalFlagsInRange(-1, -1);
+
 		idToIndexMap.clear();
 		idToIndexMap.reserve(targets.size());
 
@@ -264,9 +267,6 @@ namespace Comfy::Studio::Editor
 			assert(targets[i].ID == TimelineTargetID::Null);
 			idToIndexMap[targets[i].ID = GetNextUniqueID()] = i;
 		}
-
-		std::sort(targets.begin(), targets.end(), [&](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
-		UpdateTargetInternalFlagsInRange();
 	}
 
 	size_t SortedTargetList::FindSortedInsertionIndex(BeatTick tick, ButtonType type) const
