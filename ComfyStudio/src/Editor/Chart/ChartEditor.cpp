@@ -166,9 +166,8 @@ namespace Comfy::Studio::Editor
 				if (Gui::MenuItem("Import UPDC Chart...", nullptr, false, true))
 					CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPJEChartFileDialog(); });
 
-				// TODO: Import popup window that makes precision loss clear, previews the script and allows offsetting targets / modify tempo changes
 				if (Gui::MenuItem("Import PV Script Chart...", nullptr, false, true))
-					CheckOpenSaveConfirmationPopupThenCall([this]() { OpenPVScriptImportWindow(""); });
+					CheckOpenSaveConfirmationPopupThenCall([this]() { OpenReadImportPVScriptFileDialogThenOpenImportWindow(); });
 
 				Gui::EndMenu();
 			}
@@ -558,6 +557,21 @@ namespace Comfy::Studio::Editor
 		CreateNewChart();
 		pvScriptImportWindow.SetScriptFilePath(filePath);
 		openPVScriptImportWindowNextFrame = true;
+	}
+
+	bool ChartEditor::OpenReadImportPVScriptFileDialogThenOpenImportWindow()
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Import PV Script Chart";
+		fileDialog.DefaultExtension = PVScript::Extension;
+		fileDialog.Filters = { { std::string(PVScript::FilterName), std::string(PVScript::FilterSpec) }, };
+		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+
+		if (!fileDialog.OpenRead())
+			return false;
+
+		OpenPVScriptImportWindow(fileDialog.OutFilePath);
+		return true;
 	}
 
 	void ChartEditor::CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess)

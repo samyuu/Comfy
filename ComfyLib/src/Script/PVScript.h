@@ -432,6 +432,8 @@ namespace Comfy
 	{
 	public:
 		static constexpr std::string_view Extension = ".dsc";
+		static constexpr std::string_view FilterName = "Project DIVA Future Tone PV Script (*.dsc)";
+		static constexpr std::string_view FilterSpec = "*.dsc";
 
 	public:
 		PVScriptVersion Version = PVScriptVersion::Current;

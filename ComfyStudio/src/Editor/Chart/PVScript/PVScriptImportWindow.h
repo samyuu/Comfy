@@ -4,11 +4,31 @@
 #include "ImGui/Gui.h"
 #include "Editor/Chart/Chart.h"
 #include "Script/PVScript.h"
+#include "PVScriptUtil.h"
 
 namespace Comfy::Studio::Editor
 {
 	class PVScriptImportWindow : NonCopyable
 	{
+	public:
+		struct ImportSettings
+		{
+			TimeSpan TargetOffset;
+			f32 FlyingTimeFactor;
+		};
+
+		struct ImportStatistics
+		{
+			static constexpr std::array BarDivisionsToCheck = { 8, 16, 24, 32, 48, 64, 96, 192 };
+
+			struct MinMaxAverage { TimeSpan Min, Max, Average; };
+
+			MinMaxAverage TargetTimeDifference;
+			MinMaxAverage ButtonTimeDifference;
+
+			std::array<size_t, std::size(BarDivisionsToCheck)> BarDivisionDistribution;
+		};
+
 	public:
 		PVScriptImportWindow() = default;
 		~PVScriptImportWindow() = default;
@@ -22,11 +42,29 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<Chart> TryMoveImportedChartBeforeClosing();
 
 	private:
-		std::string scriptPath, songPath;
+		void UpdateImportedChartAndStatistics(bool updateStatistics = true);
 
-		std::unique_ptr<PVScript> loadedScript = nullptr;
+		void RequestExitAndImport();
+		void RequestExitWithoutImport();
 
-		std::unique_ptr<Chart> importedChart = nullptr;
+	private:
+		struct InputScriptData
+		{
+			std::string ScriptPath, SongPath;
+			std::unique_ptr<PVScript> LoadedScript;
+			DecomposedPVScriptChartData DecomposedScipt;
+			TimeSpan FirstTargetBeatAlignmentOffset;
+		} inScript = {};
+
+		struct OutputChartData
+		{
+			std::unique_ptr<Chart> ImportedChart;
+		} outChart = {};
+
+		ImportSettings importSettings = {};
+		ImportStatistics importStatistics = {};
+
 		bool closeWindowThisFrame = false;
+		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
 	};
 }
