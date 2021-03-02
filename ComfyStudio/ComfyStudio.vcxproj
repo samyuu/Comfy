@@ -182,6 +182,7 @@
     <ClCompile Include="src\Editor\Chart\Gameplay\PlayTestCore.cpp" />
     <ClCompile Include="src\Editor\Chart\Gameplay\PlayTestWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\PresetWindow.cpp" />
+    <ClCompile Include="src\Editor\Chart\PVScript\PVScriptImportWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.cpp" />
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderHelperEx.cpp" />
@@ -258,6 +259,7 @@
     <ClInclude Include="src\Editor\Chart\HitEvaluation.h" />
     <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
     <ClInclude Include="src\Editor\Chart\PresetWindow.h" />
+    <ClInclude Include="src\Editor\Chart\PVScript\PVScriptImportWindow.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGrid.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetGuiDrawUtil.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderHelper.h" />

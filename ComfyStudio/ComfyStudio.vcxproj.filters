@@ -210,6 +210,9 @@
     <ClCompile Include="src\Editor\Common\RecentFilesList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\PVScript\PVScriptImportWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -495,6 +498,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Common\RecentFilesList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\PVScript\PVScriptImportWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

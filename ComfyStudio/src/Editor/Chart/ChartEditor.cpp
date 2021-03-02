@@ -87,6 +87,7 @@ namespace Comfy::Studio::Editor
 
 		GuiChildWindows();
 
+		GuiPVScriptImportWindowPopup();
 		GuiFileNotFoundPopup();
 		GuiSaveConfirmationPopup();
 
@@ -166,7 +167,8 @@ namespace Comfy::Studio::Editor
 					CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPJEChartFileDialog(); });
 
 				// TODO: Import popup window that makes precision loss clear, previews the script and allows offsetting targets / modify tempo changes
-				if (Gui::MenuItem("Import PV Script Targets...", nullptr, false, false)) {}
+				if (Gui::MenuItem("Import PV Script Chart...", nullptr, false, true))
+					CheckOpenSaveConfirmationPopupThenCall([this]() { OpenPVScriptImportWindow(""); });
 
 				Gui::EndMenu();
 			}
@@ -292,6 +294,12 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OnFileDropped(std::string_view filePath)
 	{
 		const auto extension = IO::Path::GetExtension(filePath);
+
+		if (IO::Path::DoesAnyPackedExtensionMatch(extension, PVScript::Extension))
+		{
+			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)]() { OpenPVScriptImportWindow(path); });
+			return true;
+		}
 
 		if (IO::Path::DoesAnyPackedExtensionMatch(extension, ComfyStudioChartFile::Extension))
 		{
@@ -545,6 +553,13 @@ namespace Comfy::Studio::Editor
 		return true;
 	}
 
+	void ChartEditor::OpenPVScriptImportWindow(std::string_view filePath)
+	{
+		CreateNewChart();
+		pvScriptImportWindow.SetScriptFilePath(filePath);
+		openPVScriptImportWindowNextFrame = true;
+	}
+
 	void ChartEditor::CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess)
 	{
 		if (undoManager.GetHasPendingChanged())
@@ -750,6 +765,47 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties", nullptr, ImGuiWindowFlags_None))
 			chartPropertiesWindow.Gui(*chart);
 		Gui::End();
+	}
+
+	void ChartEditor::GuiPVScriptImportWindowPopup()
+	{
+		constexpr const char* pvScriptImportWindowID = "Import PV Script Chart";
+		if (openPVScriptImportWindowNextFrame)
+		{
+			Gui::OpenPopup(pvScriptImportWindowID);
+			openPVScriptImportWindowNextFrame = false;
+		}
+
+		const auto* viewport = Gui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
+
+		bool isOpen = true;
+		if (Gui::BeginPopupModal(pvScriptImportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			pvScriptImportWindow.Gui();
+
+			if (pvScriptImportWindow.GetAndClearCloseRequestThisFrame())
+			{
+				Gui::CloseCurrentPopup();
+
+				if (auto importedChart = pvScriptImportWindow.TryMoveImportedChartBeforeClosing(); importedChart != nullptr)
+				{
+					chart = std::move(importedChart);
+					chart->UpdateMapTimes();
+
+					if (!chart->SongFileName.empty())
+						LoadSongAsync(chart->SongFileName);
+
+					SyncWorkingChartPointers();
+					undoManager.SetChangesWereMade();
+				}
+			}
+
+			Gui::EndPopup();
+		}
+
+		if (!isOpen)
+			pvScriptImportWindow.TryMoveImportedChartBeforeClosing();
 	}
 
 	void ChartEditor::GuiFileNotFoundPopup()

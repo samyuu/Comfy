@@ -11,6 +11,7 @@
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
 #include "Gameplay/PlayTestWindow.h"
+#include "PVScript/PVScriptImportWindow.h"
 #include "Editor/Common/UndoHistoryWindow.h"
 #include "Editor/Common/SoundEffectManager.h"
 #include "Editor/Common/RecentFilesList.h"
@@ -57,6 +58,8 @@ namespace Comfy::Studio::Editor
 		bool OpenReadImportPJEChartFileDialog();
 		bool OpenSaveExportPJEChartFileDialog();
 
+		void OpenPVScriptImportWindow(std::string_view filePath);
+
 		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
 
 		std::string GetOpenReadImageFileDialogPath() const;
@@ -87,6 +90,7 @@ namespace Comfy::Studio::Editor
 
 		void GuiChildWindows();
 
+		void GuiPVScriptImportWindowPopup();
 		void GuiFileNotFoundPopup();
 		void GuiSaveConfirmationPopup();
 
@@ -122,6 +126,9 @@ namespace Comfy::Studio::Editor
 		ChartPropertiesWindow chartPropertiesWindow = { *this, undoManager };
 
 	private:
+		PVScriptImportWindow pvScriptImportWindow = {};
+		bool openPVScriptImportWindowNextFrame = false;
+
 		struct SaveConfirmationPopupData
 		{
 			bool OpenOnNextFrame;
