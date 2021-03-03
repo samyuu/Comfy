@@ -6,6 +6,8 @@
 
 namespace Comfy::Studio::Editor
 {
+	static_assert(std::size(PVScriptImportWindow::ImportStatistics::BarDivisionsToCheck) == PVScriptImportWindow::ImportStatistics::BarDivisionsToCheckCount);
+
 	namespace
 	{
 		void CreateTempoMapApproximationFromPVCommands(const DecomposedPVScriptChartData& decomposedScript, SortedTempoMap& outTempoMap, TimelineMap& outTimelineMap, const PVScriptImportWindow::ImportSettings& settings)
@@ -155,7 +157,7 @@ namespace Comfy::Studio::Editor
 				out.ButtonTimeDifference.Average += buttonTimeDifference;
 				out.TargetTimeDifference.Average += targetTimeDifference;
 
-				for (size_t i = 0; i < std::size(out.BarDivisionsToCheck); i++)
+				for (size_t i = 0; i < out.BarDivisionsToCheckCount; i++)
 				{
 					const i32 barDivision = out.BarDivisionsToCheck[i];
 					const i32 divisionTicks = (BeatTick::FromBars(1) / barDivision).Ticks();
@@ -379,7 +381,7 @@ namespace Comfy::Studio::Editor
 					Gui::Separator();
 
 					Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
-					for (size_t i = 0; i < std::size(importStatistics.BarDivisionsToCheck); i++)
+					for (size_t i = 0; i < importStatistics.BarDivisionsToCheckCount; i++)
 					{
 						const i32 barDivision = importStatistics.BarDivisionsToCheck[i];
 						const size_t targetCount = importStatistics.BarDivisionDistribution[i];

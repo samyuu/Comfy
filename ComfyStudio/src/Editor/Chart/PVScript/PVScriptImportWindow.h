@@ -19,14 +19,16 @@ namespace Comfy::Studio::Editor
 
 		struct ImportStatistics
 		{
-			static constexpr std::array BarDivisionsToCheck = { 8, 16, 24, 32, 48, 64, 96, 192 };
+			// NOTE: Count split into separate constexpr variable to avoid falsely detected intellisense warnings
+			static constexpr size_t BarDivisionsToCheckCount = 8;
+			static constexpr i32 BarDivisionsToCheck[] = { 8, 16, 24, 32, 48, 64, 96, 192 };
 
 			struct MinMaxAverage { TimeSpan Min, Max, Average; };
 
 			MinMaxAverage TargetTimeDifference;
 			MinMaxAverage ButtonTimeDifference;
 
-			std::array<size_t, std::size(BarDivisionsToCheck)> BarDivisionDistribution;
+			std::array<size_t, BarDivisionsToCheckCount> BarDivisionDistribution;
 		};
 
 	public:
