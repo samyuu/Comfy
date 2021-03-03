@@ -486,6 +486,24 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Interpolate Target Angles"; }
 	};
 
+	class ChangeTargetListDistances : public ChangeTargetListProperties
+	{
+	public:
+		ChangeTargetListDistances(Chart& chart, std::vector<Data> data) : ChangeTargetListProperties(chart, std::move(data), TargetPropertyFlags_Distance) {}
+
+	public:
+		std::string_view GetName() const override { return "Change Target Distances"; }
+	};
+
+	class InterpolateTargetListDistances : public ChangeTargetListDistances
+	{
+	public:
+		using ChangeTargetListDistances::ChangeTargetListDistances;
+
+	public:
+		std::string_view GetName() const override { return "Interpolate Target Distances"; }
+	};
+
 	class ApplyTargetListAngleIncrements : public ChangeTargetListAngles
 	{
 	public:

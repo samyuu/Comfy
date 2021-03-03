@@ -81,8 +81,9 @@ namespace Comfy::Studio::Editor
 		constexpr Input::KeyCode PositionToolInterpolateCircular = Input::KeyCode_O;
 
 		constexpr Input::KeyCode PathToolInvertFrequencies = Input::KeyCode_R;
-		constexpr Input::KeyCode PathToolInterpolateClockwise = Input::KeyCode_U;
-		constexpr Input::KeyCode PathToolInterpolateCounterclockwise = Input::KeyCode_I;
+		constexpr Input::KeyCode PathToolInterpolateAnglesClockwise = Input::KeyCode_U;
+		constexpr Input::KeyCode PathToolInterpolateAnglesCounterclockwise = Input::KeyCode_I;
+		constexpr Input::KeyCode PathToolInterpolateDistances = Input::KeyCode_O;
 
 		constexpr Input::KeyCode PathToolApplyAngleIncrementsPositive = Input::KeyCode_F;
 		constexpr Input::KeyCode PathToolApplyAngleIncrementsNegative = Input::KeyCode_V;

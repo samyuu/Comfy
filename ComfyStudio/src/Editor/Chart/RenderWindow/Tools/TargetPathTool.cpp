@@ -32,10 +32,14 @@ namespace Comfy::Studio::Editor
 			InvertSelectedTargetFrequencies(undoManager, chart);
 		Gui::Separator();
 
-		if (Gui::MenuItem("Interpolate Angles Clockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateClockwise), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Angles Clockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateAnglesClockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, true);
-		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateCounterclockwise), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateAnglesCounterclockwise), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, false);
+
+		if (Gui::MenuItem("Interpolate Distances", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateDistances), false, (selectionCount > 0)))
+			InterpolateSelectedTargetDistances(undoManager, chart);
+
 		Gui::Separator();
 
 		if (Gui::BeginMenu("Angle Increment Settings"))
@@ -213,10 +217,12 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsKeyPressed(KeyBindings::PathToolInvertFrequencies, false))
 				InvertSelectedTargetFrequencies(undoManager, chart);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateClockwise, false))
+			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateAnglesClockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, true);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateCounterclockwise, false))
+			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateAnglesCounterclockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, false);
+			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateDistances, false))
+				InterpolateSelectedTargetDistances(undoManager, chart);
 
 			const bool backwards = Gui::GetIO().KeyAlt;
 			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleIncrementsPositive, false))
@@ -386,15 +392,17 @@ namespace Comfy::Studio::Editor
 		if (selectionCount < 1)
 			return;
 
-		const auto& firstTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
-		const auto& lastTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [](auto& t) { return t.IsSelected; });
+		const auto& firstFoundTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const auto& lastFoundTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [](auto& t) { return t.IsSelected; });
+		if (firstFoundTarget.Tick == lastFoundTarget.Tick)
+			return;
 
-		// BUG: Negative -> position angles not handled correctly (?)
-		const f32 startAngle = Rules::TryGetProperties(firstTarget).Angle;
-		const f32 endAngle = clockwise ? Rules::TryGetProperties(lastTarget).Angle : (Rules::TryGetProperties(lastTarget).Angle - 360.0f);
+		const f32 startAngle = Rules::TryGetProperties(firstFoundTarget).Angle;
+		const f32 endAngle = clockwise ? Rules::TryGetProperties(lastFoundTarget).Angle : Rules::TryGetProperties(lastFoundTarget).Angle - 360.0f;
 
-		const auto startTick = firstTarget.Tick.Ticks();
-		const auto endTick = lastTarget.Tick.Ticks();
+		const i32 startTicks = firstFoundTarget.Tick.Ticks();
+		const i32 endTicks = lastFoundTarget.Tick.Ticks();
+		const f32 tickSpanReciprocal = 1.0f / static_cast<f32>(endTicks - startTicks);
 
 		std::vector<InterpolateTargetListAngles::Data> targetData;
 		targetData.reserve(selectionCount);
@@ -404,14 +412,50 @@ namespace Comfy::Studio::Editor
 			if (!target.IsSelected)
 				continue;
 
-			const i32 ticks = target.Tick.Ticks();
+			const f32 t = static_cast<f32>(target.Tick.Ticks() - startTicks) * tickSpanReciprocal;
 			auto& data = targetData.emplace_back();
 			data.ID = target.ID;
-			data.NewValue.Angle = Rules::NormalizeAngle(((startAngle * static_cast<f32>(endTick - ticks) + endAngle * static_cast<f32>(ticks - startTick)) / static_cast<f32>(endTick - startTick)));
+			data.NewValue.Angle = Rules::NormalizeAngle(((1.0f - t) * startAngle) + (t * endAngle));
 		}
 
 		undoManager.DisallowMergeForLastCommand();
 		undoManager.Execute<InterpolateTargetListAngles>(chart, std::move(targetData));
+	}
+
+	void TargetPathTool::InterpolateSelectedTargetDistances(Undo::UndoManager& undoManager, Chart& chart)
+	{
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		const auto& firstFoundTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
+		const auto& lastFoundTarget = *std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [](auto& t) { return t.IsSelected; });
+		if (firstFoundTarget.Tick == lastFoundTarget.Tick)
+			return;
+
+		const f32 startDistance = Rules::TryGetProperties(firstFoundTarget).Distance;
+		const f32 endDistance = Rules::TryGetProperties(lastFoundTarget).Distance;
+
+		const i32 startTicks = firstFoundTarget.Tick.Ticks();
+		const i32 endTicks = lastFoundTarget.Tick.Ticks();
+		const f32 tickSpanReciprocal = 1.0f / static_cast<f32>(endTicks - startTicks);
+
+		std::vector<InterpolateTargetListDistances::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (const auto& target : chart.Targets)
+		{
+			if (!target.IsSelected)
+				continue;
+
+			const f32 t = static_cast<f32>(target.Tick.Ticks() - startTicks) * tickSpanReciprocal;
+			auto& data = targetData.emplace_back();
+			data.ID = target.ID;
+			data.NewValue.Distance = ((1.0f - t) * startDistance) + (t * endDistance);
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		undoManager.Execute<InterpolateTargetListDistances>(chart, std::move(targetData));
 	}
 
 	void TargetPathTool::ApplySelectedTargetAngleIncrements(Undo::UndoManager& undoManager, Chart& chart, f32 direction, bool backwards)
