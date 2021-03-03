@@ -29,6 +29,8 @@ namespace Comfy::Studio::Editor
 		out.ScriptFileName = IO::Path::GetFileName(scriptFilePath, false);
 		out.DecomposedScriptName = DecompsePVScriptFileName(out.ScriptFileName);
 
+		auto isFlyingTimeSame = [](auto& a, auto& b) { return (a.FlyingTempo.BeatsPerMinute == b.FlyingTempo.BeatsPerMinute) && (a.Signature == b.Signature); };
+
 		TimeSpan currentCmdTime = {};
 		TimeSpan currentFlyingTime = TimeSpan::FromSeconds(1.0);
 
@@ -41,18 +43,24 @@ namespace Comfy::Studio::Editor
 			else if (const auto* targetFlyingTimeCmd = cmd.TryView<PVCommandLayout::TargetFlyingTime>())
 			{
 				currentFlyingTime = static_cast<TimeSpan>(*targetFlyingTimeCmd);
-				auto& outFlyingTime = out.FlyingTimeCommands.emplace_back();
-				outFlyingTime.CommandTime = currentCmdTime;
-				outFlyingTime.FlyingTempo = glm::round((60.0f * 4.0f) / (static_cast<f32>(targetFlyingTimeCmd->DurationMS) / 1000.0f));
-				outFlyingTime.Signature = TimeSignature(4, 4);
+				DecomposedPVScriptChartData::FlyingTimeCommandData newFlyingTime;
+				newFlyingTime.CommandTime = currentCmdTime;
+				newFlyingTime.FlyingTempo = glm::round((60.0f * 4.0f) / (static_cast<f32>(targetFlyingTimeCmd->DurationMS) / 1000.0f));
+				newFlyingTime.Signature = TimeSignature(4, 4);
+
+				if (out.FlyingTimeCommands.empty() || !isFlyingTimeSame(newFlyingTime, out.FlyingTimeCommands.back()))
+					out.FlyingTimeCommands.push_back(newFlyingTime);
 			}
 			else if (const auto* barTimeSetCmd = cmd.TryView<PVCommandLayout::BarTimeSet>())
 			{
 				currentFlyingTime = static_cast<TimeSpan>(*barTimeSetCmd);
-				auto& outFlyingTime = out.FlyingTimeCommands.emplace_back();
-				outFlyingTime.CommandTime = currentCmdTime;
-				outFlyingTime.FlyingTempo = static_cast<f32>(barTimeSetCmd->BeatsPerMinute);
-				outFlyingTime.Signature = TimeSignature(barTimeSetCmd->TimeSignature + 1, 4);
+				DecomposedPVScriptChartData::FlyingTimeCommandData newFlyingTime;
+				newFlyingTime.CommandTime = currentCmdTime;
+				newFlyingTime.FlyingTempo = static_cast<f32>(barTimeSetCmd->BeatsPerMinute);
+				newFlyingTime.Signature = TimeSignature(barTimeSetCmd->TimeSignature + 1, 4);
+
+				if (out.FlyingTimeCommands.empty() || !isFlyingTimeSame(newFlyingTime, out.FlyingTimeCommands.back()))
+					out.FlyingTimeCommands.push_back(newFlyingTime);
 			}
 			else if (const auto* targetCmd = cmd.TryView<PVCommandLayout::Target>())
 			{
