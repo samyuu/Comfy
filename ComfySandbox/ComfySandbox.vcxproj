@@ -56,7 +56,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -79,7 +79,7 @@
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>

@@ -48,6 +48,7 @@
     <ClInclude Include="src\IO\Config\ComfyBinaryConfig.h" />
     <ClInclude Include="src\IO\Directory.h" />
     <ClInclude Include="src\IO\File.h" />
+    <ClInclude Include="src\IO\JSON.h" />
     <ClInclude Include="src\IO\Path.h" />
     <ClInclude Include="src\IO\Shell.h" />
     <ClInclude Include="src\IO\Stream\FileSection.h" />
@@ -119,6 +120,7 @@
     <ClCompile Include="src\IO\Config\ComfyBinaryConfig.cpp" />
     <ClCompile Include="src\IO\Directory.cpp" />
     <ClCompile Include="src\IO\File.cpp" />
+    <ClCompile Include="src\IO\JSON.cpp" />
     <ClCompile Include="src\IO\Path.cpp" />
     <ClCompile Include="src\IO\Shell.cpp" />
     <ClCompile Include="src\IO\Stream\FileSection.cpp" />
@@ -198,7 +200,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -232,7 +234,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\zlib\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
