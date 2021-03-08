@@ -7,6 +7,7 @@
 
 #define JSON_NOEXCEPTION
 #define JSON_USE_IMPLICIT_CONVERSIONS 0
+#define JSON_COMFY_FORMATTING
 #include <nlohmann/json.hpp>
 
 namespace Comfy

@@ -15548,7 +15548,16 @@ class serializer
 
                 if (pretty_print)
                 {
+#if defined(JSON_COMFY_FORMATTING)
+					if (current_indent > 0)
+					{
+						o->write_character('\n');
+						o->write_characters(indent_string.c_str(), current_indent);
+					}
+					o->write_characters("{\n", 2);
+#else
                     o->write_characters("{\n", 2);
+#endif
 
                     // variable to hold indentation for recursive calls
                     const auto new_indent = current_indent + indent_step;
@@ -15621,7 +15630,16 @@ class serializer
 
                 if (pretty_print)
                 {
+#if defined(JSON_COMFY_FORMATTING)
+					if (current_indent > 0)
+					{
+						o->write_character('\n');
+						o->write_characters(indent_string.c_str(), current_indent);
+					}
+					o->write_characters("[\n", 2);
+#else
                     o->write_characters("[\n", 2);
+#endif
 
                     // variable to hold indentation for recursive calls
                     const auto new_indent = current_indent + indent_step;
