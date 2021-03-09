@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "ComfyStudioSettings.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
 #include "DataTest/InputTestWindow.h"
@@ -21,16 +22,12 @@ namespace Comfy::Studio
 	constexpr const char* AboutWindowName = "About##Application";
 	constexpr Input::KeyCode ToggleFullscreenKey = Input::KeyCode_F11;
 
-	namespace ApplicationConfigIDs
+	namespace
 	{
-		constexpr std::string_view RestoreRegion = "Comfy::Studio::Application::RestoreRegion";
-		constexpr std::string_view Position = "Comfy::Studio::Application::Position";
-		constexpr std::string_view Size = "Comfy::Studio::Application::Size";
-		constexpr std::string_view IsFullscreen = "Comfy::Studio::Application::IsFullscreen";
-		constexpr std::string_view IsMaximized = "Comfy::Studio::Application::IsMaximized";
+		Application* GlobalLastCreatedApplication = nullptr;
+		bool GlobalSettingsAppDataExistedOnLoad = false;
+		bool GlobalSettingsUserDataExistedOnLoad = false;
 	}
-
-	static Application* GlobalLastCreatedApplication = nullptr;
 
 	Application::Application(std::string_view fileToOpen) : fileToOpenOnStartup(fileToOpen)
 	{
@@ -41,7 +38,14 @@ namespace Comfy::Studio
 		GlobalLastCreatedApplication = this;
 
 		System::MountComfyData();
-		System::LoadComfyConfig();
+
+		GlobalSettingsAppDataExistedOnLoad = GlobalSettings.LoadAppData();
+		if (!GlobalSettingsAppDataExistedOnLoad)
+			GlobalSettings.RestoreDefaultAppData();
+
+		GlobalSettingsUserDataExistedOnLoad = GlobalSettings.LoadUserData();
+		if (!GlobalSettingsUserDataExistedOnLoad)
+			GlobalSettings.RestoreDefaultUserData();
 
 		const auto hostParam = CreateHostParam();
 		host = std::make_unique<ApplicationHost>(hostParam);
@@ -123,7 +127,7 @@ namespace Comfy::Studio
 
 		host->RegisterWindowDestoyCallback([this]()
 		{
-			DisposeSaveConfig();
+			DisposeSaveSettings();
 		});
 
 		if (!InitializeEditorComponents())
@@ -139,11 +143,11 @@ namespace Comfy::Studio
 		ApplicationHost::ConstructionParam hostParam;
 		hostParam.StartupWindowState.Title = ComfyStudioWindowTitle;
 		hostParam.IconHandle = comfyIcon;
-		hostParam.StartupWindowState.RestoreRegion = System::Config.GetIVec4(ApplicationConfigIDs::RestoreRegion);
-		hostParam.StartupWindowState.Position = System::Config.GetIVec2(ApplicationConfigIDs::Position);
-		hostParam.StartupWindowState.Size = System::Config.GetIVec2(ApplicationConfigIDs::Size);
-		hostParam.StartupWindowState.IsFullscreen = System::Config.GetBool(ApplicationConfigIDs::IsFullscreen);
-		hostParam.StartupWindowState.IsMaximized = System::Config.GetBool(ApplicationConfigIDs::IsMaximized);
+		hostParam.StartupWindowState.RestoreRegion = GlobalSettings.AppData.LastSessionWindowState.RestoreRegion;
+		hostParam.StartupWindowState.Position = GlobalSettings.AppData.LastSessionWindowState.Position;
+		hostParam.StartupWindowState.Size = GlobalSettings.AppData.LastSessionWindowState.Size;
+		hostParam.StartupWindowState.IsFullscreen = GlobalSettings.AppData.LastSessionWindowState.IsFullscreen;
+		hostParam.StartupWindowState.IsMaximized = GlobalSettings.AppData.LastSessionWindowState.IsMaximized;
 		return hostParam;
 	}
 
@@ -559,13 +563,16 @@ namespace Comfy::Studio
 		host = nullptr;
 	}
 
-	void Application::DisposeSaveConfig()
+	void Application::DisposeSaveSettings()
 	{
-		System::Config.SetIVec4(ApplicationConfigIDs::RestoreRegion, host->GetWindowRestoreRegion());
-		System::Config.SetIVec2(ApplicationConfigIDs::Position, host->GetWindowPosition());
-		System::Config.SetIVec2(ApplicationConfigIDs::Size, host->GetWindowSize());
-		System::Config.SetBool(ApplicationConfigIDs::IsFullscreen, host->GetIsFullscreen());
-		System::Config.SetBool(ApplicationConfigIDs::IsMaximized, host->GetIsMaximized());
-		System::SaveComfyConfig();
+		GlobalSettings.AppData.LastSessionWindowState.RestoreRegion = host->GetWindowRestoreRegion();
+		GlobalSettings.AppData.LastSessionWindowState.Position = host->GetWindowPosition();
+		GlobalSettings.AppData.LastSessionWindowState.Size = host->GetWindowSize();
+		GlobalSettings.AppData.LastSessionWindowState.IsFullscreen = host->GetIsFullscreen();
+		GlobalSettings.AppData.LastSessionWindowState.IsMaximized = host->GetIsMaximized();
+		GlobalSettings.SaveAppData();
+
+		if (!GlobalSettingsUserDataExistedOnLoad)
+			GlobalSettings.SaveUserData();
 	}
 }

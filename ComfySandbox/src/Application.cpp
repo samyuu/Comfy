@@ -29,7 +29,7 @@ namespace Comfy::Sandbox
 	void Application::Run()
 	{
 		System::MountComfyData();
-		System::LoadComfyConfig();
+		// System::LoadComfyConfig();
 
 		ApplicationHost::ConstructionParam hostParam;
 		hostParam.StartupWindowState.Title = ComfySandboxWindowTitle;

@@ -218,6 +218,7 @@
     <ClCompile Include="src\Editor\Timeline\FrameTimeline.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineBase.cpp" />
     <ClCompile Include="src\Editor\Timeline\TimelineScrollbar.cpp" />
+    <ClCompile Include="src\Core\ComfyStudioSettings.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLine.cpp" />
     <ClCompile Include="src\System\CommandLine\CommandLineOption.cpp" />
     <ClCompile Include="src\DataTest\IconTestWindow.cpp" />
@@ -314,6 +315,7 @@
     <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineFrame.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
+    <ClInclude Include="src\Core\ComfyStudioSettings.h" />
     <ClInclude Include="src\System\CommandLine\CommandLine.h" />
     <ClInclude Include="src\System\CommandLine\CommandLineOption.h" />
     <ClInclude Include="src\System\Version\BuildConfiguration.h" />

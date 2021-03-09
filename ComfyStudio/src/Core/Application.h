@@ -54,7 +54,7 @@ namespace Comfy::Studio
 
 	private:
 		void BaseDispose();
-		void DisposeSaveConfig();
+		void DisposeSaveSettings();
 
 	private:
 		std::unique_ptr<ApplicationHost> host = nullptr;

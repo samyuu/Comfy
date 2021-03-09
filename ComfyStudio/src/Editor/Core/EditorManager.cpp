@@ -1,10 +1,10 @@
 #include "EditorManager.h"
 #include "Core/Application.h"
+#include "Core/ComfyStudioSettings.h"
 #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/PV/SceneEditor.h"
 #include "Misc/StringUtil.h"
-#include "System/ComfyData.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -101,10 +101,10 @@ namespace Comfy::Studio::Editor
 		RegisterEditorComponent<SceneEditor>("Scene Editor");
 #endif
 
-		constexpr auto defaultEditor = "Chart Editor";
-		const auto lastActiveName = System::Config.GetStr(EditorManagerConfigIDs::ActiveEditor).value_or(defaultEditor);
-		const auto lastActiveIndex = FindIndexOf(registeredEditors, [&](const auto& editor) { return editor.Name == lastActiveName; });
+		constexpr const char* defaultEditorName = "Chart Editor";
+		const auto lastActiveEditorName = GlobalSettings.AppData.LastSessionWindowState.ActiveEditorComponent.value_or(defaultEditorName);
 
+		const size_t lastActiveIndex = FindIndexOf(registeredEditors, [&](const auto& editor) { return editor.Name == lastActiveEditorName; });
 		SetActiveEditor(lastActiveIndex);
 	}
 
@@ -185,7 +185,7 @@ namespace Comfy::Studio::Editor
 			editor->Component->OnEditorComponentMadeActive();
 
 		parent.SetFormattedWindowTitle(editorName);
-		System::Config.SetStr(EditorManagerConfigIDs::ActiveEditor, editorName);
+		GlobalSettings.AppData.LastSessionWindowState.ActiveEditorComponent = editorName;
 	}
 
 	void EditorManager::Update()

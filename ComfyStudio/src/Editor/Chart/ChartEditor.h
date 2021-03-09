@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Editor/Core/IEditorComponent.h"
+#include "ChartEditorSettingsWindow.h"
 #include "Chart.h"
 #include "SyncWindow.h"
 #include "PresetWindow.h"
@@ -91,7 +92,7 @@ namespace Comfy::Studio::Editor
 
 		void GuiChildWindows();
 
-		void GuiPVScriptImportWindowPopup();
+		void GuiPVScriptImportPopup();
 		void GuiFileNotFoundPopup();
 		void GuiSaveConfirmationPopup();
 
@@ -127,8 +128,11 @@ namespace Comfy::Studio::Editor
 		ChartPropertiesWindow chartPropertiesWindow = { *this, undoManager };
 
 	private:
-		PVScriptImportWindow pvScriptImportWindow = {};
-		bool openPVScriptImportWindowNextFrame = false;
+		struct PVScriptImportPopupData
+		{
+			bool OpenOnNextFrame;
+			PVScriptImportWindow Window;
+		} pvScriptImportPopup = {};
 
 		struct SaveConfirmationPopupData
 		{
@@ -146,8 +150,6 @@ namespace Comfy::Studio::Editor
 
 		std::future<bool> chartSaveFileFuture;
 		std::unique_ptr<ComfyStudioChartFile> lastSavedChartFile;
-
-		RecentFilesList recentChartFilesList;
 
 	private:
 		std::string songSourceFilePathAbsolute;

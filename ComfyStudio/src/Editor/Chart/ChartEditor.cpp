@@ -6,8 +6,9 @@
 #include "IO/Shell.h"
 #include "IO/Directory.h"
 #include "Core/Application.h"
-#include "Misc/StringUtil.h"
+#include "Core/ComfyStudioSettings.h"
 #include "System/ComfyData.h"
+#include "Misc/StringUtil.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -35,8 +36,6 @@ namespace Comfy::Studio::Editor
 
 	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-		if (auto recentFilesConfigString = System::Config.GetStr(ApplicationConfigIDs::RecentFiles))
-			recentChartFilesList.FromNewLineString(recentFilesConfigString.value());
 
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
@@ -87,7 +86,7 @@ namespace Comfy::Studio::Editor
 
 		GuiChildWindows();
 
-		GuiPVScriptImportWindowPopup();
+		GuiPVScriptImportPopup();
 		GuiFileNotFoundPopup();
 		GuiSaveConfirmationPopup();
 
@@ -104,11 +103,11 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Open...", "Ctrl + O", false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });
 
-			if (Gui::BeginMenu("Open Recent", !recentChartFilesList.View().empty()))
+			const auto& recentFilesView = GlobalSettings.AppData.RecentFiles.ChartFiles.View();
+			if (Gui::BeginMenu("Open Recent", !recentFilesView.empty()))
 			{
 				size_t reserveFileIndex = 0, indexToRemove = std::numeric_limits<size_t>::max();
 
-				const auto& recentFilesView = recentChartFilesList.View();
 				std::for_each(recentFilesView.rbegin(), recentFilesView.rend(), [&](const auto& path)
 				{
 					// NOTE: No actual keyboard input yet but still help with reading the list
@@ -127,8 +126,7 @@ namespace Comfy::Studio::Editor
 							fileNotFoundPopup.QuestionToTheUser = "Remove from Recent Files list?";
 							fileNotFoundPopup.OnYesClickedFunction = [this]()
 							{
-								recentChartFilesList.Remove(fileNotFoundPopup.NotFoundPath);
-								System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
+								GlobalSettings.AppData.RecentFiles.ChartFiles.Remove(fileNotFoundPopup.NotFoundPath);
 							};
 
 						}
@@ -138,10 +136,7 @@ namespace Comfy::Studio::Editor
 
 				Gui::Separator();
 				if (Gui::MenuItem("Clear Items"))
-				{
-					recentChartFilesList.Clear();
-					System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
-				}
+					GlobalSettings.AppData.RecentFiles.ChartFiles.Clear();
 
 				Gui::EndMenu();
 			}
@@ -391,9 +386,7 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::LoadNativeChartFileSync(std::string_view filePath)
 	{
 		assert(Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension));
-
-		recentChartFilesList.Add(filePath);
-		System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
+		GlobalSettings.AppData.RecentFiles.ChartFiles.Add(filePath);
 
 		// TODO: Display error GUI if unable to load (?)
 		CreateNewChart();
@@ -430,9 +423,7 @@ namespace Comfy::Studio::Editor
 			chartSaveFileFuture = IO::File::SaveAsync(chart->ChartFilePath, lastSavedChartFile.get());
 
 			undoManager.ClearPendingChangesFlag();
-
-			recentChartFilesList.Add(chart->ChartFilePath);
-			System::Config.SetStr(ApplicationConfigIDs::RecentFiles, recentChartFilesList.ToNewLineString());
+			GlobalSettings.AppData.RecentFiles.ChartFiles.Add(chart->ChartFilePath);
 		}
 	}
 
@@ -555,8 +546,8 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::OpenPVScriptImportWindow(std::string_view filePath)
 	{
 		CreateNewChart();
-		pvScriptImportWindow.SetScriptFilePath(filePath);
-		openPVScriptImportWindowNextFrame = true;
+		pvScriptImportPopup.Window.SetScriptFilePath(filePath);
+		pvScriptImportPopup.OpenOnNextFrame = true;
 	}
 
 	bool ChartEditor::OpenReadImportPVScriptFileDialogThenOpenImportWindow()
@@ -781,13 +772,13 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 	}
 
-	void ChartEditor::GuiPVScriptImportWindowPopup()
+	void ChartEditor::GuiPVScriptImportPopup()
 	{
 		constexpr const char* pvScriptImportWindowID = "Import PV Script Chart";
-		if (openPVScriptImportWindowNextFrame)
+		if (pvScriptImportPopup.OpenOnNextFrame)
 		{
 			Gui::OpenPopup(pvScriptImportWindowID);
-			openPVScriptImportWindowNextFrame = false;
+			pvScriptImportPopup.OpenOnNextFrame = false;
 		}
 
 		const auto* viewport = Gui::GetMainViewport();
@@ -796,13 +787,13 @@ namespace Comfy::Studio::Editor
 		bool isOpen = true;
 		if (Gui::BeginPopupModal(pvScriptImportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			pvScriptImportWindow.Gui();
+			pvScriptImportPopup.Window.Gui();
 
-			if (pvScriptImportWindow.GetAndClearCloseRequestThisFrame())
+			if (pvScriptImportPopup.Window.GetAndClearCloseRequestThisFrame())
 			{
 				Gui::CloseCurrentPopup();
 
-				if (auto importedChart = pvScriptImportWindow.TryMoveImportedChartBeforeClosing(); importedChart != nullptr)
+				if (auto importedChart = pvScriptImportPopup.Window.TryMoveImportedChartBeforeClosing(); importedChart != nullptr)
 				{
 					chart = std::move(importedChart);
 					chart->UpdateMapTimes();
@@ -819,7 +810,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		if (!isOpen)
-			pvScriptImportWindow.TryMoveImportedChartBeforeClosing();
+			pvScriptImportPopup.Window.TryMoveImportedChartBeforeClosing();
 	}
 
 	void ChartEditor::GuiFileNotFoundPopup()

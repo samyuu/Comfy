@@ -5,10 +5,7 @@
 namespace Comfy::System
 {
 	IO::ComfyArchive Data;
-	IO::ComfyBinaryConfig Config;
-
-	bool DataMounted = false;
-	bool ConfigLoaded = false;
+	static bool DataMounted = false;
 
 	void MountComfyData()
 	{
@@ -29,31 +26,5 @@ namespace Comfy::System
 			return;
 
 		Data.UnMount();
-	}
-
-	void LoadComfyConfig()
-	{
-		if (ConfigLoaded)
-			return;
-		ConfigLoaded = true;
-
-		auto stream = IO::File::OpenReadMemory(ConfigFileName);
-		if (!stream.IsOpen() || !stream.CanRead())
-		{
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to open config file");
-			return;
-		}
-
-		auto reader = IO::StreamReader(stream);
-		Config.Read(reader);
-	}
-
-	void SaveComfyConfig()
-	{
-		if (!ConfigLoaded)
-			return;
-
-		if (!IO::File::Save(ConfigFileName, Config))
-			Logger::LogErrorLine(__FUNCTION__"(): Unable to save config file");
 	}
 }
