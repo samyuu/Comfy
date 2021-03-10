@@ -52,7 +52,7 @@ namespace ImGui
 		static constexpr bool preLoadImGuiConfig = false;
 		static constexpr bool restoreConfigWindowSize = false;
 
-		static constexpr const char* configFileName = "imgui.ini";
+		static constexpr const char* configFileName = "settings_imgui.ini";
 		static constexpr const char* logFileName = "imgui_log.txt";
 		static constexpr std::string_view fontDirectoryName = "font";
 		static constexpr std::string_view textFontName = "Noto Sans CJK JP";
