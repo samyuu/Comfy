@@ -102,7 +102,7 @@ namespace Comfy::Studio::Editor
 #endif
 
 		constexpr const char* defaultEditorName = "Chart Editor";
-		const auto lastActiveEditorName = GlobalSettings.AppData.LastSessionWindowState.ActiveEditorComponent.value_or(defaultEditorName);
+		const auto lastActiveEditorName = GlobalAppData.LastSessionWindowState.ActiveEditorComponent.value_or(defaultEditorName);
 
 		const size_t lastActiveIndex = FindIndexOf(registeredEditors, [&](const auto& editor) { return editor.Name == lastActiveEditorName; });
 		SetActiveEditor(lastActiveIndex);
@@ -185,7 +185,7 @@ namespace Comfy::Studio::Editor
 			editor->Component->OnEditorComponentMadeActive();
 
 		parent.SetFormattedWindowTitle(editorName);
-		GlobalSettings.AppData.LastSessionWindowState.ActiveEditorComponent = editorName;
+		GlobalAppData.LastSessionWindowState.ActiveEditorComponent = editorName;
 	}
 
 	void EditorManager::Update()

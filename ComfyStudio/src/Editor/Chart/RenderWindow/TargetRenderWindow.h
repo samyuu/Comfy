@@ -86,26 +86,6 @@ namespace Comfy::Studio::Editor
 
 	private:
 		CheckerboardGrid backgroundCheckerboard;
-		f32 backgroundDim = 0.35f;
-
-		struct LayerData
-		{
-			bool DrawButtons = true;
-			bool DrawTargets = true;
-			bool DrawTargetHands = true;
-		} layers;
-
-		bool drawCheckerboard = true;
-		bool drawTargetGrid = true;
-		bool drawSyncHoldInfo = true;
-
-		struct PracticeBackgroundData
-		{
-			bool Enabled = false;
-			TargetRenderHelper::BackgroundData Data = {};
-		} practiceBackground;
-
-		BeatTick targetPostHitLingerDuration = BeatTick::FromBeats(1);
 
 		TargetBoxSelectionTool boxSelectionTool = { *this };
 

@@ -1,6 +1,7 @@
 #include "TargetInspector.h"
 #include "TargetPropertyRules.h"
 #include "ChartCommands.h"
+#include "Core/ComfyStudioSettings.h"
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include <FontIcons.h>
@@ -109,6 +110,7 @@ namespace ImGui::PropertyEditor::Widgets
 					{
 						for (size_t i = 0; i < param.ComboboxValueCount; i++)
 						{
+							Gui::PushID(&param.ComboboxValues[i]);
 							char b[128]; sprintf_s(b, formatString, param.ComboboxValues[i]);
 
 							const bool itemSelected = (param.InOutValue == param.ComboboxValues[i]);
@@ -117,6 +119,7 @@ namespace ImGui::PropertyEditor::Widgets
 								param.InOutValue = static_cast<ValueType>(param.ComboboxValues[i]);
 								valueChanged = true;
 							}
+							Gui::PopID();
 
 							if (itemSelected)
 								SetItemDefaultFocus();
@@ -292,6 +295,12 @@ namespace Comfy::Studio::Editor
 			param.Format = "%d";
 			param.CustomDisplayText = customDisplayText;
 
+			if (property == TargetPropertyType_Frequency)
+			{
+				param.ComboboxValueCount = GlobalUserData.TargetPreset.InspectorDropdown.Frequencies.size();
+				param.ComboboxValues = GlobalUserData.TargetPreset.InspectorDropdown.Frequencies.data();
+			}
+
 			if (GuiProperty::InputScalarEx<i32>(label, param))
 			{
 				commonValue = static_cast<f32>(param.InOutValue);
@@ -310,15 +319,23 @@ namespace Comfy::Studio::Editor
 			param.Format = degreeUnits ? ("%.2f" DEGREE_SIGN) : "%.2f";
 			param.CustomDisplayText = customDisplayText;
 
-			if (property == TargetPropertyType_Amplitude)
+			auto* comboboxSourceVector = [property]() -> const std::vector<f32>*
 			{
-				param.ComboboxValueCount = Rules::CommonAmplitudes.size();
-				param.ComboboxValues = Rules::CommonAmplitudes.data();
-			}
-			else if (property == TargetPropertyType_Distance)
+				switch (property)
+				{
+				case TargetPropertyType_PositionX: return &GlobalUserData.TargetPreset.InspectorDropdown.PositionsX;
+				case TargetPropertyType_PositionY: return &GlobalUserData.TargetPreset.InspectorDropdown.PositionsY;
+				case TargetPropertyType_Angle: return &GlobalUserData.TargetPreset.InspectorDropdown.Angles;
+				case TargetPropertyType_Amplitude: return &GlobalUserData.TargetPreset.InspectorDropdown.Amplitudes;
+				case TargetPropertyType_Distance: return &GlobalUserData.TargetPreset.InspectorDropdown.Distances;
+				}
+				return nullptr;
+			}();
+
+			if (comboboxSourceVector != nullptr)
 			{
-				param.ComboboxValueCount = Rules::CommonDistances.size();
-				param.ComboboxValues = Rules::CommonDistances.data();
+				param.ComboboxValueCount = comboboxSourceVector->size();
+				param.ComboboxValues = comboboxSourceVector->data();
 			}
 
 			if (GuiProperty::InputScalarEx<f32>(label, param))

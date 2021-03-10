@@ -1,5 +1,6 @@
 #include "TargetRenderWindow.h"
 #include "TargetGrid.h"
+#include "Core/ComfyStudioSettings.h"
 #include "Editor/Core/Theme.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/ChartCommands.h"
@@ -16,12 +17,6 @@ namespace Comfy::Studio::Editor
 
 		SetKeepAspectRatio(true);
 		SetTargetAspectRatio(Rules::PlacementAreaSize.x / Rules::PlacementAreaSize.y);
-
-		practiceBackground.Data.DrawGrid = false;
-		practiceBackground.Data.DrawDim = true;
-		practiceBackground.Data.DrawLogo = true;
-		practiceBackground.Data.DrawCover = true;
-		practiceBackground.Data.DrawBackground = true;
 
 		backgroundCheckerboard.Size = Rules::PlacementAreaSize;
 		backgroundCheckerboard.Color = vec4(0.20f, 0.20f, 0.20f, 1.0f);
@@ -159,7 +154,7 @@ namespace Comfy::Studio::Editor
 			RenderBackground();
 			RenderHUDBackground();
 
-			if (drawSyncHoldInfo)
+			if (GlobalUserData.TargetPreview.ShowHoldInfo)
 				RenderSyncHoldInfoBackground();
 
 			auto selectedTool = GetSelectedTool();
@@ -189,7 +184,7 @@ namespace Comfy::Studio::Editor
 		// TODO: "CTRL + A", "CTRL + D" to select all targets on screen and deselect all (?)
 
 		UpdateInputContextMenu();
-		boxSelectionTool.UpdateInput(*workingChart, timeline.GetCursorTick(), targetPostHitLingerDuration);
+		boxSelectionTool.UpdateInput(*workingChart, timeline.GetCursorTick(), GlobalUserData.TargetPreview.PostHitLingerDuration);
 
 		if (Gui::IsWindowFocused())
 		{
@@ -239,60 +234,36 @@ namespace Comfy::Studio::Editor
 			if (auto selectedTool = GetSelectedTool(); selectedTool != nullptr)
 				selectedTool->OnContextMenuGUI(*workingChart);
 
+#if COMFY_DEBUG && 0 // TODO: Move into settings window
 			if (Gui::BeginMenu("Settings", true))
 			{
-				if (Gui::BeginMenu("Target Area", true))
+				bool changesMade = false;
+				changesMade |= Gui::Checkbox("Use Practice Background", &GlobalUserData.Mutable().TargetPreview.UsePracticeBackground);
+				changesMade |= Gui::Checkbox("Show Target Grid", &GlobalUserData.Mutable().TargetPreview.ShowGrid);
+				changesMade |= Gui::Checkbox("Show Target Buttons", &GlobalUserData.Mutable().TargetPreview.ShowButtons);
+				changesMade |= Gui::Checkbox("Show Target Hold Info", &GlobalUserData.Mutable().TargetPreview.ShowHoldInfo);
+				changesMade |= Gui::Checkbox("Show Background Checkerboard", &GlobalUserData.Mutable().TargetPreview.ShowBackgroundCheckerboard);
+
+				Gui::PushItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.UsePracticeBackground);
+				if (auto p = (GlobalUserData.TargetPreview.BackgroundDim * 100.0f); Gui::SliderFloat("##BackgroundDimSlider", &p, 0.0f, 100.0f, "Background Dim: %.f%%"))
 				{
-					Gui::Checkbox("Show Target Buttons", &layers.DrawButtons);
-					Gui::Checkbox("Show Target Grid", &drawTargetGrid);
-					Gui::Checkbox("Show Target Hold Info", &drawSyncHoldInfo);
+					changesMade |= true;
+					GlobalUserData.Mutable().TargetPreview.BackgroundDim = (p / 100.0f);
+				}
+				Gui::PopItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.UsePracticeBackground);
 
-					Gui::Checkbox("Background Checkerboard", &drawCheckerboard);
-
-					if (auto p = (backgroundDim * 100.0f); Gui::SliderFloat("##BackgroundDimSlider", &p, 0.0f, 100.0f, "Background Dim: %.f%%"))
-						backgroundDim = (p / 100.0f);
-
-					if (auto t = targetPostHitLingerDuration.Ticks(); Gui::SliderInt("##PostHitLingerSlider", &t, 0, BeatTick::TicksPerBeat * 8, "Post Hit Linger: %d Ticks"))
-						targetPostHitLingerDuration = BeatTick::FromTicks(t);
-
-					Gui::EndMenu();
+				if (auto t = GlobalUserData.TargetPreview.PostHitLingerDuration.Ticks(); Gui::SliderInt("##PostHitLingerSlider", &t, 0, BeatTick::TicksPerBeat * 8, "Post Hit Linger: %d Ticks"))
+				{
+					changesMade |= true;
+					GlobalUserData.Mutable().TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(t);
 				}
 
-				// TODO: Simplify these options to reduce clutter (?)
-				if (Gui::BeginMenu("Practice Background", true))
-				{
-					Gui::Checkbox("Enabled", &practiceBackground.Enabled);
-					Gui::PushItemDisabledAndTextColorIf(!practiceBackground.Enabled);
-					Gui::Checkbox("Grid", &practiceBackground.Data.DrawGrid);
-					Gui::Checkbox("Dim", &practiceBackground.Data.DrawDim);
-					Gui::Checkbox("Cover", &practiceBackground.Data.DrawCover);
-					Gui::Checkbox("Logo", &practiceBackground.Data.DrawLogo);
-					Gui::Checkbox("Background", &practiceBackground.Data.DrawBackground);
-					Gui::PopItemDisabledAndTextColorIf(!practiceBackground.Enabled);
-					Gui::EndMenu();
-				}
-
-				if (Gui::MenuItem("Set Default Editor View"))
-				{
-					backgroundDim = 0.35f;
-					drawTargetGrid = true;
-					practiceBackground.Enabled = false;
-				}
-
-				if (Gui::MenuItem("Set Default Practice View"))
-				{
-					backgroundDim = 0.0f;
-					drawTargetGrid = false;
-					practiceBackground.Enabled = true;
-					practiceBackground.Data.DrawGrid = true;
-					practiceBackground.Data.DrawDim = true;
-					practiceBackground.Data.DrawCover = true;
-					practiceBackground.Data.DrawLogo = true;
-					practiceBackground.Data.DrawBackground = true;
-				}
+				if (changesMade)
+					GlobalUserData.Mutable().SaveToFile();
 
 				Gui::EndMenu();
 			}
+#endif
 
 			// NOTE: Avoid mid-frame tool switching to prevent ugly single frame context menu changes
 			if (newToolToSelect.has_value())
@@ -324,21 +295,28 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::RenderBackground()
 	{
-		if (drawCheckerboard)
+		if (GlobalUserData.TargetPreview.ShowBackgroundCheckerboard)
 			backgroundCheckerboard.Render(renderer);
 
-		if (practiceBackground.Enabled)
+		if (GlobalUserData.TargetPreview.BackgroundDim > 0.0f)
+			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, GlobalUserData.TargetPreview.BackgroundDim)));
+
+		if (GlobalUserData.TargetPreview.UsePracticeBackground)
 		{
-			practiceBackground.Data.PlaybackTime = timeline.GetCursorTime();
-			practiceBackground.Data.CoverSprite = workingChart->Properties.Image.Cover.GetTexSprView();
-			practiceBackground.Data.LogoSprite = workingChart->Properties.Image.Logo.GetTexSprView();
-			practiceBackground.Data.BackgroundSprite = workingChart->Properties.Image.Background.GetTexSprView();
-			renderHelper->DrawBackground(renderer, practiceBackground.Data);
+			TargetRenderHelper::BackgroundData backgroundData;
+			backgroundData.DrawGrid = !GlobalUserData.TargetPreview.ShowGrid;
+			backgroundData.DrawDim = true;
+			backgroundData.DrawCover = true;
+			backgroundData.DrawLogo = true;
+			backgroundData.DrawBackground = true;
+			backgroundData.PlaybackTime = timeline.GetCursorTime();
+			backgroundData.CoverSprite = workingChart->Properties.Image.Cover.GetTexSprView();
+			backgroundData.LogoSprite = workingChart->Properties.Image.Logo.GetTexSprView();
+			backgroundData.BackgroundSprite = workingChart->Properties.Image.Background.GetTexSprView();
+			renderHelper->DrawBackground(renderer, backgroundData);
 		}
 
-		renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, backgroundDim)));
-
-		if (drawTargetGrid)
+		if (GlobalUserData.TargetPreview.ShowGrid)
 			RenderTargetGrid(renderer);
 	}
 
@@ -520,10 +498,8 @@ namespace Comfy::Studio::Editor
 		AddVisibleTargetsToDrawBuffers();
 
 		TargetRenderHelperExFlushFlags flags = TargetRenderHelperExFlushFlags_None;
-		if (!layers.DrawButtons)
+		if (!GlobalUserData.TargetPreview.ShowButtons)
 			flags |= TargetRenderHelperExFlushFlags_NoButtons;
-		if (!layers.DrawTargets)
-			flags |= TargetRenderHelperExFlushFlags_NoTargets;
 		renderHelperEx.Flush(renderer, *renderHelper, flags);
 	}
 
@@ -542,7 +518,7 @@ namespace Comfy::Studio::Editor
 			const auto buttonTick = target.Tick;
 			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(buttonTick);
 
-			const auto endTick = buttonTick + targetPostHitLingerDuration;
+			const auto endTick = buttonTick + GlobalUserData.TargetPreview.PostHitLingerDuration;
 			const auto endTime = workingChart->TimelineMap.GetTimeAt(endTick);
 
 			const auto targetTick = target.Tick - BeatTick::FromBars(1);
@@ -562,7 +538,7 @@ namespace Comfy::Studio::Editor
 
 				auto& targetData = renderHelperEx.EmplaceTarget();
 				targetData.Type = target.Type;
-				targetData.NoHand = (!layers.DrawTargetHands || !inCursorBarRange);
+				targetData.NoHand = !inCursorBarRange;
 				// NOTE: Transparent to make the background grid visible and make pre-, post- and cursor bar targets look more uniform
 				targetData.Transparent = (target.IsSelected || !inCursorBarRange);
 				targetData.NoScale = !isPlayback;

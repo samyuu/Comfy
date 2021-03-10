@@ -1,6 +1,7 @@
 #include "PresetWindow.h"
 #include "ChartCommands.h"
 #include "TargetPropertyRules.h"
+#include "Core/ComfyStudioSettings.h"
 #include "ImGui/Extensions/ImGuiExtensions.h"
 #include <FontIcons.h>
 
@@ -15,149 +16,13 @@ namespace Comfy::Studio::Editor
 		constexpr f32 SyncSettingsButtonWidth = 26.0f;
 
 		constexpr f32 SingleLineSequenceButtonHeight = StaticSyncButtonHeight;
-		constexpr f32 SameLineSequenceButtonHeight = DynamicSyncButtonHeight;
-
-		template <size_t TargetCount>
-		StaticSyncPreset ConstructStaticSyncPreset(std::string name, std::array<PresetTargetData, TargetCount> targetData)
-		{
-			StaticSyncPreset result = {};
-			result.Name = std::move(name);
-			result.TargetCount = static_cast<u32>(TargetCount);
-			for (size_t i = 0; i < TargetCount; i++)
-				result.Targets[i] = targetData[i];
-			return result;
-		}
-
-		std::vector<StaticSyncPreset> GetTestStaticSyncPresets()
-		{
-			constexpr size_t testPresetCount = 8;
-
-			std::vector<StaticSyncPreset> presets;
-			presets.reserve(testPresetCount);
-
-			presets.push_back(ConstructStaticSyncPreset("Smallest Sideways Square", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 480.0f), 0.0f, 0.0f, 500.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(864.0f, 576.0f), -90.0f, 0.0f, 500.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 672.0f), 180.0f, 0.0f, 500.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1056.0f, 576.0f), +90.0f, 0.0f, 500.0f, 1040.0f } },
-				}));
-			presets.push_back(ConstructStaticSyncPreset("Small Sideways Square", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 336.0f), 0.0f, 0.0f, 500.0f, 960.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(744.0f, 552.0f), -90.0f, 0.0f, 500.0f, 960.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 768.0f), 180.0f, 0.0f, 500.0f, 960.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1176.0f, 552.0f), 90.0f, 0.0f, 500.0f, 960.0f } },
-				}));
-			presets.push_back(ConstructStaticSyncPreset("Large Sideways Square", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 192.0f), 0.0f, 0.0f, 500.0f, 800.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(384.0f, 528.0f), -90.0f, 0.0f, 500.0f, 800.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 864.0f), 180.0f, 0.0f, 500.0f, 800.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1536.0f, 528.0f), 90.0f, 0.0f, 500.0f, 800.0f } },
-				}));
-
-			presets.push_back(ConstructStaticSyncPreset("Curved Small Square", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(912.0f, 480.0f), -45.0f, 1.0f, 3000.0f, 2000.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(1008.0f, 480.0f),45.0f, -1.0f, 3000.0f, 2000.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(912.0f, 576.0f), -135.0f, -1.0f, 3000.0f, 2000.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1008.0f, 576.0f), 135.0f, 1.0f, 3000.0f, 2000.0f } },
-				}));
-
-			presets.push_back(ConstructStaticSyncPreset("Parallelogram", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(240.0f, 240.0f), -90.0f, 0.0f, 500.0f, 880.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(720.0f, 768.0f), -90.0f, 0.0f, 500.0f, 880.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(1200.0f, 240.0f), 90.0f, 0.0f, 500.0f, 880.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1680.0f, 768.0f), 90.0f, 0.0f, 500.0f, 880.0f } },
-				}));
-
-			presets.push_back(ConstructStaticSyncPreset("Fancy Square Stuff [0]", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 432.0f), 45.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(864.0f, 528.0f), -45.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 624.0f), -135.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1056.0f, 528.0f), 135.0f, -2.0f, 1000.0f, 1040.0f } },
-				}));
-			presets.push_back(ConstructStaticSyncPreset("Fancy Square Stuff [1]", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 336.0f), 90.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(768.0f, 528.0f), 0.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 720.0f), -90.0f, -2.0f, 1000.0f, 1040.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1152.0f, 528.0f), 180.0f, -2.0f, 1000.0f, 1040.0f } },
-				}));
-			presets.push_back(ConstructStaticSyncPreset("Fancy Square Stuff [2]", std::array
-				{
-					PresetTargetData { ButtonType::Triangle, { vec2(960.0f, 168.0f), 165.0f, -2.0f, 1000.0f, 2080.0f } },
-					PresetTargetData { ButtonType::Square, { vec2(600.0f, 528.0f), 75.0f, -2.0f, 1000.0f, 2080.0f } },
-					PresetTargetData { ButtonType::Cross, { vec2(960.0f, 888.0f), -15.0f, -2.0f, 1000.0f, 2080.0f } },
-					PresetTargetData { ButtonType::Circle, { vec2(1320.0f, 528.0f), -105.0f, -2.0f, 1000.0f, 2080.0f } },
-				}));
-
-			// TEMP: To avoid any potential confusion for now...
-			// presets.push_back(ConstructStaticSyncPreset<0>("(Presets will be customizable in the future)", {}));
-
-			assert(presets.size() == testPresetCount);
-			return presets;
-		}
+		constexpr f32 SameLineSequenceButtonHeight = StaticSyncButtonHeight;
 	}
 
-	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager), staticSyncPresets(GetTestStaticSyncPresets())
+	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager) //, staticSyncPresets(GetTestStaticSyncPresets())
 	{
-#if 1 // DEBUG: Testing things out for now...
-		constexpr vec2 circleCenterSmall = vec2(960.0f, 552.0f);
-		constexpr vec2 circleCenterLarge = vec2(960.0f, 552.0f + 24.0f - 48.0f);
-		constexpr f32 circleRadiusSmall = 120.0f;
-		constexpr f32 circleRadiusLarge = 240.0f;
-
 		// sequencePresetSettings.TickOffset = BeatTick::FromBeats(2);
 		sequencePresetSettings.ApplyFirstTargetTickAsOffset = true;
-
-		sequencePresets =
-		{
-			SequencePreset
-			{
-				SequencePresetType::Circle,
-				SequencePresetButtonType::SameLine,
-				"Small Circle Counterclockwise",
-				SequencePreset::CircleData { BeatTick::FromBars(1), circleRadiusSmall, SequencePresetCircleCounterclockwiseDirection, circleCenterSmall },
-				{},
-			},
-			SequencePreset
-			{
-				SequencePresetType::Circle,
-				SequencePresetButtonType::SameLine,
-				"Small Circle Clockwise",
-				SequencePreset::CircleData { BeatTick::FromBars(1), circleRadiusSmall, SequencePresetCircleClockwiseDirection, circleCenterSmall },
-				{},
-			},
-			SequencePreset
-			{
-				SequencePresetType::Circle,
-				SequencePresetButtonType::SameLine,
-				"Large Circle Counterclockwise",
-				SequencePreset::CircleData { BeatTick::FromBars(2), circleRadiusLarge, SequencePresetCircleCounterclockwiseDirection, circleCenterLarge },
-				{},
-			},
-			SequencePreset
-			{
-				SequencePresetType::Circle,
-				SequencePresetButtonType::SameLine,
-				"Large Circle Clockwise",
-				SequencePreset::CircleData { BeatTick::FromBars(2), circleRadiusLarge, SequencePresetCircleClockwiseDirection, circleCenterLarge },
-				{},
-			},
-
-			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Small Heart", {}, SequencePreset::BezierPathData {} },
-			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Triangle Clockwise", {}, SequencePreset::BezierPathData {} },
-			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Triangle Counterclockwise", {}, SequencePreset::BezierPathData {} },
-			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy A", {}, SequencePreset::BezierPathData {} },
-			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy B", {}, SequencePreset::BezierPathData {} },
-			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy C", {}, SequencePreset::BezierPathData {} },
-			SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy D", {}, SequencePreset::BezierPathData {} },
-		};
-#endif
 	}
 
 	void PresetWindow::SyncGui(Chart& chart)
@@ -227,7 +92,7 @@ namespace Comfy::Studio::Editor
 		{
 			hovered.Sync.StaticChildWindow = Gui::IsWindowHovered();
 
-			for (const auto& staticSyncPreset : staticSyncPresets)
+			for (const auto& staticSyncPreset : GlobalUserData.TargetPreset.StaticSyncPresets)
 			{
 				const bool presetDisabled = (!anySyncTargetSelected || staticSyncPreset.TargetCount < 1);
 				Gui::PushID(&staticSyncPreset);
@@ -240,7 +105,7 @@ namespace Comfy::Studio::Editor
 				Gui::PopID();
 
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-					hovered.Sync.StaticPreset = static_cast<size_t>(std::distance(&*staticSyncPresets.cbegin(), &staticSyncPreset));
+					hovered.Sync.StaticPreset = static_cast<size_t>(std::distance(&*GlobalUserData.TargetPreset.StaticSyncPresets.cbegin(), &staticSyncPreset));
 
 				// TODO: At least basic item context menu for changing the name, move up/down and delete
 			}
@@ -262,14 +127,16 @@ namespace Comfy::Studio::Editor
 					const auto syncPair = &firstSelectedTarget[-firstSelectedTarget->Flags.IndexWithinSyncPair];
 					assert(syncPair[0].Flags.IndexWithinSyncPair == 0);
 
-					auto& newPreset = staticSyncPresets.emplace_back();
-					newPreset.Name = "Unnamed Preset " + std::to_string(staticSyncPresets.size());
+					auto& newPreset = GlobalUserData.Mutable().TargetPreset.StaticSyncPresets.emplace_back();
+					newPreset.Name = "Unnamed Preset " + std::to_string(GlobalUserData.TargetPreset.StaticSyncPresets.size());
 					newPreset.TargetCount = syncPair->Flags.SyncPairCount;
 					for (size_t i = 0; i < newPreset.TargetCount; i++)
 					{
 						newPreset.Targets[i].Type = syncPair[i].Type;
 						newPreset.Targets[i].Properties = Rules::TryGetProperties(syncPair[i]);
 					}
+
+					GlobalUserData.Mutable().SaveToFile();
 				}
 #endif
 			}
@@ -344,9 +211,9 @@ namespace Comfy::Studio::Editor
 			const f32 halfWidth = (fullWidth - PresetButtonSpacing.x) / 2.0f;
 
 			Gui::PushItemDisabledAndTextColorIf(!anyTargetSelected);
-			for (size_t i = 0; i < sequencePresets.size(); i++)
+			for (size_t i = 0; i < GlobalUserData.TargetPreset.SequencePresets.size(); i++)
 			{
-				const auto& thisSequencePreset = sequencePresets[i];
+				const auto& thisSequencePreset = GlobalUserData.TargetPreset.SequencePresets[i];
 				Gui::PushID(&thisSequencePreset);
 
 				if (thisSequencePreset.ButtonType == SequencePresetButtonType::SingleLine)
@@ -365,11 +232,11 @@ namespace Comfy::Studio::Editor
 					if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 						hovered.Sequence.Preset = i;
 
-					if (i + 1 < sequencePresets.size())
+					if (i + 1 < GlobalUserData.TargetPreset.SequencePresets.size())
 					{
 						Gui::SameLine();
 
-						const auto& nextSequencePreset = sequencePresets[i + 1];
+						const auto& nextSequencePreset = GlobalUserData.TargetPreset.SequencePresets[i + 1];
 						Gui::PushID(&nextSequencePreset);
 
 						if (Gui::ButtonEx(nextSequencePreset.Name.c_str(), vec2(halfWidth, SameLineSequenceButtonHeight)))
@@ -429,7 +296,7 @@ namespace Comfy::Studio::Editor
 		}
 		else if (hovered.Sync.StaticPreset.has_value())
 		{
-			const auto& hoveredPreset = staticSyncPresets[*hovered.Sync.StaticPreset];
+			const auto& hoveredPreset = GlobalUserData.TargetPreset.StaticSyncPresets[*hovered.Sync.StaticPreset];
 			syncPresetPreview.TargetCount = hoveredPreset.TargetCount;
 			syncPresetPreview.Targets = hoveredPreset.Targets;
 			RenderSyncPresetPreview(renderer, renderHelper, hoveredPreset.TargetCount, hoveredPreset.Targets);
@@ -437,6 +304,12 @@ namespace Comfy::Studio::Editor
 		else if (hovered.Sequence.Preset.has_value())
 		{
 			// TODO: ...
+			const auto& preset = GlobalUserData.TargetPreset.SequencePresets[*hovered.Sequence.Preset];
+
+			if (preset.Type == SequencePresetType::Circle)
+			{
+
+			}
 		}
 	}
 
@@ -463,11 +336,11 @@ namespace Comfy::Studio::Editor
 		else if (hovered.Sequence.Preset.has_value())
 		{
 			// TODO: Proper implementation...
-			const auto& preset = sequencePresets[hovered.Sequence.Preset.value()];
+			const auto& preset = GlobalUserData.TargetPreset.SequencePresets[*hovered.Sequence.Preset];
 
 			if (preset.Type == SequencePresetType::Circle)
 			{
-				const u32 circleColor = 0xFFB1B1B1; // 0xFF65C486; // Gui::GetColorU32(ImGuiCol_Text); // GetButtonTypeColorU32(ButtonType::Circle);
+				constexpr u32 circleColor = 0xFFB1B1B1;
 				drawList.AddCircle(renderWindow.TargetAreaToScreenSpace(preset.Circle.Center), preset.Circle.Radius * renderWindow.GetCamera().Zoom, circleColor, 64, 2.0f);
 
 				constexpr i32 arrowCount = 8; // 4;

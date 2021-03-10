@@ -36,10 +36,7 @@ namespace Comfy::Studio::Editor
 		Undo::UndoManager& undoManager;
 
 		DynamicSyncPresetSettings dynamicSyncPresetSettings = {};
-		std::vector<StaticSyncPreset> staticSyncPresets;
-
 		SequencePresetSettings sequencePresetSettings = {};
-		std::vector<SequencePreset> sequencePresets;
 
 		struct HoverData
 		{

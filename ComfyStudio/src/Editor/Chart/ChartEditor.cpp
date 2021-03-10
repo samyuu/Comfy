@@ -103,7 +103,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Open...", "Ctrl + O", false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });
 
-			const auto& recentFilesView = GlobalSettings.AppData.RecentFiles.ChartFiles.View();
+			const auto& recentFilesView = GlobalAppData.RecentFiles.ChartFiles.View();
 			if (Gui::BeginMenu("Open Recent", !recentFilesView.empty()))
 			{
 				size_t reserveFileIndex = 0, indexToRemove = std::numeric_limits<size_t>::max();
@@ -126,7 +126,7 @@ namespace Comfy::Studio::Editor
 							fileNotFoundPopup.QuestionToTheUser = "Remove from Recent Files list?";
 							fileNotFoundPopup.OnYesClickedFunction = [this]()
 							{
-								GlobalSettings.AppData.RecentFiles.ChartFiles.Remove(fileNotFoundPopup.NotFoundPath);
+								GlobalAppData.RecentFiles.ChartFiles.Remove(fileNotFoundPopup.NotFoundPath);
 							};
 
 						}
@@ -136,7 +136,7 @@ namespace Comfy::Studio::Editor
 
 				Gui::Separator();
 				if (Gui::MenuItem("Clear Items"))
-					GlobalSettings.AppData.RecentFiles.ChartFiles.Clear();
+					GlobalAppData.RecentFiles.ChartFiles.Clear();
 
 				Gui::EndMenu();
 			}
@@ -386,7 +386,7 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::LoadNativeChartFileSync(std::string_view filePath)
 	{
 		assert(Util::EndsWithInsensitive(filePath, ComfyStudioChartFile::Extension));
-		GlobalSettings.AppData.RecentFiles.ChartFiles.Add(filePath);
+		GlobalAppData.RecentFiles.ChartFiles.Add(filePath);
 
 		// TODO: Display error GUI if unable to load (?)
 		CreateNewChart();
@@ -423,7 +423,7 @@ namespace Comfy::Studio::Editor
 			chartSaveFileFuture = IO::File::SaveAsync(chart->ChartFilePath, lastSavedChartFile.get());
 
 			undoManager.ClearPendingChangesFlag();
-			GlobalSettings.AppData.RecentFiles.ChartFiles.Add(chart->ChartFilePath);
+			GlobalAppData.RecentFiles.ChartFiles.Add(chart->ChartFilePath);
 		}
 	}
 
