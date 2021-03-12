@@ -87,6 +87,7 @@ namespace ImGui
 	bool WideTreeNodeNoArrow(const char* label, ImGuiTreeNodeFlags flags);
 
 	bool WideBeginPopup(const char* label, ImGuiWindowFlags flags = ImGuiWindowFlags_None);
+	bool WideBeginPopupModal(const char* name, bool* p_open = nullptr, ImGuiWindowFlags flags = 0);
 	bool WideBeginMenu(const char* label, bool enabled = true);
 
 	bool WideBeginCombo(const char* label, const char* preview_value, ImGuiComboFlags flags = 0);

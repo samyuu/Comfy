@@ -512,6 +512,14 @@ namespace ImGui
 		return BeginPopup(label, flags);
 	}
 
+	bool WideBeginPopupModal(const char* name, bool* p_open, ImGuiWindowFlags flags)
+	{
+		PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(/*GImGui->Style.FramePadding.x*/8.0f, 5.0f));
+		const bool result = BeginPopupModal(name, p_open, flags);
+		PopStyleVar();
+		return result;
+	}
+
 	bool WideBeginMenu(const char* label, bool enabled)
 	{
 		RAII_POPUP_WINDOW_PADDING();

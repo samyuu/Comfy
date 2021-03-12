@@ -110,7 +110,7 @@ namespace Comfy::Studio::Editor
 
 				std::for_each(recentFilesView.rbegin(), recentFilesView.rend(), [&](const auto& path)
 				{
-					// NOTE: No actual keyboard input yet but still help with reading the list
+					// NOTE: Even without handling keyboard input this still helps with readability
 					const char shortcutBuffer[2] = { (reserveFileIndex < 9) ? static_cast<char>('1' + reserveFileIndex) : '\0', '\0' };
 
 					if (Gui::MenuItem(path.c_str(), shortcutBuffer))
@@ -128,7 +128,6 @@ namespace Comfy::Studio::Editor
 							{
 								GlobalAppData.RecentFiles.ChartFiles.Remove(fileNotFoundPopup.NotFoundPath);
 							};
-
 						}
 					}
 					reserveFileIndex++;
@@ -785,7 +784,7 @@ namespace Comfy::Studio::Editor
 		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
 
 		bool isOpen = true;
-		if (Gui::BeginPopupModal(pvScriptImportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		if (Gui::WideBeginPopupModal(pvScriptImportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			pvScriptImportPopup.Window.Gui();
 
@@ -827,7 +826,7 @@ namespace Comfy::Studio::Editor
 		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
 
 		bool isOpen = true;
-		if (Gui::BeginPopupModal(fileNotFoundPopupID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		if (Gui::WideBeginPopupModal(fileNotFoundPopupID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			constexpr vec2 buttonSize = vec2(120.0f, 0.0f);
 			Gui::BeginChild("FileNotFoundPopupText", vec2(0.0f, Gui::GetFontSize() * 4.0f), true, ImGuiWindowFlags_NoBackground);
@@ -874,7 +873,7 @@ namespace Comfy::Studio::Editor
 		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
 
 		bool isOpen = true;
-		if (Gui::BeginPopupModal(saveConfirmationPopupID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		if (Gui::WideBeginPopupModal(saveConfirmationPopupID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			constexpr vec2 buttonSize = vec2(120.0f, 0.0f);
 			Gui::BeginChild("SaveConfirmationPopupText", vec2(0.0f, Gui::GetFontSize() * 3.0f), true, ImGuiWindowFlags_NoBackground);

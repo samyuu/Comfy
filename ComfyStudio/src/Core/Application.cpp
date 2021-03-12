@@ -254,6 +254,7 @@ namespace Comfy::Studio
 	void Application::GuiMainMenuBar()
 	{
 		Gui::PushStyleColor(ImGuiCol_MenuBarBg, Gui::GetStyleColorVec4(ImGuiCol_TitleBg));
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(8.0f, Gui::GetStyle().ItemSpacing.y));
 		if (Gui::BeginMainMenuBar())
 		{
 			editorManager->GuiComponentMenu();
@@ -264,6 +265,7 @@ namespace Comfy::Studio
 			GuiMenuBarAudioAndPerformanceDisplay();
 			Gui::EndMainMenuBar();
 		}
+		Gui::PopStyleVar(1);
 		Gui::PopStyleColor(1);
 	}
 
@@ -372,7 +374,7 @@ namespace Comfy::Studio
 		Gui::SetNextWindowPos(viewport->Pos + viewport->Size / 4.0f, ImGuiCond_Appearing);
 		Gui::SetNextWindowSize(viewport->Size * 0.5f, ImGuiCond_Appearing);
 
-		if (Gui::BeginPopupModal(AboutWindowName, &aboutWindowIsOpen, ImGuiWindowFlags_None))
+		if (Gui::WideBeginPopupModal(AboutWindowName, &aboutWindowIsOpen, ImGuiWindowFlags_None))
 		{
 			Gui::BeginTabBar("AboutTabBar", ImGuiTabBarFlags_NoTooltip);
 			if (Gui::BeginTabItem("Version", nullptr, ImGuiTabItemFlags_NoCloseButton))
