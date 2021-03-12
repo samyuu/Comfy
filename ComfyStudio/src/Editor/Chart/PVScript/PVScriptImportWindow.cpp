@@ -93,6 +93,11 @@ namespace Comfy::Studio::Editor
 			outChart->SongFileName = songPath;
 
 			outChart->StartOffset = -(decomposedScript.MusicPlayCommandTime + settings.TargetOffset);
+
+			// NOTE: To avoid an ugly neagtive zero in the chart editor sync window later on
+			if (outChart->StartOffset == -TimeSpan::Zero())
+				outChart->StartOffset = TimeSpan::Zero();
+
 			outChart->Duration = decomposedScript.PVEndCommandTime + settings.TargetOffset;
 
 			CreateTempoMapApproximationFromPVCommands(decomposedScript, outChart->TempoMap, outChart->TimelineMap, settings);
@@ -347,7 +352,7 @@ namespace Comfy::Studio::Editor
 			Gui::BeginChild("StatisticsChild", vec2(Gui::GetContentRegionAvailWidth(), 0.0f), true, ImGuiWindowFlags_None);
 			{
 				{
-					Gui::TextUnformatted("Target Time Precision Loss");
+					Gui::TextUnformatted("Target Time Precision Loss (Visual Only)");
 					Gui::Separator();
 
 					Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
