@@ -9,8 +9,9 @@ namespace ImGui
 		style->WindowPadding = ImVec2(2.0f, 2.0f);
 		style->WindowRounding = 0.0f;
 		style->WindowBorderSize = 0.0f;
+		style->FramePadding = ImVec2(6.0f, 3.0f);
 		style->FrameBorderSize = 0.0f;
-		style->ItemSpacing = ImVec2(8.0f, 2.0f);
+		style->ItemSpacing = ImVec2(6.0f, 2.0f);
 		style->ItemInnerSpacing = ImVec2(2.0f, 4.0f);
 		style->ScrollbarSize = 14.0f;
 		style->IndentSpacing = 14.0f;
@@ -19,9 +20,8 @@ namespace ImGui
 		// NOTE: To prevent render glitches for free floating windows
 		if (const auto minWindowWidth = ::GetSystemMetrics(SM_CXMIN); minWindowWidth != 0)
 			style->WindowMinSize = ImVec2(static_cast<f32>(minWindowWidth), 32.0f);
-
-		// NOTE: Otherwise a reasonable limit would be
-		// style->WindowMinSize = ImVec2(120.0f, 32.0f);
+		else // NOTE: Otherwise a reasonable limit would be
+			style->WindowMinSize = ImVec2(120.0f, 32.0f);
 
 		ImVec4* colors = style->Colors;
 		colors[ImGuiCol_Text] = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
@@ -35,7 +35,7 @@ namespace ImGui
 		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
 		colors[ImGuiCol_FrameBgActive] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
 		colors[ImGuiCol_TitleBg] = ImVec4(0.13f, 0.13f, 0.13f, 1.00f);
-		colors[ImGuiCol_TitleBgActive] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
 		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
 		colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
@@ -57,7 +57,7 @@ namespace ImGui
 		colors[ImGuiCol_ResizeGrip] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
 		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
 		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-		colors[ImGuiCol_Tab] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
 		colors[ImGuiCol_TabHovered] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
 		colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
 		colors[ImGuiCol_TabUnfocused] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
