@@ -39,6 +39,7 @@ namespace Comfy::Studio::Editor
 
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
+		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
 
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor SongVoice", false, 1.0f, true);
 		buttonSoundController = std::make_unique<ButtonSoundController>(soundEffectManager);
@@ -371,6 +372,7 @@ namespace Comfy::Studio::Editor
 		undoManager.ClearAll();
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
+		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
 		UnloadSong();
 
 		SyncWorkingChartPointers();
@@ -949,6 +951,12 @@ namespace Comfy::Studio::Editor
 
 		auto& playTestWindow = GetOrCreatePlayTestWindow();
 		playTestWindow.Restart(startFromCursor ? cursorTime : TimeSpan::Zero());
+
+		if (GlobalUserData.System.Video.EnterFullscreenOnMaximizedPlaytestStart && parentApplication.GetHost().GetIsMaximized() && !parentApplication.GetHost().GetIsFullscreen())
+		{
+			parentApplication.GetHost().SetIsFullscreen(true);
+			exitFullscreenOnPlaytestEnd = true;
+		}
 	}
 
 	void ChartEditor::StopPlaytesting(PlayTestExitType exitType)
@@ -967,6 +975,10 @@ namespace Comfy::Studio::Editor
 			timeline->SetCursorTime(playbackTimeOnPlaytestStart);
 			timeline->SetScrollX(timelineScrollXOnPlaytestStart);
 		}
+
+		if (GlobalUserData.System.Video.EnterFullscreenOnMaximizedPlaytestStart && exitFullscreenOnPlaytestEnd && parentApplication.GetHost().GetIsFullscreen())
+			parentApplication.GetHost().SetIsFullscreen(false);
+		exitFullscreenOnPlaytestEnd = false;
 	}
 
 	bool ChartEditor::GetIsPlayback() const

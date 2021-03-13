@@ -36,9 +36,9 @@ namespace Comfy::Studio
 		if (!loadedJson.has_value())
 			return false;
 
-		const json& appJson = loadedJson.value();
+		const json& rootJson = loadedJson.value();
 
-		if (const json* windowStateJson = JsonFind(appJson, AppIDs::LastSessionWindowState))
+		if (const json* windowStateJson = JsonFind(rootJson, AppIDs::LastSessionWindowState))
 		{
 			LastSessionWindowState.RestoreRegion = JsonTryGetIVec4(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_RestoreRegion));
 			LastSessionWindowState.Position = JsonTryGetIVec2(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_Position));
@@ -48,7 +48,7 @@ namespace Comfy::Studio
 			LastSessionWindowState.ActiveEditorComponent = JsonTryGetStr(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_ActiveEditorComponent));
 		}
 
-		if (const json* recentFilesJson = JsonFind(appJson, AppIDs::RecentFiles))
+		if (const json* recentFilesJson = JsonFind(rootJson, AppIDs::RecentFiles))
 		{
 			if (const json* chartFilesJson = JsonFind(*recentFilesJson, AppIDs::RecentFiles_ChartFiles))
 			{
@@ -65,9 +65,9 @@ namespace Comfy::Studio
 
 	void ComfyStudioAppSettings::SaveToFile(std::string_view filePath) const
 	{
-		json appJson = json::object();
+		json rootJson = json::object();
 
-		json& windowStateJson = appJson[AppIDs::LastSessionWindowState];
+		json& windowStateJson = rootJson[AppIDs::LastSessionWindowState];
 		JsonTrySetIVec4(windowStateJson[AppIDs::LastSessionWindowState_RestoreRegion], LastSessionWindowState.RestoreRegion);
 		JsonTrySetIVec2(windowStateJson[AppIDs::LastSessionWindowState_Position], LastSessionWindowState.Position);
 		JsonTrySetIVec2(windowStateJson[AppIDs::LastSessionWindowState_Size], LastSessionWindowState.Size);
@@ -75,12 +75,12 @@ namespace Comfy::Studio
 		JsonTrySetBool(windowStateJson[AppIDs::LastSessionWindowState_IsMaximized], LastSessionWindowState.IsMaximized);
 		JsonTrySetStr(windowStateJson[AppIDs::LastSessionWindowState_ActiveEditorComponent], LastSessionWindowState.ActiveEditorComponent);
 
-		json& recentFilesJson = appJson[AppIDs::RecentFiles];
+		json& recentFilesJson = rootJson[AppIDs::RecentFiles];
 		json& chartFilesJson = recentFilesJson[AppIDs::RecentFiles_ChartFiles];
 		chartFilesJson = json::array();
 		std::for_each(RecentFiles.ChartFiles.View().rbegin(), RecentFiles.ChartFiles.View().rend(), [&](auto& path) { chartFilesJson.emplace_back(path); });
 
-		IO::SaveJson(filePath, appJson);
+		IO::SaveJson(filePath, rootJson);
 	}
 
 	void ComfyStudioAppSettings::RestoreDefault()
@@ -287,6 +287,10 @@ namespace Comfy::Studio
 
 	namespace UserIDs
 	{
+		const std::string System = "system";
+		const std::string System_Video = "video";
+		const std::string System_Video_EnterFullscreenOnMaximizedPlaytestStart = "enter_fullscreen_on_maximized_playtest_start";
+
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
 		const std::string TargetPreview_ShowGrid = "show_grid";
@@ -294,7 +298,7 @@ namespace Comfy::Studio
 		const std::string TargetPreview_ShowBackgroundCheckerboard = "show_background_checkerboard";
 		const std::string TargetPreview_BackgroundDimPercentage = "background_dim_percentage";
 		const std::string TargetPreview_PostHitLingerDurationTicks = "post_hit_linger_duration_ticks";
-		const std::string TargetPreview_UsePracticeBackground = "use_practice_background";
+		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
 		const std::string TargetPreset = "target_preset";
 		const std::string TargetPreset_StaticSyncPresets = "static_sync_preset";
@@ -320,6 +324,14 @@ namespace Comfy::Studio
 		const std::string TargetPreset_InspectorDropdown_Frequencies = "frequencies";
 		const std::string TargetPreset_InspectorDropdown_Amplitudes = "amplitudes";
 		const std::string TargetPreset_InspectorDropdown_Distances = "distances";
+
+		const std::string ChartProperties = "chart_properties";
+		const std::string ChartProperties_ChartCreatorDefaultName = "chart_creator_default_name";
+
+		const std::string BPMCalculator = "bpm_calculator";
+		const std::string BPMCalculator_AutoResetEnabled = "auto_reset_enabled";
+		const std::string BPMCalculator_ApplyToTempoMap = "apply_to_tempo_map";
+		const std::string BPMCalculator_TapSoundType = "tap_sound_type";
 	}
 
 	bool ComfyStudioUserSettings::LoadFromFile(std::string_view filePath)
@@ -328,9 +340,21 @@ namespace Comfy::Studio
 		if (!loadedJson.has_value())
 			return false;
 
-		const json& userJson = loadedJson.value();
+		// NOTE: Restore default so that unspecified objects still start off with reasonable values, thereby improving forward compatibility in case the json is from an older version.
+		//		 To compensate all parser code needs to clear out all vectors to avoid duplicate entries
+		RestoreDefault();
 
-		if (const json* targetPreviewJson = JsonFind(userJson, UserIDs::TargetPreview))
+		const json& rootJson = loadedJson.value();
+
+		if (const json* systemJson = JsonFind(rootJson, UserIDs::System))
+		{
+			if (const json* videoJson = JsonFind(*systemJson, UserIDs::System_Video))
+			{
+				System.Video.EnterFullscreenOnMaximizedPlaytestStart = JsonTryGetBool(JsonFind(*videoJson, UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart)).value_or(false);
+			}
+		}
+
+		if (const json* targetPreviewJson = JsonFind(rootJson, UserIDs::TargetPreview))
 		{
 			TargetPreview.ShowButtons = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)).value_or(false);
 			TargetPreview.ShowGrid = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)).value_or(false);
@@ -338,13 +362,14 @@ namespace Comfy::Studio
 			TargetPreview.ShowBackgroundCheckerboard = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)).value_or(false);
 			TargetPreview.BackgroundDim = static_cast<f32>(JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDimPercentage)).value_or(0)) / 100.0f;
 			TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)).value_or(0));
-			TargetPreview.UsePracticeBackground = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_UsePracticeBackground)).value_or(false);
+			TargetPreview.DisplayPracticeBackground = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)).value_or(false);
 		}
 
-		if (const json* targetPresetJson = JsonFind(userJson, UserIDs::TargetPreset))
+		if (const json* targetPresetJson = JsonFind(rootJson, UserIDs::TargetPreset))
 		{
 			if (const json* syncPresetsJson = JsonFind(*targetPresetJson, UserIDs::TargetPreset_StaticSyncPresets))
 			{
+				TargetPreset.StaticSyncPresets.clear();
 				TargetPreset.StaticSyncPresets.reserve(syncPresetsJson->size());
 				for (const json& syncPresetJson : *syncPresetsJson)
 				{
@@ -370,6 +395,7 @@ namespace Comfy::Studio
 
 			if (const json* sequencePresetsJson = JsonFind(*targetPresetJson, UserIDs::TargetPreset_SequencePresets))
 			{
+				TargetPreset.SequencePresets.clear();
 				TargetPreset.SequencePresets.reserve(sequencePresetsJson->size());
 				for (const json& sequencePresetJson : *sequencePresetsJson)
 				{
@@ -399,6 +425,7 @@ namespace Comfy::Studio
 				{
 					if (const json* arrayJson = JsonFind(*inspectorDropdownJson, id))
 					{
+						outVector.clear();
 						outVector.reserve(arrayJson->size());
 						for (const json& itemJson : *arrayJson)
 						{
@@ -419,80 +446,116 @@ namespace Comfy::Studio
 			}
 		}
 
+		if (const json* chartPropertiesJson = JsonFind(rootJson, UserIDs::ChartProperties))
+		{
+			ChartProperties.ChartCreatorDefaultName = std::move(JsonTryGetStr(JsonFind(*chartPropertiesJson, UserIDs::ChartProperties_ChartCreatorDefaultName)).value_or(""));
+		}
+
+		if (const json* bpmCalculatorJson = JsonFind(rootJson, UserIDs::BPMCalculator))
+		{
+			BPMCalculator.AutoResetEnabled = JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_AutoResetEnabled)).value_or(false);
+			BPMCalculator.ApplyToTempoMap = JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_ApplyToTempoMap)).value_or(false);
+			BPMCalculator.TapSoundType = static_cast<BPMTapSoundType>(JsonTryGetI32(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType)).value_or(0));
+		}
+
 		return true;
 	}
 
 	void ComfyStudioUserSettings::SaveToFile(std::string_view filePath) const
 	{
-		json userJson = json::object();
+		json rootJson = json::object();
 
-		json& targetPreviewJson = userJson[UserIDs::TargetPreview];
-		targetPreviewJson[UserIDs::TargetPreview_ShowButtons] = TargetPreview.ShowButtons;
-		targetPreviewJson[UserIDs::TargetPreview_ShowGrid] = TargetPreview.ShowGrid;
-		targetPreviewJson[UserIDs::TargetPreview_ShowHoldInfo] = TargetPreview.ShowHoldInfo;
-		targetPreviewJson[UserIDs::TargetPreview_ShowBackgroundCheckerboard] = TargetPreview.ShowBackgroundCheckerboard;
-		targetPreviewJson[UserIDs::TargetPreview_BackgroundDimPercentage] = static_cast<i32>(glm::round(TargetPreview.BackgroundDim * 100.0f));
-		targetPreviewJson[UserIDs::TargetPreview_PostHitLingerDurationTicks] = TargetPreview.PostHitLingerDuration.Ticks();
-		targetPreviewJson[UserIDs::TargetPreview_UsePracticeBackground] = TargetPreview.UsePracticeBackground;
-
-		json& targetPresetJson = userJson[UserIDs::TargetPreset];
-
-		json& syncPresetsJson = targetPresetJson[UserIDs::TargetPreset_StaticSyncPresets];
-		syncPresetsJson = json::array();
-		for (const auto& syncPreset : TargetPreset.StaticSyncPresets)
+		json& systemJson = rootJson[UserIDs::System];
 		{
-			json& syncPresetJson = syncPresetsJson.emplace_back(json::object());
-			json& targetDataArrayJson = syncPresetJson[UserIDs::TargetPreset_StaticSyncPresets_Targets];
-
-			syncPresetJson[UserIDs::TargetPreset_StaticSyncPresets_Name] = syncPreset.Name;
-			for (size_t i = 0; i < syncPreset.TargetCount; i++)
-			{
-				const auto& targetData = syncPreset.Targets[i];
-				json& targetDataJson = targetDataArrayJson.emplace_back(json::object());
-
-				targetDataJson[UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType] = static_cast<i32>(targetData.Type);
-				JsonSetTargetProperties(targetDataJson[UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties], targetData.Properties);
-			}
+			json& videoJson = systemJson[UserIDs::System_Video];
+			videoJson[UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart] = System.Video.EnterFullscreenOnMaximizedPlaytestStart;
 		}
 
-		json& sequencePresetsJson = targetPresetJson[UserIDs::TargetPreset_SequencePresets];
-		sequencePresetsJson = json::array();
-		for (const auto& sequencePreset : TargetPreset.SequencePresets)
+		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
 		{
-			json& sequencePresetJson = sequencePresetsJson.emplace_back(json::object());
-			sequencePresetJson[UserIDs::TargetPreset_SequencePresets_GuiButtonType] = static_cast<i32>(sequencePreset.ButtonType);
-			sequencePresetJson[UserIDs::TargetPreset_SequencePresets_Name] = sequencePreset.Name;
-
-			if (sequencePreset.Type == SequencePresetType::Circle)
-			{
-				json& circleJson = sequencePresetJson[UserIDs::TargetPreset_SequencePresets_Circle];
-				circleJson[UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks] = sequencePreset.Circle.Duration.Ticks();
-				circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Radius] = sequencePreset.Circle.Radius;
-				circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Direction] = sequencePreset.Circle.Direction;
-				JsonSetVec2(circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Center], sequencePreset.Circle.Center);
-			}
-			else if (sequencePreset.Type == SequencePresetType::BezierPath)
-			{
-				json& bezierPathJson = sequencePresetJson[UserIDs::TargetPreset_SequencePresets_BezierPath];
-				// TODO: ...
-				bezierPathJson = json::object();
-			}
+			targetPreviewJson[UserIDs::TargetPreview_ShowButtons] = TargetPreview.ShowButtons;
+			targetPreviewJson[UserIDs::TargetPreview_ShowGrid] = TargetPreview.ShowGrid;
+			targetPreviewJson[UserIDs::TargetPreview_ShowHoldInfo] = TargetPreview.ShowHoldInfo;
+			targetPreviewJson[UserIDs::TargetPreview_ShowBackgroundCheckerboard] = TargetPreview.ShowBackgroundCheckerboard;
+			targetPreviewJson[UserIDs::TargetPreview_BackgroundDimPercentage] = static_cast<i32>(glm::round(TargetPreview.BackgroundDim * 100.0f));
+			targetPreviewJson[UserIDs::TargetPreview_PostHitLingerDurationTicks] = TargetPreview.PostHitLingerDuration.Ticks();
+			targetPreviewJson[UserIDs::TargetPreview_DisplayPracticeBackground] = TargetPreview.DisplayPracticeBackground;
 		}
 
-		json& inspectorDropdownJson = targetPresetJson[UserIDs::TargetPreset_InspectorDropdown];
-		inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_PositionsX] = TargetPreset.InspectorDropdown.PositionsX;
-		inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_PositionsY] = TargetPreset.InspectorDropdown.PositionsY;
-		inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Angles] = TargetPreset.InspectorDropdown.Angles;
-		inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Frequencies] = TargetPreset.InspectorDropdown.Frequencies;
-		inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Amplitudes] = TargetPreset.InspectorDropdown.Amplitudes;
-		inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Distances] = TargetPreset.InspectorDropdown.Distances;
+		json& targetPresetJson = rootJson[UserIDs::TargetPreset];
+		{
+			json& syncPresetsJson = targetPresetJson[UserIDs::TargetPreset_StaticSyncPresets];
+			syncPresetsJson = json::array();
+			for (const auto& syncPreset : TargetPreset.StaticSyncPresets)
+			{
+				json& syncPresetJson = syncPresetsJson.emplace_back(json::object());
+				json& targetDataArrayJson = syncPresetJson[UserIDs::TargetPreset_StaticSyncPresets_Targets];
 
-		IO::SaveJson(filePath, userJson);
+				syncPresetJson[UserIDs::TargetPreset_StaticSyncPresets_Name] = syncPreset.Name;
+				for (size_t i = 0; i < syncPreset.TargetCount; i++)
+				{
+					const auto& targetData = syncPreset.Targets[i];
+					json& targetDataJson = targetDataArrayJson.emplace_back(json::object());
+
+					targetDataJson[UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType] = static_cast<i32>(targetData.Type);
+					JsonSetTargetProperties(targetDataJson[UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties], targetData.Properties);
+				}
+			}
+
+			json& sequencePresetsJson = targetPresetJson[UserIDs::TargetPreset_SequencePresets];
+			sequencePresetsJson = json::array();
+			for (const auto& sequencePreset : TargetPreset.SequencePresets)
+			{
+				json& sequencePresetJson = sequencePresetsJson.emplace_back(json::object());
+				sequencePresetJson[UserIDs::TargetPreset_SequencePresets_GuiButtonType] = static_cast<i32>(sequencePreset.ButtonType);
+				sequencePresetJson[UserIDs::TargetPreset_SequencePresets_Name] = sequencePreset.Name;
+
+				if (sequencePreset.Type == SequencePresetType::Circle)
+				{
+					json& circleJson = sequencePresetJson[UserIDs::TargetPreset_SequencePresets_Circle];
+					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks] = sequencePreset.Circle.Duration.Ticks();
+					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Radius] = sequencePreset.Circle.Radius;
+					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Direction] = sequencePreset.Circle.Direction;
+					JsonSetVec2(circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Center], sequencePreset.Circle.Center);
+				}
+				else if (sequencePreset.Type == SequencePresetType::BezierPath)
+				{
+					json& bezierPathJson = sequencePresetJson[UserIDs::TargetPreset_SequencePresets_BezierPath];
+					// TODO: ...
+					bezierPathJson = json::object();
+				}
+			}
+
+			json& inspectorDropdownJson = targetPresetJson[UserIDs::TargetPreset_InspectorDropdown];
+			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_PositionsX] = TargetPreset.InspectorDropdown.PositionsX;
+			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_PositionsY] = TargetPreset.InspectorDropdown.PositionsY;
+			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Angles] = TargetPreset.InspectorDropdown.Angles;
+			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Frequencies] = TargetPreset.InspectorDropdown.Frequencies;
+			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Amplitudes] = TargetPreset.InspectorDropdown.Amplitudes;
+			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Distances] = TargetPreset.InspectorDropdown.Distances;
+		}
+
+		json& chartPropertiesJson = rootJson[UserIDs::ChartProperties];
+		{
+			chartPropertiesJson[UserIDs::ChartProperties_ChartCreatorDefaultName] = ChartProperties.ChartCreatorDefaultName;
+		}
+
+		json& bpmCalculatorJson = rootJson[UserIDs::BPMCalculator];
+		{
+			bpmCalculatorJson[UserIDs::BPMCalculator_AutoResetEnabled] = BPMCalculator.AutoResetEnabled;
+			bpmCalculatorJson[UserIDs::BPMCalculator_ApplyToTempoMap] = BPMCalculator.ApplyToTempoMap;
+			bpmCalculatorJson[UserIDs::BPMCalculator_TapSoundType] = static_cast<i32>(BPMCalculator.TapSoundType);
+
+		}
+
+		IO::SaveJson(filePath, rootJson);
 	}
 
 	void ComfyStudioUserSettings::RestoreDefault()
 	{
 		*this = {};
+
+		System.Video.EnterFullscreenOnMaximizedPlaytestStart = true;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;
@@ -500,11 +563,15 @@ namespace Comfy::Studio
 		TargetPreview.ShowBackgroundCheckerboard = true;
 		TargetPreview.BackgroundDim = 0.35f;
 		TargetPreview.PostHitLingerDuration = BeatTick::FromBeats(1);
-		TargetPreview.UsePracticeBackground = false;
+		TargetPreview.DisplayPracticeBackground = false;
 
 		TargetPreset.StaticSyncPresets = GetDefaultStaticSyncPresets();
 		TargetPreset.SequencePresets = GetDefaultSequencePresets();
 		TargetPreset.InspectorDropdown.Amplitudes = { 450.0f, 500.0f, 600.0f, 750.0f, 800.0f, 1250.0f, 1500.0f };
 		TargetPreset.InspectorDropdown.Distances = { 880.0f, 960.0f, 1200.0f, 1212.0f, 1440.0f };
+
+		BPMCalculator.AutoResetEnabled = true;
+		BPMCalculator.ApplyToTempoMap = false;
+		BPMCalculator.TapSoundType = BPMTapSoundType::MetronomeBeat;
 	}
 }

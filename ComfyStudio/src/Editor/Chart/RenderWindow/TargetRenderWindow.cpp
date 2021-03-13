@@ -238,19 +238,19 @@ namespace Comfy::Studio::Editor
 			if (Gui::BeginMenu("Settings", true))
 			{
 				bool changesMade = false;
-				changesMade |= Gui::Checkbox("Use Practice Background", &GlobalUserData.Mutable().TargetPreview.UsePracticeBackground);
+				changesMade |= Gui::Checkbox("Use Practice Background", &GlobalUserData.Mutable().TargetPreview.DisplayPracticeBackground);
 				changesMade |= Gui::Checkbox("Show Target Grid", &GlobalUserData.Mutable().TargetPreview.ShowGrid);
 				changesMade |= Gui::Checkbox("Show Target Buttons", &GlobalUserData.Mutable().TargetPreview.ShowButtons);
 				changesMade |= Gui::Checkbox("Show Target Hold Info", &GlobalUserData.Mutable().TargetPreview.ShowHoldInfo);
 				changesMade |= Gui::Checkbox("Show Background Checkerboard", &GlobalUserData.Mutable().TargetPreview.ShowBackgroundCheckerboard);
 
-				Gui::PushItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.UsePracticeBackground);
+				Gui::PushItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.DisplayPracticeBackground);
 				if (auto p = (GlobalUserData.TargetPreview.BackgroundDim * 100.0f); Gui::SliderFloat("##BackgroundDimSlider", &p, 0.0f, 100.0f, "Background Dim: %.f%%"))
 				{
 					changesMade |= true;
 					GlobalUserData.Mutable().TargetPreview.BackgroundDim = (p / 100.0f);
 				}
-				Gui::PopItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.UsePracticeBackground);
+				Gui::PopItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.DisplayPracticeBackground);
 
 				if (auto t = GlobalUserData.TargetPreview.PostHitLingerDuration.Ticks(); Gui::SliderInt("##PostHitLingerSlider", &t, 0, BeatTick::TicksPerBeat * 8, "Post Hit Linger: %d Ticks"))
 				{
@@ -295,16 +295,17 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::RenderBackground()
 	{
+		// NOTE: Always draw underneath in case the assets haven't been loaded yet
 		if (GlobalUserData.TargetPreview.ShowBackgroundCheckerboard)
 			backgroundCheckerboard.Render(renderer);
 
 		if (GlobalUserData.TargetPreview.BackgroundDim > 0.0f)
 			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, GlobalUserData.TargetPreview.BackgroundDim)));
 
-		if (GlobalUserData.TargetPreview.UsePracticeBackground)
+		if (GlobalUserData.TargetPreview.DisplayPracticeBackground)
 		{
 			TargetRenderHelper::BackgroundData backgroundData;
-			backgroundData.DrawGrid = !GlobalUserData.TargetPreview.ShowGrid;
+			backgroundData.DrawGrid = true;
 			backgroundData.DrawDim = true;
 			backgroundData.DrawCover = true;
 			backgroundData.DrawLogo = true;
@@ -315,9 +316,10 @@ namespace Comfy::Studio::Editor
 			backgroundData.BackgroundSprite = workingChart->Properties.Image.Background.GetTexSprView();
 			renderHelper->DrawBackground(renderer, backgroundData);
 		}
-
-		if (GlobalUserData.TargetPreview.ShowGrid)
+		else if (GlobalUserData.TargetPreview.ShowGrid)
+		{
 			RenderTargetGrid(renderer);
+		}
 	}
 
 	void TargetRenderWindow::RenderHUDBackground()

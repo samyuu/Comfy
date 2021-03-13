@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 #include "Editor/Common/RecentFilesList.h"
 #include "Editor/Chart/TargetPropertyPresets.h"
+#include "Editor/Chart/BPMCalculatorWindow.h"
 
 namespace Comfy::Studio
 {
@@ -44,13 +45,53 @@ namespace Comfy::Studio
 
 		struct
 		{
+			struct
+			{
+				// i32 WindowSwapInterval; // ... or should this be part of AppData (?)
+				bool EnterFullscreenOnMaximizedPlaytestStart;
+				// bool PlaytestAutoHideCursor; // ... also hide even if no focus
+			} Video;
+
+			struct
+			{
+				// bool ReleaseAudioDevicecOnFocusLoss;
+				// ... Audio backend stuff
+				// f32 SongVolume;
+				// f32 ButtonSoundVolume;
+				// f32 SoundEffectVolume;
+				// f32 MetronomeVolume;
+			} Audio;
+
+			struct
+			{
+				// bool AntiAliasedLines;
+				// bool AntiAliasedFill;
+				// ... Curve and circle line counts used by TargetRenderWindow / TargetTools
+			} Gui;
+		} System;
+
+		struct
+		{
+		} Input;
+
+		struct
+		{
+			// bool UnsavedChangesWarningDialog;
+			// bool RememberRecentFiles;
+
+			// bool AutoSaveEnabled;
+			// TimeSpan AutoSaveInterval;
+		} SaveAndLoad;
+
+		struct
+		{
 			bool ShowButtons;
 			bool ShowGrid;
 			bool ShowHoldInfo;
 			bool ShowBackgroundCheckerboard;
 			f32 BackgroundDim;
 			Editor::BeatTick PostHitLingerDuration;
-			bool UsePracticeBackground;
+			bool DisplayPracticeBackground;
 		} TargetPreview;
 
 		struct
@@ -68,6 +109,18 @@ namespace Comfy::Studio
 				std::vector<f32> Distances;
 			} InspectorDropdown;
 		} TargetPreset;
+
+		struct
+		{
+			std::string ChartCreatorDefaultName;
+		} ChartProperties;
+
+		struct
+		{
+			bool AutoResetEnabled;
+			bool ApplyToTempoMap;
+			Editor::BPMTapSoundType TapSoundType;
+		} BPMCalculator;
 	};
 
 	// NOTE: Changes are always saved so no need for const protection or manual saves

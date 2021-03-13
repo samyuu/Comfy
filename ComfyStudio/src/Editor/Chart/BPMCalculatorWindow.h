@@ -2,11 +2,19 @@
 #include "Types.h"
 #include "Chart.h"
 #include "BPMTapCalculator.h"
-#include "Undo/Undo.h"
 #include "Timeline/TimelineMetronome.h"
+#include "Undo/Undo.h"
 
 namespace Comfy::Studio::Editor
 {
+	enum class BPMTapSoundType : u8
+	{
+		None,
+		MetronomeBeat,
+		MetronomeBar,
+		Count,
+	};
+
 	class BPMCalculatorWindow
 	{
 	public:
@@ -22,11 +30,6 @@ namespace Comfy::Studio::Editor
 
 	private:
 		Undo::UndoManager& undoManager;
-
-		bool applyTapToTempoMap = false;
-		bool playTapSound = true;
-		bool useBarTapSound = false;
-
 		BPMTapCalculator bpmCalculator = {};
 	};
 }
