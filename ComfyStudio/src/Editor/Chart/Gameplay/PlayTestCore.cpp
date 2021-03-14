@@ -1,4 +1,4 @@
-#include "PlayTestCore.h"
+﻿#include "PlayTestCore.h"
 #include "PlayTestWindow.h"
 #include "Time/Stopwatch.h"
 
@@ -206,6 +206,31 @@ namespace Comfy::Studio::Editor
 			for (size_t i = 0; i < syncPair.TargetCount; i++)
 			{
 				if (!syncPair.Targets[i].HasBeenHit)
+					return false;
+			}
+
+			return true;
+		}
+
+		constexpr bool IsCorrectTypeHitEvaluation(HitEvaluation hitEvaluation)
+		{
+			switch (hitEvaluation)
+			{
+			case HitEvaluation::Cool:
+			case HitEvaluation::Fine:
+			case HitEvaluation::Safe:
+			case HitEvaluation::Sad:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		constexpr bool AllHoldsInSyncPairHaveBeenCorrectlyHitByPlayer(const PlayTestSyncPair& syncPair)
+		{
+			for (size_t i = 0; i < syncPair.TargetCount; i++)
+			{
+				if (syncPair.Targets[i].Flags.IsHold && syncPair.Targets[i].HasTimedOut && !IsCorrectTypeHitEvaluation(syncPair.Targets[i].HitEvaluation))
 					return false;
 			}
 
@@ -524,13 +549,13 @@ namespace Comfy::Studio::Editor
 						for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
 						{
 							auto& heldDownBindings = holdState.PerTypeHeldDownBindings[i];
-							if (heldDownBindings.empty())
-								continue;
+							if (!heldDownBindings.empty())
+							{
+								heldDownBindings.erase(std::remove_if(heldDownBindings.begin(), heldDownBindings.end(), [](auto* b) { return !IsBindingDown(*b); }), heldDownBindings.end());
 
-							heldDownBindings.erase(std::remove_if(heldDownBindings.begin(), heldDownBindings.end(), [](auto* b) { return !IsBindingDown(*b); }), heldDownBindings.end());
-
-							if (heldDownBindings.empty())
-								ProcessHoldStateCancelNow();
+								if (heldDownBindings.empty())
+									ProcessHoldStateCancelNow();
+							}
 						}
 					}
 
@@ -764,8 +789,8 @@ namespace Comfy::Studio::Editor
 						if (onScreenTarget.WrongTypeOnTimeOut && IsSlideButtonType(onScreenTarget.Type))
 							sharedContext.ButtonSoundController->PlaySlideSound();
 
-						if (AllInSyncPairHaveBeenHitByPlayer(onScreenPair))
-							ProcessHoldStateCancelNow();
+						if (AllInSyncPairHaveBeenHit(onScreenPair))
+							ProcessHoldStateForFullyHitSyncPair(onScreenPair);
 
 						context.Score.ComboCount = 0;
 					}
@@ -989,6 +1014,59 @@ namespace Comfy::Studio::Editor
 					sharedContext.Renderer->Font().DrawBorder(font, textBuffer, Graphics::Transform2D(textPosition));
 				});
 			}
+
+#if COMFY_DEBUG && 0 // DEBUG: Hold state debug view
+			sharedContext.RenderHelper->WithFont36([&](auto& font)
+			{
+				static constexpr std::array buttonTypeNames = { "Triangle", "Square", "Cross", "Circle", "Slide L", "Slide R" };
+				static constexpr std::array buttonTypeSymbols = { u8"△", u8"□", u8"×", u8"〇", u8"←", u8"→" };
+
+				char b[512];
+				auto buttonTypeFlagsToString = [&b](ButtonTypeFlags flags)
+				{
+					static std::string buffer; buffer.clear();
+					buffer += "(";
+					for (u32 i = 0; i < static_cast<u32>(EnumCount<ButtonType>()); i++)
+					{
+						if (flags & (1 << i))
+							buffer += std::string_view(b, sprintf_s(b, "%s|", buttonTypeNames[i]));
+					}
+					buffer.erase(buffer.size() - std::string_view("|").size());
+					buffer += ")";
+					return buffer;
+				};
+
+				static std::string buffer; buffer.clear();
+				buffer += "CurrentHoldTypes: ";
+				if (holdState.CurrentHoldTypes == ButtonTypeFlags_None)
+					buffer += "(None)";
+				else
+					buffer += buttonTypeFlagsToString(holdState.CurrentHoldTypes);
+				buffer += '\n';
+
+				buffer += "--------------------------------------\n";
+				for (u32 i = 0; i < static_cast<u32>(EnumCount<ButtonType>()); i++)
+					buffer += std::string_view(b, sprintf_s(b, "%s HeldDownBindings: %zu\n", buttonTypeSymbols[i], holdState.PerTypeHeldDownBindings[i].size()));
+				buffer += "--------------------------------------\n";
+
+				constexpr size_t recentHistoryDisplayCount = 6;
+				for (size_t i = 0; i < std::min(holdState.EventHistory.size(), recentHistoryDisplayCount); i++)
+				{
+					const auto& holdEvent = holdState.EventHistory[holdState.EventHistory.size() - (i + 1)];
+					const auto holdEventTimeStr = holdEvent.PlaybackTime.FormatTime();
+					if (holdEvent.EventType == PlayTestHoldEventType::Start)
+						buffer += std::string_view(b, sprintf_s(b, "%s - Start  - %s\n", holdEventTimeStr.data(), buttonTypeFlagsToString(holdEvent.ButtonTypes).c_str()));
+					else if (holdEvent.EventType == PlayTestHoldEventType::Addition)
+						buffer += std::string_view(b, sprintf_s(b, "%s - Add    - %s\n", holdEventTimeStr.data(), buttonTypeFlagsToString(holdEvent.ButtonTypes).c_str()));
+					else if (holdEvent.EventType == PlayTestHoldEventType::Cancel)
+						buffer += std::string_view(b, sprintf_s(b, "%s - Cancel - ...\n", holdEventTimeStr.data()));
+					else if (holdEvent.EventType == PlayTestHoldEventType::MaxOut)
+						buffer += std::string_view(b, sprintf_s(b, "%s - MaxOut - ...\n", holdEventTimeStr.data()));
+				}
+
+				sharedContext.Renderer->Font().DrawBorder(font, buffer, Graphics::Transform2D(vec2(0.0f, 0.0f), vec2(16.0f, 128.0f), 0.0f, vec2(1.0f / 1.5f), 1.0f));
+			});
+#endif
 		}
 
 		void DrawFadeInFadeOut()
@@ -1428,15 +1506,18 @@ namespace Comfy::Studio::Editor
 			const ButtonTypeFlags pairHoldTypes = GetSyncPairHoldTypeFlags(syncPair);
 			const ButtonTypeFlags pairTypes = GetSyncPairTypeFlags(syncPair);
 
+			const bool allHoldTargetsHitByPlayer = AllHoldsInSyncPairHaveBeenCorrectlyHitByPlayer(syncPair);
 			const bool typeIsAlreadyBeingHeld = (holdState.CurrentHoldTypes & pairTypes);
 
-			if (pairHoldTypes != ButtonTypeFlags_None)
+			if (pairHoldTypes != ButtonTypeFlags_None && allHoldTargetsHitByPlayer)
 			{
 				if (typeIsAlreadyBeingHeld || (holdState.CurrentHoldTypes == ButtonTypeFlags_None))
 				{
 					holdState.CurrentHoldTypes = pairHoldTypes;
 					holdState.EventHistory.push_back({ PlayTestHoldEventType::Start, holdState.CurrentHoldTypes, GetPlaybackTime(), &syncPair });
-					holdState.ClearAllHeldDownBindings();
+
+					if (pairHoldTypes == pairTypes)
+						holdState.ClearAllHeldDownBindings();
 				}
 				else
 				{
