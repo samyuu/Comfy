@@ -11,7 +11,7 @@ namespace Comfy::Studio::Editor
 	{
 	}
 
-	void BPMCalculatorWindow::Gui(Chart& chart, TimeSpan cursorBPMTime, TimelineMetronome& metronome)
+	void BPMCalculatorWindow::Gui(Chart& chart, TimeSpan cursorBPMTime, TimelineMetronome& metronome, ButtonSoundController& buttonSoundController)
 	{
 		bpmCalculator.SetAutoResetInterval(GlobalUserData.BPMCalculator.AutoResetEnabled ? BPMTapCalculator::DefaultAutoResetInterval : TimeSpan::Zero());
 		bpmCalculator.Update();
@@ -52,7 +52,7 @@ namespace Comfy::Studio::Editor
 					if (GlobalUserData.BPMCalculator.ApplyToTempoMap && bpmCalculator.GetTapCount() > 1)
 						ExecuteUpdateTempoChangeBPM(chart, cursorBPMTime, bpmCalculator.GetBPMOnLastTapRound());
 
-					PlayTapSoundIfEnabled(metronome);
+					TryPlayTapSound(metronome, buttonSoundController);
 				}
 				Gui::NextColumn();
 
@@ -66,7 +66,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::ButtonEx("Reset", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight), ImGuiButtonFlags_PressedOnClickRelease) | resetKeyPressed)
 				{
 					bpmCalculator.Reset();
-					PlayTapSoundIfEnabled(metronome);
+					TryPlayTapSound(metronome, buttonSoundController);
 				}
 				Gui::PopItemDisabledAndTextColorIf(tapCount == 0);
 				if (resetKeyDown) Gui::PopStyleColor();
@@ -123,26 +123,21 @@ namespace Comfy::Studio::Editor
 		Gui::EndChild();
 	}
 
-	void BPMCalculatorWindow::PlayTapSoundIfEnabled(TimelineMetronome& metronome) const
+	void BPMCalculatorWindow::TryPlayTapSound(TimelineMetronome& metronome, ButtonSoundController& buttonSoundController) const
 	{
+		const auto soundType = GlobalUserData.BPMCalculator.TapSoundType;
+		if (soundType == BPMTapSoundType::None)
+			return;
+
+		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+
+		// TODO: Consider handling this differently to account for different volume levels..?
 		switch (GlobalUserData.BPMCalculator.TapSoundType)
 		{
-		case BPMTapSoundType::MetronomeBeat:
-		{
-			Audio::AudioEngine::GetInstance().EnsureStreamRunning();
-			metronome.PlayTickSound(TimeSpan::Zero(), false);
-			return;
-		}
-
-		case BPMTapSoundType::MetronomeBar:
-		{
-			Audio::AudioEngine::GetInstance().EnsureStreamRunning();
-			metronome.PlayTickSound(TimeSpan::Zero(), true);
-			return;
-		}
-
-		default:
-			return;
+		case BPMTapSoundType::MetronomeBeat: { metronome.PlayTickSound(TimeSpan::Zero(), false); break; }
+		case BPMTapSoundType::MetronomeBar: { metronome.PlayTickSound(TimeSpan::Zero(), true); break; }
+		case BPMTapSoundType::ButtonSound: { buttonSoundController.PlayButtonSound(TimeSpan::Zero()); break; }
+		case BPMTapSoundType::SlideSound: { buttonSoundController.PlaySlideSound(TimeSpan::Zero()); break; }
 		}
 	}
 
