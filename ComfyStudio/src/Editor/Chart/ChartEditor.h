@@ -92,6 +92,7 @@ namespace Comfy::Studio::Editor
 
 		void GuiChildWindows();
 
+		void GuiSettingsPopup();
 		void GuiPVScriptImportPopup();
 		void GuiFileNotFoundPopup();
 		void GuiSaveConfirmationPopup();
@@ -115,6 +116,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<ButtonSoundController> buttonSoundController = nullptr;
 
 		std::unique_ptr<PlayTestWindow> playTestWindow = nullptr;
+		bool exitFullscreenOnPlaytestEnd = false;
 
 	private:
 		Undo::UndoManager undoManager = {};
@@ -128,6 +130,13 @@ namespace Comfy::Studio::Editor
 		ChartPropertiesWindow chartPropertiesWindow = { *this, undoManager };
 
 	private:
+		struct SettingsPopupData
+		{
+			bool OpenOnNextFrame;
+			bool WasOpenLastFrame;
+			ChartEditorSettingsWindow Window;
+		} settingsPopup = {};
+
 		struct PVScriptImportPopupData
 		{
 			bool OpenOnNextFrame;

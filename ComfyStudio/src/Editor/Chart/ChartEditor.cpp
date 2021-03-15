@@ -87,6 +87,7 @@ namespace Comfy::Studio::Editor
 
 		GuiChildWindows();
 
+		GuiSettingsPopup();
 		GuiPVScriptImportPopup();
 		GuiFileNotFoundPopup();
 		GuiSaveConfirmationPopup();
@@ -190,10 +191,9 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Redo", "Ctrl + Y", false, undoManager.CanRedo()))
 				undoManager.Redo();
 
-#if 0  // TODO: Or maybe this should be part of the EditorManager instead so that each component can register its own sub settings menu (?)
 			Gui::Separator();
-			if (Gui::MenuItem("Settings...", nullptr, false, false)) {}
-#endif
+			if (Gui::MenuItem("Settings...", nullptr, false, true))
+				settingsPopup.OpenOnNextFrame = true;
 
 			Gui::EndMenu();
 		}
@@ -238,6 +238,9 @@ namespace Comfy::Studio::Editor
 
 	ApplicationHostCloseResponse ChartEditor::OnApplicationClosing()
 	{
+		if (settingsPopup.WasOpenLastFrame)
+			settingsPopup.Window.OnCloseButtonClicked();
+
 		if (undoManager.GetHasPendingChanged())
 		{
 			if (parentApplication.GetExclusiveFullscreenGui())
@@ -771,6 +774,39 @@ namespace Comfy::Studio::Editor
 		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties", nullptr, ImGuiWindowFlags_None))
 			chartPropertiesWindow.Gui(*chart);
 		Gui::End();
+	}
+
+	void ChartEditor::GuiSettingsPopup()
+	{
+		constexpr const char* settingsWindowID = "Settings";
+		if (settingsPopup.OpenOnNextFrame)
+		{
+			Gui::OpenPopup(settingsWindowID);
+			settingsPopup.OpenOnNextFrame = false;
+			settingsPopup.Window.OnWindowOpen();
+		}
+
+		const auto* viewport = Gui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
+
+		bool isOpen = true;
+		if (Gui::WideBeginPopupModal(settingsWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			settingsPopup.WasOpenLastFrame = true;
+			settingsPopup.Window.Gui();
+
+			if (settingsPopup.Window.GetAndClearCloseRequestThisFrame())
+				Gui::CloseCurrentPopup();
+
+			Gui::EndPopup();
+		}
+		else
+		{
+			settingsPopup.WasOpenLastFrame = false;
+		}
+
+		if (!isOpen)
+			settingsPopup.Window.OnCloseButtonClicked();
 	}
 
 	void ChartEditor::GuiPVScriptImportPopup()

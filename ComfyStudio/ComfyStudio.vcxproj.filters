@@ -216,6 +216,9 @@
     <ClCompile Include="src\Editor\Chart\PVScript\PVScriptUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\ChartEditorSettingsWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Core\ComfyStudioSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -510,6 +513,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Chart\PVScript\PVScriptUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\ChartEditorSettingsWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\ComfyStudioSettings.h">
