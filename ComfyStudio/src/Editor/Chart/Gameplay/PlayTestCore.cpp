@@ -213,31 +213,6 @@ namespace Comfy::Studio::Editor
 			return true;
 		}
 
-		constexpr bool IsCorrectTypeHitEvaluation(HitEvaluation hitEvaluation)
-		{
-			switch (hitEvaluation)
-			{
-			case HitEvaluation::Cool:
-			case HitEvaluation::Fine:
-			case HitEvaluation::Safe:
-			case HitEvaluation::Sad:
-				return true;
-			default:
-				return false;
-			}
-		}
-
-		constexpr bool AllHoldsInSyncPairHaveBeenCorrectlyHitByPlayer(const PlayTestSyncPair& syncPair)
-		{
-			for (size_t i = 0; i < syncPair.TargetCount; i++)
-			{
-				if (syncPair.Targets[i].Flags.IsHold && syncPair.Targets[i].HasTimedOut && !IsCorrectTypeHitEvaluation(syncPair.Targets[i].HitEvaluation))
-					return false;
-			}
-
-			return true;
-		}
-
 		template <typename Func>
 		void ForEachFragmentInChain(std::vector<PlayTestSyncPair>& allPairs, PlayTestSyncPair& startFragmentPair, PlayTestTarget& startFragment, Func perFragmentFunc)
 		{
@@ -1308,6 +1283,33 @@ namespace Comfy::Studio::Editor
 
 					anyTargetWasHit = true;
 
+					// NOTE: Ignore rehitting the same type in a pair that's already been hit
+					if (!IsSlideButtonType(inputButtonType) && nextPairToHit->TargetCount > 1)
+					{
+						bool partialInputTypeHasAlreadyBeenHit = false;
+						for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
+						{
+							if (nextPairToHit->Targets[i].Type == inputButtonType && nextPairToHit->Targets[i].HasBeenHit)
+							{
+								// NOTE: This is technically not the correct behavior because this means hitting a non-slide same-type sync-pair requires 2 user inputs
+								//		 but since they aren't officially supported this should be fine nonetheless.
+								//		 Hitting a same-type sync-pair with more than 2 targets still isn't possible but that should never be the case in the first place
+								if (i + 1 < nextPairToHit->TargetCount && nextPairToHit->Targets[i].Type == nextPairToHit->Targets[i + 1].Type)
+								{
+									if (nextPairToHit->Targets[i + 1].HasBeenHit)
+										partialInputTypeHasAlreadyBeenHit = true;
+								}
+								else
+								{
+									partialInputTypeHasAlreadyBeenHit = true;
+								}
+							}
+						}
+
+						if (partialInputTypeHasAlreadyBeenHit)
+							continue;
+					}
+
 					bool inputTypeMatchesAny = false;
 					for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
 					{
@@ -1506,11 +1508,9 @@ namespace Comfy::Studio::Editor
 		{
 			const ButtonTypeFlags pairHoldTypes = GetSyncPairHoldTypeFlags(syncPair);
 			const ButtonTypeFlags pairTypes = GetSyncPairTypeFlags(syncPair);
-
-			const bool allHoldTargetsHitByPlayer = AllHoldsInSyncPairHaveBeenCorrectlyHitByPlayer(syncPair);
 			const bool typeIsAlreadyBeingHeld = (holdState.CurrentHoldTypes & pairTypes);
 
-			if (pairHoldTypes != ButtonTypeFlags_None && allHoldTargetsHitByPlayer)
+			if (pairHoldTypes != ButtonTypeFlags_None && AllInSyncPairHaveBeenHitByPlayer(syncPair))
 			{
 				if (typeIsAlreadyBeingHeld || (holdState.CurrentHoldTypes == ButtonTypeFlags_None))
 				{
