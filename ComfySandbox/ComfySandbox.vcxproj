@@ -105,12 +105,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\SandboxApplication.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Tests\Game\Core\GameState.cpp" />
-    <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\SandboxApplication.h" />
     <ClInclude Include="src\PerformanceOverlay.h" />
     <ClInclude Include="src\Tests\Game\Core\GameContext.h" />
     <ClInclude Include="src\Tests\Game\States\PS4GameMenu.h" />

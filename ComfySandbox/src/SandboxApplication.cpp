@@ -1,4 +1,4 @@
-#include "Application.h"
+#include "SandboxApplication.h"
 
 // NOTE: Make sure *not* to include these inline classes in the project
 #include "Tests/AetRendererTest.cpp"
@@ -26,7 +26,7 @@ namespace Comfy::Sandbox::Tests
 
 namespace Comfy::Sandbox
 {
-	void Application::Run()
+	void SandboxApplication::Run()
 	{
 		System::MountComfyData();
 		// System::LoadComfyConfig();
@@ -45,7 +45,7 @@ namespace Comfy::Sandbox
 		});
 	}
 
-	void Application::SetStartupTestTask()
+	void SandboxApplication::SetStartupTestTask()
 	{
 		constexpr std::string_view startupTaskName = "Comfy::Sandbox::Tests::AetRendererTest";
 
@@ -56,7 +56,7 @@ namespace Comfy::Sandbox
 		}
 	}
 
-	void Application::SetActiveTestTask(const Tests::TestTaskInitializer& initializer)
+	void SandboxApplication::SetActiveTestTask(const Tests::TestTaskInitializer& initializer)
 	{
 		std::string formattedTitle;
 		formattedTitle.reserve(ComfySandboxWindowTitle.size() + initializer.Name.size() + 3);
@@ -68,7 +68,7 @@ namespace Comfy::Sandbox
 		activeTestTask = initializer.Function();
 	}
 
-	void Application::Gui()
+	void SandboxApplication::Gui()
 	{
 		if (showMenuBar)
 			GuiMainMenuBar();
@@ -89,7 +89,7 @@ namespace Comfy::Sandbox
 		// Gui::DEBUG_NOSAVE_WINDOW("ShowDemoWindow", [&] { Gui::ShowDemoWindow(); }, ImGuiWindowFlags_None);
 	}
 
-	void Application::GuiMainMenuBar()
+	void SandboxApplication::GuiMainMenuBar()
 	{
 		if (Gui::BeginMainMenuBar())
 		{
@@ -109,7 +109,7 @@ namespace Comfy::Sandbox
 		}
 	}
 
-	void Application::CheckGlobalKeyBindings()
+	void SandboxApplication::CheckGlobalKeyBindings()
 	{
 		if (Gui::IsKeyPressed(keyBindings.TestSelectionReturnKey, false))
 			activeTestTask = nullptr;
@@ -124,7 +124,7 @@ namespace Comfy::Sandbox
 			showPerformanceOverlay ^= true;
 	}
 
-	void Application::GuiTestTaskSelection()
+	void SandboxApplication::GuiTestTaskSelection()
 	{
 		const auto fullscreenWindowFlags = (ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings);
 		if (Gui::Begin("TestTaskSelection", nullptr, fullscreenWindowFlags))

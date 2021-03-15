@@ -1,8 +1,8 @@
-#include "Application.h"
+#include "SandboxApplication.h"
 
 int main(int argc, const char* argv[])
 {
-	Comfy::Sandbox::Application application;
+	Comfy::Sandbox::SandboxApplication application;
 	application.Run();
 
 	return EXIT_SUCCESS;

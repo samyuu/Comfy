@@ -14,14 +14,14 @@ namespace Comfy::Sandbox::Tests
 
 namespace Comfy::Sandbox
 {
-	class Application : NonCopyable
+	class SandboxApplication : NonCopyable
 	{
 	public:
 		static constexpr std::string_view ComfySandboxWindowTitle = "Comfy Sandbox";
 
 	public:
-		Application() = default;
-		~Application() = default;
+		SandboxApplication() = default;
+		~SandboxApplication() = default;
 
 	public:
 		void Run();

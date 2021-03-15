@@ -21,7 +21,7 @@
     <ClCompile Include="src\Tests\Game\Core\GameState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Application.cpp">
+    <ClCompile Include="src\SandboxApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -30,9 +30,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\PerformanceOverlay.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Tests\Game\States\DebugGameStates.h">
@@ -63,6 +60,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Tests\Game\States\PS4GameMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SandboxApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
