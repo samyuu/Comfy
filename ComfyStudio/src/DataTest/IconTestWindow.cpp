@@ -1,10 +1,10 @@
 #include "IconTestWindow.h"
-#include "Core/Application.h"
+#include "Core/ComfyStudioApplication.h"
 #include "ImGui/Gui.h"
 
 namespace Comfy::Studio::DataTest
 {
-	IconTestWindow::IconTestWindow(Application& parent) : BaseWindow(parent)
+	IconTestWindow::IconTestWindow(ComfyStudioApplication& parent) : BaseWindow(parent)
 	{
 		Close();
 	}

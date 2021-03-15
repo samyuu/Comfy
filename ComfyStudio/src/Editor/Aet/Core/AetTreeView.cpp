@@ -3,7 +3,7 @@
 #include "IO/File.h"
 #include "IO/Shell.h"
 #include "Input/Input.h"
-#include "Core/Application.h"
+#include "Core/ComfyStudioApplication.h"
 #include "Core/Logger.h"
 #include "Misc/StringUtil.h"
 
@@ -106,7 +106,7 @@ namespace Comfy::Studio::Editor
 				fileDialog.FileName = aetSet->Name;
 				fileDialog.DefaultExtension = ".bin";
 				fileDialog.Filters = { { "Project DIVA AetSet (*.bin)", "*.bin" }, };
-				fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+				fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 				if (fileDialog.OpenSave())
 					IO::File::Save(fileDialog.OutFilePath, *aetSet);

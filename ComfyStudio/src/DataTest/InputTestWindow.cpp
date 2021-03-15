@@ -1,10 +1,10 @@
 #include "InputTestWindow.h"
-#include "Core/Application.h"
+#include "Core/ComfyStudioApplication.h"
 #include "Input/Input.h"
 
 namespace Comfy::Studio::DataTest
 {
-	InputTestWindow::InputTestWindow(Application& parent) : BaseWindow(parent)
+	InputTestWindow::InputTestWindow(ComfyStudioApplication& parent) : BaseWindow(parent)
 	{
 		Close();
 	}

@@ -9,7 +9,7 @@ namespace Comfy::Studio::Editor
 	class EditorManager : NonCopyable
 	{
 	public:
-		EditorManager(Application& parent);
+		EditorManager(ComfyStudioApplication& parent);
 		~EditorManager() = default;
 
 	public:
@@ -21,7 +21,7 @@ namespace Comfy::Studio::Editor
 		ApplicationHostCloseResponse OnApplicationClosing();
 
 	private:
-		Application& parent;
+		ComfyStudioApplication& parent;
 
 		struct EditorComponentData
 		{

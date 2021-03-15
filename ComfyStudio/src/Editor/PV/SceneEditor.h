@@ -17,7 +17,7 @@ namespace Comfy::Studio::Editor
 	class SceneEditor : public IEditorComponent
 	{
 	public:
-		SceneEditor(Application& parent, EditorManager& editor);
+		SceneEditor(ComfyStudioApplication& parent, EditorManager& editor);
 		~SceneEditor() = default;
 
 	public:

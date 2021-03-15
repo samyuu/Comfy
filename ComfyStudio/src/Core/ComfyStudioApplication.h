@@ -7,11 +7,11 @@
 
 namespace Comfy::Studio
 {
-	class Application : NonCopyable
+	class ComfyStudioApplication : NonCopyable
 	{
 	public:
-		Application(std::string_view fileToOpen = "");
-		~Application() = default;
+		ComfyStudioApplication(std::string_view fileToOpen = "");
+		~ComfyStudioApplication() = default;
 
 		// NOTE: Initialize and enter the main loop
 		void Run();

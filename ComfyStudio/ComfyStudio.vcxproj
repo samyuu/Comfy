@@ -226,7 +226,7 @@
     <ClCompile Include="src\License\LicenseWindow.cpp" />
     <ClCompile Include="src\DataTest\InputTestWindow.cpp" />
     <ClCompile Include="src\DataTest\AudioTestWindow.cpp" />
-    <ClCompile Include="src\Core\Application.cpp" />
+    <ClCompile Include="src\Core\ComfyStudioApplication.cpp" />
     <ClCompile Include="src\EntryPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -328,7 +328,7 @@
     <ClInclude Include="src\DataTest\InputTestWindow.h" />
     <ClInclude Include="src\DataTest\AudioTestWindow.h" />
     <ClInclude Include="src\Core\BaseWindow.h" />
-    <ClInclude Include="src\Core\Application.h" />
+    <ClInclude Include="src\Core\ComfyStudioApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\ComfyStudio.rc" />

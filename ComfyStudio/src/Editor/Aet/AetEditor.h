@@ -17,7 +17,7 @@ namespace Comfy::Studio::Editor
 	class AetEditor : public IEditorComponent
 	{
 	public:
-		AetEditor(Application& parent, EditorManager& editor);
+		AetEditor(ComfyStudioApplication& parent, EditorManager& editor);
 		~AetEditor() = default;
 
 	public:

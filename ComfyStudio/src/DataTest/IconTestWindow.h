@@ -7,7 +7,7 @@ namespace Comfy::Studio::DataTest
 	class IconTestWindow : public BaseWindow
 	{
 	public:
-		IconTestWindow(Application&);
+		IconTestWindow(ComfyStudioApplication&);
 		~IconTestWindow() = default;
 
 	public:

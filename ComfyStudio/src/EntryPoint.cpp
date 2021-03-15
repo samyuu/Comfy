@@ -15,7 +15,7 @@ int main(int argc, const char* argv[])
 }
 #else
 
-#include "Core/Application.h"
+#include "Core/ComfyStudioApplication.h"
 #include "System/CommandLine/CommandLine.h"
 #include "IO/Path.h"
 #include "IO/Directory.h"
@@ -67,7 +67,7 @@ namespace Comfy::Studio
 			IO::Directory::SetWorkingDirectory(executableDirectory);
 		}
 
-		auto application = Application(fileToOpen);
+		auto application = ComfyStudioApplication(fileToOpen);
 		application.Run();
 
 		return EXIT_SUCCESS;

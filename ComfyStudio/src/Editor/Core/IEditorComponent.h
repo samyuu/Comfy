@@ -11,7 +11,7 @@ namespace Comfy::Studio::Editor
 	class IEditorComponent : public BaseWindow, public IFileDropReceiver
 	{
 	public:
-		IEditorComponent(Application& parentApplication, EditorManager& parentEditor) : BaseWindow(parentApplication), parentEditor(parentEditor) {}
+		IEditorComponent(ComfyStudioApplication& parentApplication, EditorManager& parentEditor) : BaseWindow(parentApplication), parentEditor(parentEditor) {}
 		virtual ~IEditorComponent() = default;
 
 	public:

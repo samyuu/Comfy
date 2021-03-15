@@ -5,7 +5,7 @@
 #include "IO/Path.h"
 #include "IO/Shell.h"
 #include "IO/Directory.h"
-#include "Core/Application.h"
+#include "Core/ComfyStudioApplication.h"
 #include "Core/ComfyStudioSettings.h"
 #include "System/ComfyData.h"
 #include "Misc/StringUtil.h"
@@ -34,7 +34,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	ChartEditor::ChartEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
+	ChartEditor::ChartEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 
 		chart = std::make_unique<Chart>();
@@ -279,7 +279,7 @@ namespace Comfy::Studio::Editor
 			{ "WAV Files (*.wav)", "*.wav" },
 			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
 		};
-		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenRead())
 			return false;
@@ -437,7 +437,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.Title = "Open Chart";
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
-		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenRead())
 			return false;
@@ -460,7 +460,7 @@ namespace Comfy::Studio::Editor
 		bool copySongFile = copySongFileDefaultValue;
 		fileDialog.CustomizeItems = { { IO::Shell::Custom::ItemType::Checkbox, "Copy Song to Directory", songFileIsAbsolute ? &copySongFile : nullptr } };
 
-		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenSave())
 			return false;
@@ -522,7 +522,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.Title = "Import UPDC Chart";
 		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
 		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
-		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenRead())
 			return false;
@@ -538,7 +538,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.FileName = GetChartSaveDialogFileName(*chart);
 		fileDialog.DefaultExtension = Legacy::PJEFile::Extension;
 		fileDialog.Filters = { { std::string(Legacy::PJEFile::FilterName), std::string(Legacy::PJEFile::FilterSpec) }, };
-		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenSave())
 			return false;
@@ -560,7 +560,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.Title = "Import PV Script Chart";
 		fileDialog.DefaultExtension = PVScript::Extension;
 		fileDialog.Filters = { { std::string(PVScript::FilterName), std::string(PVScript::FilterSpec) }, };
-		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenRead())
 			return false;
@@ -597,7 +597,7 @@ namespace Comfy::Studio::Editor
 			{ "GIF Files (*.gif)", "*.gif" },
 			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
 		};
-		fileDialog.ParentWindowHandle = Application::GetGlobalWindowFocusHandle();
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (fileDialog.OpenRead())
 			return std::move(fileDialog.OutFilePath);

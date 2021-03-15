@@ -28,7 +28,7 @@ namespace Comfy::Studio::Editor
 		ObjectTag = 'obj',
 	};
 
-	SceneEditor::SceneEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
+	SceneEditor::SceneEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		auto texGetter = [&](const Cached_TexID* texID) { return sceneGraph.TexIDMap.Find(texID); };
 		renderer3D = std::make_unique<Render::Renderer3D>(texGetter);

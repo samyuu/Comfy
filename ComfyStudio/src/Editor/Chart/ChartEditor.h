@@ -24,7 +24,7 @@ namespace Comfy::Studio::Editor
 	class ChartEditor : public IEditorComponent
 	{
 	public:
-		ChartEditor(Application& parent, EditorManager& editor);
+		ChartEditor(ComfyStudioApplication& parent, EditorManager& editor);
 		~ChartEditor() = default;
 
 	public:

@@ -1,4 +1,4 @@
-#include "Application.h"
+#include "ComfyStudioApplication.h"
 #include "ComfyStudioSettings.h"
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
@@ -24,16 +24,16 @@ namespace Comfy::Studio
 
 	namespace
 	{
-		Application* GlobalLastCreatedApplication = nullptr;
+		ComfyStudioApplication* GlobalLastCreatedApplication = nullptr;
 		bool GlobalAppDataExistedOnLoad = false;
 		bool GlobalUserDataExistedOnLoad = false;
 	}
 
-	Application::Application(std::string_view fileToOpen) : fileToOpenOnStartup(fileToOpen)
+	ComfyStudioApplication::ComfyStudioApplication(std::string_view fileToOpen) : fileToOpenOnStartup(fileToOpen)
 	{
 	}
 
-	void Application::Run()
+	void ComfyStudioApplication::Run()
 	{
 		GlobalLastCreatedApplication = this;
 
@@ -62,22 +62,22 @@ namespace Comfy::Studio
 		BaseDispose();
 	}
 
-	void Application::Exit()
+	void ComfyStudioApplication::Exit()
 	{
 		host->Exit();
 	}
 
-	ApplicationHost& Application::GetHost()
+	ApplicationHost& ComfyStudioApplication::GetHost()
 	{
 		return *host;
 	}
 
-	std::string_view Application::GetFileToOpenOnStartup() const
+	std::string_view ComfyStudioApplication::GetFileToOpenOnStartup() const
 	{
 		return fileToOpenOnStartup;
 	}
 
-	void Application::SetFormattedWindowTitle(std::string_view subTitle)
+	void ComfyStudioApplication::SetFormattedWindowTitle(std::string_view subTitle)
 	{
 		std::string formattedTitle;
 		formattedTitle.reserve(ComfyStudioWindowTitle.size() + subTitle.size() + 24);
@@ -99,22 +99,22 @@ namespace Comfy::Studio
 		host->SetWindowTitle(formattedTitle);
 	}
 
-	bool Application::GetExclusiveFullscreenGui() const
+	bool ComfyStudioApplication::GetExclusiveFullscreenGui() const
 	{
 		return exclusiveFullscreenGui;
 	}
 
-	void Application::SetExclusiveFullscreenGui(bool value)
+	void ComfyStudioApplication::SetExclusiveFullscreenGui(bool value)
 	{
 		exclusiveFullscreenGui = value;
 	}
 
-	void* Application::GetGlobalWindowFocusHandle()
+	void* ComfyStudioApplication::GetGlobalWindowFocusHandle()
 	{
 		return (GlobalLastCreatedApplication != nullptr) ? GlobalLastCreatedApplication->GetHost().GetWindowHandle() : nullptr;
 	}
 
-	bool Application::BaseInitialize()
+	bool ComfyStudioApplication::BaseInitialize()
 	{
 		host->RegisterWindowResizeCallback([this](ivec2 size)
 		{
@@ -136,7 +136,7 @@ namespace Comfy::Studio
 		return true;
 	}
 
-	ApplicationHost::ConstructionParam Application::CreateHostParam()
+	ApplicationHost::ConstructionParam ComfyStudioApplication::CreateHostParam()
 	{
 		const auto comfyIcon = ::LoadIconW(::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(COMFY_ICON));
 
@@ -151,7 +151,7 @@ namespace Comfy::Studio
 		return hostParam;
 	}
 
-	bool Application::InitializeEditorComponents()
+	bool ComfyStudioApplication::InitializeEditorComponents()
 	{
 		editorManager = std::make_unique<Editor::EditorManager>(*this);
 
@@ -163,7 +163,7 @@ namespace Comfy::Studio
 		return true;
 	}
 
-	void Application::Gui()
+	void ComfyStudioApplication::Gui()
 	{
 		const auto& io = Gui::GetIO();
 
@@ -229,7 +229,7 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::UpdateWindowFocusAudioEngineResponse()
+	void ComfyStudioApplication::UpdateWindowFocusAudioEngineResponse()
 	{
 		if (!Audio::AudioEngine::InstanceValid())
 			return;
@@ -251,7 +251,7 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::GuiMainMenuBar()
+	void ComfyStudioApplication::GuiMainMenuBar()
 	{
 		Gui::PushStyleColor(ImGuiCol_MenuBarBg, Gui::GetStyleColorVec4(ImGuiCol_TitleBg));
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(8.0f, Gui::GetStyle().ItemSpacing.y));
@@ -269,7 +269,7 @@ namespace Comfy::Studio
 		Gui::PopStyleColor(1);
 	}
 
-	void Application::GuiApplicationWindowMenu()
+	void ComfyStudioApplication::GuiApplicationWindowMenu()
 	{
 		if (Gui::BeginMenu("Window"))
 		{
@@ -307,7 +307,7 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::GuiTestWindowMenus()
+	void ComfyStudioApplication::GuiTestWindowMenus()
 	{
 		if (Gui::BeginMenu("Test Windows"))
 		{
@@ -325,7 +325,7 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::GuiTestWindowWindows()
+	void ComfyStudioApplication::GuiTestWindowWindows()
 	{
 		for (const auto& component : dataTestComponents)
 		{
@@ -338,22 +338,17 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::GuiHelpMenus()
+	void ComfyStudioApplication::GuiHelpMenus()
 	{
 		bool openAboutPopup = false;
 
 		if (Gui::BeginMenu("Help"))
 		{
-			// TODO: Should probably be removed from here and as a more clean tab be added to the about window
-			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_Text, 0.75f));
-			Gui::TextUnformatted(Gui::StringViewStart(ComfyCopyrightNotice), Gui::StringViewEnd(ComfyCopyrightNotice));
-			Gui::PopStyleColor();
-			Gui::Separator();
-
 			if (Gui::MenuItem("Open User Manual"))
 				IO::Shell::OpenWithDefaultProgram(UserManualDocumentFilePath);
 			Gui::Separator();
 
+			// TODO: Improve the about popup
 			if (Gui::MenuItem("About Comfy Studio"))
 				openAboutPopup = true;
 
@@ -368,7 +363,7 @@ namespace Comfy::Studio
 		GuiAboutPopup();
 	}
 
-	void Application::GuiAboutPopup()
+	void ComfyStudioApplication::GuiAboutPopup()
 	{
 		const auto viewport = Gui::GetWindowViewport();
 		Gui::SetNextWindowPos(viewport->Pos + viewport->Size / 4.0f, ImGuiCond_Appearing);
@@ -420,7 +415,7 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::GuiMenuBarAudioAndPerformanceDisplay()
+	void ComfyStudioApplication::GuiMenuBarAudioAndPerformanceDisplay()
 	{
 		char performanceText[64];
 		char audioText[128];
@@ -555,7 +550,7 @@ namespace Comfy::Studio
 		}
 	}
 
-	void Application::BaseDispose()
+	void ComfyStudioApplication::BaseDispose()
 	{
 		if (skipApplicationCleanup)
 			return;
@@ -565,7 +560,7 @@ namespace Comfy::Studio
 		host = nullptr;
 	}
 
-	void Application::DisposeSaveSettings()
+	void ComfyStudioApplication::DisposeSaveSettings()
 	{
 		GlobalAppData.LastSessionWindowState.RestoreRegion = host->GetWindowRestoreRegion();
 		GlobalAppData.LastSessionWindowState.Position = host->GetWindowPosition();

@@ -3,7 +3,7 @@
 
 namespace Comfy::Studio
 {
-	class Application;
+	class ComfyStudioApplication;
 
 	class BaseWindow
 	{
@@ -18,7 +18,7 @@ namespace Comfy::Studio
 			ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 	public:
-		BaseWindow(Application& parent) : parentApplication(parent) {}
+		BaseWindow(ComfyStudioApplication& parent) : parentApplication(parent) {}
 		virtual ~BaseWindow() = default;
 
 	public:
@@ -32,6 +32,6 @@ namespace Comfy::Studio
 
 	protected:
 		bool isOpen = true;
-		Application& parentApplication;
+		ComfyStudioApplication& parentApplication;
 	};
 }

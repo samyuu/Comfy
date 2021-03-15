@@ -8,7 +8,7 @@ namespace Comfy::Studio::DataTest
 	class InputTestWindow : public BaseWindow
 	{
 	public:
-		InputTestWindow(Application&);
+		InputTestWindow(ComfyStudioApplication&);
 		~InputTestWindow() = default;
 
 	public:

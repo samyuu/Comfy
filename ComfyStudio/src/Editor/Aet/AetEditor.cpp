@@ -11,7 +11,7 @@ namespace Comfy::Studio::Editor
 
 	constexpr ImGuiTreeNodeFlags LeafTreeNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
-	AetEditor::AetEditor(Application& parent, EditorManager& editor) : IEditorComponent(parent, editor)
+	AetEditor::AetEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		renderer = std::make_unique<Render::Renderer2D>();
 

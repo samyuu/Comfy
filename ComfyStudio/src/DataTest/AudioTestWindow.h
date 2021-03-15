@@ -9,7 +9,7 @@ namespace Comfy::Studio::DataTest
 	class AudioTestWindow : public BaseWindow
 	{
 	public:
-		AudioTestWindow(Application&);
+		AudioTestWindow(ComfyStudioApplication&);
 		~AudioTestWindow();
 
 	public:

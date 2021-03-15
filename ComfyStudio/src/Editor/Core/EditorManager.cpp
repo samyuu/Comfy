@@ -1,5 +1,5 @@
 #include "EditorManager.h"
-#include "Core/Application.h"
+#include "Core/ComfyStudioApplication.h"
 #include "Core/ComfyStudioSettings.h"
 #include "Editor/Aet/AetEditor.h"
 #include "Editor/Chart/ChartEditor.h"
@@ -89,7 +89,7 @@ namespace Comfy::Studio::Editor
 		SetColor(EditorColor_KeyFrameBorder, 0xFF1A1B1B);
 	}
 
-	EditorManager::EditorManager(Application& parent) : parent(parent)
+	EditorManager::EditorManager(ComfyStudioApplication& parent) : parent(parent)
 	{
 		UpdateEditorColors();
 

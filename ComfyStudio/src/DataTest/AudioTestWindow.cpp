@@ -1,5 +1,5 @@
 #include "AudioTestWindow.h"
-#include "Core/Application.h"
+#include "Core/ComfyStudioApplication.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "Input/Input.h"
 #include "Time/TimeUtilities.h"
@@ -11,7 +11,7 @@ namespace Comfy::Studio::DataTest
 {
 	using namespace Audio;
 
-	AudioTestWindow::AudioTestWindow(Application& parent) : BaseWindow(parent)
+	AudioTestWindow::AudioTestWindow(ComfyStudioApplication& parent) : BaseWindow(parent)
 	{
 		Close();
 	}
