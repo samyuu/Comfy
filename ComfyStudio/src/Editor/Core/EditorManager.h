@@ -5,7 +5,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	// TODO: Impl (?), merge with Application and rename to ComfyStudioApp (?)
 	class EditorManager : NonCopyable
 	{
 	public:

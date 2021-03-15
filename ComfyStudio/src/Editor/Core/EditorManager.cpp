@@ -8,11 +8,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	namespace EditorManagerConfigIDs
-	{
-		constexpr std::string_view ActiveEditor = "Comfy::Studio::EditorManager::ActiveEditor";
-	}
-
 	std::array<u32, EditorColor_Count> EditorColors;
 
 	vec4 GetColorVec4(EditorColor color)

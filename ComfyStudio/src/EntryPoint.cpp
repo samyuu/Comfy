@@ -16,7 +16,7 @@ int main(int argc, const char* argv[])
 #else
 
 #include "Core/ComfyStudioApplication.h"
-#include "System/CommandLine/CommandLine.h"
+#include "CLI/CommandLine.h"
 #include "IO/Path.h"
 #include "IO/Directory.h"
 #include "Core/Win32/ComfyWindows.h"
@@ -53,9 +53,9 @@ namespace Comfy::Studio
 	int Main()
 	{
 		auto[argc, argv] = GetCommandLineUTF8();
-		const auto commandLineResult = System::CommandLine::Parse(argc, argv);
+		const auto commandLineResult = CLI::CommandLine::Parse(argc, argv);
 
-		if (commandLineResult == System::CommandLineResult::Exit)
+		if (commandLineResult == CLI::CommandLineResult::Exit)
 			return EXIT_SUCCESS;
 
 		const auto fileToOpen = (argc == 2) ? std::string_view(argv[1]) : "";

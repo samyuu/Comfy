@@ -1,7 +1,7 @@
 #include "CommandLineOption.h"
 #include "Core/Logger.h"
-#include "System/Version/BuildVersion.h"
-#include "System/Version/BuildConfiguration.h"
+#include "Version/BuildVersion.h"
+#include "Version/BuildConfiguration.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "IO/Archive/FArc.h"
 #include "IO/Directory.h"
@@ -9,7 +9,7 @@
 #include "IO/Path.h"
 #include "Misc/StringUtil.h"
 
-namespace Comfy::Studio::System
+namespace Comfy::Studio::CLI
 {
 	static void FArcProcessor(int index, const char* arguments[])
 	{

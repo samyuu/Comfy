@@ -2,7 +2,7 @@
 #include "ImGui/Gui.h"
 #include "Misc/StringUtil.h"
 #include "Misc/StringParseHelper.h"
-#include "System/Version/BuildVersion.h"
+#include "Version/BuildVersion.h"
 
 namespace Comfy::Studio::Editor
 {

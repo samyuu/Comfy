@@ -3,7 +3,7 @@
 #include "CoreTypes.h"
 #include "CommandLineOption.h"
 
-namespace Comfy::Studio::System
+namespace Comfy::Studio::CLI
 {
 	enum class CommandLineResult
 	{

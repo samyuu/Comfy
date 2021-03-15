@@ -2,8 +2,8 @@
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "IO/Stream/Manipulator/StreamReader.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
-#include "System/Version/BuildVersion.h"
-#include "System/Version/BuildConfiguration.h"
+#include "Version/BuildVersion.h"
+#include "Version/BuildConfiguration.h"
 #include "Misc/StringParseHelper.h"
 #include <ctime>
 

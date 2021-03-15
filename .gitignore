@@ -56,7 +56,7 @@ ComfyData/data/dev_rom/
 ComfyEngine/src/Render/D3D11/Shader/Bytecode/Intermediate
 
 # Version Control files
-ComfyStudio/src/System/Version/BuildVersion.h
+ComfyStudio/src/Version/BuildVersion.h
 ComfyVersion/test/BuildVersion.h
 
 # Comfy test files
