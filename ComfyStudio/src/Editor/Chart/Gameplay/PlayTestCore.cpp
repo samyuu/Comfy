@@ -1,5 +1,6 @@
 ﻿#include "PlayTestCore.h"
 #include "PlayTestWindow.h"
+#include "Core/ComfyStudioSettings.h"
 #include "Time/Stopwatch.h"
 
 namespace Comfy::Studio::Editor
@@ -474,7 +475,7 @@ namespace Comfy::Studio::Editor
 			if (auto delta = Gui::GetIO().MouseDelta; delta.x != 0.0f || delta.y != 0.0f)
 				mouseHide.LastMovementStopwatch.Restart();
 
-			if (!contextMenuOpen && Gui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+			if (GlobalUserData.System.Video.PlaytestAutoHideCursor && !contextMenuOpen)
 			{
 				if (mouseHide.LastMovementStopwatch.GetElapsed() > mouseHide.AutoHideThreshold)
 					Gui::SetMouseCursor(ImGuiMouseCursor_None);
@@ -1583,8 +1584,8 @@ namespace Comfy::Studio::Editor
 
 		struct MouseHideData
 		{
-			Stopwatch LastMovementStopwatch = {};
-			const TimeSpan AutoHideThreshold = TimeSpan::FromSeconds(3.0);
+			Stopwatch LastMovementStopwatch = Stopwatch::StartNew();
+			const TimeSpan AutoHideThreshold = TimeSpan::FromSeconds(2.0);
 		} mouseHide = {};
 	};
 

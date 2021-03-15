@@ -290,6 +290,7 @@ namespace Comfy::Studio
 		const std::string System = "system";
 		const std::string System_Video = "video";
 		const std::string System_Video_EnterFullscreenOnMaximizedPlaytestStart = "enter_fullscreen_on_maximized_playtest_start";
+		const std::string System_Video_PlaytestAutoHideCursor = "playtest_auto_hide_cursor";
 
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
@@ -351,6 +352,7 @@ namespace Comfy::Studio
 			if (const json* videoJson = JsonFind(*systemJson, UserIDs::System_Video))
 			{
 				System.Video.EnterFullscreenOnMaximizedPlaytestStart = JsonTryGetBool(JsonFind(*videoJson, UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart)).value_or(false);
+				System.Video.PlaytestAutoHideCursor = JsonTryGetBool(JsonFind(*videoJson, UserIDs::System_Video_PlaytestAutoHideCursor)).value_or(false);
 			}
 		}
 
@@ -469,6 +471,7 @@ namespace Comfy::Studio
 		{
 			json& videoJson = systemJson[UserIDs::System_Video];
 			videoJson[UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart] = System.Video.EnterFullscreenOnMaximizedPlaytestStart;
+			videoJson[UserIDs::System_Video_PlaytestAutoHideCursor] = System.Video.PlaytestAutoHideCursor;
 		}
 
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
@@ -556,6 +559,7 @@ namespace Comfy::Studio
 		*this = {};
 
 		System.Video.EnterFullscreenOnMaximizedPlaytestStart = true;
+		System.Video.PlaytestAutoHideCursor = true;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

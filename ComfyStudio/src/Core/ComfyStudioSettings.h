@@ -49,7 +49,7 @@ namespace Comfy::Studio
 			{
 				// i32 WindowSwapInterval; // ... or should this be part of AppData (?)
 				bool EnterFullscreenOnMaximizedPlaytestStart;
-				// bool PlaytestAutoHideCursor; // ... also hide even if no focus
+				bool PlaytestAutoHideCursor;
 			} Video;
 
 			struct
