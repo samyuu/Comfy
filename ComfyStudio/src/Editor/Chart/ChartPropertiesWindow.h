@@ -27,5 +27,6 @@ namespace Comfy::Studio::Editor
 		bool previewVoiceHasBeenAdded = false;
 		bool isBeingPreviewed = false;
 		bool previewSliderActiveLastFrame = false, previewSliderActiveThisFrame = false;
+		Stopwatch lastChainSlidePreviewStopwatch = {};
 	};
 }

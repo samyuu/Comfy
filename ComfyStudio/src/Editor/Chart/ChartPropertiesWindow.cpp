@@ -9,11 +9,14 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		constexpr auto SongPreviewFadeInDuration = TimeSpan::FromSeconds(0.25);
-		constexpr auto SongPreviewFadeOutDuration = TimeSpan::FromSeconds(0.5);
-		constexpr auto SongPreviewLoopDelay = TimeSpan::FromSeconds(0.35);
+		constexpr TimeSpan ChainSlidePreviewChainDuration = TimeSpan::FromSeconds(/*1.0*/0.5);
+		constexpr TimeSpan ChainSlidePreviewFadeOutDuration = TimeSpan::FromMilliseconds(40.0);
 
-		bool GuiPropertyButtonSoundCombo(std::string_view label, u32& inOutID, Database::GmBtnSfxType btnSfxDBType, SoundEffectManager& soundEffectManager)
+		constexpr TimeSpan SongPreviewFadeInDuration = TimeSpan::FromSeconds(0.25);
+		constexpr TimeSpan SongPreviewFadeOutDuration = TimeSpan::FromSeconds(0.5);
+		constexpr TimeSpan SongPreviewLoopDelay = TimeSpan::FromSeconds(0.35);
+
+		bool GuiPropertyButtonSoundCombo(std::string_view label, u32& inOutID, Database::GmBtnSfxType btnSfxDBType, SoundEffectManager& soundEffectManager, Stopwatch& lastChainSlidePreviewStopwatch)
 		{
 			auto entryToCStr = [&](const Database::GmBtnSfxEntry* entry)
 			{
@@ -50,17 +53,19 @@ namespace Comfy::Studio::Editor
 
 				case Database::GmBtnSfxType::ChainSlide:
 				{
-					constexpr auto fadeOutDuration = TimeSpan::FromMilliseconds(40.0);
-					constexpr auto startDuration = TimeSpan::FromSeconds(1.0);
-					const auto[firstSource, subSource, successSource, failureSource] = soundEffectManager.GetChainSlideSound(entry.ID);
+					if (!lastChainSlidePreviewStopwatch.IsRunning() || lastChainSlidePreviewStopwatch.GetElapsed() >= ChainSlidePreviewChainDuration)
+					{
+						lastChainSlidePreviewStopwatch.Restart();
+						const auto[firstSource, subSource, successSource, failureSource] = soundEffectManager.GetChainSlideSound(entry.ID);
 
-					Audio::Voice startVoice = engine.AddVoice(firstSource, formatVoiceName(entry.Chain.SfxNameFirst), true);
-					startVoice.SetRemoveOnEnd(true);
-					startVoice.SetVolumeMap(startDuration, startDuration + fadeOutDuration, 1.0f, 0.0f);
+						Audio::Voice startVoice = engine.AddVoice(firstSource, formatVoiceName(entry.Chain.SfxNameFirst), true);
+						startVoice.SetRemoveOnEnd(true);
+						startVoice.SetVolumeMap(ChainSlidePreviewChainDuration, ChainSlidePreviewChainDuration + ChainSlidePreviewFadeOutDuration, 1.0f, 0.0f);
 
-					Audio::Voice endVoice = engine.AddVoice(successSource, formatVoiceName(entry.Chain.SfxNameSuccess), true);
-					endVoice.SetRemoveOnEnd(true);
-					endVoice.SetPosition(-startDuration);
+						Audio::Voice endVoice = engine.AddVoice(successSource, formatVoiceName(entry.Chain.SfxNameSuccess), true);
+						endVoice.SetRemoveOnEnd(true);
+						endVoice.SetPosition(-ChainSlidePreviewChainDuration);
+					}
 					break;
 				}
 
@@ -436,10 +441,10 @@ namespace Comfy::Studio::Editor
 			GuiProperty::TreeNode("Button Sounds", ImGuiTreeNodeFlags_None, [&]
 			{
 				auto& soundEffectManager = chartEditor.GetSoundEffectManager();
-				changesMade |= GuiPropertyButtonSoundCombo("Button", chart.Properties.ButtonSound.ButtonID, Database::GmBtnSfxType::Button, soundEffectManager);
-				changesMade |= GuiPropertyButtonSoundCombo("Slide", chart.Properties.ButtonSound.SlideID, Database::GmBtnSfxType::Slide, soundEffectManager);
-				changesMade |= GuiPropertyButtonSoundCombo("Chain Slide", chart.Properties.ButtonSound.ChainSlideID, Database::GmBtnSfxType::ChainSlide, soundEffectManager);
-				changesMade |= GuiPropertyButtonSoundCombo("Slider Touch", chart.Properties.ButtonSound.SliderTouchID, Database::GmBtnSfxType::SliderTouch, soundEffectManager);
+				changesMade |= GuiPropertyButtonSoundCombo("Button", chart.Properties.ButtonSound.ButtonID, Database::GmBtnSfxType::Button, soundEffectManager, lastChainSlidePreviewStopwatch);
+				changesMade |= GuiPropertyButtonSoundCombo("Slide", chart.Properties.ButtonSound.SlideID, Database::GmBtnSfxType::Slide, soundEffectManager, lastChainSlidePreviewStopwatch);
+				changesMade |= GuiPropertyButtonSoundCombo("Chain Slide", chart.Properties.ButtonSound.ChainSlideID, Database::GmBtnSfxType::ChainSlide, soundEffectManager, lastChainSlidePreviewStopwatch);
+				changesMade |= GuiPropertyButtonSoundCombo("Slider Touch", chart.Properties.ButtonSound.SliderTouchID, Database::GmBtnSfxType::SliderTouch, soundEffectManager, lastChainSlidePreviewStopwatch);
 			});
 
 			if (changesMade)
