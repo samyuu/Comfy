@@ -15,7 +15,7 @@ namespace Comfy::Studio::Editor
 		scrollSpeed = 2.5f;
 		scrollSpeedFast = 5.5f;
 		autoScrollCursorOffsetPercentage = 0.35f;
-		infoColumnWidth = 210.0f;
+		infoColumnWidth = 180.0f;
 	}
 
 	BeatTick TargetTimeline::GridDivisionTick() const
@@ -152,7 +152,11 @@ namespace Comfy::Studio::Editor
 		const auto futureOffset = (buttonSoundFutureOffset * glm::min(chartEditor.GetSongVoice().GetPlaybackSpeed(), 1.0f));
 
 		if (metronomeEnabled)
+		{
+			if (metronome.GetVolume() != GlobalUserData.System.Audio.MetronomeVolume)
+				metronome.SetVolume(GlobalUserData.System.Audio.MetronomeVolume);
 			metronome.UpdatePlaySounds(*workingChart, thisFrameButtonSoundCursorTime, lastFrameButtonSoundCursorTime, futureOffset);
+		}
 
 		// NOTE: Play back button sounds in the future with a negative offset to achieve sample perfect accuracy
 		for (const auto& target : workingChart->Targets)
@@ -248,130 +252,77 @@ namespace Comfy::Studio::Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumnHeader();
 
-		constexpr const char* settingsPopupName = "TimelineSettingsPopup::ChartTimeline";
-
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, 0.0f));
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(8.0f, 8.0f));
 
 		constexpr vec4 transparent = vec4(0.0f);
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
-			const bool isFirstFrame = (cursorTime <= TimeSpan::Zero());
-			const bool isLastFrame = (cursorTime >= workingChart->DurationOrDefault());
+			const f32 timelineEndPosition = GetTimelinePosition(workingChart->DurationOrDefault()) - timelineContentRegion.GetWidth() + 1.0f;
 			const bool isPlayback = GetIsPlayback();
+
+			const bool isCursorAtStart = (cursorTime <= TimeSpan::Zero());
+			const bool isAtStartOfTimeline = (isCursorAtStart && GetScrollX() == 0.0f);
+
+			const bool isCursorAtEnd = (cursorTime >= workingChart->DurationOrDefault());
+			const bool isAtEndOfTimeline = (isCursorAtEnd && GetScrollX() == timelineEndPosition);
 
 			constexpr f32 borderSize = 1.0f;
 			Gui::SetCursorPosX(Gui::GetCursorPosX() + borderSize);
 
+			Gui::PushItemDisabledAndTextColorIf(isAtStartOfTimeline);
+			if (Gui::Button(ICON_FA_FAST_BACKWARD))
 			{
-				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
-				if (Gui::Button(ICON_FA_FAST_BACKWARD))
-				{
-					SetCursorTime(TimeSpan::Zero());
-					CenterCursor();
-				}
-				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
-				Gui::SetWideItemTooltip("Go to First Beat");
+				SetCursorTime(TimeSpan::Zero());
+				SetScrollX(0.0f);
 			}
+			Gui::PopItemDisabledAndTextColorIf(isAtStartOfTimeline);
+			Gui::SetWideItemTooltip("Go to Start of Timeline");
 
+			Gui::SameLine();
+			Gui::PushItemDisabledAndTextColorIf(isCursorAtStart);
+			if (Gui::Button(ICON_FA_BACKWARD))
 			{
-				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isFirstFrame);
-				if (Gui::Button(ICON_FA_BACKWARD))
-				{
-					AdvanceCursorByGridDivisionTick(-1);
-				}
-				Gui::PopItemDisabledAndTextColorIf(isFirstFrame);
-				Gui::SetWideItemTooltip("Go to previous Grid Tick");
+				AdvanceCursorByGridDivisionTick(-1);
 			}
+			Gui::PopItemDisabledAndTextColorIf(isCursorAtStart);
+			Gui::SetWideItemTooltip("Go to previous Grid Tick");
 
+			Gui::SameLine();
+			if (Gui::Button(isPlayback ? ICON_FA_PAUSE : ICON_FA_PLAY))
+				isPlayback ? PausePlayback() : ResumePlayback();
+			Gui::SetWideItemTooltip(isPlayback ? "Pause Playback" : "Resume Playback");
+
+			Gui::SameLine();
+			Gui::PushItemDisabledAndTextColorIf(!isPlayback);
+			if (Gui::Button(ICON_FA_STOP))
 			{
-				Gui::SameLine();
-				if (Gui::Button(isPlayback ? ICON_FA_PAUSE : ICON_FA_PLAY))
-					isPlayback ? PausePlayback() : ResumePlayback();
-
-				Gui::SetWideItemTooltip(isPlayback ? "Pause Playback" : "Resume Playback");
+				StopPlayback();
 			}
+			Gui::PopItemDisabledAndTextColorIf(!isPlayback);
+			Gui::SetWideItemTooltip("Stop Playback");
 
+			Gui::SameLine();
+			Gui::PushItemDisabledAndTextColorIf(isCursorAtEnd);
+			if (Gui::Button(ICON_FA_FORWARD))
 			{
-				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(!isPlayback);
-				if (Gui::Button(ICON_FA_STOP))
-				{
-					StopPlayback();
-				}
-				Gui::PopItemDisabledAndTextColorIf(!isPlayback);
-				Gui::SetWideItemTooltip("Stop Playback");
+				AdvanceCursorByGridDivisionTick(+1);
 			}
+			Gui::PopItemDisabledAndTextColorIf(isCursorAtEnd);
+			Gui::SetWideItemTooltip("Go to next Grid Tick");
 
+			Gui::SameLine();
+			Gui::PushItemDisabledAndTextColorIf(isAtEndOfTimeline);
+			if (Gui::Button(ICON_FA_FAST_FORWARD))
 			{
-				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
-				if (Gui::Button(ICON_FA_FORWARD))
-				{
-					AdvanceCursorByGridDivisionTick(+1);
-				}
-				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
-				Gui::SetWideItemTooltip("Go to next Grid Tick");
+				SetCursorTime(workingChart->DurationOrDefault());
+				SetScrollX(timelineEndPosition);
 			}
-
-			{
-				Gui::SameLine();
-				Gui::PushItemDisabledAndTextColorIf(isLastFrame);
-				if (Gui::Button(ICON_FA_FAST_FORWARD))
-				{
-					SetCursorTime(workingChart->DurationOrDefault());
-					CenterCursor();
-				}
-				Gui::PopItemDisabledAndTextColorIf(isLastFrame);
-				Gui::SetWideItemTooltip("Go to Last Beat");
-			}
-
-			{
-				Gui::SameLine();
-				if (Gui::Button(ICON_FA_COG))
-					Gui::OpenPopup(settingsPopupName);
-				Gui::SetWideItemTooltip("Timeline Settings");
-			}
+			Gui::PopItemDisabledAndTextColorIf(isAtEndOfTimeline);
+			Gui::SetWideItemTooltip("Go to End of Timeline");
 		}
 		Gui::PopStyleColor(1);
 		Gui::PopStyleVar(2);
-
-		if (Gui::WideBeginPopup(settingsPopupName, ImGuiWindowFlags_NoMove))
-		{
-			Gui::TextUnformatted("Volume Levels:");
-			Gui::Separator();
-			{
-				if (auto v = (chartEditor.GetSongVoice().GetVolume() * 100.0f); Gui::SliderFloat("##SongVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Song Volume"))
-					chartEditor.GetSongVoice().SetVolume(v / 100.0f);
-				if (auto v = (buttonSoundController.GetMasterVolume() * 100.0f); Gui::SliderFloat("##ButtonSoundVolumeSlider", &v, 0.0f, 100.0f, "%.0f%% Button Volume"))
-					buttonSoundController.SetMasterVolume(v / 100.0f);
-
-				Gui::Separator();
-				if (Gui::Button("Default Volume##SongButton", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-				{
-					chartEditor.GetSongVoice().SetVolume(1.0f);
-					buttonSoundController.SetMasterVolume(1.0f);
-				}
-			}
-			Gui::Separator();
-
-			Gui::TextUnformatted("Metronome Settings:");
-			Gui::Separator();
-			{
-				Gui::Checkbox("Metronome Enabled", &metronomeEnabled);
-				Gui::PushItemDisabledAndTextColorIf(!metronomeEnabled);
-				if (auto v = (metronome.GetVolume() * 100.0f); Gui::SliderFloat("##MetronomeVolumeSlider", &v, 10.0f, 150.0f, "%.0f%% Metronome Volume"))
-					metronome.SetVolume(v / 100.0f);
-
-				Gui::Separator();
-				if (Gui::Button("Default Volume##Metronome", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
-					metronome.SetVolume(1.0f);
-				Gui::PopItemDisabledAndTextColorIf(!metronomeEnabled);
-			}
-
-			Gui::EndPopup();
-		}
 	}
 
 	void TargetTimeline::OnDrawTimelineInfoColumn()
@@ -490,34 +441,28 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnDrawTimelineScrollBarRegion()
 	{
-		constexpr f32 timeDragTextOffset = 10.0f;
-		constexpr f32 timeDragTextWidth = 60.0f + 26.0f;
-		constexpr f32 gridDivisionButtonWidth = ((72.0f * 2.0f) - (240.0f - /*infoColumnWidth*/210.0f));
-
-		Gui::SetCursorPosX(Gui::GetCursorPosX() + timeDragTextOffset);
+		const f32 timeDragTextOffset = Gui::GetStyle().FramePadding.x;
+		const f32 timeDragTextWidth = (infoColumnWidth * 0.5f) - timeDragTextOffset;
+		const f32 gridDivisionButtonWidth = (infoColumnWidth - timeDragTextWidth);
 
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(Gui::GetStyle().FramePadding.x, 0.0f));
-
-		// NOTE: Time drag text
 		{
 			constexpr f32 dragSpeed = 4.0f;
-			auto cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
+			f32 cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
 
-			if (Gui::ComfyDragText("TimeDragText::TargetTimeline", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
+			Gui::SetCursorPosX(Gui::GetCursorPosX() + timeDragTextOffset);
+			if (Gui::ComfyDragText("##TargetTimelineTimeDragText", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
 				SetCursorTick(std::max(BeatTick::Zero(), RoundTickToGrid(BeatTick::FromTicks(static_cast<i32>(cursorDragTicks)))));
-		}
 
-		{
 			char buttonNameBuffer[32];
 			sprintf_s(buttonNameBuffer, "Grid: 1 / %d", activeBarGridDivision);
 
-			Gui::SameLine();
+			Gui::SameLine(0.0f, 0.0f);
 			if (Gui::Button(buttonNameBuffer, vec2(gridDivisionButtonWidth, timelineScrollbarSize.y)))
 				SelectNextPresetGridDivision(+1);
 			if (Gui::IsItemClicked(1))
 				SelectNextPresetGridDivision(-1);
 		}
-
 		Gui::PopStyleVar(1);
 	}
 
@@ -985,6 +930,9 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsKeyPressed(KeyBindings::IncreasePlaybackSpeed, true))
 			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 
+		if (Gui::IsKeyPressed(KeyBindings::ToggleMetronome, false))
+			metronomeEnabled ^= true;
+
 		if (Gui::IsKeyPressed(KeyBindings::ToggleTargetHolds, false))
 			ToggleSelectedTargetsHolds(undoManager, *workingChart);
 	}
@@ -1356,6 +1304,8 @@ namespace Comfy::Studio::Editor
 
 				Gui::EndMenu();
 			}
+
+			Gui::MenuItem("Metronome Enabled", Input::GetKeyCodeName(KeyBindings::ToggleMetronome), &metronomeEnabled);
 
 			if (Gui::MenuItem("Set Song End", "", false, !GetIsPlayback()))
 				undoManager.Execute<ChangeSongDuration>(*workingChart, GetCursorTime());

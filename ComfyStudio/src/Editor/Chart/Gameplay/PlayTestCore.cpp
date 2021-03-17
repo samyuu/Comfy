@@ -1073,8 +1073,11 @@ namespace Comfy::Studio::Editor
 		void PlayOneShotSoundEffect(std::string_view name, f32 volume = 1.0f)
 		{
 			auto& audioEngine = Audio::AudioEngine::GetInstance();
-			audioEngine.EnsureStreamRunning();
-			audioEngine.PlayOneShotSound(sharedContext.SoundEffectManager->Find(name), name, volume);
+			if (sharedContext.SoundEffectManager->IsAsyncLoaded())
+			{
+				audioEngine.EnsureStreamRunning();
+				audioEngine.PlayOneShotSound(sharedContext.SoundEffectManager->Find(name), name, volume * GlobalUserData.System.Audio.SoundEffectVolume);
+			}
 		}
 
 		void TogglePause()

@@ -292,6 +292,12 @@ namespace Comfy::Studio
 		const std::string System_Video_EnterFullscreenOnMaximizedPlaytestStart = "enter_fullscreen_on_maximized_playtest_start";
 		const std::string System_Video_PlaytestAutoHideCursor = "playtest_auto_hide_cursor";
 
+		const std::string System_Audio = "audio";
+		const std::string System_Audio_SongVolume = "song_volume";
+		const std::string System_Audio_ButtonSoundVolume = "button_sound_volume";
+		const std::string System_Audio_SoundEffectVolume = "sound_effect_volume";
+		const std::string System_Audio_MetronomeVolume = "metronome_volume";
+
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
 		const std::string TargetPreview_ShowGrid = "show_grid";
@@ -302,13 +308,13 @@ namespace Comfy::Studio
 		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
 		const std::string TargetPreset = "target_preset";
-		const std::string TargetPreset_StaticSyncPresets = "static_sync_preset";
+		const std::string TargetPreset_StaticSyncPresets = "static_sync_presets";
 		const std::string TargetPreset_StaticSyncPresets_Name = "name";
 		const std::string TargetPreset_StaticSyncPresets_Targets = "targets";
 		const std::string TargetPreset_StaticSyncPresets_Targets_ButtonType = "button_type";
 		const std::string TargetPreset_StaticSyncPresets_Targets_Properties = "properties";
 
-		const std::string TargetPreset_SequencePresets = "sequence_preset";
+		const std::string TargetPreset_SequencePresets = "sequence_presets";
 		const std::string TargetPreset_SequencePresets_GuiButtonType = "gui_button_type";
 		const std::string TargetPreset_SequencePresets_Name = "name";
 		const std::string TargetPreset_SequencePresets_Circle = "circle";
@@ -353,6 +359,14 @@ namespace Comfy::Studio
 			{
 				System.Video.EnterFullscreenOnMaximizedPlaytestStart = JsonTryGetBool(JsonFind(*videoJson, UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart)).value_or(false);
 				System.Video.PlaytestAutoHideCursor = JsonTryGetBool(JsonFind(*videoJson, UserIDs::System_Video_PlaytestAutoHideCursor)).value_or(false);
+			}
+
+			if (const json* audioJson = JsonFind(*systemJson, UserIDs::System_Audio))
+			{
+				System.Audio.SongVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SongVolume)).value_or(0.0f);
+				System.Audio.ButtonSoundVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_ButtonSoundVolume)).value_or(0.0f);
+				System.Audio.SoundEffectVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SoundEffectVolume)).value_or(0.0f);
+				System.Audio.MetronomeVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_MetronomeVolume)).value_or(0.0f);
 			}
 		}
 
@@ -472,6 +486,12 @@ namespace Comfy::Studio
 			json& videoJson = systemJson[UserIDs::System_Video];
 			videoJson[UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart] = System.Video.EnterFullscreenOnMaximizedPlaytestStart;
 			videoJson[UserIDs::System_Video_PlaytestAutoHideCursor] = System.Video.PlaytestAutoHideCursor;
+
+			json& audioJson = systemJson[UserIDs::System_Audio];
+			audioJson[UserIDs::System_Audio_SongVolume] = System.Audio.SongVolume;
+			audioJson[UserIDs::System_Audio_ButtonSoundVolume] = System.Audio.ButtonSoundVolume;
+			audioJson[UserIDs::System_Audio_SoundEffectVolume] = System.Audio.SoundEffectVolume;
+			audioJson[UserIDs::System_Audio_MetronomeVolume] = System.Audio.MetronomeVolume;
 		}
 
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
@@ -560,6 +580,11 @@ namespace Comfy::Studio
 
 		System.Video.EnterFullscreenOnMaximizedPlaytestStart = true;
 		System.Video.PlaytestAutoHideCursor = true;
+
+		System.Audio.SongVolume = 1.0f;
+		System.Audio.ButtonSoundVolume = 1.0f;
+		System.Audio.SoundEffectVolume = 1.0f;
+		System.Audio.MetronomeVolume = 1.0f;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

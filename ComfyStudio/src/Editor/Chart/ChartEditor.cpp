@@ -79,6 +79,9 @@ namespace Comfy::Studio::Editor
 
 		const auto& buttonIDs = chart->Properties.ButtonSound;
 		buttonSoundController->SetIDs(buttonIDs.ButtonID, buttonIDs.SlideID, buttonIDs.ChainSlideID, buttonIDs.SliderTouchID);
+		buttonSoundController->SetMasterVolume(GlobalUserData.System.Audio.ButtonSoundVolume);
+
+		songVoice.SetVolume(GlobalUserData.System.Audio.SongVolume);
 
 		UpdateApplicationClosingRequest();
 		UpdateGlobalControlInput();
