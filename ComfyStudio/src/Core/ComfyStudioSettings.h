@@ -48,8 +48,6 @@ namespace Comfy::Studio
 			struct
 			{
 				// i32 WindowSwapInterval; // ... or should this be part of AppData (?)
-				bool EnterFullscreenOnMaximizedPlaytestStart;
-				bool PlaytestAutoHideCursor;
 			} Video;
 
 			struct
@@ -121,6 +119,12 @@ namespace Comfy::Studio
 			bool ApplyToTempoMap;
 			Editor::BPMTapSoundType TapSoundType;
 		} BPMCalculator;
+
+		struct
+		{
+			bool EnterFullscreenOnMaximizedStart;
+			bool AutoHideCursor;
+		} Playtest;
 	};
 
 	// NOTE: Changes are always saved so no need for const protection or manual saves

@@ -991,7 +991,7 @@ namespace Comfy::Studio::Editor
 		auto& playTestWindow = GetOrCreatePlayTestWindow();
 		playTestWindow.Restart(startFromCursor ? cursorTime : TimeSpan::Zero());
 
-		if (GlobalUserData.System.Video.EnterFullscreenOnMaximizedPlaytestStart && parentApplication.GetHost().GetIsMaximized() && !parentApplication.GetHost().GetIsFullscreen())
+		if (GlobalUserData.Playtest.EnterFullscreenOnMaximizedStart && parentApplication.GetHost().GetIsMaximized() && !parentApplication.GetHost().GetIsFullscreen())
 		{
 			parentApplication.GetHost().SetIsFullscreen(true);
 			exitFullscreenOnPlaytestEnd = true;
@@ -1015,7 +1015,7 @@ namespace Comfy::Studio::Editor
 			timeline->SetScrollX(timelineScrollXOnPlaytestStart);
 		}
 
-		if (GlobalUserData.System.Video.EnterFullscreenOnMaximizedPlaytestStart && exitFullscreenOnPlaytestEnd && parentApplication.GetHost().GetIsFullscreen())
+		if (GlobalUserData.Playtest.EnterFullscreenOnMaximizedStart && exitFullscreenOnPlaytestEnd && parentApplication.GetHost().GetIsFullscreen())
 			parentApplication.GetHost().SetIsFullscreen(false);
 		exitFullscreenOnPlaytestEnd = false;
 	}

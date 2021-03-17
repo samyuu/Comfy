@@ -450,7 +450,7 @@ namespace Comfy::Studio::Editor
 			if (auto delta = Gui::GetIO().MouseDelta; delta.x != 0.0f || delta.y != 0.0f)
 				mouseHide.LastMovementStopwatch.Restart();
 
-			if (GlobalUserData.System.Video.PlaytestAutoHideCursor && !contextMenuOpen)
+			if (GlobalUserData.Playtest.AutoHideCursor && !contextMenuOpen)
 			{
 				if (mouseHide.LastMovementStopwatch.GetElapsed() > mouseHide.AutoHideThreshold)
 					Gui::SetMouseCursor(ImGuiMouseCursor_None);

@@ -289,8 +289,6 @@ namespace Comfy::Studio
 	{
 		const std::string System = "system";
 		const std::string System_Video = "video";
-		const std::string System_Video_EnterFullscreenOnMaximizedPlaytestStart = "enter_fullscreen_on_maximized_playtest_start";
-		const std::string System_Video_PlaytestAutoHideCursor = "playtest_auto_hide_cursor";
 
 		const std::string System_Audio = "audio";
 		const std::string System_Audio_SongVolume = "song_volume";
@@ -339,6 +337,10 @@ namespace Comfy::Studio
 		const std::string BPMCalculator_AutoResetEnabled = "auto_reset_enabled";
 		const std::string BPMCalculator_ApplyToTempoMap = "apply_to_tempo_map";
 		const std::string BPMCalculator_TapSoundType = "tap_sound_type";
+
+		const std::string Playtest = "playtest";
+		const std::string Playtest_EnterFullscreenOnMaximizedStart = "enter_fullscreen_on_maximized_start";
+		const std::string Playtest_AutoHideCursor = "auto_hide_cursor";
 	}
 
 	bool ComfyStudioUserSettings::LoadFromFile(std::string_view filePath)
@@ -357,8 +359,6 @@ namespace Comfy::Studio
 		{
 			if (const json* videoJson = JsonFind(*systemJson, UserIDs::System_Video))
 			{
-				System.Video.EnterFullscreenOnMaximizedPlaytestStart = JsonTryGetBool(JsonFind(*videoJson, UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart)).value_or(false);
-				System.Video.PlaytestAutoHideCursor = JsonTryGetBool(JsonFind(*videoJson, UserIDs::System_Video_PlaytestAutoHideCursor)).value_or(false);
 			}
 
 			if (const json* audioJson = JsonFind(*systemJson, UserIDs::System_Audio))
@@ -474,6 +474,12 @@ namespace Comfy::Studio
 			BPMCalculator.TapSoundType = static_cast<BPMTapSoundType>(JsonTryGetI32(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType)).value_or(0));
 		}
 
+		if (const json* playtestJson = JsonFind(rootJson, UserIDs::Playtest))
+		{
+			Playtest.EnterFullscreenOnMaximizedStart = JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_EnterFullscreenOnMaximizedStart)).value_or(false);
+			Playtest.AutoHideCursor = JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_AutoHideCursor)).value_or(false);
+		}
+
 		return true;
 	}
 
@@ -484,8 +490,7 @@ namespace Comfy::Studio
 		json& systemJson = rootJson[UserIDs::System];
 		{
 			json& videoJson = systemJson[UserIDs::System_Video];
-			videoJson[UserIDs::System_Video_EnterFullscreenOnMaximizedPlaytestStart] = System.Video.EnterFullscreenOnMaximizedPlaytestStart;
-			videoJson[UserIDs::System_Video_PlaytestAutoHideCursor] = System.Video.PlaytestAutoHideCursor;
+			videoJson = json::object();
 
 			json& audioJson = systemJson[UserIDs::System_Audio];
 			audioJson[UserIDs::System_Audio_SongVolume] = System.Audio.SongVolume;
@@ -568,7 +573,12 @@ namespace Comfy::Studio
 			bpmCalculatorJson[UserIDs::BPMCalculator_AutoResetEnabled] = BPMCalculator.AutoResetEnabled;
 			bpmCalculatorJson[UserIDs::BPMCalculator_ApplyToTempoMap] = BPMCalculator.ApplyToTempoMap;
 			bpmCalculatorJson[UserIDs::BPMCalculator_TapSoundType] = static_cast<i32>(BPMCalculator.TapSoundType);
+		}
 
+		json& playtestJson = rootJson[UserIDs::Playtest];
+		{
+			playtestJson[UserIDs::Playtest_EnterFullscreenOnMaximizedStart] = Playtest.EnterFullscreenOnMaximizedStart;
+			playtestJson[UserIDs::Playtest_AutoHideCursor] = Playtest.AutoHideCursor;
 		}
 
 		IO::SaveJson(filePath, rootJson);
@@ -577,9 +587,6 @@ namespace Comfy::Studio
 	void ComfyStudioUserSettings::RestoreDefault()
 	{
 		*this = {};
-
-		System.Video.EnterFullscreenOnMaximizedPlaytestStart = true;
-		System.Video.PlaytestAutoHideCursor = true;
 
 		System.Audio.SongVolume = 1.0f;
 		System.Audio.ButtonSoundVolume = 1.0f;
@@ -602,5 +609,8 @@ namespace Comfy::Studio
 		BPMCalculator.AutoResetEnabled = true;
 		BPMCalculator.ApplyToTempoMap = false;
 		BPMCalculator.TapSoundType = BPMTapSoundType::MetronomeBeat;
+
+		Playtest.EnterFullscreenOnMaximizedStart = true;
+		Playtest.AutoHideCursor = true;
 	}
 }
