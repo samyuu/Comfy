@@ -195,7 +195,7 @@ namespace Comfy::Studio::Editor
 				undoManager.Redo();
 
 			Gui::Separator();
-			if (Gui::MenuItem("Settings...", nullptr, false, true))
+			if (Gui::MenuItem("Settings...", "Ctrl + ,", false, true))
 				settingsPopup.OpenOnNextFrame = true;
 
 			Gui::EndMenu();
@@ -679,6 +679,9 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::IsKeyPressed(KeyBindings::Redo, true))
 				undoManager.Redo();
+
+			if (Gui::IsKeyPressed(Input::KeyCode_OEMComma, false) && !shift)
+				settingsPopup.OpenOnNextFrame = true;
 
 			if (Gui::IsKeyPressed(Input::KeyCode_O, false) && !shift)
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });

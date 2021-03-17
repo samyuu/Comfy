@@ -924,11 +924,14 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		auto songVoice = chartEditor.GetSongVoice();
-		if (Gui::IsKeyPressed(KeyBindings::DecreasePlaybackSpeed, true))
-			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
-		if (Gui::IsKeyPressed(KeyBindings::IncreasePlaybackSpeed, true))
-			songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+		if (!Gui::GetIO().KeyCtrl)
+		{
+			auto songVoice = chartEditor.GetSongVoice();
+			if (Gui::IsKeyPressed(KeyBindings::DecreasePlaybackSpeed, true))
+				songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+			if (Gui::IsKeyPressed(KeyBindings::IncreasePlaybackSpeed, true))
+				songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+		}
 
 		if (Gui::IsKeyPressed(KeyBindings::ToggleMetronome, false))
 			metronomeEnabled ^= true;
