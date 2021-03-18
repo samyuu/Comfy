@@ -13,6 +13,12 @@ namespace Comfy::Audio
 	// NOTE: Source: ISampleProvider
 	// NOTE: Voice: Instance of a source
 
+	inline f32 ClampLinearVolume(f32 linear) { return glm::clamp(linear, 0.0f, 1.0f); }
+	inline f32 DecibelToLinearVolume(f32 decibel) { return ::powf(10.0f, 0.05f * decibel); }
+	inline f32 LinearVolumeToDecibel(f32 linear) { return 20.0f * ::log10f(linear); }
+	inline f32 LinearVolumeToSquare(f32 linear) { return ::sqrtf(linear); }
+	inline f32 SquareToLinearVolume(f32 power) { return (power * power); }
+
 	// NOTE: Opaque types for referncing data stored in the AudioEngine, internally interpreted as in index
 	using HandleBaseType = u16;
 	enum class VoiceHandle : HandleBaseType { Invalid = 0xFFFF };
