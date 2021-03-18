@@ -133,6 +133,15 @@ namespace Comfy::Studio
 		if (!InitializeEditorComponents())
 			return false;
 
+		if (Audio::AudioEngine::InstanceValid())
+		{
+			auto& audioEngine = Audio::AudioEngine::GetInstance();
+			audioEngine.SetAudioBackend(GlobalUserData.System.Audio.RequestExclusiveDeviceAccess ? Audio::AudioBackend::WASAPIExclusive : Audio::AudioBackend::WASAPIShared);
+
+			if (GlobalUserData.System.Audio.OpenDeviceOnStartup)
+				audioEngine.OpenStartStream();
+		}
+
 		return true;
 	}
 
@@ -240,13 +249,13 @@ namespace Comfy::Studio
 		{
 			audioEngineRunningIdleOnFocusLost = (audioEngine.GetIsStreamOpenRunning() && audioEngine.GetAllVoicesAreIdle());
 
-			if (audioEngineRunningIdleOnFocusLost)
+			if (GlobalUserData.System.Audio.CloseDeviceOnIdleFocusLoss && audioEngineRunningIdleOnFocusLost)
 				audioEngine.StopCloseStream();
 		}
 
 		if (host->HasFocusBeenGained())
 		{
-			if (audioEngineRunningIdleOnFocusLost)
+			if (GlobalUserData.System.Audio.CloseDeviceOnIdleFocusLoss && audioEngineRunningIdleOnFocusLost)
 				audioEngine.OpenStartStream();
 		}
 	}

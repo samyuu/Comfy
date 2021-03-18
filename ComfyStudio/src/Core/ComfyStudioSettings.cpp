@@ -295,6 +295,9 @@ namespace Comfy::Studio
 		const std::string System_Audio_ButtonSoundVolume = "button_sound_volume";
 		const std::string System_Audio_SoundEffectVolume = "sound_effect_volume";
 		const std::string System_Audio_MetronomeVolume = "metronome_volume";
+		const std::string System_Audio_OpenDeviceOnStartup = "open_device_on_startup";
+		const std::string System_Audio_CloseDeviceOnIdleFocusLoss = "close_device_on_idle_focus_loss";
+		const std::string System_Audio_RequestExclusiveDeviceAccess = "request_exclusive_device_access";
 
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
@@ -350,7 +353,7 @@ namespace Comfy::Studio
 			return false;
 
 		// NOTE: Restore default so that unspecified objects still start off with reasonable values, thereby improving forward compatibility in case the json is from an older version.
-		//		 To compensate all parser code needs to clear out all vectors to avoid duplicate entries
+		//		 To compensate all parser code needs to clear out all vectors to avoid duplicate entries and only assign to trivial types if the corresponding json entry was found
 		RestoreDefault();
 
 		const json& rootJson = loadedJson.value();
@@ -363,22 +366,27 @@ namespace Comfy::Studio
 
 			if (const json* audioJson = JsonFind(*systemJson, UserIDs::System_Audio))
 			{
-				System.Audio.SongVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SongVolume)).value_or(0.0f);
-				System.Audio.ButtonSoundVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_ButtonSoundVolume)).value_or(0.0f);
-				System.Audio.SoundEffectVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SoundEffectVolume)).value_or(0.0f);
-				System.Audio.MetronomeVolume = JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_MetronomeVolume)).value_or(0.0f);
+				JsonTryAssign(System.Audio.SongVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SongVolume)));
+				JsonTryAssign(System.Audio.ButtonSoundVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_ButtonSoundVolume)));
+				JsonTryAssign(System.Audio.SoundEffectVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SoundEffectVolume)));
+				JsonTryAssign(System.Audio.MetronomeVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_MetronomeVolume)));
+				JsonTryAssign(System.Audio.OpenDeviceOnStartup, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_OpenDeviceOnStartup)));
+				JsonTryAssign(System.Audio.CloseDeviceOnIdleFocusLoss, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss)));
+				JsonTryAssign(System.Audio.RequestExclusiveDeviceAccess, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_RequestExclusiveDeviceAccess)));
 			}
 		}
 
 		if (const json* targetPreviewJson = JsonFind(rootJson, UserIDs::TargetPreview))
 		{
-			TargetPreview.ShowButtons = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)).value_or(false);
-			TargetPreview.ShowGrid = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)).value_or(false);
-			TargetPreview.ShowHoldInfo = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowHoldInfo)).value_or(false);
-			TargetPreview.ShowBackgroundCheckerboard = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)).value_or(false);
-			TargetPreview.BackgroundDim = static_cast<f32>(JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDimPercentage)).value_or(0)) / 100.0f;
-			TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)).value_or(0));
-			TargetPreview.DisplayPracticeBackground = JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)).value_or(false);
+			JsonTryAssign(TargetPreview.ShowButtons, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)));
+			JsonTryAssign(TargetPreview.ShowGrid, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)));
+			JsonTryAssign(TargetPreview.ShowHoldInfo, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowHoldInfo)));
+			JsonTryAssign(TargetPreview.ShowBackgroundCheckerboard, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)));
+			if (auto v = JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDimPercentage)); v.has_value())
+				TargetPreview.BackgroundDim = static_cast<f32>(v.value()) / 100.0f;
+			if (auto v = JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)); v.has_value())
+				TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v.value());
+			JsonTryAssign(TargetPreview.DisplayPracticeBackground, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)));
 		}
 
 		if (const json* targetPresetJson = JsonFind(rootJson, UserIDs::TargetPreset))
@@ -464,20 +472,21 @@ namespace Comfy::Studio
 
 		if (const json* chartPropertiesJson = JsonFind(rootJson, UserIDs::ChartProperties))
 		{
-			ChartProperties.ChartCreatorDefaultName = std::move(JsonTryGetStr(JsonFind(*chartPropertiesJson, UserIDs::ChartProperties_ChartCreatorDefaultName)).value_or(""));
+			JsonTryAssign(ChartProperties.ChartCreatorDefaultName, JsonTryGetStr(JsonFind(*chartPropertiesJson, UserIDs::ChartProperties_ChartCreatorDefaultName)));
 		}
 
 		if (const json* bpmCalculatorJson = JsonFind(rootJson, UserIDs::BPMCalculator))
 		{
-			BPMCalculator.AutoResetEnabled = JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_AutoResetEnabled)).value_or(false);
-			BPMCalculator.ApplyToTempoMap = JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_ApplyToTempoMap)).value_or(false);
-			BPMCalculator.TapSoundType = static_cast<BPMTapSoundType>(JsonTryGetI32(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType)).value_or(0));
+			JsonTryAssign(BPMCalculator.AutoResetEnabled, JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_AutoResetEnabled)));
+			JsonTryAssign(BPMCalculator.ApplyToTempoMap, JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_ApplyToTempoMap)));
+			if (auto v = JsonTryGetI32(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType)); v.has_value())
+				BPMCalculator.TapSoundType = static_cast<BPMTapSoundType>(v.value());
 		}
 
 		if (const json* playtestJson = JsonFind(rootJson, UserIDs::Playtest))
 		{
-			Playtest.EnterFullscreenOnMaximizedStart = JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_EnterFullscreenOnMaximizedStart)).value_or(false);
-			Playtest.AutoHideCursor = JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_AutoHideCursor)).value_or(false);
+			JsonTryAssign(Playtest.EnterFullscreenOnMaximizedStart, JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_EnterFullscreenOnMaximizedStart)));
+			JsonTryAssign(Playtest.AutoHideCursor, JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_AutoHideCursor)));
 		}
 
 		return true;
@@ -497,6 +506,9 @@ namespace Comfy::Studio
 			audioJson[UserIDs::System_Audio_ButtonSoundVolume] = System.Audio.ButtonSoundVolume;
 			audioJson[UserIDs::System_Audio_SoundEffectVolume] = System.Audio.SoundEffectVolume;
 			audioJson[UserIDs::System_Audio_MetronomeVolume] = System.Audio.MetronomeVolume;
+			audioJson[UserIDs::System_Audio_OpenDeviceOnStartup] = System.Audio.OpenDeviceOnStartup;
+			audioJson[UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss] = System.Audio.CloseDeviceOnIdleFocusLoss;
+			audioJson[UserIDs::System_Audio_RequestExclusiveDeviceAccess] = System.Audio.RequestExclusiveDeviceAccess;
 		}
 
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
@@ -592,6 +604,9 @@ namespace Comfy::Studio
 		System.Audio.ButtonSoundVolume = 1.0f;
 		System.Audio.SoundEffectVolume = 1.0f;
 		System.Audio.MetronomeVolume = 1.0f;
+		System.Audio.OpenDeviceOnStartup = false;
+		System.Audio.CloseDeviceOnIdleFocusLoss = true;
+		System.Audio.RequestExclusiveDeviceAccess = true;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

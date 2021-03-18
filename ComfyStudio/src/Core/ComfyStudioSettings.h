@@ -52,12 +52,14 @@ namespace Comfy::Studio
 
 			struct
 			{
-				// bool ReleaseAudioDevicecOnFocusLoss;
-				// ... Audio backend stuff
 				f32 SongVolume;
 				f32 ButtonSoundVolume;
 				f32 SoundEffectVolume;
 				f32 MetronomeVolume;
+
+				bool OpenDeviceOnStartup;
+				bool CloseDeviceOnIdleFocusLoss;
+				bool RequestExclusiveDeviceAccess;
 			} Audio;
 
 			struct
