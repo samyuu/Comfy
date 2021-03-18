@@ -162,6 +162,9 @@ namespace Comfy
 	inline auto JsonTryGetIVec4(const json& j) { return JsonDetail::TryGetVec<ivec4>(j); }
 	inline auto JsonTryGetIVec4(const json* j) { return (j != nullptr) ? JsonTryGetIVec4(*j) : std::nullopt; }
 
+	template <typename T>
+	inline void JsonTryAssign(T& out, std::optional<T>&& v) { if (v.has_value()) { out = std::move(v.value()); } }
+
 	inline void JsonSetVec2(json& j, const vec2& v) { j["x"] = v.x; j["y"] = v.y; }
 	inline void JsonSetVec3(json& j, const vec3& v) { j["x"] = v.x; j["y"] = v.y; j["z"] = v.z; }
 	inline void JsonSetVec4(json& j, const vec4& v) { j["x"] = v.x; j["y"] = v.y; j["z"] = v.z; j["w"] = v.w; }
