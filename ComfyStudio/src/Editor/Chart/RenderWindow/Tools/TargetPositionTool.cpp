@@ -65,9 +65,9 @@ namespace Comfy::Studio::Editor
 		static_assert(KeyBindings::PositionToolPositionInRow == Input::KeyCode_U);
 
 		if (Gui::MenuItem("Position in Row", Input::GetKeyCodeName(KeyBindings::PositionToolPositionInRow), false, (lastFrameSelectionCount > 0)))
-			PositionSelectedTargetInRowAutoDirection(undoManager, chart, false);
+			PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, false);
 		if (Gui::MenuItem("Position in Row (Back)", "Alt + U", false, (lastFrameSelectionCount > 0)))
-			PositionSelectedTargetInRowAutoDirection(undoManager, chart, true);
+			PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, true);
 		Gui::Separator();
 
 		if (Gui::MenuItem("Interpolate Positions Linear", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolateLinear), false, (lastFrameSelectionCount > 0)))
@@ -291,7 +291,7 @@ namespace Comfy::Studio::Editor
 
 			const bool backwards = Gui::GetIO().KeyAlt;
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolPositionInRow, false))
-				PositionSelectedTargetInRowAutoDirection(undoManager, chart, backwards);
+				PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, backwards);
 
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolateLinear, false))
 				InterpolateSelectedTargetPositionsLinear(undoManager, chart);
@@ -423,7 +423,7 @@ namespace Comfy::Studio::Editor
 			if (selectedTargetsBuffer.size() > 1 && glm::distance(row.Start, row.End) > distanceThreshold)
 			{
 				if (row.Start != row.End && (mouseWasMoved || steepStateChanged))
-					ArrangeSelectedTargetsInRow(undoManager, chart, rowDirection, IsIntercardinal(cardinal), row.Backwards);
+					PositionSelectedTargetsInCardinalRow(undoManager, chart, rowDirection, IsIntercardinal(cardinal), row.Backwards);
 			}
 		}
 	}
@@ -446,7 +446,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<ChangeTargetListPositions>(chart, std::move(targetData));
 	}
 
-	void TargetPositionTool::ArrangeSelectedTargetsInRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards)
+	void TargetPositionTool::PositionSelectedTargetsInCardinalRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards)
 	{
 		if (selectedTargetsBuffer.size() < 2)
 			return;
@@ -461,13 +461,15 @@ namespace Comfy::Studio::Editor
 
 		const vec2 horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal, useStairDistance);
 
-		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, BeatTick tickDistance, bool chain, bool chainEnd) -> vec2
+		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, BeatTick tickDistance, bool chain, bool chainEnd, bool slideHeadTouch) -> vec2
 		{
 			auto distance = (chain && !chainEnd) ? Rules::ChainFragmentPlacementDistance :
 				(useStairDistance && !chainEnd) ? Rules::TickToDistanceStair(tickDistance) : Rules::TickToDistance(tickDistance);
 
 			if (chainEnd)
 				distance += Rules::ChainFragmentStartEndOffsetDistance;
+			else if (slideHeadTouch)
+				distance += Rules::SlideHeadsTouchOffsetDistance;
 
 			// NOTE: Targets following one after the end of a chain need to be horizontal to avoid decimal fractions.
 			//		 If a stair like pattern is desired then the corret placement would be to vertically offset the height only
@@ -487,9 +489,10 @@ namespace Comfy::Studio::Editor
 				const auto& thisTarget = *selectedTargetsBuffer[i];
 				const auto& nextTarget = *selectedTargetsBuffer[i + 1];
 				const auto tickDistance = (nextTarget.Tick - thisTarget.Tick);
+				const bool slideHeadsTouch = doSlideHeadsTouch(thisTarget, nextTarget, rowCardinal);
 
 				targetData[i].ID = thisTarget.ID;
-				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, thisTarget.Flags.IsChain, thisTarget.Flags.IsChainEnd);
+				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, thisTarget.Flags.IsChain, thisTarget.Flags.IsChainEnd, slideHeadsTouch);
 			}
 		}
 		else
@@ -502,9 +505,10 @@ namespace Comfy::Studio::Editor
 				const auto& thisTarget = *selectedTargetsBuffer[i];
 				const auto& prevTarget = *selectedTargetsBuffer[i - 1];
 				const auto tickDistance = (thisTarget.Tick - prevTarget.Tick);
+				const bool slideHeadsTouch = doSlideHeadsTouch(thisTarget, prevTarget, rowCardinal);
 
 				targetData[i].ID = thisTarget.ID;
-				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, prevTarget.Flags.IsChain, prevTarget.Flags.IsChainEnd);
+				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, prevTarget.Flags.IsChain, prevTarget.Flags.IsChainEnd, slideHeadsTouch);
 			}
 		}
 
@@ -573,7 +577,7 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<SnapTargetListPositions>(chart, std::move(targetData));
 	}
 
-	void TargetPositionTool::PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart, bool backwards)
+	void TargetPositionTool::PositionSelectedTargetsInRowBetweenFirstAndLastTarget(Undo::UndoManager& undoManager, Chart& chart, bool backwards)
 	{
 		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
 		if (selectionCount < 1)
@@ -629,6 +633,8 @@ namespace Comfy::Studio::Editor
 						auto distance = (prevTargetIt->Flags.IsChain && !prevTargetIt->Flags.IsChainEnd) ? Rules::ChainFragmentPlacementDistance : Rules::TickToDistance(tickDistance);
 						if (prevTargetIt->Flags.IsChainEnd)
 							distance += Rules::ChainFragmentStartEndOffsetDistance;
+						else if (/*slideHeadTouch*/false) // NOTE: Don't apply here because it requires knowing the direction which feels beyond this function (?)
+							distance += Rules::SlideHeadsTouchOffsetDistance;
 
 						data.NewValue.Position = prevTargetPosition + (rowDirection * distance);
 					}

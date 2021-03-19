@@ -84,6 +84,9 @@ namespace Comfy::Studio::Editor
 		constexpr f32 ChainFragmentPlacementDistance = TickToDistanceChain(BeatTick::FromBars(1) / 32);
 		constexpr f32 ChainFragmentStartEndOffsetDistance = 32.0f;
 
+		constexpr BeatTick SlideHeadsTouchTickThreshold = BeatTick::FromBars(1) / 8;
+		constexpr f32 SlideHeadsTouchOffsetDistance = 16.0f;
+
 		constexpr vec2 RecommendedPlacementAreaMin =
 		{
 			TickToDistance(BeatTick::FromBars(1) / 8),

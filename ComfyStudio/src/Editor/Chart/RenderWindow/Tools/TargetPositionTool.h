@@ -39,12 +39,12 @@ namespace Comfy::Studio::Editor
 		void UpdateMouseRowInput(Chart& chart);
 
 		void IncrementSelectedTargetPositionsBy(Undo::UndoManager& undoManager, Chart& chart, vec2 positionIncrement);
-		void ArrangeSelectedTargetsInRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards);
+		void PositionSelectedTargetsInCardinalRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards);
 
 		void FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, FlipMode flipMode);
 		void SnapSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart, f32 snapDistance);
 
-		void PositionSelectedTargetInRowAutoDirection(Undo::UndoManager& undoManager, Chart& chart, bool backwards);
+		void PositionSelectedTargetsInRowBetweenFirstAndLastTarget(Undo::UndoManager& undoManager, Chart& chart, bool backwards);
 		void InterpolateSelectedTargetPositionsLinear(Undo::UndoManager& undoManager, Chart& chart);
 		void InterpolateSelectedTargetPositionsCircular(Undo::UndoManager& undoManager, Chart& chart, f32 direction);
 
