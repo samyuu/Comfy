@@ -45,7 +45,7 @@ namespace Comfy::Studio
 		void GuiMainMenuBar();
 		void GuiApplicationWindowMenu();
 
-		void GuiTestWindowMenus();
+		void GuiTestMenu();
 		void GuiTestWindowWindows();
 
 		void GuiHelpMenus();
@@ -77,6 +77,8 @@ namespace Comfy::Studio
 		bool aboutWindowIsOpen = false;
 
 		std::unique_ptr<Editor::EditorManager> editorManager = nullptr;
-		std::vector<std::unique_ptr<BaseWindow>> dataTestComponents;
+		
+		std::vector<std::unique_ptr<BaseWindow>> testWindows;
+		std::string testWindowNameBuffer;
 	};
 }

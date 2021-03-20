@@ -167,10 +167,10 @@ namespace Comfy::Studio
 	{
 		editorManager = std::make_unique<Editor::EditorManager>(*this);
 
-		dataTestComponents.reserve(3);
-		dataTestComponents.push_back(std::move(std::make_unique<DataTest::InputTestWindow>(*this)));
-		dataTestComponents.push_back(std::move(std::make_unique<DataTest::AudioTestWindow>(*this)));
-		dataTestComponents.push_back(std::move(std::make_unique<DataTest::IconTestWindow>(*this)));
+		testWindows.reserve(3);
+		testWindows.push_back(std::make_unique<DataTest::InputTestWindow>(*this));
+		testWindows.push_back(std::make_unique<DataTest::AudioTestWindow>(*this));
+		testWindows.push_back(std::make_unique<DataTest::IconTestWindow>(*this));
 
 		return true;
 	}
@@ -272,7 +272,7 @@ namespace Comfy::Studio
 			editorManager->GuiComponentMenu();
 			GuiApplicationWindowMenu();
 			editorManager->GuiWorkSpaceMenu();
-			GuiTestWindowMenus();
+			GuiTestMenu();
 			GuiHelpMenus();
 			GuiMenuBarAudioAndPerformanceDisplay();
 			Gui::EndMainMenuBar();
@@ -300,40 +300,60 @@ namespace Comfy::Studio
 				Gui::EndMenu();
 			}
 
-			Gui::Separator();
-
-			// TODO: Reset to default layout
-
-#if COMFY_DEBUG && 1
-			if (Gui::BeginMenu("ImGui Config"))
-			{
-				if (Gui::MenuItem("Save To Memory", nullptr))
-					Gui::SaveIniSettingsToMemory();
-
-				if (Gui::MenuItem("Save To Disk", nullptr))
-					Gui::SaveIniSettingsToDisk(Gui::GetIO().IniFilename);
-
-				Gui::EndMenu();
-			}
-#endif
+			// TODO: Reset to default layout menu option
 
 			Gui::EndMenu();
 		}
 	}
 
-	void ComfyStudioApplication::GuiTestWindowMenus()
+	void ComfyStudioApplication::GuiTestMenu()
 	{
-		if (Gui::BeginMenu("Test Windows"))
-		{
-#if COMFY_DEBUG
-			Gui::MenuItem("Style Editor", nullptr, &showStyleEditor);
-			Gui::MenuItem("Demo Window", nullptr, &showDemoWindow);
+#if COMFY_RELEASE
+		if (!GlobalUserData.System.Gui.ShowTestMenu)
+			return;
+#endif
 
+		if (Gui::BeginMenu("Test Menu"))
+		{
+			for (const auto& testWindow : testWindows)
+			{
+				testWindowNameBuffer.clear();
+				testWindowNameBuffer += "Show ";
+				testWindowNameBuffer += testWindow->GetName();
+
+				Gui::MenuItem(testWindowNameBuffer.data(), nullptr, &testWindow->GetIsOpen());
+			}
+
+#if COMFY_DEBUG // NOTE: Since theses get stripped out completely...
+			Gui::Separator();
+			Gui::MenuItem("Show ImGui Style Editor", nullptr, &showStyleEditor);
+			Gui::MenuItem("Show ImGui Demo", nullptr, &showDemoWindow);
 			Gui::Separator();
 #endif
 
-			for (const auto& component : dataTestComponents)
-				Gui::MenuItem(component->GetName(), nullptr, &component->GetIsOpen());
+			if (Gui::BeginMenu("ImGui Config"))
+			{
+				if (Gui::MenuItem("Save To Memory", nullptr))
+					Gui::SaveIniSettingsToMemory();
+				if (Gui::MenuItem("Save To Disk", nullptr))
+					Gui::SaveIniSettingsToDisk(Gui::GetIO().IniFilename);
+				Gui::EndMenu();
+			}
+
+			if (Gui::BeginMenu("Settings Files"))
+			{
+				if (Gui::MenuItem("Reload App Settings", nullptr))
+					GlobalAppData.LoadFromFile();
+				if (Gui::MenuItem("Save App Settings", nullptr))
+					GlobalAppData.SaveToFile();
+				Gui::Separator();
+				if (Gui::MenuItem("Reload User Settings", nullptr))
+					GlobalUserData.Mutable().LoadFromFile();
+				if (Gui::MenuItem("Save User Settings", nullptr))
+					GlobalUserData.SaveToFile();
+
+				Gui::EndMenu();
+			}
 
 			Gui::EndMenu();
 		}
@@ -341,12 +361,12 @@ namespace Comfy::Studio
 
 	void ComfyStudioApplication::GuiTestWindowWindows()
 	{
-		for (const auto& component : dataTestComponents)
+		for (const auto& testWindow : testWindows)
 		{
-			if (component->GetIsOpen())
+			if (testWindow->GetIsOpen())
 			{
-				if (Gui::Begin(component->GetName(), &component->GetIsOpen(), component->GetFlags()))
-					component->Gui();
+				if (Gui::Begin(testWindow->GetName(), &testWindow->GetIsOpen(), testWindow->GetFlags()))
+					testWindow->Gui();
 				Gui::End();
 			}
 		}

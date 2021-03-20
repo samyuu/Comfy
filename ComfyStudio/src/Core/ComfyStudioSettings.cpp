@@ -302,6 +302,9 @@ namespace Comfy::Studio
 		const std::string System_Audio_CloseDeviceOnIdleFocusLoss = "close_device_on_idle_focus_loss";
 		const std::string System_Audio_RequestExclusiveDeviceAccess = "request_exclusive_device_access";
 
+		const std::string System_Gui = "gui";
+		const std::string System_Gui_ShowTestMenu = "show_test_menu";
+
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
 		const std::string TargetPreview_ShowGrid = "show_grid";
@@ -376,6 +379,11 @@ namespace Comfy::Studio
 				JsonTryAssign(System.Audio.OpenDeviceOnStartup, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_OpenDeviceOnStartup)));
 				JsonTryAssign(System.Audio.CloseDeviceOnIdleFocusLoss, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss)));
 				JsonTryAssign(System.Audio.RequestExclusiveDeviceAccess, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_RequestExclusiveDeviceAccess)));
+			}
+
+			if (const json* guiJson = JsonFind(*systemJson, UserIDs::System_Gui))
+			{
+				JsonTryAssign(System.Gui.ShowTestMenu, JsonTryGetBool(JsonFind(*guiJson, UserIDs::System_Gui_ShowTestMenu)));
 			}
 		}
 
@@ -512,6 +520,9 @@ namespace Comfy::Studio
 			audioJson[UserIDs::System_Audio_OpenDeviceOnStartup] = System.Audio.OpenDeviceOnStartup;
 			audioJson[UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss] = System.Audio.CloseDeviceOnIdleFocusLoss;
 			audioJson[UserIDs::System_Audio_RequestExclusiveDeviceAccess] = System.Audio.RequestExclusiveDeviceAccess;
+
+			json& guiJson = systemJson[UserIDs::System_Gui];
+			guiJson[UserIDs::System_Gui_ShowTestMenu] = System.Gui.ShowTestMenu;
 		}
 
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
@@ -610,6 +621,8 @@ namespace Comfy::Studio
 		System.Audio.OpenDeviceOnStartup = false;
 		System.Audio.CloseDeviceOnIdleFocusLoss = true;
 		System.Audio.RequestExclusiveDeviceAccess = true;
+
+		System.Gui.ShowTestMenu = false;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

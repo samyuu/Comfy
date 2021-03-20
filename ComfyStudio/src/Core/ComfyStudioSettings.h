@@ -68,6 +68,7 @@ namespace Comfy::Studio
 				// bool AntiAliasedLines;
 				// bool AntiAliasedFill;
 				// ... Curve and circle line counts used by TargetRenderWindow / TargetTools
+				bool ShowTestMenu;
 			} Gui;
 		} System;
 
