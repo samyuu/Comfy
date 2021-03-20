@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "CoreTypes.h"
+#include "Core/SemanticVersion.h"
 #include "Editor/Common/RecentFilesList.h"
 #include "Editor/Chart/TargetPropertyPresets.h"
 #include "Editor/Chart/BPMCalculatorWindow.h"
@@ -13,6 +14,8 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup and saved on exit
 	struct ComfyStudioAppSettings
 	{
+		static constexpr SemanticVersion CurrentVersion = { 1, 0, 0 };
+
 		bool LoadFromFile(std::string_view filePath = ComfyStudioAppSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioAppSettingsFilePath) const;
 		void RestoreDefault();
@@ -37,6 +40,8 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
+		static constexpr SemanticVersion CurrentVersion = { 1, 0, 0 };
+
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
 		void RestoreDefault();

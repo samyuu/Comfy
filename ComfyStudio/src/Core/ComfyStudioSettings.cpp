@@ -9,6 +9,8 @@ namespace Comfy::Studio
 	//		 and are global std::string objects to avoid reconstructing them inside inner loops
 	namespace IDs
 	{
+		const std::string FileVersion = ".file_version";
+
 		const std::string TargetProperties_Position = "position";
 		const std::string TargetProperties_Angle = "angle";
 		const std::string TargetProperties_Frequency = "frequency";
@@ -31,6 +33,22 @@ namespace Comfy::Studio
 		const std::string RecentFiles_ChartFiles = "chart_files";
 	}
 
+	namespace
+	{
+		std::optional<SemanticVersion> TryGetJsonSettingsFileVersionFromRoot(const json& rootJson)
+		{
+			if (auto v = JsonTryGetStr(JsonFind(rootJson, IDs::FileVersion)); v.has_value())
+				return SemanticVersion::FromString(v.value());
+			else
+				return std::nullopt;
+		}
+
+		void SetJsonSettingsFileVersionForRoot(json& rootJson, const SemanticVersion& currentVersion)
+		{
+			rootJson[IDs::FileVersion] = currentVersion.ToString();
+		}
+	}
+
 	bool ComfyStudioAppSettings::LoadFromFile(std::string_view filePath)
 	{
 		const std::optional<json> loadedJson = IO::LoadJson(filePath);
@@ -38,6 +56,7 @@ namespace Comfy::Studio
 			return false;
 
 		const json& rootJson = loadedJson.value();
+		const auto fileVersion = TryGetJsonSettingsFileVersionFromRoot(rootJson).value_or(SemanticVersion {});
 
 		if (const json* windowStateJson = JsonFind(rootJson, AppIDs::LastSessionWindowState))
 		{
@@ -68,6 +87,7 @@ namespace Comfy::Studio
 	void ComfyStudioAppSettings::SaveToFile(std::string_view filePath) const
 	{
 		json rootJson = json::object();
+		SetJsonSettingsFileVersionForRoot(rootJson, CurrentVersion);
 
 		json& windowStateJson = rootJson[AppIDs::LastSessionWindowState];
 		JsonTrySetIVec4(windowStateJson[AppIDs::LastSessionWindowState_RestoreRegion], LastSessionWindowState.RestoreRegion);
@@ -369,11 +389,12 @@ namespace Comfy::Studio
 		if (!loadedJson.has_value())
 			return false;
 
+		const json& rootJson = loadedJson.value();
+		const auto fileVersion = TryGetJsonSettingsFileVersionFromRoot(rootJson).value_or(SemanticVersion {});
+
 		// NOTE: Restore default so that unspecified objects still start off with reasonable values, thereby improving forward compatibility in case the json is from an older version.
 		//		 To compensate all parser code needs to clear out all vectors to avoid duplicate entries and only assign to trivial types if the corresponding json entry was found
 		RestoreDefault();
-
-		const json& rootJson = loadedJson.value();
 
 		if (const json* systemJson = JsonFind(rootJson, UserIDs::System))
 		{
@@ -538,6 +559,7 @@ namespace Comfy::Studio
 	void ComfyStudioUserSettings::SaveToFile(std::string_view filePath) const
 	{
 		json rootJson = json::object();
+		SetJsonSettingsFileVersionForRoot(rootJson, CurrentVersion);
 
 		json& systemJson = rootJson[UserIDs::System];
 		{
