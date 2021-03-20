@@ -8,23 +8,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	namespace
-	{
-		constexpr f32 PreciseStepDistance = 1.0f;
-		constexpr f32 GridStepDistance = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
-
-		constexpr vec2 SnapPositionTo(vec2 position, f32 snapDistance)
-		{
-			return glm::round(position / snapDistance) * snapDistance;
-		}
-
-		// TODO: Move to Rules:: namespace (?)
-		constexpr vec2 SnapPositionToGrid(vec2 position)
-		{
-			return SnapPositionTo(position, GridStepDistance);
-		}
-	}
-
 	void TargetPositionTool::OnSelected()
 	{
 	}
@@ -86,9 +69,9 @@ namespace Comfy::Studio::Editor
 			if (Gui::MenuItem("Nearest Whole", "(1 px)"))
 				SnapSelectedTargetPositions(undoManager, chart, 1.0f);
 
-			static_assert(GridStepDistance == 48.0f);
+			static_assert(Rules::GridStepDistance == 48.0f);
 			if (Gui::MenuItem("Nearest Grid", "(48 px)"))
-				SnapSelectedTargetPositions(undoManager, chart, GridStepDistance);
+				SnapSelectedTargetPositions(undoManager, chart, Rules::GridStepDistance);
 
 			for (const i32 division : std::array { 24, 32, 48, 64, 96, 192 })
 			{
@@ -310,7 +293,7 @@ namespace Comfy::Studio::Editor
 			// TODO: Improve command merge behavior
 			if (Gui::IsKeyPressed(key, true) && Gui::GetActiveID() == 0)
 			{
-				const auto stepDistance = Gui::GetIO().KeyShift ? GridStepDistance : PreciseStepDistance;
+				const auto stepDistance = Gui::GetIO().KeyShift ? Rules::GridStepDistance : Rules::PreciseStepDistance;
 				IncrementSelectedTargetPositionsBy(undoManager, chart, direction * stepDistance);
 			}
 		}
@@ -371,7 +354,7 @@ namespace Comfy::Studio::Editor
 			{
 				vec2 grabbedMovedPosition = glm::round(grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom));
 				if (Gui::GetIO().KeyShift)
-					grabbedMovedPosition = SnapPositionToGrid(grabbedMovedPosition);
+					grabbedMovedPosition = Rules::SnapPositionToGrid(grabbedMovedPosition);
 
 				const vec2 increment = (grabbedMovedPosition - Rules::TryGetProperties(chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)]).Position);
 				if (increment != vec2(0.0f))
@@ -593,7 +576,7 @@ namespace Comfy::Studio::Editor
 
 			auto& data = targetData.emplace_back();
 			data.ID = target.ID;
-			data.NewValue.Position = SnapPositionTo(Rules::TryGetProperties(target).Position, snapDistance);
+			data.NewValue.Position = Rules::SnapPositionTo(Rules::TryGetProperties(target).Position, snapDistance);
 		}
 
 		undoManager.DisallowMergeForLastCommand();

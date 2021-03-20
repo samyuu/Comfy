@@ -78,6 +78,19 @@ namespace Comfy::Studio::Editor
 		constexpr BeatTick SlideHeadsTouchTickThreshold = BeatTick::FromBars(1) / 8;
 		constexpr f32 SlideHeadsTouchOffsetDistance = 16.0f;
 
+		constexpr f32 PreciseStepDistance = 1.0f;
+		constexpr f32 GridStepDistance = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
+
+		inline vec2 SnapPositionTo(vec2 position, f32 snapDistance)
+		{
+			return glm::round(position / snapDistance) * snapDistance;
+		}
+
+		inline vec2 SnapPositionToGrid(vec2 position)
+		{
+			return SnapPositionTo(position, GridStepDistance);
+		}
+
 		constexpr vec2 RecommendedPlacementAreaMin =
 		{
 			TickToDistance(BeatTick::FromBars(1) / 8),
