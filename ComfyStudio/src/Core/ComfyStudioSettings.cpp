@@ -24,6 +24,7 @@ namespace Comfy::Studio
 		const std::string LastSessionWindowState_Size = "size";
 		const std::string LastSessionWindowState_IsFullscreen = "is_fullscreen";
 		const std::string LastSessionWindowState_IsMaximized = "is_maximized";
+		const std::string LastSessionWindowState_SwapInterval = "swap_interval";
 		const std::string LastSessionWindowState_ActiveEditorComponent = "active_editor_component";
 
 		const std::string RecentFiles = "recent_files";
@@ -45,6 +46,7 @@ namespace Comfy::Studio
 			LastSessionWindowState.Size = JsonTryGetIVec2(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_Size));
 			LastSessionWindowState.IsFullscreen = JsonTryGetBool(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_IsFullscreen));
 			LastSessionWindowState.IsMaximized = JsonTryGetBool(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_IsMaximized));
+			LastSessionWindowState.SwapInterval = JsonTryGetI32(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_SwapInterval));
 			LastSessionWindowState.ActiveEditorComponent = JsonTryGetStr(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_ActiveEditorComponent));
 		}
 
@@ -73,6 +75,7 @@ namespace Comfy::Studio
 		JsonTrySetIVec2(windowStateJson[AppIDs::LastSessionWindowState_Size], LastSessionWindowState.Size);
 		JsonTrySetBool(windowStateJson[AppIDs::LastSessionWindowState_IsFullscreen], LastSessionWindowState.IsFullscreen);
 		JsonTrySetBool(windowStateJson[AppIDs::LastSessionWindowState_IsMaximized], LastSessionWindowState.IsMaximized);
+		JsonTrySetI32(windowStateJson[AppIDs::LastSessionWindowState_SwapInterval], LastSessionWindowState.SwapInterval);
 		JsonTrySetStr(windowStateJson[AppIDs::LastSessionWindowState_ActiveEditorComponent], LastSessionWindowState.ActiveEditorComponent);
 
 		json& recentFilesJson = rootJson[AppIDs::RecentFiles];

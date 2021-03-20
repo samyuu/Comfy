@@ -130,6 +130,9 @@ namespace Comfy::Studio
 			DisposeSaveSettings();
 		});
 
+		if (GlobalAppData.LastSessionWindowState.SwapInterval.has_value())
+			host->SetSwapInterval(GlobalAppData.LastSessionWindowState.SwapInterval.value());
+
 		if (!InitializeEditorComponents())
 			return false;
 
@@ -288,10 +291,10 @@ namespace Comfy::Studio
 			if (Gui::BeginMenu("Swap Interval"))
 			{
 				const auto swapInterval = host->GetSwapInterval();
-				if (Gui::MenuItem("Swap Interval 0 - Unlimited", nullptr, (swapInterval == 0)))
+				if (Gui::MenuItem("Swap Interval 0 - Unlimited", nullptr, (swapInterval == 0), (swapInterval != 0)))
 					host->SetSwapInterval(0);
 
-				if (Gui::MenuItem("Swap Interval 1 - VSync", nullptr, (swapInterval == 1)))
+				if (Gui::MenuItem("Swap Interval 1 - VSync", nullptr, (swapInterval == 1), (swapInterval != 1)))
 					host->SetSwapInterval(1);
 
 				Gui::EndMenu();
@@ -301,6 +304,7 @@ namespace Comfy::Studio
 
 			// TODO: Reset to default layout
 
+#if COMFY_DEBUG && 1
 			if (Gui::BeginMenu("ImGui Config"))
 			{
 				if (Gui::MenuItem("Save To Memory", nullptr))
@@ -311,6 +315,7 @@ namespace Comfy::Studio
 
 				Gui::EndMenu();
 			}
+#endif
 
 			Gui::EndMenu();
 		}
@@ -576,6 +581,7 @@ namespace Comfy::Studio
 		GlobalAppData.LastSessionWindowState.Size = host->GetWindowSize();
 		GlobalAppData.LastSessionWindowState.IsFullscreen = host->GetIsFullscreen();
 		GlobalAppData.LastSessionWindowState.IsMaximized = host->GetIsMaximized();
+		GlobalAppData.LastSessionWindowState.SwapInterval = host->GetSwapInterval();
 		GlobalAppData.SaveToFile();
 
 #if COMFY_DEBUG && 1 // DEBUG: Just for testing

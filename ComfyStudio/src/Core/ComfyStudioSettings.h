@@ -24,6 +24,7 @@ namespace Comfy::Studio
 			std::optional<ivec2> Size;
 			std::optional<bool> IsFullscreen;
 			std::optional<bool> IsMaximized;
+			std::optional<i32> SwapInterval;
 			std::optional<std::string> ActiveEditorComponent;
 		} LastSessionWindowState;
 
@@ -47,7 +48,7 @@ namespace Comfy::Studio
 		{
 			struct
 			{
-				// i32 WindowSwapInterval; // ... or should this be part of AppData (?)
+				// Usually render resolution, MSAA settings etc. but that doesn't really make sense for 2D..?
 			} Video;
 
 			struct
