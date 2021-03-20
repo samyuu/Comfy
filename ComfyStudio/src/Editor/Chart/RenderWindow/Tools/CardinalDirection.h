@@ -51,35 +51,27 @@ namespace Comfy::Studio::Editor
 
 	constexpr bool IsIntercardinal(CardinalDirection cardinal)
 	{
-		return (cardinal >= CardinalDirection::IntercardinalStart);
+		return (cardinal >= CardinalDirection::IntercardinalStart && cardinal <= CardinalDirection::IntercardinalEnd);
 	}
 
-	constexpr std::array<vec2, EnumCount<CardinalDirection>()> CardinalTargetRowDirections =
+	constexpr vec2 CardinalToTargetRowDirection(CardinalDirection cardinal, vec2 perBeatDiagonalSpacing)
 	{
-		vec2(+0.0f, -1.0f),
-		vec2(+1.0f, +0.0f),
-		vec2(+0.0f, +1.0f),
-		vec2(-1.0f, +0.0f),
-		vec2(+Rules::PlacementStairDirection.x, -Rules::PlacementStairDirection.y),
-		vec2(+Rules::PlacementStairDirection.x, +Rules::PlacementStairDirection.y),
-		vec2(-Rules::PlacementStairDirection.x, +Rules::PlacementStairDirection.y),
-		vec2(-Rules::PlacementStairDirection.x, -Rules::PlacementStairDirection.y),
-	};
+		switch (cardinal)
+		{
+		case CardinalDirection::North: return vec2(+0.0f, -1.0f);
+		case CardinalDirection::East: return vec2(+1.0f, +0.0f);
+		case CardinalDirection::South: return vec2(+0.0f, +1.0f);
+		case CardinalDirection::West: return vec2(-1.0f, +0.0f);
+		}
 
-	constexpr std::array<vec2, EnumCount<CardinalDirection>()> CardinalTargetRowDirectionsSteep =
-	{
-		vec2(+0.0f, -1.0f),
-		vec2(+1.0f, +0.0f),
-		vec2(+0.0f, +1.0f),
-		vec2(-1.0f, +0.0f),
-		vec2(+Rules::PlacementStairSteepDirection.x, -Rules::PlacementStairSteepDirection.y),
-		vec2(+Rules::PlacementStairSteepDirection.x, +Rules::PlacementStairSteepDirection.y),
-		vec2(-Rules::PlacementStairSteepDirection.x, +Rules::PlacementStairSteepDirection.y),
-		vec2(-Rules::PlacementStairSteepDirection.x, -Rules::PlacementStairSteepDirection.y),
-	};
-
-	constexpr vec2 CardinalToTargetRowDirection(CardinalDirection direction, bool steep)
-	{
-		return (steep ? CardinalTargetRowDirectionsSteep : CardinalTargetRowDirections)[static_cast<u8>(direction)];
+		const vec2 diagonalDirection = glm::normalize(glm::abs(perBeatDiagonalSpacing));
+		switch (cardinal)
+		{
+		case CardinalDirection::NorthEast: return vec2(+diagonalDirection.x, -diagonalDirection.y);
+		case CardinalDirection::SouthEast: return vec2(+diagonalDirection.x, +diagonalDirection.y);
+		case CardinalDirection::SouthWest: return vec2(-diagonalDirection.x, +diagonalDirection.y);
+		case CardinalDirection::NorthWest: return vec2(-diagonalDirection.x, -diagonalDirection.y);
+		default: return vec2(1.0f, 0.0f);
+		}
 	}
 }

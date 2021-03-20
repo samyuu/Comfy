@@ -314,6 +314,11 @@ namespace Comfy::Studio
 		const std::string TargetPreview_PostHitLingerDurationTicks = "post_hit_linger_duration_ticks";
 		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
+		const std::string PositionTool = "position_tool";
+		const std::string PositionTool_DiagonalRowLayouts = "diagonal_row_layouts";
+		const std::string PositionTool_DiagonalRowLayouts_PerBeatDiagonalSpacing = "per_beat_diagonal_spacing";
+		const std::string PositionTool_DiagonalRowLayouts_DisplayName = "display_name";
+
 		const std::string TargetPreset = "target_preset";
 		const std::string TargetPreset_StaticSyncPresets = "static_sync_presets";
 		const std::string TargetPreset_StaticSyncPresets_Name = "name";
@@ -398,6 +403,21 @@ namespace Comfy::Studio
 			if (auto v = JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)); v.has_value())
 				TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v.value());
 			JsonTryAssign(TargetPreview.DisplayPracticeBackground, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)));
+		}
+
+		if (const json* positionToolJson = JsonFind(rootJson, UserIDs::PositionTool))
+		{
+			if (const json* diagonalRowLayoutsJson = JsonFind(*positionToolJson, UserIDs::PositionTool_DiagonalRowLayouts))
+			{
+				PositionTool.DiagonalRowLayouts.clear();
+				PositionTool.DiagonalRowLayouts.reserve(diagonalRowLayoutsJson->size());
+				for (const json& rowLayoutJson : *diagonalRowLayoutsJson)
+				{
+					auto& rowLayout = PositionTool.DiagonalRowLayouts.emplace_back();
+					rowLayout.PerBeatDiagonalSpacing = JsonTryGetVec2(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalRowLayouts_PerBeatDiagonalSpacing)).value_or(vec2(0.0f));
+					rowLayout.DisplayName = std::move(JsonTryGetStr(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalRowLayouts_DisplayName)).value_or(""));
+				}
+			}
 		}
 
 		if (const json* targetPresetJson = JsonFind(rootJson, UserIDs::TargetPreset))
@@ -536,6 +556,18 @@ namespace Comfy::Studio
 			targetPreviewJson[UserIDs::TargetPreview_DisplayPracticeBackground] = TargetPreview.DisplayPracticeBackground;
 		}
 
+		json& positionToolJson = rootJson[UserIDs::PositionTool];
+		{
+			json& diagonalRowLayoutsJson = positionToolJson[UserIDs::PositionTool_DiagonalRowLayouts];
+			diagonalRowLayoutsJson = json::array();
+			for (const auto& rowLayout : PositionTool.DiagonalRowLayouts)
+			{
+				json& rowLayoutJson = diagonalRowLayoutsJson.emplace_back(json::object());
+				JsonSetVec2(rowLayoutJson[UserIDs::PositionTool_DiagonalRowLayouts_PerBeatDiagonalSpacing], rowLayout.PerBeatDiagonalSpacing);
+				rowLayoutJson[UserIDs::PositionTool_DiagonalRowLayouts_DisplayName] = rowLayout.DisplayName;
+			}
+		}
+
 		json& targetPresetJson = rootJson[UserIDs::TargetPreset];
 		{
 			json& syncPresetsJson = targetPresetJson[UserIDs::TargetPreset_StaticSyncPresets];
@@ -631,6 +663,11 @@ namespace Comfy::Studio
 		TargetPreview.BackgroundDim = 0.35f;
 		TargetPreview.PostHitLingerDuration = BeatTick::FromBeats(1);
 		TargetPreview.DisplayPracticeBackground = false;
+
+		PositionTool.DiagonalRowLayouts =
+		{
+			{ vec2(160.0f, 96.0f), "Default" },
+		};
 
 		TargetPreset.StaticSyncPresets = GetDefaultStaticSyncPresets();
 		TargetPreset.SequencePresets = GetDefaultSequencePresets();

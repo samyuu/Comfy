@@ -70,8 +70,8 @@ namespace Comfy::Studio::Editor
 			{
 				if (Gui::InputFloat("##IncrementPerBeat", &angleIncrement.IncrementPerBeat, step, stepFast, ("%.2f" DEGREE_SIGN " per Beat")))
 					clampIncrementStep(angleIncrement.IncrementPerBeat);
-				if (Gui::InputFloat("##IncrementPerBeatSlope", &angleIncrement.IncrementPerBeatSlope, step, stepFast, ("%.2f" DEGREE_SIGN " per Beat (Slope)")))
-					clampIncrementStep(angleIncrement.IncrementPerBeatSlope);
+				if (Gui::InputFloat("##IncrementPerBeatDiagonal", &angleIncrement.IncrementPerBeatDiagonal, step, stepFast, ("%.2f" DEGREE_SIGN " per Beat (Diagonal)")))
+					clampIncrementStep(angleIncrement.IncrementPerBeatDiagonal);
 			}
 
 			static constexpr AngleIncrementData defaultIncrementData = { 2.0f, 10.0f }, defaultIncrementDataSmall = { 1.0f, 8.0f };
@@ -509,9 +509,9 @@ namespace Comfy::Studio::Editor
 
 					const vec2 directionToLastTarget = glm::normalize(prevDataIt->NewValue.Position - thisDataIt->NewValue.Position);
 					const f32 angleToLastTarget = glm::degrees(glm::atan(directionToLastTarget.y, directionToLastTarget.x));
-					const bool isSlope = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
+					const bool isDiagonal = IsIntercardinal(AngleToNearestCardinal(angleToLastTarget));
 
-					const f32 incrementPerBeat = (isSlope ? angleIncrement.IncrementPerBeatSlope : angleIncrement.IncrementPerBeat);
+					const f32 incrementPerBeat = (isDiagonal ? angleIncrement.IncrementPerBeatDiagonal : angleIncrement.IncrementPerBeat);
 					const f32 finalIncrement = (!angleIncrement.ApplyToChainSlides && thisTarget.Flags.IsChain && !thisTarget.Flags.IsChainStart) ?
 						0.0f : (tickDifference.BeatsFraction() * incrementPerBeat * direction);
 
@@ -536,7 +536,7 @@ namespace Comfy::Studio::Editor
 	{
 		return
 			(IncrementPerBeat == other.IncrementPerBeat) &&
-			(IncrementPerBeatSlope == other.IncrementPerBeatSlope) &&
+			(IncrementPerBeatDiagonal == other.IncrementPerBeatDiagonal) &&
 			(FixedStepIncrementPerTarget == other.FixedStepIncrementPerTarget) &&
 			(UseFixedStepIncrement == other.UseFixedStepIncrement) &&
 			(ApplyToChainSlides == other.ApplyToChainSlides);

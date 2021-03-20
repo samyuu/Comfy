@@ -71,7 +71,7 @@ namespace Comfy::Studio::Editor
 		struct AngleIncrementData
 		{
 			f32 IncrementPerBeat = 2.0f;
-			f32 IncrementPerBeatSlope = 10.0f;
+			f32 IncrementPerBeatDiagonal = 10.0f;
 			f32 FixedStepIncrementPerTarget = 2.0f;
 			bool UseFixedStepIncrement = false;
 			bool ApplyToChainSlides = false;

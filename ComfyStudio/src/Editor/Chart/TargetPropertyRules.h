@@ -33,6 +33,12 @@ namespace Comfy::Studio::Editor
 
 	namespace Rules
 	{
+		struct DiagonalRowLayoutUserDefinition
+		{
+			vec2 PerBeatDiagonalSpacing;
+			std::string DisplayName;
+		};
+
 		constexpr size_t MaxSyncPairCount = 4;
 
 		constexpr vec2 PlacementAreaSize = { 1920.0f, 1080.0f };
@@ -41,44 +47,29 @@ namespace Comfy::Studio::Editor
 		constexpr f32 ComboTextMinHeight = 232.0f;
 
 		constexpr f32 PlacementDistancePerBeat = 192.0f;
-		constexpr f32 PlacementDistancePerBeatStair = 186.59046f;
 
 		// NOTE: Assumes chain fragments at a 32nd bar division
 		constexpr f32 PlacementDistancePerBeatChain = 288.0f;
 
-		constexpr vec2 PlacementStairDirection = (vec2(5.0f, 3.0f) / 5.83095169f);
-		constexpr vec2 PlacementStairSteepDirection = vec2(PlacementStairDirection.y, PlacementStairDirection.x);
-
-		constexpr f32 TickToDistance(const BeatTick tick)
+		constexpr f32 TickToDistance(const BeatTick tick, const f32 distancePerBeat = PlacementDistancePerBeat)
 		{
 			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(BeatTick::TicksPerBeat);
-			const auto beatDistanceRatio = static_cast<f64>(PlacementDistancePerBeat);
+			const auto beatDistanceRatio = static_cast<f64>(distancePerBeat);
 
 			return static_cast<f32>(beats * beatDistanceRatio);
 		}
 
-		constexpr BeatTick DistanceToTick(const f32 distance)
+		constexpr BeatTick DistanceToTick(const f32 distance, const f32 distancePerBeat = PlacementDistancePerBeat)
 		{
-			const auto beats = static_cast<f64>(distance) / static_cast<f64>(PlacementDistancePerBeat);
+			const auto beats = static_cast<f64>(distance) / static_cast<f64>(distancePerBeat);
 			const auto ticks = beats * static_cast<f64>(BeatTick::TicksPerBeat);
 
 			return BeatTick::FromTicks(static_cast<i32>(ticks));
 		}
 
-		constexpr f32 TickToDistanceStair(const BeatTick tick)
-		{
-			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(BeatTick::TicksPerBeat);
-			const auto beatDistanceRatio = static_cast<f32>(PlacementDistancePerBeatStair);
-
-			return static_cast<f32>(beats * beatDistanceRatio);
-		}
-
 		constexpr f32 TickToDistanceChain(const BeatTick tick)
 		{
-			const auto beats = static_cast<f64>(tick.Ticks()) / static_cast<f64>(BeatTick::TicksPerBeat);
-			const auto beatDistanceRatio = static_cast<f32>(PlacementDistancePerBeatChain);
-
-			return static_cast<f32>(beats * beatDistanceRatio);
+			return TickToDistance(tick, PlacementDistancePerBeatChain);
 		}
 
 		constexpr f32 ChainFragmentPlacementDistance = TickToDistanceChain(BeatTick::FromBars(1) / 32);

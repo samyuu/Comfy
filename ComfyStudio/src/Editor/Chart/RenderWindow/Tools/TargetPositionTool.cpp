@@ -1,9 +1,9 @@
 #include "TargetPositionTool.h"
-#include "CardinalDirection.h"
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
 #include "Editor/Chart/KeyBindings.h"
+#include "Core/ComfyStudioSettings.h"
 #include <numeric>
 
 namespace Comfy::Studio::Editor
@@ -216,7 +216,7 @@ namespace Comfy::Studio::Editor
 			return;
 
 		const auto cardinal = AngleToNearestCardinal(row.Angle);
-		const vec2 direction = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
+		const vec2 direction = CardinalToTargetRowDirection(cardinal, GetSelectedRowPerBeatDiagonalSpacing());
 
 		const u32 whiteColor = Gui::GetColorU32(ImGuiCol_Text);
 		const u32 dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
@@ -417,9 +417,6 @@ namespace Comfy::Studio::Editor
 			row.SteepLastFrame = row.SteepThisFrame;
 			row.SteepThisFrame = Gui::GetIO().KeyShift;
 
-			const auto cardinal = AngleToNearestCardinal(row.Angle);
-			const vec2 rowDirection = CardinalToTargetRowDirection(cardinal, row.SteepThisFrame);
-
 			const bool mouseWasMoved = (Gui::GetIO().MouseDelta.x != 0.0f || Gui::GetIO().MouseDelta.y != 0.0f);
 			const bool steepStateChanged = (row.SteepThisFrame != row.SteepLastFrame);
 
@@ -429,8 +426,23 @@ namespace Comfy::Studio::Editor
 			if (selectedTargetsBuffer.size() > 1 && glm::distance(row.Start, row.End) > distanceThreshold)
 			{
 				if (row.Start != row.End && (mouseWasMoved || steepStateChanged))
-					PositionSelectedTargetsInCardinalRow(undoManager, chart, rowDirection, IsIntercardinal(cardinal), row.Backwards);
+					PositionSelectedTargetsInCardinalRow(undoManager, chart, AngleToNearestCardinal(row.Angle), GetSelectedRowPerBeatDiagonalSpacing(), row.Backwards);
 			}
+		}
+	}
+
+	vec2 TargetPositionTool::GetSelectedRowPerBeatDiagonalSpacing() const
+	{
+		if (GlobalUserData.PositionTool.DiagonalRowLayouts.empty())
+		{
+			return vec2(Rules::PlacementDistancePerBeat);
+		}
+		else
+		{
+			const auto& selectedLayout = InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalRowLayouts) ?
+				GlobalUserData.PositionTool.DiagonalRowLayouts[selectedDiagonalRowLayoutIndex] : GlobalUserData.PositionTool.DiagonalRowLayouts.front();
+
+			return row.SteepThisFrame ? vec2(selectedLayout.PerBeatDiagonalSpacing.y, selectedLayout.PerBeatDiagonalSpacing.x) : selectedLayout.PerBeatDiagonalSpacing;
 		}
 	}
 
@@ -452,25 +464,28 @@ namespace Comfy::Studio::Editor
 		undoManager.Execute<ChangeTargetListPositions>(chart, std::move(targetData));
 	}
 
-	void TargetPositionTool::PositionSelectedTargetsInCardinalRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards)
+	void TargetPositionTool::PositionSelectedTargetsInCardinalRow(Undo::UndoManager& undoManager, Chart& chart, CardinalDirection cardinal, vec2 perBeatDiagonalDirection, bool backwards)
 	{
 		if (selectedTargetsBuffer.size() < 2)
 			return;
 
-		const f32 rowAngle = glm::degrees(glm::atan(rowDirection.y, rowDirection.x));
-		const auto rowCardinal = AngleToNearestCardinal(rowAngle);
+		const bool useDiagonalSpacing = IsIntercardinal(cardinal);
 
 		const auto horizontalCardinal =
-			(rowCardinal == CardinalDirection::NorthWest || rowCardinal == CardinalDirection::SouthWest) ? CardinalDirection::West :
-			(rowCardinal == CardinalDirection::NorthEast || rowCardinal == CardinalDirection::SouthEast) ? CardinalDirection::East :
-			rowCardinal;
+			(cardinal == CardinalDirection::NorthWest || cardinal == CardinalDirection::SouthWest) ? CardinalDirection::West :
+			(cardinal == CardinalDirection::NorthEast || cardinal == CardinalDirection::SouthEast) ? CardinalDirection::East :
+			cardinal;
 
-		const vec2 horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal, useStairDistance);
+		const vec2 direction = CardinalToTargetRowDirection(cardinal, perBeatDiagonalDirection);
+		const vec2 horizontalDirection = CardinalToTargetRowDirection(horizontalCardinal, perBeatDiagonalDirection);
+
+		const f32 distancePerBeat = Rules::PlacementDistancePerBeat;
+		const f32 distancePerBeatDiagonal = glm::length(perBeatDiagonalDirection);
 
 		auto getNextPos = [&](vec2 prevPosition, vec2 thisPosition, BeatTick tickDistance, bool chain, bool chainEnd, bool slideHeadTouch) -> vec2
 		{
 			auto distance = (chain && !chainEnd) ? Rules::ChainFragmentPlacementDistance :
-				(useStairDistance && !chainEnd) ? Rules::TickToDistanceStair(tickDistance) : Rules::TickToDistance(tickDistance);
+				Rules::TickToDistance(tickDistance, (useDiagonalSpacing && !chainEnd) ? distancePerBeatDiagonal : distancePerBeat);
 
 			if (chainEnd)
 				distance += Rules::ChainFragmentStartEndOffsetDistance;
@@ -478,8 +493,18 @@ namespace Comfy::Studio::Editor
 				distance += Rules::SlideHeadsTouchOffsetDistance;
 
 			// NOTE: Targets following one after the end of a chain need to be horizontal to avoid decimal fractions.
-			//		 If a stair like pattern is desired then the corret placement would be to vertically offset the height only
-			return prevPosition + ((chain ? horizontalDirection : rowDirection) * distance);
+			//		 If a diagonal pattern is desired then the corret placement would be to vertically offset the height only
+			return prevPosition + ((chain ? horizontalDirection : direction) * distance);
+		};
+
+		auto doSlideHeadsTouch = [](const TimelineTarget& targetA, const TimelineTarget& targetB, CardinalDirection cardinal) -> bool
+		{
+			const bool closelySpaced = glm::abs((targetA.Tick - targetB.Tick).Ticks()) <= Rules::SlideHeadsTouchTickThreshold.Ticks();
+			const bool slideTypesTouch =
+				(cardinal == CardinalDirection::West) ? (targetA.Type == ButtonType::SlideR && targetB.Type == ButtonType::SlideL) :
+				(cardinal == CardinalDirection::East) ? (targetA.Type == ButtonType::SlideL && targetB.Type == ButtonType::SlideR) : false;
+
+			return (closelySpaced && slideTypesTouch);
 		};
 
 		std::vector<ChangeTargetListPositionsRow::Data> targetData;
@@ -495,7 +520,7 @@ namespace Comfy::Studio::Editor
 				const auto& thisTarget = *selectedTargetsBuffer[i];
 				const auto& nextTarget = *selectedTargetsBuffer[i + 1];
 				const auto tickDistance = (nextTarget.Tick - thisTarget.Tick);
-				const bool slideHeadsTouch = doSlideHeadsTouch(thisTarget, nextTarget, rowCardinal);
+				const bool slideHeadsTouch = doSlideHeadsTouch(thisTarget, nextTarget, cardinal);
 
 				targetData[i].ID = thisTarget.ID;
 				targetData[i].NewValue.Position = getNextPos(targetData[i + 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, thisTarget.Flags.IsChain, thisTarget.Flags.IsChainEnd, slideHeadsTouch);
@@ -511,7 +536,7 @@ namespace Comfy::Studio::Editor
 				const auto& thisTarget = *selectedTargetsBuffer[i];
 				const auto& prevTarget = *selectedTargetsBuffer[i - 1];
 				const auto tickDistance = (thisTarget.Tick - prevTarget.Tick);
-				const bool slideHeadsTouch = doSlideHeadsTouch(thisTarget, prevTarget, rowCardinal);
+				const bool slideHeadsTouch = doSlideHeadsTouch(thisTarget, prevTarget, cardinal);
 
 				targetData[i].ID = thisTarget.ID;
 				targetData[i].NewValue.Position = getNextPos(targetData[i - 1].NewValue.Position, Rules::TryGetProperties(thisTarget).Position, tickDistance, prevTarget.Flags.IsChain, prevTarget.Flags.IsChainEnd, slideHeadsTouch);

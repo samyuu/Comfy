@@ -98,6 +98,11 @@ namespace Comfy::Studio
 
 		struct
 		{
+			std::vector<Editor::Rules::DiagonalRowLayoutUserDefinition> DiagonalRowLayouts;
+		} PositionTool;
+
+		struct
+		{
 			std::vector<Editor::StaticSyncPreset> StaticSyncPresets;
 			std::vector<Editor::SequencePreset> SequencePresets;
 

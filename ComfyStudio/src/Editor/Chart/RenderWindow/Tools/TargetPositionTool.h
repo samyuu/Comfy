@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "TargetTool.h"
+#include "CardinalDirection.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -38,8 +39,10 @@ namespace Comfy::Studio::Editor
 		void UpdateMouseGrabInput(Chart& chart);
 		void UpdateMouseRowInput(Chart& chart);
 
+		vec2 GetSelectedRowPerBeatDiagonalSpacing() const;
+
 		void IncrementSelectedTargetPositionsBy(Undo::UndoManager& undoManager, Chart& chart, vec2 positionIncrement);
-		void PositionSelectedTargetsInCardinalRow(Undo::UndoManager& undoManager, Chart& chart, vec2 rowDirection, bool useStairDistance, bool backwards);
+		void PositionSelectedTargetsInCardinalRow(Undo::UndoManager& undoManager, Chart& chart, CardinalDirection cardinal, vec2 perBeatDiagonalDirection, bool backwards);
 
 		void FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, FlipMode flipMode);
 		void SnapSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart, f32 snapDistance);
@@ -66,6 +69,7 @@ namespace Comfy::Studio::Editor
 			bool ThisGridSnap, LastGridSnap;
 		} grab = {};
 
+		i32 selectedDiagonalRowLayoutIndex = 0;
 		struct RowData
 		{
 			vec2 Start, End;
