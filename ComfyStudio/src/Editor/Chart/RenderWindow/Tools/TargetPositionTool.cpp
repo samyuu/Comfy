@@ -10,9 +10,6 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		// NOTE: To both prevent needless visual overload and to not overflow 16bit vertex indices too easily
-		constexpr size_t MaxDistanceGuideCirclesToRender = 64;
-
 		constexpr f32 PreciseStepDistance = 1.0f;
 		constexpr f32 GridStepDistance = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
 
@@ -152,22 +149,14 @@ namespace Comfy::Studio::Editor
 		return "Position Tool";
 	}
 
-	namespace
-	{
-		constexpr i32 GetCircleSegmentCount(f32 radius)
-		{
-			// TODO: Dynamic segment count based on size
-			return 64;
-		}
-	}
-
 	void TargetPositionTool::DrawTickDistanceGuides(Chart& chart, ImDrawList& drawList)
 	{
 		if (!drawDistanceGuides)
 			return;
 
-		if (std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; }) > MaxDistanceGuideCirclesToRender)
-			return;
+		// NOTE: To both prevent needless visual overload and to not overflow 16bit vertex indices too easily
+		const i32 maxGuidesToDraw = GlobalUserData.System.Gui.TargetDistanceGuideMaxCount;
+		i32 guideDrawCount = 0;
 
 		const f32 cameraZoom = renderWindow.GetCamera().Zoom;
 
@@ -201,7 +190,10 @@ namespace Comfy::Studio::Editor
 					const auto& prevPairTarget = chart.Targets[(i + pair - lastTargetOfPrevPair.Flags.SyncPairCount)];
 
 					const vec2 screenPosition = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(prevPairTarget).Position);
-					drawList.AddCircle(screenPosition, screenRadius, GetButtonTypeColorU32(prevPairTarget.Type, 0x84), GetCircleSegmentCount(screenRadius));
+					drawList.AddCircle(screenPosition, screenRadius, GetButtonTypeColorU32(prevPairTarget.Type, 0x84), GlobalUserData.System.Gui.TargetDistanceGuideCircleSegments);
+
+					if (guideDrawCount++ >= maxGuidesToDraw)
+						return;
 				}
 			}
 

@@ -22,8 +22,6 @@ namespace Comfy::Studio::Editor
 	constexpr u32 GetButtonTypeColorU32(ButtonType type) { return ButtonTypeColors[static_cast<u8>(type)]; }
 	constexpr u32 GetButtonTypeColorU32(ButtonType type, u8 alpha) { return (ButtonTypeColors[static_cast<u8>(type)] & 0x00FFFFFF) | (static_cast<u32>(alpha) << 24); }
 
-	constexpr f32 CurvedButtonPathStepDistance = (1.0f / 32.0f);
-
 	void DrawStraightButtonAngleLine(TargetRenderWindow& renderWindow, ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness);
 	void DrawCurvedButtonPathLine(TargetRenderWindow& renderWindow, ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness);
 	void DrawCurvedButtonPathLineArrowHeads(TargetRenderWindow& renderWindow, ImDrawList& drawList, const TargetProperties& properties, u32 color, f32 thickness);

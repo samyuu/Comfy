@@ -65,10 +65,14 @@ namespace Comfy::Studio
 
 			struct
 			{
-				// bool AntiAliasedLines;
-				// bool AntiAliasedFill;
-				// ... Curve and circle line counts used by TargetRenderWindow / TargetTools
 				bool ShowTestMenu;
+				// NOTE: Usually part of the style but exposed as a user setting in case of performance issues
+				bool AntiAliasedLines;
+				bool AntiAliasedFill;
+				i32 TargetDistanceGuideCircleSegments;
+				i32 TargetDistanceGuideMaxCount;
+				i32 TargetButtonPathCurveSegments;
+				i32 TargetButtonPathMaxCount;
 			} Gui;
 		} System;
 

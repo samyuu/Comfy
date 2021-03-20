@@ -178,6 +178,10 @@ namespace Comfy::Studio
 	void ComfyStudioApplication::Gui()
 	{
 		const auto& io = Gui::GetIO();
+		auto& style = Gui::GetStyle();
+
+		style.AntiAliasedLines = GlobalUserData.System.Gui.AntiAliasedLines;
+		style.AntiAliasedFill = GlobalUserData.System.Gui.AntiAliasedFill;
 
 #if COMFY_DEBUG && 0 // TEMP:
 		if (io.KeyCtrl && io.KeyShift && Gui::IsKeyPressed(Input::KeyCode_B, false))

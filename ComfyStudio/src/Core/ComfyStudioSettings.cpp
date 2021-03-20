@@ -304,6 +304,12 @@ namespace Comfy::Studio
 
 		const std::string System_Gui = "gui";
 		const std::string System_Gui_ShowTestMenu = "show_test_menu";
+		const std::string System_Gui_AntiAliasedLines = "anti_aliased_lines";
+		const std::string System_Gui_AntiAliasedFill = "anti_aliased_fill";
+		const std::string System_Gui_TargetDistanceGuideCircleSegments = "target_distance_guide_circle_segments";
+		const std::string System_Gui_TargetDistanceGuideMaxCount = "target_distance_guide_max_count";
+		const std::string System_Gui_TargetButtonPathCurveSegments = "target_button_path_curve_segments";
+		const std::string System_Gui_TargetButtonPathMaxCount = "target_button_path_max_count";
 
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
@@ -389,6 +395,12 @@ namespace Comfy::Studio
 			if (const json* guiJson = JsonFind(*systemJson, UserIDs::System_Gui))
 			{
 				JsonTryAssign(System.Gui.ShowTestMenu, JsonTryGetBool(JsonFind(*guiJson, UserIDs::System_Gui_ShowTestMenu)));
+				JsonTryAssign(System.Gui.AntiAliasedLines, JsonTryGetBool(JsonFind(*guiJson, UserIDs::System_Gui_AntiAliasedLines)));
+				JsonTryAssign(System.Gui.AntiAliasedFill, JsonTryGetBool(JsonFind(*guiJson, UserIDs::System_Gui_AntiAliasedFill)));
+				JsonTryAssign(System.Gui.TargetDistanceGuideCircleSegments, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetDistanceGuideCircleSegments)));
+				JsonTryAssign(System.Gui.TargetDistanceGuideMaxCount, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetDistanceGuideMaxCount)));
+				JsonTryAssign(System.Gui.TargetButtonPathCurveSegments, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetButtonPathCurveSegments)));
+				JsonTryAssign(System.Gui.TargetButtonPathMaxCount, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetButtonPathMaxCount)));
 			}
 		}
 
@@ -543,6 +555,12 @@ namespace Comfy::Studio
 
 			json& guiJson = systemJson[UserIDs::System_Gui];
 			guiJson[UserIDs::System_Gui_ShowTestMenu] = System.Gui.ShowTestMenu;
+			guiJson[UserIDs::System_Gui_AntiAliasedLines] = System.Gui.AntiAliasedLines;
+			guiJson[UserIDs::System_Gui_AntiAliasedFill] = System.Gui.AntiAliasedFill;
+			guiJson[UserIDs::System_Gui_TargetDistanceGuideCircleSegments] = System.Gui.TargetDistanceGuideCircleSegments;
+			guiJson[UserIDs::System_Gui_TargetDistanceGuideMaxCount] = System.Gui.TargetDistanceGuideMaxCount;
+			guiJson[UserIDs::System_Gui_TargetButtonPathCurveSegments] = System.Gui.TargetButtonPathCurveSegments;
+			guiJson[UserIDs::System_Gui_TargetButtonPathMaxCount] = System.Gui.TargetButtonPathMaxCount;
 		}
 
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
@@ -655,6 +673,12 @@ namespace Comfy::Studio
 		System.Audio.RequestExclusiveDeviceAccess = true;
 
 		System.Gui.ShowTestMenu = false;
+		System.Gui.AntiAliasedLines = true;
+		System.Gui.AntiAliasedFill = true;
+		System.Gui.TargetDistanceGuideCircleSegments = 64;
+		System.Gui.TargetDistanceGuideMaxCount = 64;
+		System.Gui.TargetButtonPathCurveSegments = 32;
+		System.Gui.TargetButtonPathMaxCount = 64;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

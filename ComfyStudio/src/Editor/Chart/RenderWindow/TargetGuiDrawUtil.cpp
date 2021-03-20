@@ -1,5 +1,6 @@
 #include "TargetGuiDrawUtil.h"
 #include "TargetRenderWindow.h"
+#include "Core/ComfyStudioSettings.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -34,8 +35,10 @@ namespace Comfy::Studio::Editor
 		}
 		else
 		{
+			const f32 stepDistance = 1.0f / static_cast<f32>(GlobalUserData.System.Gui.TargetButtonPathCurveSegments);
+
 			drawList.PathLineTo(renderWindow.TargetAreaToScreenSpace(GetButtonPathSinePoint(0.0f, properties)));
-			for (f32 i = CurvedButtonPathStepDistance; i <= 1.0f; i += CurvedButtonPathStepDistance)
+			for (f32 i = stepDistance; i <= 1.0f; i += stepDistance)
 				drawList.PathLineTo(renderWindow.TargetAreaToScreenSpace(GetButtonPathSinePoint(i, properties)));
 			drawList.PathStroke(color, false, thickness);
 		}

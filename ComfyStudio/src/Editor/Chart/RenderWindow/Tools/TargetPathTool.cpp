@@ -4,6 +4,7 @@
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
 #include "Editor/Chart/KeyBindings.h"
+#include "Core/ComfyStudioSettings.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -135,8 +136,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::DrawTargetAngleGuides(Chart& chart, ImDrawList& drawList)
 	{
-		constexpr size_t maxPathsToDraw = 64;
-		size_t pathDrawCount = 0;
+		const i32 maxPathsToDraw = GlobalUserData.System.Gui.TargetButtonPathMaxCount;
+		i32 pathDrawCount = 0;
 
 		if (angleDrag.Active || angleScroll.Active)
 		{
