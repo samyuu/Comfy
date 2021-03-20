@@ -16,6 +16,7 @@
     <ClInclude Include="src\Core\Algorithm.h" />
     <ClInclude Include="src\Core\Hacks.h" />
     <ClInclude Include="src\Core\ScopeExitFunc.h" />
+    <ClInclude Include="src\Core\SemanticVersion.h" />
     <ClInclude Include="src\Core\StartupFuncWrapper.h" />
     <ClInclude Include="src\Database\Game\GmBtnSfxDB.h" />
     <ClInclude Include="src\Database\Game\GmPvListDB.h" />
@@ -94,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
+    <ClCompile Include="src\Core\SemanticVersion.cpp" />
     <ClCompile Include="src\Database\Game\GmBtnSfxDB.cpp" />
     <ClCompile Include="src\Database\Game\GmPvListDB.cpp" />
     <ClCompile Include="src\Database\Game\PvDB.cpp" />
