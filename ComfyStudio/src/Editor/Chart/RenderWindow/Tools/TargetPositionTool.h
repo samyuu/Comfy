@@ -43,6 +43,7 @@ namespace Comfy::Studio::Editor
 
 		void FlipSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, FlipMode flipMode);
 		void SnapSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart, f32 snapDistance);
+		void StackSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart);
 
 		void PositionSelectedTargetsInRowBetweenFirstAndLastTarget(Undo::UndoManager& undoManager, Chart& chart, bool backwards);
 		void InterpolateSelectedTargetPositionsLinear(Undo::UndoManager& undoManager, Chart& chart);

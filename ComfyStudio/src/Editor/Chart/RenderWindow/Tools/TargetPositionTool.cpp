@@ -81,7 +81,10 @@ namespace Comfy::Studio::Editor
 			InterpolateSelectedTargetPositionsCircular(undoManager, chart, -1.0f);
 		Gui::Separator();
 
-		if (Gui::BeginMenu("Snap Positions", (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Stack Targets", Input::GetKeyCodeName(KeyBindings::PositionToolStackPositions), false, (lastFrameSelectionCount > 0)))
+			StackSelectedTargetPositions(undoManager, chart);
+
+		if (Gui::BeginMenu("Snap Positions To", (lastFrameSelectionCount > 0)))
 		{
 			if (Gui::MenuItem("Nearest Whole", "(1 px)"))
 				SnapSelectedTargetPositions(undoManager, chart, 1.0f);
@@ -299,6 +302,9 @@ namespace Comfy::Studio::Editor
 			const bool flip = Gui::GetIO().KeyAlt;
 			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolateCircular, false))
 				InterpolateSelectedTargetPositionsCircular(undoManager, chart, flip ? -1.0f : +1.0f);
+
+			if (Gui::IsKeyPressed(KeyBindings::PositionToolStackPositions, false))
+				StackSelectedTargetPositions(undoManager, chart);
 		}
 	}
 
@@ -575,6 +581,32 @@ namespace Comfy::Studio::Editor
 
 		undoManager.DisallowMergeForLastCommand();
 		undoManager.Execute<SnapTargetListPositions>(chart, std::move(targetData));
+	}
+
+	void TargetPositionTool::StackSelectedTargetPositions(Undo::UndoManager& undoManager, Chart& chart)
+	{
+		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		if (selectionCount < 1)
+			return;
+
+		const auto& firstFoundTarget = *std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+		const vec2 stackPosition = Rules::TryGetProperties(firstFoundTarget).Position;
+
+		std::vector<StackTargetListPositions::Data> targetData;
+		targetData.reserve(selectionCount);
+
+		for (const auto& target : chart.Targets)
+		{
+			if (!target.IsSelected)
+				continue;
+
+			auto& data = targetData.emplace_back();
+			data.ID = target.ID;
+			data.NewValue.Position = stackPosition;
+		}
+
+		undoManager.DisallowMergeForLastCommand();
+		undoManager.Execute<StackTargetListPositions>(chart, std::move(targetData));
 	}
 
 	void TargetPositionTool::PositionSelectedTargetsInRowBetweenFirstAndLastTarget(Undo::UndoManager& undoManager, Chart& chart, bool backwards)

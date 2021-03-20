@@ -468,6 +468,15 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Snap Target Positions"; }
 	};
 
+	class StackTargetListPositions : public ChangeTargetListPositions
+	{
+	public:
+		using ChangeTargetListPositions::ChangeTargetListPositions;
+
+	public:
+		std::string_view GetName() const override { return "Stack Target Positions"; }
+	};
+
 	class ChangeTargetListAngles : public ChangeTargetListProperties
 	{
 	public:
