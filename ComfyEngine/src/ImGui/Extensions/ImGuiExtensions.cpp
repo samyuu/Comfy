@@ -112,6 +112,12 @@ namespace ImGui
 		PopItemFlag();
 	}
 
+	void AddTextWithShadow(ImDrawList* drawList, vec2 position, std::string_view text, u32 color, u32 shadowColor, vec2 shadowOffset)
+	{
+		drawList->AddText(position + shadowOffset, shadowColor, StringViewStart(text), StringViewEnd(text));
+		drawList->AddText(position, color, StringViewStart(text), StringViewEnd(text));
+	}
+
 	void AddTexture(ImDrawList* drawList, const Tex* tex, vec2 center, vec2 scale, vec2 uv0, vec2 uv1)
 	{
 		vec2 size = vec2(tex->GetSize()) * scale;

@@ -42,6 +42,8 @@ namespace ImGui
 	void PushItemDisabledAndTextColor();
 	void PopItemDisabledAndTextColor();
 
+	void AddTextWithShadow(ImDrawList* drawList, vec2 position, std::string_view text, u32 color = GetColorU32(ImGuiCol_Text), u32 shadowColor = 0xFF000000, vec2 shadowOffset = vec2(1.0f));
+
 	void AddTexture(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 center, vec2 scale, vec2 uv0, vec2 uv1);
 	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::Tex* tex, vec2 position, const vec4& sourceRegion, ImU32 color = IM_COL32_WHITE);
 	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::SprSet& sprSet, const Comfy::Graphics::Spr& spr, vec2 topLeft, vec2 bottomRight, ImU32 color);
