@@ -19,7 +19,7 @@ namespace Comfy::Studio::Editor
 		constexpr f32 SameLineSequenceButtonHeight = StaticSyncButtonHeight;
 	}
 
-	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager) //, staticSyncPresets(GetTestStaticSyncPresets())
+	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager)
 	{
 		// sequencePresetSettings.TickOffset = BeatTick::FromBeats(2);
 		sequencePresetSettings.ApplyFirstTargetTickAsOffset = true;
@@ -328,8 +328,10 @@ namespace Comfy::Studio::Editor
 				const auto color = GetButtonTypeColorU32(presetTarget.Type);
 				DrawCurvedButtonPathLine(renderWindow, drawList, presetTarget.Properties, color, 2.0f);
 
-				const auto targetPos = GetButtonPathSinePoint(1.0f, presetTarget.Properties);
-				const auto targetPosTangent = glm::normalize(GetButtonPathSinePoint(1.0f - CurvedButtonPathStepDistance, presetTarget.Properties) - targetPos);
+				const f32 stepDistance = 1.0f / static_cast<f32>(GlobalUserData.System.Gui.TargetButtonPathCurveSegments);
+
+				const vec2 targetPos = GetButtonPathSinePoint(1.0f, presetTarget.Properties);
+				const vec2 targetPosTangent = glm::normalize(GetButtonPathSinePoint(1.0f - stepDistance, presetTarget.Properties) - targetPos);
 				DrawButtonPathArrowHead(renderWindow, drawList, targetPos, targetPosTangent, color, 2.0f);
 			}
 		}
