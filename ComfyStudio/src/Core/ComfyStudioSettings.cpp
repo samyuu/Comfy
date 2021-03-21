@@ -712,7 +712,7 @@ namespace Comfy::Studio
 
 		PositionTool.DiagonalRowLayouts =
 		{
-			{ vec2(160.0f, 96.0f), "Default" },
+			{ Rules::DefaultPerBeatDiagonalSpacing, "Default" },
 		};
 
 		TargetPreset.StaticSyncPresets = GetDefaultStaticSyncPresets();

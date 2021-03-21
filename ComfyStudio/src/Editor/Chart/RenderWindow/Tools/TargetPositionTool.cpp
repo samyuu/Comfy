@@ -41,6 +41,21 @@ namespace Comfy::Studio::Editor
 
 		Gui::Separator();
 
+		if (Gui::BeginMenu("Diagonal Mouse Row Spacing", !GlobalUserData.PositionTool.DiagonalRowLayouts.empty()))
+		{
+			for (i32 i = 0; i < static_cast<i32>(GlobalUserData.PositionTool.DiagonalRowLayouts.size()); i++)
+			{
+				const auto& layout = GlobalUserData.PositionTool.DiagonalRowLayouts[i];
+				Gui::PushID(&layout);
+				char shortcutBuffer[64];
+				sprintf_s(shortcutBuffer, "(%g, %g)", layout.PerBeatDiagonalSpacing.x, layout.PerBeatDiagonalSpacing.y);
+				if (Gui::MenuItem(layout.DisplayName.c_str(), shortcutBuffer, (i == selectedDiagonalRowLayoutIndex), (i != selectedDiagonalRowLayoutIndex)))
+					selectedDiagonalRowLayoutIndex = i;
+				Gui::PopID();
+			}
+			Gui::EndMenu();
+		}
+
 		// TODO: Implement keybinding string conversion with support for modifiers
 		static_assert(KeyBindings::PositionToolPositionInRow == Input::KeyCode_U);
 
@@ -242,19 +257,47 @@ namespace Comfy::Studio::Editor
 			drawList.AddLine(headEndR, headEnd, color, thickness);
 		};
 
+		constexpr vec2 shadowOffset = vec2(1.0f);
+		constexpr u32 shadowColor = 0xFF000000;
+
 		const vec2 arrowPosition = row.Start + (direction * (row.Backwards ? (guideRadius - arrowSettings.Size) : guideRadius));
 
-		drawList.AddCircleFilled(row.Start, 2.0f, whiteColor, 9);
-		drawList.AddLine(row.Start, arrowPosition, whiteColor, 1.0f);
-		drawArrowHeader(drawList, arrowPosition, row.Backwards ? +direction : -direction, whiteColor);
+		{
+			drawList.AddCircleFilled(row.Start + shadowOffset, 2.0f, shadowColor, 9);
+			drawList.AddLine(row.Start + shadowOffset, arrowPosition + shadowOffset, shadowColor, 1.0f);
+			drawArrowHeader(drawList, arrowPosition + shadowOffset, row.Backwards ? +direction : -direction, shadowColor);
+		}
+		{
+			drawList.AddCircleFilled(row.Start, 2.0f, whiteColor, 9);
+			drawList.AddLine(row.Start, arrowPosition, whiteColor, 1.0f);
+			drawArrowHeader(drawList, arrowPosition, row.Backwards ? +direction : -direction, whiteColor);
+		}
 
-		char textBuffer[32];
-		const auto textView = std::string_view(textBuffer, sprintf_s(textBuffer, "[%s]", CardinalDirectionAbbreviations[static_cast<u8>(cardinal)]));
-		const vec2 textSize = Gui::CalcTextSize(Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
-		const vec2 textPos = row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f);
+		{
+			char textBuffer[32];
+			const auto textView = std::string_view(textBuffer, sprintf_s(textBuffer, "[%s]", CardinalDirectionAbbreviations[static_cast<u8>(cardinal)]));
+			const vec2 textSize = Gui::CalcTextSize(Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
+			const vec2 textPos = row.Start + vec2(-textSize.x * 0.5f, -guideRadius - textSize.y - 2.0f);
 
-		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
-		drawList.AddText(textPos, whiteColor, Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
+			drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
+			Gui::AddTextWithShadow(&drawList, textPos, textView, whiteColor, shadowColor, shadowOffset);
+		}
+
+		if (IsIntercardinal(cardinal) && InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalRowLayouts))
+		{
+			// NOTE: This is to avoid (accidentally) unintentionally positioning targets with the wrong spacing
+			//		 by always making clear which spacing setting is selected
+			const auto& selectedDiagonalLayout = GlobalUserData.PositionTool.DiagonalRowLayouts[selectedDiagonalRowLayoutIndex];
+			if (selectedDiagonalLayout.PerBeatDiagonalSpacing != Rules::DefaultPerBeatDiagonalSpacing)
+			{
+				const std::string_view textView = selectedDiagonalLayout.DisplayName;
+				const vec2 textSize = Gui::CalcTextSize(Gui::StringViewStart(textView), Gui::StringViewEnd(textView));
+				const vec2 textPos = row.Start + vec2(-textSize.x * 0.5f, guideRadius + 2.0f);
+
+				drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
+				Gui::AddTextWithShadow(&drawList, textPos, textView, whiteColor, shadowColor, shadowOffset);
+			}
+		}
 	}
 
 	void TargetPositionTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
@@ -408,17 +451,10 @@ namespace Comfy::Studio::Editor
 
 	vec2 TargetPositionTool::GetSelectedRowPerBeatDiagonalSpacing() const
 	{
-		if (GlobalUserData.PositionTool.DiagonalRowLayouts.empty())
-		{
-			return vec2(Rules::PlacementDistancePerBeat);
-		}
-		else
-		{
-			const auto& selectedLayout = InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalRowLayouts) ?
-				GlobalUserData.PositionTool.DiagonalRowLayouts[selectedDiagonalRowLayoutIndex] : GlobalUserData.PositionTool.DiagonalRowLayouts.front();
+		const vec2 perBeaySpacing = InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalRowLayouts) ?
+			GlobalUserData.PositionTool.DiagonalRowLayouts[selectedDiagonalRowLayoutIndex].PerBeatDiagonalSpacing : Rules::DefaultPerBeatDiagonalSpacing;
 
-			return row.SteepThisFrame ? vec2(selectedLayout.PerBeatDiagonalSpacing.y, selectedLayout.PerBeatDiagonalSpacing.x) : selectedLayout.PerBeatDiagonalSpacing;
-		}
+		return row.SteepThisFrame ? vec2(perBeaySpacing.y, perBeaySpacing.x) : perBeaySpacing;
 	}
 
 	void TargetPositionTool::IncrementSelectedTargetPositionsBy(Undo::UndoManager& undoManager, Chart& chart, vec2 positionIncrement)

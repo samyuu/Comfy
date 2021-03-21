@@ -39,6 +39,8 @@ namespace Comfy::Studio::Editor
 			std::string DisplayName;
 		};
 
+		constexpr vec2 DefaultPerBeatDiagonalSpacing = vec2(160.0f, 96.0f);
+
 		constexpr size_t MaxSyncPairCount = 4;
 
 		constexpr vec2 PlacementAreaSize = { 1920.0f, 1080.0f };
