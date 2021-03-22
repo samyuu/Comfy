@@ -38,7 +38,7 @@ namespace Comfy
 
 	void TimeSpan::FormatTimeBuffer(char* buffer, size_t bufferSize) const
 	{
-		const f64 msRoundSeconds = RoundToMilliseconds(*this).timeInSeconds;
+		const f64 msRoundSeconds = RoundToMilliseconds(Absolute()).timeInSeconds;
 
 		assert(bufferSize >= RequiredFormatBufferSize);
 		if (glm::isnan(msRoundSeconds) || glm::isinf(msRoundSeconds))
@@ -47,12 +47,13 @@ namespace Comfy
 			return;
 		}
 
-		const f64 msRoundSecondsAbs = glm::abs(msRoundSeconds);
+		constexpr auto maxDisplaybaleTime = TimeSpan::FromSeconds(3599.999999);
+		const f64 msRoundSecondsAbs = glm::min(msRoundSeconds, maxDisplaybaleTime.TotalSeconds());
 		const f64 min = glm::floor(glm::mod(msRoundSecondsAbs, 3600.0) / 60.0);
 		const f64 sec = glm::mod(msRoundSecondsAbs, 60.0);
 		const f64 ms = (sec - glm::floor(sec)) * 1000.0;
 
-		const auto signCharacter = (msRoundSeconds < 0.0) ? std::array { '-', '\0' } : std::array { '\0', '\0' };
+		const auto signCharacter = (timeInSeconds < 0.0) ? std::array { '-', '\0' } : std::array { '\0', '\0' };
 		sprintf_s(buffer, bufferSize, "%s%02d:%02d.%03d",
 			signCharacter.data(),
 			static_cast<i32>(min),
@@ -82,6 +83,10 @@ namespace Comfy
 
 		i32 min = 0, sec = 0, ms = 0;
 		sscanf_s(buffer, "%02d:%02d.%03d", &min, &sec, &ms);
+
+		min = std::clamp(min, 0, 59);
+		sec = std::clamp(sec, 0, 59);
+		ms = std::clamp(ms, 0, 999);
 
 		const f64 resultSeconds = (static_cast<f64>(min) * 60.0) + static_cast<f64>(sec) + (static_cast<f64>(ms) * 0.001);
 		return TimeSpan(isNegative ? -resultSeconds : resultSeconds);

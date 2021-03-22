@@ -33,6 +33,7 @@ namespace Comfy
 		constexpr f64 TotalSeconds() const { return timeInSeconds; }
 		constexpr f64 TotalMilliseconds() const { return TotalSeconds() * 1000.0; }
 		constexpr frame_t ToFrames(frame_t frameRate = DefaultFrameRate) const { return static_cast<frame_t>(TotalSeconds() * frameRate); }
+		constexpr TimeSpan Absolute() const { return TimeSpan::FromSeconds(glm::abs(timeInSeconds)); }
 
 	public:
 		// NOTE: Enough to store "(-)mm:ss.fff"
