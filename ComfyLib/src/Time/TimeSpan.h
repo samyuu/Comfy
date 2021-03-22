@@ -41,6 +41,8 @@ namespace Comfy
 		void FormatTimeBuffer(char* buffer, size_t bufferSize) const;
 		std::array<char, RequiredFormatBufferSize> FormatTime() const;
 
+		static TimeSpan ParseFormattedTime(const char* buffer);
+
 	public:
 		constexpr bool operator==(const TimeSpan& other) const { return timeInSeconds == other.timeInSeconds; }
 		constexpr bool operator!=(const TimeSpan& other) const { return timeInSeconds != other.timeInSeconds; }

@@ -68,6 +68,25 @@ namespace Comfy
 		return formatted;
 	}
 
+	TimeSpan TimeSpan::ParseFormattedTime(const char* buffer)
+	{
+		if (buffer == nullptr || buffer[0] == '\0')
+			return TimeSpan::Zero();
+
+		bool isNegative = false;
+		if (buffer[0] == '+' || buffer[0] == '-')
+		{
+			isNegative = (buffer[0] == '-');
+			buffer++;
+		}
+
+		i32 min = 0, sec = 0, ms = 0;
+		sscanf_s(buffer, "%02d:%02d.%03d", &min, &sec, &ms);
+
+		const f64 resultSeconds = (static_cast<f64>(min) * 60.0) + static_cast<f64>(sec) + (static_cast<f64>(ms) * 0.001);
+		return TimeSpan(isNegative ? -resultSeconds : resultSeconds);
+	}
+
 	void TimeSpan::InitializeClock()
 	{
 		assert(!GlobalTimingData.Initialized);
