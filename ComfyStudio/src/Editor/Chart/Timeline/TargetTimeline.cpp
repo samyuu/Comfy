@@ -441,26 +441,59 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnDrawTimelineScrollBarRegion()
 	{
-		const f32 timeDragTextOffset = Gui::GetStyle().FramePadding.x;
-		const f32 timeDragTextWidth = (infoColumnWidth * 0.5f) - timeDragTextOffset;
-		const f32 gridDivisionButtonWidth = (infoColumnWidth - timeDragTextWidth);
+		const auto& style = Gui::GetStyle();
+		const f32 timeInputWidth = infoColumnWidth / 3.0f;
+		const f32 speedButtonWidth = infoColumnWidth / 3.75f;
+		const f32 gridDivisionButtonWidth = infoColumnWidth / 2.5f;
+		assert((timeInputWidth + speedButtonWidth + gridDivisionButtonWidth) == infoColumnWidth);
 
-		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(Gui::GetStyle().FramePadding.x, 0.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(style.FramePadding.x, 0.0f));
 		{
-			constexpr f32 dragSpeed = 4.0f;
-			f32 cursorDragTicks = static_cast<f32>(GetCursorTick().Ticks());
+			ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_AutoSelectAll;
+			if (GetIsPlayback()) // NOTE: Prevent the playback cursor getting stuck
+				inputTextFlags |= ImGuiInputTextFlags_EnterReturnsTrue;
 
-			Gui::SetCursorPosX(Gui::GetCursorPosX() + timeDragTextOffset);
-			if (Gui::ComfyDragText("##TargetTimelineTimeDragText", cursorTime.FormatTime().data(), &cursorDragTicks, dragSpeed, 0.0f, 0.0f, timeDragTextWidth))
-				SetCursorTick(std::max(BeatTick::Zero(), RoundTickToGrid(BeatTick::FromTicks(static_cast<i32>(cursorDragTicks)))));
+			TimeSpan timeInputTime = GetCursorTime();
+			Gui::PushStyleColor(ImGuiCol_FrameBg, infoColumnTimeInput.WidgetActiveLastFrame ? Gui::GetColorU32(ImGuiCol_ButtonHovered) : 0);
+			if (Gui::InputFormattedTimeSpan("##TimeInput", &timeInputTime, vec2(timeInputWidth, 0.0f), inputTextFlags))
+			{
+				const auto newTime = std::clamp(timeInputTime, TimeSpan::Zero(), workingChart->DurationOrDefault());
+				const auto newTimeTickSnapped = TickToTime(TimeToTick(newTime));
 
-			char buttonNameBuffer[32];
+				// HACK: Same as used by the sync window to prevent issues for when the focus is lost on the same frame that the cursor was moved via a mouse click
+				infoColumnTimeInput.LastFrameCursorTick = infoColumnTimeInput.ThisFrameCursorTick;
+				infoColumnTimeInput.ThisFrameCursorTick = RoundTickToGrid(GetCursorTick());
+				const bool ignoreInput = !GetIsPlayback() && (infoColumnTimeInput.ThisFrameCursorTick != infoColumnTimeInput.LastFrameCursorTick);
+
+				if (!ignoreInput && newTimeTickSnapped != GetCursorTime())
+				{
+					const auto preCursorX = GetCursorTimelinePosition();
+
+					SetCursorTime(newTimeTickSnapped);
+					PlayCursorButtonSoundsAndAnimation(GetCursorTick());
+
+					SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+				}
+			}
+			Gui::PopStyleColor(1);
+			infoColumnTimeInput.WidgetActiveLastFrame = (Gui::IsItemHovered() || Gui::IsItemActive());
+
+			char playbackSpeedText[64];
+			sprintf_s(playbackSpeedText, "%.0f%%", chartEditor.GetSongVoice().GetPlaybackSpeed() * 100.0f);
+
+			Gui::SameLine(0.0f, 0.0f);
+			if (Gui::ButtonEx(playbackSpeedText, vec2(speedButtonWidth, 0.0f), ImGuiButtonFlags_PressedOnClick))
+				SelectNextPlaybackSpeedLevel(+1);
+			else if (Gui::IsItemClicked(1))
+				SelectNextPlaybackSpeedLevel(-1);
+
+			char buttonNameBuffer[64];
 			sprintf_s(buttonNameBuffer, "Grid: 1 / %d", activeBarGridDivision);
 
 			Gui::SameLine(0.0f, 0.0f);
-			if (Gui::Button(buttonNameBuffer, vec2(gridDivisionButtonWidth, timelineScrollbarSize.y)))
+			if (Gui::ButtonEx(buttonNameBuffer, vec2(gridDivisionButtonWidth, timelineScrollbarSize.y), ImGuiButtonFlags_PressedOnClick))
 				SelectNextPresetGridDivision(+1);
-			if (Gui::IsItemClicked(1))
+			else if (Gui::IsItemClicked(1))
 				SelectNextPresetGridDivision(-1);
 		}
 		Gui::PopStyleVar(1);
@@ -468,16 +501,16 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawOutOfBoundsBackground()
 	{
-		const auto outOfBoundsDimColor = GetColor(EditorColor_OutOfBoundsDim);
-		const auto scrollX = GetScrollX();
+		const u32 outOfBoundsDimColor = GetColor(EditorColor_OutOfBoundsDim);
+		const f32 scrollX = GetScrollX();
 
-		const auto preStart = timelineContentRegion.GetTL();
-		const auto preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(BeatTick::FromBars(1)) - scrollX), 0.0f);
+		const vec2 preStart = timelineContentRegion.GetTL();
+		const vec2 preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(BeatTick::FromBars(1)) - scrollX), 0.0f);
 		if (preEnd.x - preStart.x > 0.0f)
 			baseDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
 
-		const auto postStart = timelineContentRegion.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->DurationOrDefault()) - scrollX), 0.0f);
-		const auto postEnd = timelineContentRegion.GetBR();
+		const vec2 postStart = timelineContentRegion.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->DurationOrDefault()) - scrollX), 0.0f);
+		const vec2 postEnd = timelineContentRegion.GetBR();
 		if (postEnd.x - postStart.x > 0.0f)
 			baseDrawList->AddRectFilled(postStart, postEnd, outOfBoundsDimColor);
 	}
@@ -1301,9 +1334,9 @@ namespace Comfy::Studio::Editor
 
 				Gui::Separator();
 				if (Gui::MenuItem("Speed Down", Input::GetKeyCodeName(KeyBindings::DecreasePlaybackSpeed), nullptr, (songPlaybackSpeed > playbackSpeedStepMin)))
-					songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+					SelectNextPlaybackSpeedLevel(-1);
 				if (Gui::MenuItem("Speed Up", Input::GetKeyCodeName(KeyBindings::IncreasePlaybackSpeed), nullptr, (songPlaybackSpeed < playbackSpeedStepMax)))
-					songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+					SelectNextPlaybackSpeedLevel(+1);
 
 				Gui::EndMenu();
 			}
@@ -1967,6 +2000,17 @@ namespace Comfy::Studio::Editor
 		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetBarGridDivisions.size()) - 1);
 
 		activeBarGridDivision = presetBarGridDivisions[nextIndex];
+	}
+
+	void TargetTimeline::SelectNextPlaybackSpeedLevel(i32 direction)
+	{
+		auto songVoice = chartEditor.GetSongVoice();
+		const f32 songPlaybackSpeed = songVoice.GetPlaybackSpeed();
+
+		if (direction < 0)
+			songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+		else
+			songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 	}
 
 	void TargetTimeline::AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep, i32 distanceFactor)

@@ -73,6 +73,7 @@ namespace Comfy::Studio::Editor
 	public:
 		i32 FindGridDivisionPresetIndex() const;
 		void SelectNextPresetGridDivision(i32 direction);
+		void SelectNextPlaybackSpeedLevel(i32 direction);
 
 		void AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep = false, i32 distanceFactor = 1);
 		void AdvanceCursorToNextTarget(i32 direction);
@@ -236,6 +237,12 @@ namespace Comfy::Studio::Editor
 
 	private:
 		int tempoPopupIndex = -1;
+
+		struct
+		{
+			BeatTick ThisFrameCursorTick, LastFrameCursorTick;
+			bool WidgetActiveLastFrame;
+		} infoColumnTimeInput = {};
 
 	private:
 		struct SelectionDragData
