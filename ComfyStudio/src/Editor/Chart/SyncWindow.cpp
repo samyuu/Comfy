@@ -57,16 +57,23 @@ namespace Comfy::Studio::Editor
 				return false;
 			});
 
-			// TODO: Option (maybe via context menu (?)) to set duration equal to song source duration + offset
-			constexpr auto durationDragSpeed = 10.0f;
-			constexpr auto durationMinMS = static_cast<f32>(TimeSpan::FromSeconds(1.0).TotalMilliseconds());
-			constexpr auto durationMaxMS = std::numeric_limits<f32>::max();
-
-			auto songDurationMS = static_cast<f32>(chart.DurationOrDefault().TotalMilliseconds());
-			if (GuiProperty::Input("Duration##SyncWindow", songDurationMS, durationDragSpeed, vec2(durationMinMS, durationMaxMS), "%.2f ms"))
+			auto duration = chart.DurationOrDefault();
+			if (GuiProperty::PropertyLabelValueFunc("Duration", [&]()
 			{
-				songDurationMS = std::max(songDurationMS, durationMinMS);
-				undoManager.Execute<ChangeSongDuration>(chart, TimeSpan::FromMilliseconds(songDurationMS));
+				const auto& style = Gui::GetStyle();
+				const f32 buttonWidth = Gui::GetFrameHeight() * 2.0f;
+
+				GuiPropertyRAII::ItemWidth width(std::max(Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 2.0f - buttonWidth, 1.0f));
+				bool result = Gui::InputFormattedTimeSpan(GuiProperty::Detail::DummyLabel, &duration);
+
+				Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
+				if (Gui::Button("Set##Cursor", vec2(std::max(Gui::GetContentRegionAvailWidth(), buttonWidth), 0.0f))) { duration = timeline.GetCursorTime(); result = true; }
+
+				return result;
+			}))
+			{
+				duration = std::max(duration, TimeSpan::FromSeconds(1.0));
+				undoManager.Execute<ChangeSongDuration>(chart, duration);
 			}
 		});
 

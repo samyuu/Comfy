@@ -1310,9 +1310,6 @@ namespace Comfy::Studio::Editor
 
 			Gui::MenuItem("Metronome Enabled", Input::GetKeyCodeName(KeyBindings::ToggleMetronome), &metronomeEnabled);
 
-			if (Gui::MenuItem("Set Song End", "", false, !GetIsPlayback()))
-				undoManager.Execute<ChangeSongDuration>(*workingChart, GetCursorTime());
-
 			Gui::Separator();
 
 			if (Gui::MenuItem("Toggle Target Holds", Input::GetKeyCodeName(KeyBindings::ToggleTargetHolds), nullptr, (selectionCount > 0)))
