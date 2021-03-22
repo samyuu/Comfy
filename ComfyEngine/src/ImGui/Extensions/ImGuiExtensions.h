@@ -3,6 +3,7 @@
 #include "ImGui/Core/imgui.h"
 #include "ImGui/Core/imgui_internal.h"
 #include "ImGui/Extensions/Theme.h"
+#include "Time/TimeSpan.h"
 #include <functional>
 
 namespace Comfy::Graphics
@@ -78,6 +79,8 @@ namespace ImGui
 	bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 	bool InputTextMultiline(const char* label, std::string* str, const ImVec2& size = ImVec2(0, 0), ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 	bool InputTextWithHint(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+
+	bool InputFormattedTimeSpan(const char* label, Comfy::TimeSpan* value, vec2 size = {}, ImGuiInputTextFlags flags = 0);
 
 	bool WideTreeNode(const char* label);
 	bool WideTreeNode(const char* str_id, const char* fmt, ...);

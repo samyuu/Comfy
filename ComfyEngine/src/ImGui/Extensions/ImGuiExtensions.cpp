@@ -266,6 +266,52 @@ namespace ImGui
 		return InputTextWithHint(label, hint, (char*)str->c_str(), str->capacity() + 1, flags, InputTextStdStringCallback, &cb_user_data);
 	}
 
+	namespace
+	{
+		int InputTextTimeSpanCallback(ImGuiInputTextCallbackData* data)
+		{
+			if (data->EventFlag == ImGuiInputTextFlags_CallbackAlways)
+			{
+				// NOTE: To immediately restore any invalid input such as when deleting the ':' or '.'
+				const auto roundtripFormat = Comfy::TimeSpan::ParseFormattedTime(data->Buf).FormatTime();
+				const size_t roundTripLength = strlen(roundtripFormat.data());
+
+				assert(roundTripLength <= data->BufSize);
+				std::memcpy(data->Buf, roundtripFormat.data(), roundTripLength + 1);
+				data->BufTextLen = static_cast<i32>(roundTripLength);
+				data->BufDirty = true;
+			}
+			else if (data->EventFlag == ImGuiInputTextFlags_CallbackCharFilter)
+			{
+				if (data->EventChar >= '0' && data->EventChar <= '9')
+					return 0;
+				if (data->EventChar == '+' || data->EventChar == '-' || data->EventChar == ':' || data->EventChar == '.')
+					return 0;
+
+				data->EventChar = '\0';
+			}
+
+			return 0;
+		}
+	}
+
+	bool InputFormattedTimeSpan(const char* label, Comfy::TimeSpan* value, vec2 size, ImGuiInputTextFlags flags)
+	{
+		flags |= ImGuiInputTextFlags_NoHorizontalScroll;
+		flags |= ImGuiInputTextFlags_AlwaysInsertMode;
+
+		flags |= ImGuiInputTextFlags_CallbackAlways;
+		flags |= ImGuiInputTextFlags_CallbackCharFilter;
+
+		auto formattedTime = value->FormatTime();
+		const bool result = InputTextEx(label, nullptr, formattedTime.data(), static_cast<i32>(formattedTime.size()), size, flags, InputTextTimeSpanCallback, nullptr);
+
+		if (result)
+			*value = Comfy::TimeSpan::ParseFormattedTime(formattedTime.data());
+
+		return result;
+	}
+
 	bool WideTreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, bool no_arrow = false)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
