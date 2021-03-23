@@ -967,7 +967,10 @@ namespace Comfy::Studio::Editor
 		}
 
 		if (Gui::IsKeyPressed(KeyBindings::ToggleMetronome, false))
+		{
 			metronomeEnabled ^= true;
+			PlayMetronomeToggleSound();
+		}
 
 		if (Gui::IsKeyPressed(KeyBindings::ToggleTargetHolds, false))
 			ToggleSelectedTargetsHolds(undoManager, *workingChart);
@@ -1341,7 +1344,8 @@ namespace Comfy::Studio::Editor
 				Gui::EndMenu();
 			}
 
-			Gui::MenuItem("Metronome Enabled", Input::GetKeyCodeName(KeyBindings::ToggleMetronome), &metronomeEnabled);
+			if (Gui::MenuItem("Metronome Enabled", Input::GetKeyCodeName(KeyBindings::ToggleMetronome), &metronomeEnabled))
+				PlayMetronomeToggleSound();
 
 			Gui::Separator();
 
@@ -1869,6 +1873,12 @@ namespace Comfy::Studio::Editor
 			else
 				undoManager.Execute<ExpandTargetListTicks>(chart, std::move(targetData));
 		}
+	}
+
+	void TargetTimeline::PlayMetronomeToggleSound()
+	{
+		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+		metronome.PlayTickSound(TimeSpan::Zero(), false);
 	}
 
 	void TargetTimeline::PlayTargetButtonTypeSound(ButtonType type)

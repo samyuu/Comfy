@@ -150,6 +150,7 @@ namespace Comfy::Studio::Editor
 		void CompressOrExpandSelectedTargetTimes(Undo::UndoManager& undoManager, Chart& chart, std::array<i32, 2> ratio);
 
 	private:
+		void PlayMetronomeToggleSound();
 		void PlayTargetButtonTypeSound(ButtonType type);
 
 		void PlayCursorButtonSoundsAndAnimation(BeatTick cursorTick);
