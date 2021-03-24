@@ -2,7 +2,6 @@
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/SortedTempoMap.h"
-#include "Editor/Chart/KeyBindings.h"
 #include "Time/TimeSpan.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include <FontIcons.h>
@@ -905,13 +904,13 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::GetIO().KeyCtrl && Gui::GetActiveID() == 0)
 		{
-			if (Gui::IsKeyPressed(KeyBindings::Cut, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_Cut, false))
 				ClipboardCutSelection(undoManager, *workingChart);
 
-			if (Gui::IsKeyPressed(KeyBindings::Copy, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_Copy, false))
 				ClipboardCopySelection(undoManager, *workingChart);
 
-			if (Gui::IsKeyPressed(KeyBindings::Paste, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_Paste, false))
 				ClipboardPasteSelection(undoManager, *workingChart);
 		}
 	}
@@ -929,17 +928,17 @@ namespace Comfy::Studio::Editor
 		const bool useBeatStep = Gui::GetIO().KeyShift || isPlayback;
 		const i32 stepDistanceFactor = isPlayback ? 2 : 1;
 
-		if (Gui::IsKeyPressed(KeyBindings::MoveCursorLeft, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorLeft, true))
 			AdvanceCursorByGridDivisionTick(-1, useBeatStep, stepDistanceFactor);
-		if (Gui::IsKeyPressed(KeyBindings::MoveCursorRight, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorRight, true))
 			AdvanceCursorByGridDivisionTick(+1, useBeatStep, stepDistanceFactor);
 
-		if (Gui::IsKeyPressed(KeyBindings::IncreaseGridPrecision, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_IncreaseGridPrecision, true))
 			SelectNextPresetGridDivision(-1);
-		if (Gui::IsKeyPressed(KeyBindings::DecreaseGridPrecision, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DecreaseGridPrecision, true))
 			SelectNextPresetGridDivision(+1);
 
-		if (Gui::IsKeyPressed(KeyBindings::RangeSelection, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_StartEndRangeSelection, false))
 		{
 			if (!rangeSelection.IsActive || rangeSelection.HasEnd)
 			{
@@ -960,19 +959,19 @@ namespace Comfy::Studio::Editor
 		if (!Gui::GetIO().KeyCtrl)
 		{
 			auto songVoice = chartEditor.GetSongVoice();
-			if (Gui::IsKeyPressed(KeyBindings::DecreasePlaybackSpeed, true))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DecreasePlaybackSpeed, true))
 				songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
-			if (Gui::IsKeyPressed(KeyBindings::IncreasePlaybackSpeed, true))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_IncreasePlaybackSpeed, true))
 				songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 		}
 
-		if (Gui::IsKeyPressed(KeyBindings::ToggleMetronome, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ToggleMetronome, false))
 		{
 			metronomeEnabled ^= true;
 			PlayMetronomeToggleSound();
 		}
 
-		if (Gui::IsKeyPressed(KeyBindings::ToggleTargetHolds, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ToggleTargetHolds, false))
 			ToggleSelectedTargetsHolds(undoManager, *workingChart);
 	}
 
@@ -1256,18 +1255,28 @@ namespace Comfy::Studio::Editor
 		if (Gui::GetIO().KeyCtrl)
 			return;
 
-		for (const auto[buttonType, keyCode] : KeyBindings::TargetPlacements)
+		auto onButtonTypePressed = [&](ButtonType buttonType)
 		{
-			if (Gui::IsKeyPressed(keyCode, false))
-			{
-				if (Gui::GetIO().KeyShift && rangeSelection.IsActive && rangeSelection.HasEnd)
-					FillInRangeSelectionTargets(undoManager, *workingChart, buttonType);
-				else
-					PlaceOrRemoveTarget(undoManager, *workingChart, RoundTickToGrid(GetCursorTick()), buttonType);
-			}
-		}
+			if (Gui::GetIO().KeyShift && rangeSelection.IsActive && rangeSelection.HasEnd)
+				FillInRangeSelectionTargets(undoManager, *workingChart, buttonType);
+			else
+				PlaceOrRemoveTarget(undoManager, *workingChart, RoundTickToGrid(GetCursorTick()), buttonType);
+		};
 
-		if (Gui::IsKeyPressed(KeyBindings::DeleteSelection, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceTriangle, false))
+			onButtonTypePressed(ButtonType::Triangle);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSquare, false))
+			onButtonTypePressed(ButtonType::Square);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceCross, false))
+			onButtonTypePressed(ButtonType::Cross);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceCircle, false))
+			onButtonTypePressed(ButtonType::Circle);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSlideL, false))
+			onButtonTypePressed(ButtonType::SlideL);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSlideR, false))
+			onButtonTypePressed(ButtonType::SlideR);
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DeleteSelection, false))
 			RemoveAllSelectedTargets(undoManager, *workingChart);
 	}
 
@@ -1336,20 +1345,20 @@ namespace Comfy::Studio::Editor
 				}
 
 				Gui::Separator();
-				if (Gui::MenuItem("Speed Down", Input::GetKeyCodeName(KeyBindings::DecreasePlaybackSpeed), nullptr, (songPlaybackSpeed > playbackSpeedStepMin)))
+				if (Gui::MenuItem("Speed Down", Input::ToString(GlobalUserData.Input.TargetTimeline_DecreasePlaybackSpeed).data(), nullptr, (songPlaybackSpeed > playbackSpeedStepMin)))
 					SelectNextPlaybackSpeedLevel(-1);
-				if (Gui::MenuItem("Speed Up", Input::GetKeyCodeName(KeyBindings::IncreasePlaybackSpeed), nullptr, (songPlaybackSpeed < playbackSpeedStepMax)))
+				if (Gui::MenuItem("Speed Up", Input::ToString(GlobalUserData.Input.TargetTimeline_IncreasePlaybackSpeed).data(), nullptr, (songPlaybackSpeed < playbackSpeedStepMax)))
 					SelectNextPlaybackSpeedLevel(+1);
 
 				Gui::EndMenu();
 			}
 
-			if (Gui::MenuItem("Metronome Enabled", Input::GetKeyCodeName(KeyBindings::ToggleMetronome), &metronomeEnabled))
+			if (Gui::MenuItem("Metronome Enabled", Input::ToString(GlobalUserData.Input.TargetTimeline_ToggleMetronome).data(), &metronomeEnabled))
 				PlayMetronomeToggleSound();
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Toggle Target Holds", Input::GetKeyCodeName(KeyBindings::ToggleTargetHolds), nullptr, (selectionCount > 0)))
+			if (Gui::MenuItem("Toggle Target Holds", Input::ToString(GlobalUserData.Input.TargetTimeline_ToggleTargetHolds).data(), nullptr, (selectionCount > 0)))
 				ToggleSelectedTargetsHolds(undoManager, *workingChart);
 
 			if (Gui::BeginMenu("Modify Targets", (selectionCount > 0)))
@@ -1384,11 +1393,11 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Cut", "Ctrl + X", nullptr, (selectionCount > 0)))
+			if (Gui::MenuItem("Cut", Input::ToString(GlobalUserData.Input.TargetTimeline_Cut).data(), nullptr, (selectionCount > 0)))
 				ClipboardCutSelection(undoManager, *workingChart);
-			if (Gui::MenuItem("Copy", "Ctrl + C", nullptr, (selectionCount > 0)))
+			if (Gui::MenuItem("Copy", Input::ToString(GlobalUserData.Input.TargetTimeline_Copy).data(), nullptr, (selectionCount > 0)))
 				ClipboardCopySelection(undoManager, *workingChart);
-			if (Gui::MenuItem("Paste", "Ctrl + V", nullptr, true))
+			if (Gui::MenuItem("Paste", Input::ToString(GlobalUserData.Input.TargetTimeline_Paste).data(), nullptr, true))
 				ClipboardPasteSelection(undoManager, *workingChart);
 
 			Gui::Separator();
@@ -1415,7 +1424,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Remove Targets", "Del", nullptr, (selectionCount > 0)))
+			if (Gui::MenuItem("Remove Targets", Input::ToString(GlobalUserData.Input.TargetTimeline_DeleteSelection).data(), nullptr, (selectionCount > 0)))
 				RemoveAllSelectedTargets(undoManager, *workingChart, selectionCount);
 
 			Gui::EndPopup();

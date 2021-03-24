@@ -1,4 +1,5 @@
 #include "PVScriptImportWindow.h"
+#include "Core/ComfyStudioSettings.h"
 #include "ImGui/Extensions/ImGuiExtensions.h"
 #include "IO/File.h"
 #include "IO/Path.h"
@@ -414,9 +415,9 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !thisFrameAnyItemActive && !lastFrameAnyItemActive)
 			{
-				if (Gui::IsKeyPressed(Input::KeyCode_Enter, false))
+				if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_YesOrOk, false))
 					RequestExitAndImport();
-				else if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
+				else if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false))
 					RequestExitWithoutImport();
 			}
 

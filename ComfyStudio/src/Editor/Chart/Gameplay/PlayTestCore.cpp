@@ -406,28 +406,28 @@ namespace Comfy::Studio::Editor
 			{
 				contextMenuOpen = true;
 
-				if (Gui::MenuItem(GetIsPlayback() ? "Pause" : "Resume", Input::GetKeyCodeName(Input::KeyCode_Space)))
+				if (Gui::MenuItem(GetIsPlayback() ? "Pause" : "Resume", Input::ToString(GlobalUserData.Input.Playtest_TogglePause).data()))
 					TogglePause();
 
-				if (Gui::MenuItem("Restart from Reset Point", Input::GetKeyCodeName(Input::KeyCode_Enter)))
-					RestartFromRestartPoint();
+				if (Gui::MenuItem("Restart from Reset Point", Input::ToString(GlobalUserData.Input.Playtest_RestartFromResetPoint).data()))
+					RestartFromResetPoint();
 
 				Gui::Separator();
-				if (Gui::MenuItem("Move Reset Point Forward", "Tab"))
+				if (Gui::MenuItem("Move Reset Point Forward", Input::ToString(GlobalUserData.Input.Playtest_MoveResetPointForward).data()))
 					MoveResetPointToPlaybackTime();
 
-				if (Gui::MenuItem("Move Reset Point Backward", "Shift + Tab"))
+				if (Gui::MenuItem("Move Reset Point Backward", Input::ToString(GlobalUserData.Input.Playtest_MoveResetPointBackward).data()))
 					MoveResetPointBackward();
 
 				Gui::Separator();
 
-				Gui::MenuItem("Autoplay Enabled", Input::GetKeyCodeName(Input::KeyCode_F1), &autoplayEnabled);
+				Gui::MenuItem("Autoplay Enabled", Input::ToString(GlobalUserData.Input.Playtest_ToggleAutoplay).data(), &autoplayEnabled);
 				Gui::Separator();
 
-				if (Gui::MenuItem("Return to Editor (Current)", Input::GetKeyCodeName(Input::KeyCode_Escape)))
+				if (Gui::MenuItem("Return to Editor (Current)", Input::ToString(GlobalUserData.Input.Playtest_ReturnToEditorCurrent).data()))
 					FadeOutThenExit(PlayTestExitType::ReturnCurrentTime);
 
-				if (Gui::MenuItem("Return to Editor (Pre Playtest)", "Shift + Escape"))
+				if (Gui::MenuItem("Return to Editor (Pre Playtest)", Input::ToString(GlobalUserData.Input.Playtest_ReturnToEditorPrePlaytest).data()))
 					FadeOutThenExit(PlayTestExitType::ReturnPrePlayTestTime);
 
 #if COMFY_DEBUG
@@ -466,9 +466,9 @@ namespace Comfy::Studio::Editor
 
 		void Restart(TimeSpan startTime)
 		{
-			restartPoint = startTime;
+			resetPoint = startTime;
 			fadeInOut.InStopwatch = {};
-			RestartFromRestartPoint();
+			RestartFromResetPoint();
 		}
 
 		bool GetAutoplayEnabled() const
@@ -496,26 +496,27 @@ namespace Comfy::Studio::Editor
 			if (!Gui::IsWindowFocused())
 				return;
 
-			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
-				FadeOutThenExit(Gui::GetIO().KeyShift ? PlayTestExitType::ReturnPrePlayTestTime : PlayTestExitType::ReturnCurrentTime);
+			if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_ReturnToEditorCurrent, false))
+				FadeOutThenExit(PlayTestExitType::ReturnCurrentTime);
 
-			if (Gui::IsKeyPressed(Input::KeyCode_F1, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_ReturnToEditorPrePlaytest, false))
+				FadeOutThenExit(PlayTestExitType::ReturnPrePlayTestTime);
+
+			if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_ToggleAutoplay, false))
 				SetAutoplayEnabled(!GetAutoplayEnabled());
 
-			if (Gui::IsKeyPressed(Input::KeyCode_Space, false) || Input::DualShock4::IsTapped(Input::DS4Button::Options))
+			if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_TogglePause, false))
 				TogglePause();
 
-			if (Gui::IsKeyPressed(Input::KeyCode_Enter, false) || Input::DualShock4::IsTapped(Input::DS4Button::R3))
-				RestartFromRestartPoint();
+			if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_RestartFromResetPoint, false))
+				RestartFromResetPoint();
 
 			if (GetIsPlayback())
 			{
-				const bool shiftDown = Gui::GetIO().KeyShift;
-
-				if ((shiftDown && Gui::IsKeyPressed(Input::KeyCode_Tab, false)) || Input::DualShock4::IsTapped(Input::DS4Button::L3))
+				if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_MoveResetPointBackward, false))
 					MoveResetPointBackward();
 
-				if ((!shiftDown && Gui::IsKeyPressed(Input::KeyCode_Tab, false)) || Input::DualShock4::IsTapped(Input::DS4Button::Touch))
+				if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_MoveResetPointForward, false))
 					MoveResetPointToPlaybackTime();
 
 				if (!autoplayEnabled)
@@ -865,7 +866,7 @@ namespace Comfy::Studio::Editor
 			hudData.SongTitle = sharedContext.Chart->SongTitleOrDefault();
 			hudData.Difficulty = sharedContext.Chart->Properties.Difficulty.Type;
 			hudData.PlaybackTime = GetPlaybackTime();
-			hudData.RestartTime = restartPoint;
+			hudData.RestartTime = resetPoint;
 			hudData.Duration = chartDuration;
 			hudData.DrawPracticeInfo = true;
 			sharedContext.RenderHelper->DrawHUD(*sharedContext.Renderer, hudData);
@@ -1104,26 +1105,26 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		void RestartFromRestartPoint()
+		void RestartFromResetPoint()
 		{
 			if (fadeInOut.InStopwatch.IsRunning())
 				return;
 
 			fadeInOut.InStopwatch.Restart();
 			PlayOneShotSoundEffect("se_ft_practice_restart_01");
-			RestartInitializeChart(restartPoint);
+			RestartInitializeChart(resetPoint);
 		}
 
 		void MoveResetPointBackward()
 		{
 			PlayOneShotSoundEffect("se_ft_practice_cursor_01");
-			restartPoint = std::clamp(TimeSpan::FloorToSeconds(restartPoint - TimeSpan::FromSeconds(10.0)), TimeSpan::Zero(), chartDuration);
+			resetPoint = std::clamp(TimeSpan::FloorToSeconds(resetPoint - TimeSpan::FromSeconds(10.0)), TimeSpan::Zero(), chartDuration);
 		}
 
 		void MoveResetPointToPlaybackTime()
 		{
 			PlayOneShotSoundEffect("se_ft_practice_cursor_01");
-			restartPoint = std::clamp(TimeSpan::FloorToSeconds(GetPlaybackTime()), TimeSpan::Zero(), chartDuration);
+			resetPoint = std::clamp(TimeSpan::FloorToSeconds(GetPlaybackTime()), TimeSpan::Zero(), chartDuration);
 		}
 
 		void RestartInitializeChart(TimeSpan startTime, bool resetScore = true)
@@ -1557,7 +1558,7 @@ namespace Comfy::Studio::Editor
 	private:
 		PlayTestExitType exitRequestThisFrame = PlayTestExitType::None;
 
-		TimeSpan restartPoint = TimeSpan::Zero();
+		TimeSpan resetPoint = TimeSpan::Zero();
 		TimeSpan chartDuration = TimeSpan::FromMinutes(1.0);
 		std::vector<PlayTestSyncPair> availableTargetPairs, onScreenTargetPairs;
 

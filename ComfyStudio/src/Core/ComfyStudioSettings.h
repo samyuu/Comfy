@@ -5,6 +5,7 @@
 #include "Editor/Common/RecentFilesList.h"
 #include "Editor/Chart/TargetPropertyPresets.h"
 #include "Editor/Chart/BPMCalculatorWindow.h"
+#include "Input/Input.h"
 
 namespace Comfy::Studio
 {
@@ -81,8 +82,88 @@ namespace Comfy::Studio
 			} Gui;
 		} System;
 
-		struct
+		struct // NOTE: Underscores in symbols are usually a big no go but definitely help with readability here quite a lot
 		{
+			Input::MultiBinding App_ToggleFullscreen;
+			Input::MultiBinding App_Dialog_YesOrOk;
+			Input::MultiBinding App_Dialog_No;
+			Input::MultiBinding App_Dialog_Cancel;
+			Input::MultiBinding App_Dialog_SelectNextTab;
+			Input::MultiBinding App_Dialog_SelectPreviousTab;
+
+			Input::MultiBinding ChartEditor_ChartNew;
+			Input::MultiBinding ChartEditor_ChartOpen;
+			Input::MultiBinding ChartEditor_ChartSave;
+			Input::MultiBinding ChartEditor_ChartSaveAs;
+			Input::MultiBinding ChartEditor_ChartOpenDirectory;
+			Input::MultiBinding ChartEditor_Undo;
+			Input::MultiBinding ChartEditor_Redo;
+			Input::MultiBinding ChartEditor_OpenSettings;
+			Input::MultiBinding ChartEditor_StartPlaytestFromStart;
+			Input::MultiBinding ChartEditor_StartPlaytestFromCursor;
+
+			Input::MultiBinding Timeline_CenterCursor;
+			Input::MultiBinding Timeline_TogglePlayback;
+			Input::MultiBinding Timeline_StopPlayback;
+
+			Input::MultiBinding TargetTimeline_Cut;
+			Input::MultiBinding TargetTimeline_Copy;
+			Input::MultiBinding TargetTimeline_Paste;
+			Input::MultiBinding TargetTimeline_MoveCursorLeft;
+			Input::MultiBinding TargetTimeline_MoveCursorRight;
+			Input::MultiBinding TargetTimeline_IncreaseGridPrecision;
+			Input::MultiBinding TargetTimeline_DecreaseGridPrecision;
+			Input::MultiBinding TargetTimeline_StartEndRangeSelection;
+			Input::MultiBinding TargetTimeline_DeleteSelection;
+			Input::MultiBinding TargetTimeline_IncreasePlaybackSpeed;
+			Input::MultiBinding TargetTimeline_DecreasePlaybackSpeed;
+			Input::MultiBinding TargetTimeline_ToggleMetronome;
+			Input::MultiBinding TargetTimeline_ToggleTargetHolds;
+			Input::MultiBinding TargetTimeline_PlaceTriangle;
+			Input::MultiBinding TargetTimeline_PlaceSquare;
+			Input::MultiBinding TargetTimeline_PlaceCross;
+			Input::MultiBinding TargetTimeline_PlaceCircle;
+			Input::MultiBinding TargetTimeline_PlaceSlideL;
+			Input::MultiBinding TargetTimeline_PlaceSlideR;
+
+			Input::MultiBinding TargetPreview_JumpToPreviousTarget;
+			Input::MultiBinding TargetPreview_JumpToNextTarget;
+			Input::MultiBinding TargetPreview_TogglePlayback;
+			Input::MultiBinding TargetPreview_SelectPositionTool;
+			Input::MultiBinding TargetPreview_SelectPathTool;
+			Input::MultiBinding TargetPreview_PositionTool_MoveUp;
+			Input::MultiBinding TargetPreview_PositionTool_MoveLeft;
+			Input::MultiBinding TargetPreview_PositionTool_MoveDown;
+			Input::MultiBinding TargetPreview_PositionTool_MoveRight;
+			Input::MultiBinding TargetPreview_PositionTool_FlipHorizontal;
+			Input::MultiBinding TargetPreview_PositionTool_FlipHorizontalLocal;
+			Input::MultiBinding TargetPreview_PositionTool_FlipVertical;
+			Input::MultiBinding TargetPreview_PositionTool_FlipVerticalLocal;
+			Input::MultiBinding TargetPreview_PositionTool_PositionInRow;
+			Input::MultiBinding TargetPreview_PositionTool_PositionInRowBack;
+			Input::MultiBinding TargetPreview_PositionTool_InterpolateLinear;
+			Input::MultiBinding TargetPreview_PositionTool_InterpolateCircular;
+			Input::MultiBinding TargetPreview_PositionTool_InterpolateCircularFlip;
+			Input::MultiBinding TargetPreview_PositionTool_StackPositions;
+			Input::MultiBinding TargetPreview_PathTool_InvertFrequencies;
+			Input::MultiBinding TargetPreview_PathTool_InterpolateAnglesClockwise;
+			Input::MultiBinding TargetPreview_PathTool_InterpolateAnglesCounterclockwise;
+			Input::MultiBinding TargetPreview_PathTool_InterpolateDistances;
+			Input::MultiBinding TargetPreview_PathTool_ApplyAngleIncrementsPositive;
+			Input::MultiBinding TargetPreview_PathTool_ApplyAngleIncrementsPositiveBack;
+			Input::MultiBinding TargetPreview_PathTool_ApplyAngleIncrementsNegative;
+			Input::MultiBinding TargetPreview_PathTool_ApplyAngleIncrementsNegativeBack;
+
+			Input::MultiBinding BPMCalculator_Tap;
+			Input::MultiBinding BPMCalculator_Reset;
+
+			Input::MultiBinding Playtest_ReturnToEditorCurrent;
+			Input::MultiBinding Playtest_ReturnToEditorPrePlaytest;
+			Input::MultiBinding Playtest_ToggleAutoplay;
+			Input::MultiBinding Playtest_TogglePause;
+			Input::MultiBinding Playtest_RestartFromResetPoint;
+			Input::MultiBinding Playtest_MoveResetPointBackward;
+			Input::MultiBinding Playtest_MoveResetPointForward;
 		} Input;
 
 		struct

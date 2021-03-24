@@ -26,7 +26,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		// TODO: Should be implement by all components
-		static constexpr Input::KeyCode GridSnapModifierKey = Input::KeyCode_Control;
+		static constexpr Input::KeyCode GridSnapModifierKey = Input::KeyCode_Ctrl;
 		
 		// TODO: Implement by the RectangleTool
 		// NOTE: For scaling both axes at the same time

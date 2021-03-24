@@ -1,6 +1,5 @@
 #include "ChartEditor.h"
 #include "ChartCommands.h"
-#include "KeyBindings.h"
 #include "FileFormat/PJEFile.h"
 #include "IO/Path.h"
 #include "IO/Shell.h"
@@ -102,10 +101,10 @@ namespace Comfy::Studio::Editor
 	{
 		if (Gui::BeginMenu("File"))
 		{
-			if (Gui::MenuItem("New Chart", nullptr, false, true))
+			if (Gui::MenuItem("New Chart", Input::ToString(GlobalUserData.Input.ChartEditor_ChartNew).data(), false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { CreateNewChart(); });
 
-			if (Gui::MenuItem("Open...", "Ctrl + O", false, true))
+			if (Gui::MenuItem("Open...", Input::ToString(GlobalUserData.Input.ChartEditor_ChartOpen).data(), false, true))
 				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });
 
 			const auto& recentFilesView = GlobalAppData.RecentFiles.ChartFiles.View();
@@ -146,17 +145,14 @@ namespace Comfy::Studio::Editor
 			}
 
 			const auto chartDirectory = IO::Path::GetDirectoryName(chart->ChartFilePath);
-			if (Gui::MenuItem("Open Chart Directory...", nullptr, false, !chartDirectory.empty()))
-			{
-				if (IO::Directory::Exists(chartDirectory))
-					IO::Shell::OpenInExplorer(chartDirectory);
-			}
+			if (Gui::MenuItem("Open Chart Directory...", Input::ToString(GlobalUserData.Input.ChartEditor_ChartOpenDirectory).data(), false, !chartDirectory.empty()))
+				OpenChartDirectoryInExplorer();
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Save", "Ctrl + S", false, true))
+			if (Gui::MenuItem("Save", Input::ToString(GlobalUserData.Input.ChartEditor_ChartSave).data(), false, true))
 				TrySaveNativeChartFileOrOpenDialog();
-			if (Gui::MenuItem("Save As...", "Ctrl + Shift + S", false, true))
+			if (Gui::MenuItem("Save As...", Input::ToString(GlobalUserData.Input.ChartEditor_ChartSaveAs).data(), false, true))
 				OpenSaveNativeChartFileDialog();
 			Gui::Separator();
 
@@ -181,7 +177,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Exit", "Alt + F4"))
+			if (Gui::MenuItem("Exit", Input::ToString(Input::MakeBinding(Input::KeyCode_F4, Input::KeyModifiers_Alt)).data()))
 				applicationExitRequested = true;
 
 			Gui::EndMenu();
@@ -189,13 +185,13 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::BeginMenu("Edit"))
 		{
-			if (Gui::MenuItem("Undo", "Ctrl + Z", false, undoManager.CanUndo()))
+			if (Gui::MenuItem("Undo", Input::ToString(GlobalUserData.Input.ChartEditor_Undo).data(), false, undoManager.CanUndo()))
 				undoManager.Undo();
-			if (Gui::MenuItem("Redo", "Ctrl + Y", false, undoManager.CanRedo()))
+			if (Gui::MenuItem("Redo", Input::ToString(GlobalUserData.Input.ChartEditor_Redo).data(), false, undoManager.CanRedo()))
 				undoManager.Redo();
 
 			Gui::Separator();
-			if (Gui::MenuItem("Settings...", "Ctrl + ,", false, true))
+			if (Gui::MenuItem("Settings...", Input::ToString(GlobalUserData.Input.ChartEditor_OpenSettings).data(), false, true))
 				settingsPopup.OpenOnNextFrame = true;
 
 			Gui::EndMenu();
@@ -216,10 +212,10 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::BeginMenu("Playtest"))
 		{
-			if (Gui::MenuItem("Start from Beginning", Input::GetKeyCodeName(KeyBindings::StartPlaytestFromStart)))
+			if (Gui::MenuItem("Start from Beginning", Input::ToString(GlobalUserData.Input.ChartEditor_StartPlaytestFromStart).data()))
 				StartPlaytesting(false);
 
-			if (Gui::MenuItem("Start from Cursor", Input::GetKeyCodeName(KeyBindings::StartPlaytestFromCursor)))
+			if (Gui::MenuItem("Start from Cursor", Input::ToString(GlobalUserData.Input.ChartEditor_StartPlaytestFromCursor).data()))
 				StartPlaytesting(true);
 
 			Gui::Separator();
@@ -432,6 +428,13 @@ namespace Comfy::Studio::Editor
 			undoManager.ClearPendingChangesFlag();
 			GlobalAppData.RecentFiles.ChartFiles.Add(chart->ChartFilePath);
 		}
+	}
+
+	void ChartEditor::OpenChartDirectoryInExplorer() const
+	{
+		const auto chartDirectory = IO::Path::GetDirectoryName(chart->ChartFilePath);
+		if (!chartDirectory.empty() && IO::Directory::Exists(chartDirectory))
+			IO::Shell::OpenInExplorer(chartDirectory);
 	}
 
 	bool ChartEditor::OpenReadNativeChartFileDialog()
@@ -664,34 +667,35 @@ namespace Comfy::Studio::Editor
 		if (Gui::GetCurrentContext()->OpenPopupStack.Size > 0)
 			return;
 
-		const bool shift = Gui::GetIO().KeyShift;
-
-		if (Gui::IsKeyPressed(KeyBindings::StartPlaytestFromStart, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_StartPlaytestFromStart, false))
 			StartPlaytesting(false);
 
-		if (Gui::IsKeyPressed(KeyBindings::StartPlaytestFromCursor, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_StartPlaytestFromCursor, false))
 			StartPlaytesting(true);
 
-		if (Gui::GetIO().KeyCtrl)
-		{
-			if (Gui::IsKeyPressed(KeyBindings::Undo, true))
-				undoManager.Undo();
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_Undo, true))
+			undoManager.Undo();
 
-			if (Gui::IsKeyPressed(KeyBindings::Redo, true))
-				undoManager.Redo();
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_Redo, true))
+			undoManager.Redo();
 
-			if (Gui::IsKeyPressed(Input::KeyCode_OEMComma, false) && !shift)
-				settingsPopup.OpenOnNextFrame = true;
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_OpenSettings, false))
+			settingsPopup.OpenOnNextFrame = true;
 
-			if (Gui::IsKeyPressed(Input::KeyCode_O, false) && !shift)
-				CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ChartNew, false))
+			CheckOpenSaveConfirmationPopupThenCall([this] { CreateNewChart(); });
 
-			if (Gui::IsKeyPressed(Input::KeyCode_S, false) && !shift)
-				TrySaveNativeChartFileOrOpenDialog();
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ChartOpen, false))
+			CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadNativeChartFileDialog(); });
 
-			if (Gui::IsKeyPressed(Input::KeyCode_S, false) && shift)
-				OpenSaveNativeChartFileDialog();
-		}
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ChartSave, false))
+			TrySaveNativeChartFileOrOpenDialog();
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ChartSaveAs, false))
+			OpenSaveNativeChartFileDialog();
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ChartOpenDirectory, false))
+			OpenChartDirectoryInExplorer();
 	}
 
 	void ChartEditor::UpdateApplicationWindowTitle()
@@ -883,16 +887,20 @@ namespace Comfy::Studio::Editor
 			Gui::InvisibleButton("##Dummy", vec2(buttonSize.x * 2.0f, 1.0f));
 			Gui::SameLine();
 
-			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Yes", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Enter, false));
+			const bool yesBindingPressed = Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_YesOrOk, false);
+			const bool noBindingPressed = Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_No, false);
+			const bool cancelBindingPressed = Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false);
+
+			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Yes", buttonSize) || yesBindingPressed;
 			Gui::SameLine();
 
-			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   No", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape, false));
+			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   No", buttonSize) || noBindingPressed;
 			Gui::SameLine();
 
 			if (clickedYes && fileNotFoundPopup.OnYesClickedFunction)
 				fileNotFoundPopup.OnYesClickedFunction();
 
-			if (clickedYes || clickedNo)
+			if (clickedYes || clickedNo || cancelBindingPressed)
 			{
 				fileNotFoundPopup.NotFoundPath.clear();
 				fileNotFoundPopup.QuestionToTheUser = {};
@@ -925,13 +933,17 @@ namespace Comfy::Studio::Editor
 			Gui::Text("Save changes to the current file?");
 			Gui::EndChild();
 
-			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Enter, false));
+			const bool yesBindingPressed = Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_YesOrOk, false);
+			const bool noBindingPressed = Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_No, false);
+			const bool cancelBindingPressed = Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false);
+
+			const bool clickedYes = Gui::Button(ICON_FA_CHECK "   Save Changes", buttonSize) || yesBindingPressed;
 			Gui::SameLine();
 
-			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   Discard Changes", buttonSize);
+			const bool clickedNo = Gui::Button(ICON_FA_TIMES "   Discard Changes", buttonSize) || noBindingPressed;
 			Gui::SameLine();
 
-			const bool clickedCancel = Gui::Button("Cancel", buttonSize) || (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape, false));
+			const bool clickedCancel = Gui::Button("Cancel", buttonSize) || cancelBindingPressed;
 
 			if (clickedYes || clickedNo || clickedCancel)
 			{

@@ -150,7 +150,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsKeyDown(Input::KeyCode_Space))
 			pointToChange += upDirection * cameraSpeed;
-		if (Gui::IsKeyDown(Input::KeyCode_Control))
+		if (Gui::IsKeyDown(Input::KeyCode_Ctrl))
 			pointToChange -= upDirection * cameraSpeed;
 	}
 }

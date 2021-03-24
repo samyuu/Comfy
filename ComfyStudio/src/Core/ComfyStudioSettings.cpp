@@ -331,6 +331,8 @@ namespace Comfy::Studio
 		const std::string System_Gui_TargetButtonPathCurveSegments = "target_button_path_curve_segments";
 		const std::string System_Gui_TargetButtonPathMaxCount = "target_button_path_max_count";
 
+		const std::string Input = "input";
+
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
 		const std::string TargetPreview_ShowGrid = "show_grid";
@@ -433,6 +435,11 @@ namespace Comfy::Studio
 				JsonTryAssign(System.Gui.TargetButtonPathCurveSegments, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetButtonPathCurveSegments)));
 				JsonTryAssign(System.Gui.TargetButtonPathMaxCount, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetButtonPathMaxCount)));
 			}
+		}
+
+		if (const json* inputJson = JsonFind(rootJson, UserIDs::Input))
+		{
+			// TODO: ...
 		}
 
 		if (const json* targetPreviewJson = JsonFind(rootJson, UserIDs::TargetPreview))
@@ -607,6 +614,12 @@ namespace Comfy::Studio
 			guiJson[UserIDs::System_Gui_TargetButtonPathMaxCount] = System.Gui.TargetButtonPathMaxCount;
 		}
 
+		json& inputJson = rootJson[UserIDs::Input];
+		{
+			// TODO: ...
+			inputJson = json::object();
+		}
+
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
 		{
 			targetPreviewJson[UserIDs::TargetPreview_ShowButtons] = TargetPreview.ShowButtons;
@@ -735,6 +748,90 @@ namespace Comfy::Studio
 		System.Gui.TargetDistanceGuideMaxCount = 64;
 		System.Gui.TargetButtonPathCurveSegments = 32;
 		System.Gui.TargetButtonPathMaxCount = 64;
+
+		{
+			using namespace Input;
+			Input.App_ToggleFullscreen = MakeMultiBinding(KeyCode_F11, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.App_Dialog_YesOrOk = MakeMultiBinding(KeyCode_Enter, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.App_Dialog_No = MakeMultiBinding(KeyCode_Backspace, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.App_Dialog_Cancel = MakeMultiBinding(KeyCode_Escape, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.App_Dialog_SelectNextTab = MakeMultiBinding(KeyCode_Tab, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.App_Dialog_SelectPreviousTab = MakeMultiBinding(KeyCode_Tab, KeyModifiers_CtrlShift, ModifierBehavior_Strict);
+
+			Input.ChartEditor_ChartNew = MakeMultiBinding(KeyCode_N, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.ChartEditor_ChartOpen = MakeMultiBinding(KeyCode_O, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.ChartEditor_ChartSave = MakeMultiBinding(KeyCode_S, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.ChartEditor_ChartSaveAs = MakeMultiBinding(KeyCode_S, KeyModifiers_CtrlShift, ModifierBehavior_Strict);
+			Input.ChartEditor_ChartOpenDirectory = {};
+			Input.ChartEditor_Undo = MakeMultiBinding(KeyCode_Z, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.ChartEditor_Redo = MakeMultiBinding(KeyCode_Y, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.ChartEditor_OpenSettings = MakeMultiBinding(KeyCode_OEMComma, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.ChartEditor_StartPlaytestFromStart = MakeMultiBinding(KeyCode_F5, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.ChartEditor_StartPlaytestFromCursor = MakeMultiBinding(KeyCode_F6, KeyModifiers_None, ModifierBehavior_Strict);
+
+			Input.Timeline_CenterCursor = MakeMultiBinding(KeyCode_Escape, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.Timeline_TogglePlayback = MakeMultiBinding(KeyCode_Space, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.Timeline_StopPlayback = MakeMultiBinding(KeyCode_Escape, KeyModifiers_None, ModifierBehavior_Strict);
+
+			Input.TargetTimeline_Cut = MakeMultiBinding(KeyCode_X, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.TargetTimeline_Copy = MakeMultiBinding(KeyCode_C, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.TargetTimeline_Paste = MakeMultiBinding(KeyCode_V, KeyModifiers_Ctrl, ModifierBehavior_Strict);
+			Input.TargetTimeline_MoveCursorLeft = MakeMultiBinding(KeyCode_Left, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_MoveCursorRight = MakeMultiBinding(KeyCode_Right, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_IncreaseGridPrecision = MakeMultiBinding(KeyCode_Up, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_DecreaseGridPrecision = MakeMultiBinding(KeyCode_Down, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_StartEndRangeSelection = MakeMultiBinding(KeyCode_Tab, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetTimeline_DeleteSelection = MakeMultiBinding(KeyCode_Delete, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetTimeline_IncreasePlaybackSpeed = MakeMultiBinding(KeyCode_OEMPeriod, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetTimeline_DecreasePlaybackSpeed = MakeMultiBinding(KeyCode_OEMComma, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetTimeline_ToggleMetronome = MakeMultiBinding(KeyCode_M, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetTimeline_ToggleTargetHolds = MakeMultiBinding(KeyCode_F, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_PlaceTriangle = MakeMultiBinding(KeyCode_W, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_I, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_PlaceSquare = MakeMultiBinding(KeyCode_A, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_J, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_PlaceCross = MakeMultiBinding(KeyCode_S, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_K, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_PlaceCircle = MakeMultiBinding(KeyCode_D, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_L, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_PlaceSlideL = MakeMultiBinding(KeyCode_Q, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_U, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetTimeline_PlaceSlideR = MakeMultiBinding(KeyCode_E, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_O, KeyModifiers_None, ModifierBehavior_Relaxed);
+
+			Input.TargetPreview_JumpToPreviousTarget = MakeMultiBinding(KeyCode_Q, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_JumpToNextTarget = MakeMultiBinding(KeyCode_E, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_TogglePlayback = Input.Timeline_TogglePlayback;
+			Input.TargetPreview_SelectPositionTool = MakeMultiBinding(KeyCode_1, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_SelectPathTool = MakeMultiBinding(KeyCode_2, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_MoveUp = MakeMultiBinding(KeyCode_W, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_MoveLeft = MakeMultiBinding(KeyCode_A, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_MoveDown = MakeMultiBinding(KeyCode_S, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_MoveRight = MakeMultiBinding(KeyCode_D, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_FlipHorizontal = MakeMultiBinding(KeyCode_H, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_FlipHorizontalLocal = MakeMultiBinding(KeyCode_H, KeyModifiers_Alt, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_FlipVertical = MakeMultiBinding(KeyCode_J, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_FlipVerticalLocal = MakeMultiBinding(KeyCode_J, KeyModifiers_Alt, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_PositionInRow = MakeMultiBinding(KeyCode_U, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_PositionInRowBack = MakeMultiBinding(KeyCode_U, KeyModifiers_Alt, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_InterpolateLinear = MakeMultiBinding(KeyCode_I, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_InterpolateCircular = MakeMultiBinding(KeyCode_O, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_InterpolateCircularFlip = MakeMultiBinding(KeyCode_O, KeyModifiers_Alt, ModifierBehavior_Strict);
+			Input.TargetPreview_PositionTool_StackPositions = MakeMultiBinding(KeyCode_P, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PathTool_InvertFrequencies = MakeMultiBinding(KeyCode_R, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PathTool_InterpolateAnglesClockwise = MakeMultiBinding(KeyCode_U, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PathTool_InterpolateAnglesCounterclockwise = MakeMultiBinding(KeyCode_I, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PathTool_InterpolateDistances = MakeMultiBinding(KeyCode_O, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.TargetPreview_PathTool_ApplyAngleIncrementsPositive = MakeMultiBinding(KeyCode_F, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PathTool_ApplyAngleIncrementsPositiveBack = MakeMultiBinding(KeyCode_F, KeyModifiers_Alt, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PathTool_ApplyAngleIncrementsNegative = MakeMultiBinding(KeyCode_V, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PathTool_ApplyAngleIncrementsNegativeBack = MakeMultiBinding(KeyCode_V, KeyModifiers_Alt, ModifierBehavior_Relaxed);
+
+			Input.BPMCalculator_Tap = MakeMultiBinding(KeyCode_Space, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.BPMCalculator_Reset = MakeMultiBinding(KeyCode_Escape, KeyModifiers_None, ModifierBehavior_Strict);
+
+			Input.Playtest_ReturnToEditorCurrent = MakeMultiBinding(KeyCode_Escape, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.Playtest_ReturnToEditorPrePlaytest = MakeMultiBinding(KeyCode_Escape, KeyModifiers_Shift, ModifierBehavior_Strict);
+			Input.Playtest_ToggleAutoplay = MakeMultiBinding(KeyCode_F1, KeyModifiers_None, ModifierBehavior_Strict);
+			Input.Playtest_TogglePause = MakeMultiBinding(KeyCode_Space, KeyModifiers_None, ModifierBehavior_Strict, DS4Button::Options);
+			Input.Playtest_RestartFromResetPoint = MakeMultiBinding(KeyCode_Enter, KeyModifiers_None, ModifierBehavior_Strict, DS4Button::R3);
+			Input.Playtest_MoveResetPointBackward = MakeMultiBinding(KeyCode_Tab, KeyModifiers_Shift, ModifierBehavior_Strict, DS4Button::L3);
+			Input.Playtest_MoveResetPointForward = MakeMultiBinding(KeyCode_Tab, KeyModifiers_None, ModifierBehavior_Strict, DS4Button::Touch);
+		}
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

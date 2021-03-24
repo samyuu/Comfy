@@ -2,8 +2,8 @@
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
-#include "Editor/Chart/KeyBindings.h"
 #include "Core/ComfyStudioSettings.h"
+#include <FontIcons.h>
 #include <numeric>
 
 namespace Comfy::Studio::Editor
@@ -26,17 +26,15 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::OnContextMenuGUI(Chart& chart)
 	{
-		static_assert(KeyBindings::PositionToolFlipHorizontal == Input::KeyCode_H);
-		static_assert(KeyBindings::PositionToolFlipVertical == Input::KeyCode_J);
 
-		if (Gui::MenuItem("Flip Targets Horizontally", Input::GetKeyCodeName(KeyBindings::PositionToolFlipHorizontal), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Flip Targets Horizontally", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_FlipHorizontal).data(), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, FlipMode::Horizontal);
-		if (Gui::MenuItem("Flip Targets Horizontally (Local)", "Alt + H", false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Flip Targets Horizontally (Local)", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_FlipHorizontalLocal).data(), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, FlipMode::HorizontalLocal);
 
-		if (Gui::MenuItem("Flip Targets Vertically", Input::GetKeyCodeName(KeyBindings::PositionToolFlipVertical), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Flip Targets Vertically", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_FlipVertical).data(), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, FlipMode::Vertical);
-		if (Gui::MenuItem("Flip Targets Vertically (Local)", "Alt + J", false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Flip Targets Vertically (Local)", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_FlipVerticalLocal).data(), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, FlipMode::VerticalLocal);
 
 		Gui::Separator();
@@ -56,27 +54,23 @@ namespace Comfy::Studio::Editor
 			Gui::EndMenu();
 		}
 
-		// TODO: Implement keybinding string conversion with support for modifiers
-		static_assert(KeyBindings::PositionToolPositionInRow == Input::KeyCode_U);
-
-		if (Gui::MenuItem("Position in Row", Input::GetKeyCodeName(KeyBindings::PositionToolPositionInRow), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Position in Row", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_PositionInRow).data(), false, (lastFrameSelectionCount > 0)))
 			PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, false);
-		if (Gui::MenuItem("Position in Row (Back)", "Alt + U", false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Position in Row (Back)", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_PositionInRowBack).data(), false, (lastFrameSelectionCount > 0)))
 			PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, true);
 		Gui::Separator();
 
-		if (Gui::MenuItem("Interpolate Positions Linear", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolateLinear), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Positions Linear", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_InterpolateLinear).data(), false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositionsLinear(undoManager, chart);
 
-		static_assert(KeyBindings::PositionToolInterpolateCircular == Input::KeyCode_O);
-
-		if (Gui::MenuItem("Interpolate Positions Circular", Input::GetKeyCodeName(KeyBindings::PositionToolInterpolateCircular), false, (lastFrameSelectionCount > 0)))
+		// TODO: Some option to scale the circle X/Y positions (=squash the circle) (?)
+		if (Gui::MenuItem("Interpolate Positions Circular", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_InterpolateCircular).data(), false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositionsCircular(undoManager, chart, +1.0f);
-		if (Gui::MenuItem("Interpolate Positions Circular (Flip)", "Alt + O", false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Positions Circular (Flip)", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_InterpolateCircularFlip).data(), false, (lastFrameSelectionCount > 0)))
 			InterpolateSelectedTargetPositionsCircular(undoManager, chart, -1.0f);
 		Gui::Separator();
 
-		if (Gui::MenuItem("Stack Targets", Input::GetKeyCodeName(KeyBindings::PositionToolStackPositions), false, (lastFrameSelectionCount > 0)))
+		if (Gui::MenuItem("Stack Targets", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_StackPositions).data(), false, (lastFrameSelectionCount > 0)))
 			StackSelectedTargetPositions(undoManager, chart);
 
 		if (Gui::BeginMenu("Snap Positions To", (lastFrameSelectionCount > 0)))
@@ -304,24 +298,30 @@ namespace Comfy::Studio::Editor
 	{
 		if (Gui::IsWindowFocused() && Gui::GetActiveID() == 0)
 		{
-			const bool local = Gui::GetIO().KeyAlt;;
-			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipHorizontal, false))
-				FlipSelectedTargets(undoManager, chart, local ? FlipMode::HorizontalLocal : FlipMode::Horizontal);
-			if (Gui::IsKeyPressed(KeyBindings::PositionToolFlipVertical, false))
-				FlipSelectedTargets(undoManager, chart, local ? FlipMode::VerticalLocal : FlipMode::Vertical);
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_FlipHorizontalLocal, false))
+				FlipSelectedTargets(undoManager, chart, FlipMode::HorizontalLocal);
+			else if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_FlipHorizontal, false))
+				FlipSelectedTargets(undoManager, chart, FlipMode::Horizontal);
 
-			const bool backwards = Gui::GetIO().KeyAlt;
-			if (Gui::IsKeyPressed(KeyBindings::PositionToolPositionInRow, false))
-				PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, backwards);
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_FlipVerticalLocal, false))
+				FlipSelectedTargets(undoManager, chart, FlipMode::VerticalLocal);
+			else if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_FlipVertical, false))
+				FlipSelectedTargets(undoManager, chart, FlipMode::Vertical);
 
-			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolateLinear, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_PositionInRowBack, false))
+				PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, true);
+			else if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_PositionInRow, false))
+				PositionSelectedTargetsInRowBetweenFirstAndLastTarget(undoManager, chart, false);
+
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_InterpolateLinear, false))
 				InterpolateSelectedTargetPositionsLinear(undoManager, chart);
 
-			const bool flip = Gui::GetIO().KeyAlt;
-			if (Gui::IsKeyPressed(KeyBindings::PositionToolInterpolateCircular, false))
-				InterpolateSelectedTargetPositionsCircular(undoManager, chart, flip ? -1.0f : +1.0f);
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_InterpolateCircularFlip, false))
+				InterpolateSelectedTargetPositionsCircular(undoManager, chart, -1.0f);
+			else if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_InterpolateCircular, false))
+				InterpolateSelectedTargetPositionsCircular(undoManager, chart, +1.0f);
 
-			if (Gui::IsKeyPressed(KeyBindings::PositionToolStackPositions, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_StackPositions, false))
 				StackSelectedTargetPositions(undoManager, chart);
 		}
 	}
@@ -331,15 +331,24 @@ namespace Comfy::Studio::Editor
 		if (selectedTargetsBuffer.empty() || !Gui::IsWindowFocused())
 			return;
 
-		for (const auto&[key, direction] : KeyBindings::PositionToolMoveStep)
+		if (Gui::GetActiveID() != 0)
+			return;
+
+		auto moveInDirection = [&](vec2 direction)
 		{
-			// TODO: Improve command merge behavior
-			if (Gui::IsKeyPressed(key, true) && Gui::GetActiveID() == 0)
-			{
-				const auto stepDistance = Gui::GetIO().KeyShift ? Rules::GridStepDistance : Rules::PreciseStepDistance;
-				IncrementSelectedTargetPositionsBy(undoManager, chart, direction * stepDistance);
-			}
-		}
+			// TODO: Improve command merge behavior (?)
+			const auto stepDistance = Gui::GetIO().KeyShift ? Rules::GridStepDistance : Rules::PreciseStepDistance;
+			IncrementSelectedTargetPositionsBy(undoManager, chart, direction * stepDistance);
+		};
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveUp, true))
+			moveInDirection(vec2(+0.0f, -1.0f));
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveLeft, true))
+			moveInDirection(vec2(-1.0f, +0.0f));
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveDown, true))
+			moveInDirection(vec2(+0.0f, +1.0f));
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveRight, true))
+			moveInDirection(vec2(+1.0f, +0.0f));
 	}
 
 	void TargetPositionTool::UpdateMouseGrabInput(Chart& chart)

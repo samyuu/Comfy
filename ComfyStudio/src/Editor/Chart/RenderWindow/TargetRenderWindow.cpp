@@ -4,7 +4,6 @@
 #include "Editor/Core/Theme.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/ChartCommands.h"
-#include "Editor/Chart/KeyBindings.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -188,20 +187,19 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsWindowFocused())
 		{
-			if (Gui::IsKeyPressed(KeyBindings::JumpToPreviousTarget, true))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_JumpToPreviousTarget, true))
 				timeline.AdvanceCursorToNextTarget(-1);
 
-			if (Gui::IsKeyPressed(KeyBindings::JumpToNextTarget, true))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_JumpToNextTarget, true))
 				timeline.AdvanceCursorToNextTarget(+1);
 
-			if (Gui::IsKeyPressed(KeyBindings::TogglePlayback, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_TogglePlayback, false))
 				timeline.GetIsPlayback() ? timeline.PausePlayback() : timeline.ResumePlayback();
 
-			for (size_t toolIndex = 0; toolIndex < EnumCount<TargetToolType>(); toolIndex++)
-			{
-				if (Gui::IsKeyPressed(KeyBindings::TargetToolTypes[toolIndex], false))
-					SelectActiveTool(static_cast<TargetToolType>(toolIndex));
-			}
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_SelectPositionTool, false))
+				SelectActiveTool(TargetToolType::Position);
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_SelectPathTool, false))
+				SelectActiveTool(TargetToolType::Path);
 		}
 
 		if (auto selectedTool = GetSelectedTool(); selectedTool != nullptr)
@@ -226,44 +224,18 @@ namespace Comfy::Studio::Editor
 				const char* toolName = (tool != nullptr) ? tool->GetName() : "<Null Tool>";
 
 				bool isSelected = (toolType == selectedToolType);
-				if (Gui::MenuItem(toolName, Input::GetKeyCodeName(KeyBindings::TargetToolTypes[toolIndex]), &isSelected, !isSelected))
+				const auto* binding =
+					(toolType == TargetToolType::Position) ? &GlobalUserData.Input.TargetPreview_SelectPositionTool :
+					(toolType == TargetToolType::Path) ? &GlobalUserData.Input.TargetPreview_SelectPathTool : nullptr;
+				assert(binding != nullptr);
+
+				if (Gui::MenuItem(toolName, Input::ToString(*binding).data(), &isSelected, !isSelected))
 					newToolToSelect = toolType;
 			}
 			Gui::Separator();
 
 			if (auto selectedTool = GetSelectedTool(); selectedTool != nullptr)
 				selectedTool->OnContextMenuGUI(*workingChart);
-
-#if COMFY_DEBUG && 0 // TODO: Move into settings window
-			if (Gui::BeginMenu("Settings", true))
-			{
-				bool changesMade = false;
-				changesMade |= Gui::Checkbox("Use Practice Background", &GlobalUserData.Mutable().TargetPreview.DisplayPracticeBackground);
-				changesMade |= Gui::Checkbox("Show Target Grid", &GlobalUserData.Mutable().TargetPreview.ShowGrid);
-				changesMade |= Gui::Checkbox("Show Target Buttons", &GlobalUserData.Mutable().TargetPreview.ShowButtons);
-				changesMade |= Gui::Checkbox("Show Target Hold Info", &GlobalUserData.Mutable().TargetPreview.ShowHoldInfo);
-				changesMade |= Gui::Checkbox("Show Background Checkerboard", &GlobalUserData.Mutable().TargetPreview.ShowBackgroundCheckerboard);
-
-				Gui::PushItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.DisplayPracticeBackground);
-				if (auto p = (GlobalUserData.TargetPreview.BackgroundDim * 100.0f); Gui::SliderFloat("##BackgroundDimSlider", &p, 0.0f, 100.0f, "Background Dim: %.f%%"))
-				{
-					changesMade |= true;
-					GlobalUserData.Mutable().TargetPreview.BackgroundDim = (p / 100.0f);
-				}
-				Gui::PopItemDisabledAndTextColorIf(GlobalUserData.TargetPreview.DisplayPracticeBackground);
-
-				if (auto t = GlobalUserData.TargetPreview.PostHitLingerDuration.Ticks(); Gui::SliderInt("##PostHitLingerSlider", &t, 0, BeatTick::TicksPerBeat * 8, "Post Hit Linger: %d Ticks"))
-				{
-					changesMade |= true;
-					GlobalUserData.Mutable().TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(t);
-				}
-
-				if (changesMade)
-					GlobalUserData.Mutable().SaveToFile();
-
-				Gui::EndMenu();
-			}
-#endif
 
 			// NOTE: Avoid mid-frame tool switching to prevent ugly single frame context menu changes
 			if (newToolToSelect.has_value())

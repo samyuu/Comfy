@@ -49,6 +49,7 @@ namespace Comfy::Studio::Editor
 		void LoadNativeChartFileSync(std::string_view filePath);
 		void SaveNativeChartFileAsync(std::string_view filePath = "");
 
+		void OpenChartDirectoryInExplorer() const;
 		bool OpenReadNativeChartFileDialog();
 		bool OpenSaveNativeChartFileDialog();
 		bool TrySaveNativeChartFileOrOpenDialog();

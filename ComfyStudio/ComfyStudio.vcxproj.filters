@@ -422,9 +422,6 @@
     <ClInclude Include="src\Editor\Chart\ClipboardHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Chart\KeyBindings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Chart\FileFormat\PJEFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -1,5 +1,6 @@
 #include "TimelineBase.h"
 #include "Editor/Core/Theme.h"
+#include "Core/ComfyStudioSettings.h"
 #include "Input/Input.h"
 #include <FontIcons.h>
 
@@ -190,7 +191,7 @@ namespace Comfy::Studio::Editor
 			Gui::SetWindowFocus();
 		}
 
-		if (Gui::IsWindowFocused() && Gui::IsKeyPressed(Input::KeyCode_Escape))
+		if (Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.Timeline_CenterCursor, false))
 			CenterCursor();
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && io.MouseWheel != 0.0f)
@@ -219,7 +220,7 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		if (Gui::IsKeyPressed(Input::KeyCode_Space))
+		if (Input::IsAnyPressed(GlobalUserData.Input.Timeline_TogglePlayback, false))
 		{
 			if (GetIsPlayback())
 				PausePlayback();
@@ -227,7 +228,7 @@ namespace Comfy::Studio::Editor
 				ResumePlayback();
 		}
 
-		if (Gui::IsKeyPressed(Input::KeyCode_Escape) && GetIsPlayback())
+		if (Input::IsAnyPressed(GlobalUserData.Input.Timeline_StopPlayback, false) && GetIsPlayback())
 		{
 			if (GetIsPlayback())
 				StopPlayback();

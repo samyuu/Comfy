@@ -261,7 +261,6 @@
     <ClInclude Include="src\Editor\Chart\Gameplay\PlayTestWindow.h" />
     <ClInclude Include="src\Editor\Chart\Gameplay\PlayTestCore.h" />
     <ClInclude Include="src\Editor\Chart\HitEvaluation.h" />
-    <ClInclude Include="src\Editor\Chart\KeyBindings.h" />
     <ClInclude Include="src\Editor\Chart\PresetWindow.h" />
     <ClInclude Include="src\Editor\Chart\PVScript\PVScriptImportWindow.h" />
     <ClInclude Include="src\Editor\Chart\PVScript\PVScriptUtil.h" />

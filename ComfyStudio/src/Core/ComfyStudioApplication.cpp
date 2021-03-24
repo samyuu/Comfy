@@ -20,7 +20,6 @@ namespace Comfy::Studio
 	constexpr std::string_view ComfyCopyrightNotice = "Copyright (C) 2021 Samyuu";
 	constexpr std::string_view UserManualDocumentFilePath = "manual/comfy_manual.html";
 	constexpr const char* AboutWindowName = "About##Application";
-	constexpr Input::KeyCode ToggleFullscreenKey = Input::KeyCode_F11;
 
 	namespace
 	{
@@ -201,7 +200,7 @@ namespace Comfy::Studio
 		// HACK: Not quite sure how to best handle this...
 		if (host->IsWindowFocused() && Gui::GetActiveID() == 0)
 		{
-			if (Gui::IsKeyPressed(ToggleFullscreenKey, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.App_ToggleFullscreen, false))
 				host->ToggleFullscreen();
 		}
 
@@ -289,7 +288,7 @@ namespace Comfy::Studio
 	{
 		if (Gui::BeginMenu("Window"))
 		{
-			if (Gui::MenuItem("Toggle Fullscreen", Input::GetKeyCodeName(ToggleFullscreenKey)))
+			if (Gui::MenuItem("Toggle Fullscreen", Input::ToString(GlobalUserData.Input.App_ToggleFullscreen).data()))
 				host->ToggleFullscreen();
 
 			if (Gui::BeginMenu("Swap Interval"))
@@ -446,7 +445,7 @@ namespace Comfy::Studio
 			}
 			Gui::EndTabBar();
 
-			if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false))
 				Gui::CloseCurrentPopup();
 
 			Gui::EndPopup();

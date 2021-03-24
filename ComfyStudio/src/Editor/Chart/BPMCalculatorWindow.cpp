@@ -20,17 +20,15 @@ namespace Comfy::Studio::Editor
 		const auto beatTime = TimeSpan::FromSeconds(60.0 / bpmCalculator.GetBPMOnLastTapRound());
 
 		const auto& style = Gui::GetStyle();
-
-		constexpr auto tapKeyBinding = Input::KeyCode_Space, resetKeyBinding = Input::KeyCode_Escape;
-		constexpr auto buttonHeight = 66.0f;
+		constexpr f32 buttonHeight = 66.0f;
 
 		Gui::BeginChild("BPMCalculatorChild", vec2(0.0f, 0.0f), true);
 		Gui::BeginColumns("BPMCalculatorColumns", 2, ImGuiColumnsFlags_NoResize);
 		{
 			{
-				const bool tapKeyPressed = (Gui::IsWindowFocused() && Gui::IsKeyPressed(tapKeyBinding, false));
-				const bool resetKeyPressed = (Gui::IsWindowFocused() && Gui::IsKeyPressed(resetKeyBinding, false));
-				const bool resetKeyDown = (Gui::IsWindowFocused() && Gui::IsKeyDown(resetKeyBinding));
+				const bool tapKeyPressed = (Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.BPMCalculator_Tap, false));
+				const bool resetKeyPressed = (Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.BPMCalculator_Reset, false));
+				const bool resetKeyDown = (Gui::IsWindowFocused() && Input::IsAnyDown(GlobalUserData.Input.BPMCalculator_Reset));
 
 				char tapButtonName[32];
 				sprintf_s(tapButtonName, (tapCount == 0) ? "Tap" : (tapCount == 1) ? "First Beat" : "%.2f BPM", bpmCalculator.GetBPMOnLastTapRound());

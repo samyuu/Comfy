@@ -3,7 +3,6 @@
 #include "Editor/Chart/ChartCommands.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderWindow.h"
-#include "Editor/Chart/KeyBindings.h"
 #include "Core/ComfyStudioSettings.h"
 #include <FontIcons.h>
 
@@ -29,16 +28,16 @@ namespace Comfy::Studio::Editor
 	{
 		const size_t selectionCount = std::count_if(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return t.IsSelected; });
 
-		if (Gui::MenuItem("Invert Target Frequencies", Input::GetKeyCodeName(KeyBindings::PathToolInvertFrequencies), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Invert Target Frequencies", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_InvertFrequencies).data(), false, (selectionCount > 0)))
 			InvertSelectedTargetFrequencies(undoManager, chart);
 		Gui::Separator();
 
-		if (Gui::MenuItem("Interpolate Angles Clockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateAnglesClockwise), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Angles Clockwise", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_InterpolateAnglesClockwise).data(), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, true);
-		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateAnglesCounterclockwise), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Angles Counterclockwise", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_InterpolateAnglesCounterclockwise).data(), false, (selectionCount > 0)))
 			InterpolateSelectedTargetAngles(undoManager, chart, false);
 
-		if (Gui::MenuItem("Interpolate Distances", Input::GetKeyCodeName(KeyBindings::PathToolInterpolateDistances), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Interpolate Distances", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_InterpolateDistances).data(), false, (selectionCount > 0)))
 			InterpolateSelectedTargetDistances(undoManager, chart);
 
 		Gui::Separator();
@@ -75,6 +74,7 @@ namespace Comfy::Studio::Editor
 					clampIncrementStep(angleIncrement.IncrementPerBeatDiagonal);
 			}
 
+			// TODO: Make user configurable (?)
 			static constexpr AngleIncrementData defaultIncrementData = { 2.0f, 10.0f }, defaultIncrementDataSmall = { 1.0f, 8.0f };
 			const bool isDefault = (angleIncrement == defaultIncrementData), isDefaultSmall = (angleIncrement == defaultIncrementDataSmall);
 
@@ -91,18 +91,14 @@ namespace Comfy::Studio::Editor
 			Gui::EndMenu();
 		}
 
-		// TODO: Implement keybinding string conversion with support for modifiers
-		static_assert(KeyBindings::PathToolApplyAngleIncrementsPositive == Input::KeyCode_F);
-		static_assert(KeyBindings::PathToolApplyAngleIncrementsNegative == Input::KeyCode_V);
-
-		if (Gui::MenuItem("Apply Angle Increment Positive", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsPositive), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Increment Positive", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositive).data(), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, false);
-		if (Gui::MenuItem("Apply Angle Increment Positive (Back)", "Alt + F", false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Increment Positive (Back)", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositiveBack).data(), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, true);
 
-		if (Gui::MenuItem("Apply Angle Increment Negative", Input::GetKeyCodeName(KeyBindings::PathToolApplyAngleIncrementsNegative), false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Increment Negative", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegative).data(), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, false);
-		if (Gui::MenuItem("Apply Angle Increment Negative (Back)", "Alt + V", false, (selectionCount > 0)))
+		if (Gui::MenuItem("Apply Angle Increment Negative (Back)", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegativeBack).data(), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, true);
 
 		Gui::Separator();
@@ -216,20 +212,25 @@ namespace Comfy::Studio::Editor
 	{
 		if (Gui::IsWindowFocused() && Gui::GetActiveID() == 0)
 		{
-			if (Gui::IsKeyPressed(KeyBindings::PathToolInvertFrequencies, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_InvertFrequencies, false))
 				InvertSelectedTargetFrequencies(undoManager, chart);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateAnglesClockwise, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_InterpolateAnglesClockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, true);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateAnglesCounterclockwise, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_InterpolateAnglesCounterclockwise, false))
 				InterpolateSelectedTargetAngles(undoManager, chart, false);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolInterpolateDistances, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_InterpolateDistances, false))
 				InterpolateSelectedTargetDistances(undoManager, chart);
 
-			const bool backwards = Gui::GetIO().KeyAlt;
-			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleIncrementsPositive, false))
-				ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, backwards);
-			if (Gui::IsKeyPressed(KeyBindings::PathToolApplyAngleIncrementsNegative, false))
-				ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, backwards);
+			// HACK: Explicitly checked in this order because of the assumed "alt modifier + relaxed behavior" binding
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositiveBack, false))
+				ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, true);
+			else if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositive, false))
+				ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, false);
+
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegativeBack, false))
+				ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, true);
+			else if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegative, false))
+				ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, false);
 		}
 	}
 
