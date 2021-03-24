@@ -1,6 +1,7 @@
 #include "ChartEditorSettingsWindow.h"
 #include "Input/Input.h"
 #include "Audio/Audio.h"
+#include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
 {
@@ -53,7 +54,7 @@ namespace Comfy::Studio::Editor
 			return result;
 		}
 
-		bool GuiSettingsSlider(std::string_view label, f32& inOutValue, f32 minValue, f32 maxValue, const char* format = "%.3f")
+		bool GuiSettingsSliderF32(std::string_view label, f32& inOutValue, f32 minValue, f32 maxValue, const char* format = "%.3f")
 		{
 			GuiSettingsRightAlignedLabel(label);
 			Gui::NextColumn();
@@ -96,7 +97,7 @@ namespace Comfy::Studio::Editor
 			return result;
 		}
 
-		bool GuiSettingsInput(std::string_view label, i32& inOutValue, i32 step = 1, i32 stepFast = 100, ImGuiInputTextFlags flags = 0, const char* format = nullptr)
+		bool GuiSettingsInputI32(std::string_view label, i32& inOutValue, i32 step = 1, i32 stepFast = 100, ImGuiInputTextFlags flags = 0, const char* format = nullptr)
 		{
 			GuiSettingsRightAlignedLabel(label);
 			Gui::NextColumn();
@@ -108,6 +109,40 @@ namespace Comfy::Studio::Editor
 				(stepFast > 0 ? &stepFast : nullptr),
 				(format != nullptr) ? format : (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%08X" : "%d",
 				flags);
+			Gui::PopItemWidth();
+			Gui::PopID();
+			Gui::NextColumn();
+
+			return result;
+		}
+
+		bool GuiSettingsInputF32(std::string_view label, f32& inOutValue, f32 step = 0.0f, f32 stepFast = 0.0f, ImGuiInputTextFlags flags = 0, const char* format = "%.2f")
+		{
+			GuiSettingsRightAlignedLabel(label);
+			Gui::NextColumn();
+
+			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
+			Gui::PushItemWidth(GuiSettingsItemWidth);
+			const bool result = Gui::InputScalar("##SettingsInput", ImGuiDataType_Float, &inOutValue,
+				(step > 0 ? &step : nullptr),
+				(stepFast > 0 ? &stepFast : nullptr),
+				format,
+				flags);
+			Gui::PopItemWidth();
+			Gui::PopID();
+			Gui::NextColumn();
+
+			return result;
+		}
+
+		bool GuiSettingsInputVec3(std::string_view label, vec3& inOutValue, ImGuiInputTextFlags flags = 0, const char* format = "%.2f")
+		{
+			GuiSettingsRightAlignedLabel(label);
+			Gui::NextColumn();
+
+			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
+			Gui::PushItemWidth(GuiSettingsItemWidth);
+			const bool result = Gui::InputScalarN("##SettingsInput", ImGuiDataType_Float, glm::value_ptr(inOutValue), 3, nullptr, nullptr, format, flags);
 			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
@@ -249,12 +284,15 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !thisFrameAnyItemActive && !lastFrameAnyItemActive)
 			{
-				if (Gui::IsKeyPressed(Input::KeyCode_Enter, false))
+				if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_YesOrOk, false))
 					RequestWindowCloseAndKeepChanges();
-				else if (Gui::IsKeyPressed(Input::KeyCode_Escape, false))
+				else if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false))
 					RequestWindowCloseAndRevertChanges();
-				else if (Gui::IsKeyPressed(Input::KeyCode_Tab, true) && Gui::GetIO().KeyCtrl)
-					SelectNextTab(Gui::GetIO().KeyShift ? -1 : +1);
+
+				if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_SelectNextTab, true))
+					SelectNextTab(+1);
+				if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_SelectPreviousTab, true))
+					SelectNextTab(-1);
 			}
 
 			Gui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.0f);
@@ -362,7 +400,7 @@ namespace Comfy::Studio::Editor
 
 			GuiSettingsCheckbox("Show Target Buttons", userData.TargetPreview.ShowButtons);
 			GuiSettingsCheckbox("Preview Hold Info", userData.TargetPreview.ShowHoldInfo);
-			if (auto v = userData.TargetPreview.PostHitLingerDuration.Ticks(); GuiSettingsInput("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
+			if (auto v = userData.TargetPreview.PostHitLingerDuration.Ticks(); GuiSettingsInputI32("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
 				userData.TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v);
 
 			GuiSettingsCheckbox("Display Practice Background", userData.TargetPreview.DisplayPracticeBackground);
@@ -370,9 +408,44 @@ namespace Comfy::Studio::Editor
 			Gui::PushItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
 			GuiSettingsCheckbox("Show Target Grid", userData.TargetPreview.ShowGrid);
 			GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
-			if (auto v = userData.TargetPreview.BackgroundDim * 100.0f; GuiSettingsSlider("Background Dim", v, 0.0f, 100.0f, "%.f%%"))
+			if (auto v = userData.TargetPreview.BackgroundDim * 100.0f; GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%"))
 				userData.TargetPreview.BackgroundDim = (v / 100.0f);
 			Gui::PopItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
+
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Position Tool", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+			GuiSettingsInputF32("Mouse Row Movement Distance Threshold", userData.PositionTool.MouseRowMovementDistanceThreshold);
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Path Tool", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
+				GuiSettingsInputVec3("Angle Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+			{
+				userData.PathTool.AngleMouseSnap = v[0];
+				userData.PathTool.AngleMouseSnapRough = v[1];
+				userData.PathTool.AngleMouseSnapPrecise = v[2];
+			}
+
+			if (auto v = vec3(userData.PathTool.AngleMouseScrollStep, userData.PathTool.AngleMouseScrollRough, userData.PathTool.AngleMouseScrollPrecise);
+				GuiSettingsInputVec3("Angle Scroll Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+			{
+				userData.PathTool.AngleMouseScrollStep = v[0];
+				userData.PathTool.AngleMouseScrollRough = v[1];
+				userData.PathTool.AngleMouseScrollPrecise = v[2];
+			}
+
+			if (auto v = (userData.PathTool.AngleMouseScrollDirection > 0.0f); GuiSettingsCheckbox("Flip Mouse Scroll Direction", v))
+			{
+				userData.PathTool.AngleMouseScrollDirection = (v ? +1.0f : -1.0f);
+			}
 
 			GuiEndSettingsColumns();
 		}

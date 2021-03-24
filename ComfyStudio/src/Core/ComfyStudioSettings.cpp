@@ -341,9 +341,19 @@ namespace Comfy::Studio
 		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
 		const std::string PositionTool = "position_tool";
-		const std::string PositionTool_DiagonalRowLayouts = "diagonal_row_layouts";
-		const std::string PositionTool_DiagonalRowLayouts_PerBeatDiagonalSpacing = "per_beat_diagonal_spacing";
-		const std::string PositionTool_DiagonalRowLayouts_DisplayName = "display_name";
+		const std::string PositionTool_MouseRowMovementDistanceThreshold = "mouse_row_movement_distance_threshold";
+		const std::string PositionTool_DiagonalMouseRowLayouts = "diagonal_mouse_row_layouts";
+		const std::string PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacing = "per_beat_diagonal_spacing";
+		const std::string PositionTool_DiagonalMouseRowLayouts_DisplayName = "display_name";
+
+		const std::string PathTool = "path_tool";
+		const std::string PathTool_AngleMouseSnap = "angle_mouse_snap";
+		const std::string PathTool_AngleMouseSnapRough = "angle_mouse_snap_rough";
+		const std::string PathTool_AngleMouseSnapPrecise = "angle_mouse_snap_precise";
+		const std::string PathTool_AngleMouseScrollDirection = "angle_mouse_scroll_direction";
+		const std::string PathTool_AngleMouseScrollStep = "angle_mouse_scroll_step";
+		const std::string PathTool_AngleMouseScrollRough = "angle_mouse_scroll_step_rough";
+		const std::string PathTool_AngleMouseScrollPrecise = "angle_mouse_scroll_step_precise";
 
 		const std::string TargetPreset = "target_preset";
 		const std::string TargetPreset_StaticSyncPresets = "static_sync_presets";
@@ -440,17 +450,29 @@ namespace Comfy::Studio
 
 		if (const json* positionToolJson = JsonFind(rootJson, UserIDs::PositionTool))
 		{
-			if (const json* diagonalRowLayoutsJson = JsonFind(*positionToolJson, UserIDs::PositionTool_DiagonalRowLayouts))
+			JsonTryAssign(PositionTool.MouseRowMovementDistanceThreshold, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_MouseRowMovementDistanceThreshold)));
+			if (const json* diagonalRowLayoutsJson = JsonFind(*positionToolJson, UserIDs::PositionTool_DiagonalMouseRowLayouts))
 			{
-				PositionTool.DiagonalRowLayouts.clear();
-				PositionTool.DiagonalRowLayouts.reserve(diagonalRowLayoutsJson->size());
+				PositionTool.DiagonalMouseRowLayouts.clear();
+				PositionTool.DiagonalMouseRowLayouts.reserve(diagonalRowLayoutsJson->size());
 				for (const json& rowLayoutJson : *diagonalRowLayoutsJson)
 				{
-					auto& rowLayout = PositionTool.DiagonalRowLayouts.emplace_back();
-					rowLayout.PerBeatDiagonalSpacing = JsonTryGetVec2(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalRowLayouts_PerBeatDiagonalSpacing)).value_or(vec2(0.0f));
-					rowLayout.DisplayName = std::move(JsonTryGetStr(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalRowLayouts_DisplayName)).value_or(""));
+					auto& rowLayout = PositionTool.DiagonalMouseRowLayouts.emplace_back();
+					rowLayout.PerBeatDiagonalSpacing = JsonTryGetVec2(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacing)).value_or(vec2(0.0f));
+					rowLayout.DisplayName = std::move(JsonTryGetStr(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName)).value_or(""));
 				}
 			}
+		}
+
+		if (const json* pathToolJson = JsonFind(rootJson, UserIDs::PathTool))
+		{
+			JsonTryAssign(PathTool.AngleMouseSnap, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseSnap)));
+			JsonTryAssign(PathTool.AngleMouseSnapRough, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseSnapRough)));
+			JsonTryAssign(PathTool.AngleMouseSnapPrecise, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseSnapPrecise)));
+			JsonTryAssign(PathTool.AngleMouseScrollDirection, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollDirection)));
+			JsonTryAssign(PathTool.AngleMouseScrollStep, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollStep)));
+			JsonTryAssign(PathTool.AngleMouseScrollRough, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollRough)));
+			JsonTryAssign(PathTool.AngleMouseScrollPrecise, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollPrecise)));
 		}
 
 		if (const json* targetPresetJson = JsonFind(rootJson, UserIDs::TargetPreset))
@@ -598,14 +620,26 @@ namespace Comfy::Studio
 
 		json& positionToolJson = rootJson[UserIDs::PositionTool];
 		{
-			json& diagonalRowLayoutsJson = positionToolJson[UserIDs::PositionTool_DiagonalRowLayouts];
+			positionToolJson[UserIDs::PositionTool_MouseRowMovementDistanceThreshold] = PositionTool.MouseRowMovementDistanceThreshold;
+			json& diagonalRowLayoutsJson = positionToolJson[UserIDs::PositionTool_DiagonalMouseRowLayouts];
 			diagonalRowLayoutsJson = json::array();
-			for (const auto& rowLayout : PositionTool.DiagonalRowLayouts)
+			for (const auto& rowLayout : PositionTool.DiagonalMouseRowLayouts)
 			{
 				json& rowLayoutJson = diagonalRowLayoutsJson.emplace_back(json::object());
-				JsonSetVec2(rowLayoutJson[UserIDs::PositionTool_DiagonalRowLayouts_PerBeatDiagonalSpacing], rowLayout.PerBeatDiagonalSpacing);
-				rowLayoutJson[UserIDs::PositionTool_DiagonalRowLayouts_DisplayName] = rowLayout.DisplayName;
+				JsonSetVec2(rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacing], rowLayout.PerBeatDiagonalSpacing);
+				rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName] = rowLayout.DisplayName;
 			}
+		}
+
+		json& pathToolJson = rootJson[UserIDs::PathTool];
+		{
+			pathToolJson[UserIDs::PathTool_AngleMouseSnap] = PathTool.AngleMouseSnap;
+			pathToolJson[UserIDs::PathTool_AngleMouseSnapRough] = PathTool.AngleMouseSnapRough;
+			pathToolJson[UserIDs::PathTool_AngleMouseSnapPrecise] = PathTool.AngleMouseSnapPrecise;
+			pathToolJson[UserIDs::PathTool_AngleMouseScrollDirection] = PathTool.AngleMouseScrollDirection;
+			pathToolJson[UserIDs::PathTool_AngleMouseScrollStep] = PathTool.AngleMouseScrollStep;
+			pathToolJson[UserIDs::PathTool_AngleMouseScrollRough] = PathTool.AngleMouseScrollRough;
+			pathToolJson[UserIDs::PathTool_AngleMouseScrollPrecise] = PathTool.AngleMouseScrollPrecise;
 		}
 
 		json& targetPresetJson = rootJson[UserIDs::TargetPreset];
@@ -710,10 +744,19 @@ namespace Comfy::Studio
 		TargetPreview.PostHitLingerDuration = BeatTick::FromBeats(1);
 		TargetPreview.DisplayPracticeBackground = false;
 
-		PositionTool.DiagonalRowLayouts =
+		PositionTool.MouseRowMovementDistanceThreshold = 9.0f;
+		PositionTool.DiagonalMouseRowLayouts =
 		{
 			{ Rules::DefaultPerBeatDiagonalSpacing, "Default" },
 		};
+
+		PathTool.AngleMouseSnap = 1.0f;
+		PathTool.AngleMouseSnapRough = 15.0f;
+		PathTool.AngleMouseSnapPrecise = 0.1f;
+		PathTool.AngleMouseScrollDirection = -1.0f;
+		PathTool.AngleMouseScrollStep = 1.0f;
+		PathTool.AngleMouseScrollRough = 5.0f;
+		PathTool.AngleMouseScrollPrecise = 0.1f;
 
 		TargetPreset.StaticSyncPresets = GetDefaultStaticSyncPresets();
 		TargetPreset.SequencePresets = GetDefaultSequencePresets();

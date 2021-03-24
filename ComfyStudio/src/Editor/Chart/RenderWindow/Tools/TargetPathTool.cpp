@@ -239,12 +239,12 @@ namespace Comfy::Studio::Editor
 		{
 			if (const auto& io = Gui::GetIO(); io.MouseWheel != 0.0f)
 			{
-				constexpr f32 roughAngleStep = 5.0f, preciseAngleStep = 0.1f, angleStep = 1.0f;
-				constexpr f32 scrollDirection = -1.0f;
+				// TODO: Make modifiers configurable too (?)
+				const f32 angleIncrement =
+					io.KeyShift ? GlobalUserData.PathTool.AngleMouseScrollRough :
+					io.KeyAlt ? GlobalUserData.PathTool.AngleMouseScrollPrecise : GlobalUserData.PathTool.AngleMouseScrollStep;
 
-				const f32 angleIncrement = io.KeyShift ? roughAngleStep : io.KeyAlt ? preciseAngleStep : angleStep;
-				IncrementSelectedTargetAnglesBy(undoManager, chart, (angleIncrement * io.MouseWheel * scrollDirection));
-
+				IncrementSelectedTargetAnglesBy(undoManager, chart, (angleIncrement * io.MouseWheel * GlobalUserData.PathTool.AngleMouseScrollDirection));
 				angleScroll.LastScroll.Restart();
 			}
 			else if (Gui::IsMouseClicked(2, true))
@@ -293,6 +293,7 @@ namespace Comfy::Studio::Editor
 			Gui::SetActiveID(Gui::GetID(&angleDrag), Gui::GetCurrentWindow());
 			Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
+			// TODO: Make user configurable (?)
 			angleDrag.RoughStep = Gui::GetIO().KeyShift;
 			angleDrag.PreciseStep = Gui::GetIO().KeyAlt;
 
@@ -306,9 +307,10 @@ namespace Comfy::Studio::Editor
 
 			if (angleDrag.MovedFarEnoughFromStart)
 			{
-				constexpr f32 roughAngleSnap = 15.0f, preciseAngleSnap = 0.1f, angleSnap = 1.0f;
+				const f32 snap =
+					angleDrag.RoughStep ? GlobalUserData.PathTool.AngleMouseSnapRough :
+					angleDrag.PreciseStep ? GlobalUserData.PathTool.AngleMouseSnapPrecise : GlobalUserData.PathTool.AngleMouseSnap;
 
-				const f32 snap = angleDrag.RoughStep ? roughAngleSnap : angleDrag.PreciseStep ? preciseAngleSnap : angleSnap;
 				angleDrag.DegreesTargetAngle = Rules::NormalizeAngle(glm::round(angleDrag.DegreesTargetAngle / snap) * snap);
 
 				constexpr f32 distanceThreshold = 4.0f;

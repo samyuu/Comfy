@@ -41,11 +41,11 @@ namespace Comfy::Studio::Editor
 
 		Gui::Separator();
 
-		if (Gui::BeginMenu("Diagonal Mouse Row Spacing", !GlobalUserData.PositionTool.DiagonalRowLayouts.empty()))
+		if (Gui::BeginMenu("Diagonal Mouse Row Spacing", !GlobalUserData.PositionTool.DiagonalMouseRowLayouts.empty()))
 		{
-			for (i32 i = 0; i < static_cast<i32>(GlobalUserData.PositionTool.DiagonalRowLayouts.size()); i++)
+			for (i32 i = 0; i < static_cast<i32>(GlobalUserData.PositionTool.DiagonalMouseRowLayouts.size()); i++)
 			{
-				const auto& layout = GlobalUserData.PositionTool.DiagonalRowLayouts[i];
+				const auto& layout = GlobalUserData.PositionTool.DiagonalMouseRowLayouts[i];
 				Gui::PushID(&layout);
 				char shortcutBuffer[64];
 				sprintf_s(shortcutBuffer, "(%g, %g)", layout.PerBeatDiagonalSpacing.x, layout.PerBeatDiagonalSpacing.y);
@@ -212,7 +212,7 @@ namespace Comfy::Studio::Editor
 		const u32 dimWhiteColor = Gui::GetColorU32(ImGuiCol_Text, 0.35f);
 		const u32 dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.75f);
 
-		constexpr auto guideRadius = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
+		constexpr f32 guideRadius = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
 		drawList.AddCircleFilled(row.Start, guideRadius, dimColor, 32);
 		drawList.AddCircle(row.Start, guideRadius, whiteColor, 32);
 
@@ -283,11 +283,11 @@ namespace Comfy::Studio::Editor
 			Gui::AddTextWithShadow(&drawList, textPos, textView, whiteColor, shadowColor, shadowOffset);
 		}
 
-		if (IsIntercardinal(cardinal) && InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalRowLayouts))
+		if (IsIntercardinal(cardinal) && InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalMouseRowLayouts))
 		{
 			// NOTE: This is to avoid (accidentally) unintentionally positioning targets with the wrong spacing
 			//		 by always making clear which spacing setting is selected
-			const auto& selectedDiagonalLayout = GlobalUserData.PositionTool.DiagonalRowLayouts[selectedDiagonalRowLayoutIndex];
+			const auto& selectedDiagonalLayout = GlobalUserData.PositionTool.DiagonalMouseRowLayouts[selectedDiagonalRowLayoutIndex];
 			if (selectedDiagonalLayout.PerBeatDiagonalSpacing != Rules::DefaultPerBeatDiagonalSpacing)
 			{
 				const std::string_view textView = selectedDiagonalLayout.DisplayName;
@@ -440,8 +440,7 @@ namespace Comfy::Studio::Editor
 
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
-			constexpr auto distanceThreshold = 9.0f;
-			if (selectedTargetsBuffer.size() > 1 && glm::distance(row.Start, row.End) > distanceThreshold)
+			if (selectedTargetsBuffer.size() > 1 && glm::distance(row.Start, row.End) > GlobalUserData.PositionTool.MouseRowMovementDistanceThreshold)
 			{
 				if (row.Start != row.End && (mouseWasMoved || steepStateChanged))
 					PositionSelectedTargetsInCardinalRow(undoManager, chart, AngleToNearestCardinal(row.Angle), GetSelectedRowPerBeatDiagonalSpacing(), row.Backwards);
@@ -451,8 +450,8 @@ namespace Comfy::Studio::Editor
 
 	vec2 TargetPositionTool::GetSelectedRowPerBeatDiagonalSpacing() const
 	{
-		const vec2 perBeaySpacing = InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalRowLayouts) ?
-			GlobalUserData.PositionTool.DiagonalRowLayouts[selectedDiagonalRowLayoutIndex].PerBeatDiagonalSpacing : Rules::DefaultPerBeatDiagonalSpacing;
+		const vec2 perBeaySpacing = InBounds(selectedDiagonalRowLayoutIndex, GlobalUserData.PositionTool.DiagonalMouseRowLayouts) ?
+			GlobalUserData.PositionTool.DiagonalMouseRowLayouts[selectedDiagonalRowLayoutIndex].PerBeatDiagonalSpacing : Rules::DefaultPerBeatDiagonalSpacing;
 
 		return row.SteepThisFrame ? vec2(perBeaySpacing.y, perBeaySpacing.x) : perBeaySpacing;
 	}
