@@ -237,7 +237,7 @@ namespace Comfy::Studio::Editor
 		TimelineRenderHelper renderHelper = {};
 
 	private:
-		int tempoPopupIndex = -1;
+		i32 tempoPopupIndex = -1;
 
 		struct
 		{

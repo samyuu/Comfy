@@ -603,7 +603,7 @@ namespace Comfy::Studio::Editor
 		const auto& tempoMap = workingChart->TempoMap;
 
 		constexpr auto tempoChangePopupName = "##TempoChangePopup";
-		float lastDrawnTimelineX = 0.0f;
+		f32 lastDrawnTimelineX = 0.0f;
 
 		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 		{
@@ -648,7 +648,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::IsMouseClicked(1))
 				{
 					Gui::OpenPopup(tempoChangePopupName);
-					tempoPopupIndex = static_cast<int>(i);
+					tempoPopupIndex = static_cast<i32>(i);
 				}
 			}
 
@@ -1424,7 +1424,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputBoxSelection()
 	{
-		constexpr int boxSelectionButton = 1;
+		constexpr i32 boxSelectionButton = 1;
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
 		{
@@ -2007,7 +2007,7 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::SelectNextPresetGridDivision(i32 direction)
 	{
 		const auto index = FindGridDivisionPresetIndex();
-		const auto nextIndex = std::clamp(index + direction, 0, static_cast<int>(presetBarGridDivisions.size()) - 1);
+		const auto nextIndex = std::clamp(index + direction, 0, static_cast<i32>(presetBarGridDivisions.size()) - 1);
 
 		activeBarGridDivision = presetBarGridDivisions[nextIndex];
 	}

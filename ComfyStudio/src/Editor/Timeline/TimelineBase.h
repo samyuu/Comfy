@@ -1,9 +1,12 @@
 #pragma once
+#include "Types.h"
+#include "CoreTypes.h"
 #include "Time/TimeSpan.h"
 #include "TimelineBaseRegions.h"
 #include "ITimelinePlaybackControllable.h"
 #include "TimelineScrollbar.h"
 #include "ImGui/Gui.h"
+#include <optional>
 
 namespace Comfy::Studio::Editor
 {
@@ -21,36 +24,36 @@ namespace Comfy::Studio::Editor
 		virtual ~TimelineBase() = default;
 
 	public:
-		virtual float GetTimelinePosition(TimeSpan time) const;
-		virtual TimeSpan GetTimelineTime(float position) const;
+		virtual f32 GetTimelinePosition(TimeSpan time) const;
+		virtual TimeSpan GetTimelineTime(f32 position) const;
 
-		float ScreenToTimelinePosition(float screenPosition) const;
-		float GetCursorTimelinePosition() const;
+		f32 ScreenToTimelinePosition(f32 screenPosition) const;
+		f32 GetCursorTimelinePosition() const;
 
 		virtual TimeSpan GetCursorTime() const;
 
-		TimelineVisibility GetTimelineVisibility(float screenX) const;
-		TimelineVisibility GetTimelineVisibilityForScreenSpace(float screenX) const;
+		TimelineVisibility GetTimelineVisibility(f32 screenX) const;
+		TimelineVisibility GetTimelineVisibilityForScreenSpace(f32 screenX) const;
 
 		void DrawTimelineGui();
 
 	public:
-		inline float GetMaxScrollX() const { return maxScroll.x; }
-		inline float GetScrollX() const { return scroll.x; }
+		inline f32 GetMaxScrollX() const { return maxScroll.x; }
+		inline f32 GetScrollX() const { return scroll.x; }
 
-		inline float GetMaxScrollY() const { return maxScroll.y; }
-		inline float GetScrollY() const { return scroll.y; }
+		inline f32 GetMaxScrollY() const { return maxScroll.y; }
+		inline f32 GetScrollY() const { return scroll.y; }
 
 	public:
-		void SetZoomCenteredAroundCursor(float newZoom);
-		void SetZoomCenteredAroundTime(float newZoom, TimeSpan timeToCenter);
+		void SetZoomCenteredAroundCursor(f32 newZoom);
+		void SetZoomCenteredAroundTime(f32 newZoom, TimeSpan timeToCenter);
 
-		inline void SetScrollX(float value) { scroll.x = value; }
+		inline void SetScrollX(f32 value) { scroll.x = value; }
 
-		inline void SetMaxScrollY(float value) { maxScroll.y = value; }
-		inline void SetScrollY(float value) { scroll.y = value; }
+		inline void SetMaxScrollY(f32 value) { maxScroll.y = value; }
+		inline void SetScrollY(f32 value) { scroll.y = value; }
 
-		virtual void CenterCursor();
+		virtual void CenterCursor(std::optional<f32> widthFactor = {});
 		virtual bool IsCursorOnScreen() const;
 
 	protected:
@@ -66,20 +69,20 @@ namespace Comfy::Studio::Editor
 
 		struct
 		{
-			const float timelineVisibleThreshold = 96.0f;
+			const f32 timelineVisibleThreshold = 96.0f;
 
-			float infoColumnWidth = 46.0f;
-			float infoColumnScrollStep = 42.0f;
+			f32 infoColumnWidth = 46.0f;
+			f32 infoColumnScrollStep = 42.0f;
 
-			float timelineHeaderHeight = 32.0f - 13.0f;
-			float tempoMapHeight = 13.0f;
+			f32 timelineHeaderHeight = 32.0f - 13.0f;
+			f32 tempoMapHeight = 13.0f;
 
-			float tempoMapFontSize = 14.0f;
+			f32 tempoMapFontSize = 14.0f;
 			vec2 tempoMapFontOffset = vec2(+1.0f, -0.5f);
 
 			// NOTE: Part of the slider width
-			const float zoomButtonWidth = 24.0f;
-			const float zoomSliderWidth = 160.0f;
+			const f32 zoomButtonWidth = 24.0f;
+			const f32 zoomSliderWidth = 160.0f;
 		};
 
 		static constexpr vec2 timelineScrollbarSize = vec2(14.0f, 16.0f);
@@ -95,26 +98,26 @@ namespace Comfy::Studio::Editor
 		struct /* TimelineZoomData */
 		{
 			bool zoomLevelChanged = false;
-			float zoomLevel = 2.0f, lastZoomLevel = zoomLevel;
+			f32 zoomLevel = 2.0f, lastZoomLevel = zoomLevel;
 		};
 
 		struct /* TimelineScrollData */
 		{
 			// NOTE: Percentage of the timeline width at which the timeline starts scrolling to keep the cursor at the same screen position
-			float autoScrollCursorOffsetPercentage = 0.75f;
+			f32 autoScrollCursorOffsetPercentage = 0.75f;
 
 			bool autoScrollCursorEnabled = false;
 			bool isMouseScrollGrabbing = false;
 
-			float scrollDelta = 0.0f;
-			float scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
+			f32 scrollDelta = 0.0f;
+			f32 scrollSpeed = 2.0f, scrollSpeedFast = 4.5f;
 
 			TimelineScrollbar horizontalScrollbar = { ImGuiAxis_X, timelineScrollbarSize };
 			TimelineScrollbar verticalScrollbar = { ImGuiAxis_Y, timelineScrollbarSize };
 		};
 
-		static constexpr float cursorHeadWidth = 17.0f;
-		static constexpr float cursorHeadHeight = 8.0f;
+		static constexpr f32 cursorHeadWidth = 17.0f;
+		static constexpr f32 cursorHeadHeight = 8.0f;
 
 	protected:
 		void DrawTimelineBase();
@@ -155,8 +158,8 @@ namespace Comfy::Studio::Editor
 
 		virtual void UpdateCursorAutoScroll();
 
-		virtual float GetTimelineSize() const = 0;
-		virtual float GetTimelineHeight() const { return 0.0f; }
+		virtual f32 GetTimelineSize() const = 0;
+		virtual f32 GetTimelineHeight() const { return 0.0f; }
 
 	private:
 		vec2 scroll = vec2(0.0f, 0.0f);
