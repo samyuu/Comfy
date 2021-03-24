@@ -418,21 +418,20 @@ namespace Comfy::Studio::Editor
 		if (Gui::CollapsingHeader("Position Tool", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			GuiSettingsInputF32("Mouse Row Movement Distance Threshold", userData.PositionTool.MouseRowMovementDistanceThreshold);
+			if (auto v = vec3(userData.PositionTool.PositionMouseSnap, userData.PositionTool.PositionMouseSnapRough, userData.PositionTool.PositionMouseSnapPrecise);
+				GuiSettingsInputVec3("Position Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+			{
+				userData.PositionTool.PositionMouseSnap = v[0];
+				userData.PositionTool.PositionMouseSnapRough = v[1];
+				userData.PositionTool.PositionMouseSnapPrecise = v[2];
+			}
+			GuiSettingsInputF32("Mouse Row Movement Threshold", userData.PositionTool.MouseRowMovementDistanceThreshold);
 			GuiEndSettingsColumns();
 		}
 
 		if (Gui::CollapsingHeader("Path Tool", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-
-			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
-				GuiSettingsInputVec3("Angle Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
-			{
-				userData.PathTool.AngleMouseSnap = v[0];
-				userData.PathTool.AngleMouseSnapRough = v[1];
-				userData.PathTool.AngleMouseSnapPrecise = v[2];
-			}
 
 			if (auto v = vec3(userData.PathTool.AngleMouseScrollStep, userData.PathTool.AngleMouseScrollRough, userData.PathTool.AngleMouseScrollPrecise);
 				GuiSettingsInputVec3("Angle Scroll Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
@@ -446,6 +445,17 @@ namespace Comfy::Studio::Editor
 			{
 				userData.PathTool.AngleMouseScrollDirection = (v ? +1.0f : -1.0f);
 			}
+
+			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
+				GuiSettingsInputVec3("Angle Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+			{
+				userData.PathTool.AngleMouseSnap = v[0];
+				userData.PathTool.AngleMouseSnapRough = v[1];
+				userData.PathTool.AngleMouseSnapPrecise = v[2];
+			}
+
+			GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold);
+			GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
 
 			GuiEndSettingsColumns();
 		}

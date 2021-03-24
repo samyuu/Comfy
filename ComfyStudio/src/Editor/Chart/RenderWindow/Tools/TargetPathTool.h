@@ -54,7 +54,7 @@ namespace Comfy::Studio::Editor
 
 		struct AngleDragData
 		{
-			vec2 StartTarget;
+			vec2 StartTargetPosition;
 			vec2 StartMouse, EndMouse;
 			vec2 TargetMouseDirection;
 			f32 DegreesTargetAngle;

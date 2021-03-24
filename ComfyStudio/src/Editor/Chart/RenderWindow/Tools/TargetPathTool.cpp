@@ -282,7 +282,7 @@ namespace Comfy::Studio::Editor
 				{
 					angleDrag.Active = true;
 					angleDrag.StartMouse = Gui::GetMousePos();
-					angleDrag.StartTarget = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(chart.Targets[targetIndex]).Position);
+					angleDrag.StartTargetPosition = renderWindow.TargetAreaToScreenSpace(Rules::TryGetProperties(chart.Targets[targetIndex]).Position);
 					angleDrag.TargetIndex = static_cast<i32>(targetIndex);
 					undoManager.DisallowMergeForLastCommand();
 				}
@@ -299,24 +299,20 @@ namespace Comfy::Studio::Editor
 			angleDrag.PreciseStep = Gui::GetIO().KeyAlt;
 
 			angleDrag.EndMouse = Gui::GetMousePos();
-			angleDrag.TargetMouseDirection = glm::normalize(angleDrag.EndMouse - angleDrag.StartTarget);
+			angleDrag.TargetMouseDirection = glm::normalize(angleDrag.EndMouse - angleDrag.StartTargetPosition);
 			angleDrag.DegreesTargetAngle = glm::degrees(glm::atan(angleDrag.TargetMouseDirection.y, angleDrag.TargetMouseDirection.x)) + 90.0f;
 
-			constexpr f32 distanceActionThreshold = 3.0f;
-			if (!angleDrag.MovedFarEnoughFromStart && glm::distance(angleDrag.StartMouse, angleDrag.EndMouse) > distanceActionThreshold)
+			if (!angleDrag.MovedFarEnoughFromStart && glm::distance(angleDrag.StartMouse, angleDrag.EndMouse) > GlobalUserData.PathTool.AngleMouseMovementDistanceThreshold)
 				angleDrag.MovedFarEnoughFromStart = true;
 
-			if (angleDrag.MovedFarEnoughFromStart)
+			if (angleDrag.MovedFarEnoughFromStart && glm::distance(angleDrag.StartTargetPosition, angleDrag.EndMouse) > GlobalUserData.PathTool.AngleMouseTargetCenterDistanceThreshold)
 			{
 				const f32 snap =
 					angleDrag.RoughStep ? GlobalUserData.PathTool.AngleMouseSnapRough :
 					angleDrag.PreciseStep ? GlobalUserData.PathTool.AngleMouseSnapPrecise : GlobalUserData.PathTool.AngleMouseSnap;
 
 				angleDrag.DegreesTargetAngle = Rules::NormalizeAngle(glm::round(angleDrag.DegreesTargetAngle / snap) * snap);
-
-				constexpr f32 distanceThreshold = 4.0f;
-				if (glm::distance(angleDrag.StartTarget, angleDrag.EndMouse) > distanceThreshold)
-					SetSelectedTargetAnglesTo(undoManager, chart, angleDrag.DegreesTargetAngle);
+				SetSelectedTargetAnglesTo(undoManager, chart, angleDrag.DegreesTargetAngle);
 			}
 		}
 	}

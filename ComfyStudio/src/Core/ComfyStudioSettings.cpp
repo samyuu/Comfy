@@ -343,6 +343,9 @@ namespace Comfy::Studio
 		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
 		const std::string PositionTool = "position_tool";
+		const std::string PositionTool_PositionMouseSnap = "position_mouse_snap";
+		const std::string PositionTool_PositionMouseSnapRough = "position_mouse_snap_rough";
+		const std::string PositionTool_PositionMouseSnapPrecise = "position_mouse_snap_precise";
 		const std::string PositionTool_MouseRowMovementDistanceThreshold = "mouse_row_movement_distance_threshold";
 		const std::string PositionTool_DiagonalMouseRowLayouts = "diagonal_mouse_row_layouts";
 		const std::string PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacing = "per_beat_diagonal_spacing";
@@ -356,6 +359,8 @@ namespace Comfy::Studio
 		const std::string PathTool_AngleMouseScrollStep = "angle_mouse_scroll_step";
 		const std::string PathTool_AngleMouseScrollRough = "angle_mouse_scroll_step_rough";
 		const std::string PathTool_AngleMouseScrollPrecise = "angle_mouse_scroll_step_precise";
+		const std::string PathTool_AngleMouseMovementDistanceThreshold = "angle_mouse_movement_distance_threshold";
+		const std::string PathTool_AngleMouseTargetCenterDistanceThreshold = "angle_mouse_target_center_distance_threshold";
 
 		const std::string TargetPreset = "target_preset";
 		const std::string TargetPreset_StaticSyncPresets = "static_sync_presets";
@@ -457,6 +462,9 @@ namespace Comfy::Studio
 
 		if (const json* positionToolJson = JsonFind(rootJson, UserIDs::PositionTool))
 		{
+			JsonTryAssign(PositionTool.PositionMouseSnap, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnap)));
+			JsonTryAssign(PositionTool.PositionMouseSnapRough, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapRough)));
+			JsonTryAssign(PositionTool.PositionMouseSnapPrecise, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapPrecise)));
 			JsonTryAssign(PositionTool.MouseRowMovementDistanceThreshold, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_MouseRowMovementDistanceThreshold)));
 			if (const json* diagonalRowLayoutsJson = JsonFind(*positionToolJson, UserIDs::PositionTool_DiagonalMouseRowLayouts))
 			{
@@ -480,6 +488,8 @@ namespace Comfy::Studio
 			JsonTryAssign(PathTool.AngleMouseScrollStep, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollStep)));
 			JsonTryAssign(PathTool.AngleMouseScrollRough, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollRough)));
 			JsonTryAssign(PathTool.AngleMouseScrollPrecise, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollPrecise)));
+			JsonTryAssign(PathTool.AngleMouseMovementDistanceThreshold, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseMovementDistanceThreshold)));
+			JsonTryAssign(PathTool.AngleMouseTargetCenterDistanceThreshold, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold)));
 		}
 
 		if (const json* targetPresetJson = JsonFind(rootJson, UserIDs::TargetPreset))
@@ -633,6 +643,9 @@ namespace Comfy::Studio
 
 		json& positionToolJson = rootJson[UserIDs::PositionTool];
 		{
+			positionToolJson[UserIDs::PositionTool_PositionMouseSnap] = PositionTool.PositionMouseSnap;
+			positionToolJson[UserIDs::PositionTool_PositionMouseSnapRough] = PositionTool.PositionMouseSnapRough;
+			positionToolJson[UserIDs::PositionTool_PositionMouseSnapPrecise] = PositionTool.PositionMouseSnapPrecise;
 			positionToolJson[UserIDs::PositionTool_MouseRowMovementDistanceThreshold] = PositionTool.MouseRowMovementDistanceThreshold;
 			json& diagonalRowLayoutsJson = positionToolJson[UserIDs::PositionTool_DiagonalMouseRowLayouts];
 			diagonalRowLayoutsJson = json::array();
@@ -653,6 +666,8 @@ namespace Comfy::Studio
 			pathToolJson[UserIDs::PathTool_AngleMouseScrollStep] = PathTool.AngleMouseScrollStep;
 			pathToolJson[UserIDs::PathTool_AngleMouseScrollRough] = PathTool.AngleMouseScrollRough;
 			pathToolJson[UserIDs::PathTool_AngleMouseScrollPrecise] = PathTool.AngleMouseScrollPrecise;
+			pathToolJson[UserIDs::PathTool_AngleMouseMovementDistanceThreshold] = PathTool.AngleMouseMovementDistanceThreshold;
+			pathToolJson[UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold] = PathTool.AngleMouseTargetCenterDistanceThreshold;
 		}
 
 		json& targetPresetJson = rootJson[UserIDs::TargetPreset];
@@ -798,10 +813,10 @@ namespace Comfy::Studio
 			Input.TargetPreview_TogglePlayback = Input.Timeline_TogglePlayback;
 			Input.TargetPreview_SelectPositionTool = MakeMultiBinding(KeyCode_1, KeyModifiers_None, ModifierBehavior_Strict);
 			Input.TargetPreview_SelectPathTool = MakeMultiBinding(KeyCode_2, KeyModifiers_None, ModifierBehavior_Strict);
-			Input.TargetPreview_PositionTool_MoveUp = MakeMultiBinding(KeyCode_W, KeyModifiers_None, ModifierBehavior_Relaxed);
-			Input.TargetPreview_PositionTool_MoveLeft = MakeMultiBinding(KeyCode_A, KeyModifiers_None, ModifierBehavior_Relaxed);
-			Input.TargetPreview_PositionTool_MoveDown = MakeMultiBinding(KeyCode_S, KeyModifiers_None, ModifierBehavior_Relaxed);
-			Input.TargetPreview_PositionTool_MoveRight = MakeMultiBinding(KeyCode_D, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_MoveUp = MakeMultiBinding(KeyCode_W, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_Up, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_MoveLeft = MakeMultiBinding(KeyCode_A, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_Left, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_MoveDown = MakeMultiBinding(KeyCode_S, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_Down, KeyModifiers_None, ModifierBehavior_Relaxed);
+			Input.TargetPreview_PositionTool_MoveRight = MakeMultiBinding(KeyCode_D, KeyModifiers_None, ModifierBehavior_Relaxed, KeyCode_Right, KeyModifiers_None, ModifierBehavior_Relaxed);
 			Input.TargetPreview_PositionTool_FlipHorizontal = MakeMultiBinding(KeyCode_H, KeyModifiers_None, ModifierBehavior_Strict);
 			Input.TargetPreview_PositionTool_FlipHorizontalLocal = MakeMultiBinding(KeyCode_H, KeyModifiers_Alt, ModifierBehavior_Strict);
 			Input.TargetPreview_PositionTool_FlipVertical = MakeMultiBinding(KeyCode_J, KeyModifiers_None, ModifierBehavior_Strict);
@@ -841,6 +856,9 @@ namespace Comfy::Studio
 		TargetPreview.PostHitLingerDuration = BeatTick::FromBeats(1);
 		TargetPreview.DisplayPracticeBackground = false;
 
+		PositionTool.PositionMouseSnap = Rules::TickToDistance(BeatTick::FromBars(1) / 192);
+		PositionTool.PositionMouseSnapRough = Rules::GridStepDistance;
+		PositionTool.PositionMouseSnapPrecise = 1.0f;
 		PositionTool.MouseRowMovementDistanceThreshold = 9.0f;
 		PositionTool.DiagonalMouseRowLayouts =
 		{
@@ -854,6 +872,8 @@ namespace Comfy::Studio
 		PathTool.AngleMouseScrollStep = 1.0f;
 		PathTool.AngleMouseScrollRough = 5.0f;
 		PathTool.AngleMouseScrollPrecise = 0.1f;
+		PathTool.AngleMouseMovementDistanceThreshold = 3.0f;
+		PathTool.AngleMouseTargetCenterDistanceThreshold = 4.0f;
 
 		TargetPreset.StaticSyncPresets = GetDefaultStaticSyncPresets();
 		TargetPreset.SequencePresets = GetDefaultSequencePresets();

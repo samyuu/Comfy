@@ -404,13 +404,18 @@ namespace Comfy::Studio::Editor
 
 			if ((grab.ThisPos != grab.LastPos) || (grab.ThisGridSnap != grab.LastGridSnap))
 			{
-				vec2 grabbedMovedPosition = glm::round(grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom));
-				if (Gui::GetIO().KeyShift)
-					grabbedMovedPosition = Rules::SnapPositionToGrid(grabbedMovedPosition);
+				// TODO: Make modifiers configurable too (?)
+				const auto& io = Gui::GetIO();
+				const f32 positionSnap =
+					io.KeyShift ? GlobalUserData.PositionTool.PositionMouseSnapRough :
+					io.KeyAlt ? GlobalUserData.PositionTool.PositionMouseSnapPrecise : GlobalUserData.PositionTool.PositionMouseSnap;
 
-				const vec2 increment = (grabbedMovedPosition - Rules::TryGetProperties(chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)]).Position);
-				if (increment != vec2(0.0f))
-					IncrementSelectedTargetPositionsBy(undoManager, chart, increment);
+				const vec2 grabMovedPosition = Rules::SnapPositionTo(grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom), positionSnap);
+				const vec2 positionIncrement = (grabMovedPosition - Rules::TryGetProperties(chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)]).Position);
+
+				if (positionIncrement != vec2(0.0f))
+					IncrementSelectedTargetPositionsBy(undoManager, chart, positionIncrement);
+			}
 			}
 		}
 	}
