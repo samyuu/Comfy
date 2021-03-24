@@ -506,6 +506,9 @@
     <ClCompile Include="src\Audio\Misc\SfxArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Input\Core\KeyCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Render\D3D11\Shader\Source\ImGui\ImGuiCustom_PS.hlsl" />

@@ -281,6 +281,7 @@
     <ClCompile Include="src\ImGui\Widgets\FileViewer.cpp" />
     <ClCompile Include="src\ImGui\Widgets\ImageGridView.cpp" />
     <ClCompile Include="src\ImGui\Widgets\LoadingTextAnimation.cpp" />
+    <ClCompile Include="src\Input\Core\KeyCode.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInput.cpp" />
     <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp" />
     <ClCompile Include="src\Input\DirectInput\DualShock4.cpp" />

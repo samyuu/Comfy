@@ -2,20 +2,16 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
+// HACK: Gotta restructure all of this...
+#include "Input/DirectInput/DS4Button.h"
+
 namespace Comfy::Input
 {
-	using KeyState = i32;
-	enum KeyState_Enum : KeyState
-	{
-		KeyState_Release = 0,
-		KeyState_Press = 1,
-		KeyState_Repeat = 2,
-	};
-
-	using KeyCode = i32;
-	enum KeyCode_Enum : KeyCode
+	using KeyCode = i16;
+	enum KeyCodeEnum : KeyCode
 	{
 		KeyCode_Unknown = -1,
+		KeyCode_None = 0x00,
 		KeyCode_MouseLeft = 0x01,
 		KeyCode_MouseRight = 0x02,
 		KeyCode_MouseMiddle = 0x04,
@@ -26,7 +22,7 @@ namespace Comfy::Input
 		KeyCode_Clear = 0x0C,
 		KeyCode_Enter = 0x0D,
 		KeyCode_Shift = 0x10,
-		KeyCode_Control = 0x11,
+		KeyCode_Ctrl = 0x11,
 		KeyCode_Alt = 0x12,
 		KeyCode_Pause = 0x13,
 		KeyCode_CapsLock = 0x14,
@@ -129,8 +125,8 @@ namespace Comfy::Input
 		KeyCode_Scroll = 0x91,
 		KeyCode_LeftShift = 0xA0,
 		KeyCode_RightShift = 0xA1,
-		KeyCode_LeftControl = 0xA2,
-		KeyCode_RightControl = 0xA3,
+		KeyCode_LeftCtrl = 0xA2,
+		KeyCode_RightCtrl = 0xA3,
 		KeyCode_LeftAlt = 0xA4,
 		KeyCode_RightAlt = 0xA5,
 		KeyCode_BrowserBack = 0xA6,
@@ -183,177 +179,138 @@ namespace Comfy::Input
 		KeyCode_KeyboardLast = KeyCode_Count,
 	};
 
-	constexpr const char* GetKeyCodeName(const KeyCode keyCode)
+	using KeyModifiers = u8;
+	enum KeyModifiersEnum : KeyModifiers
 	{
-		if (keyCode >= KeyCode_Count)
-			return nullptr;
+		KeyModifiers_None = 0,
+		KeyModifiers_Ctrl = 1 << 0,
+		KeyModifiers_Shift = 1 << 1,
+		KeyModifiers_Alt = 1 << 2,
+		// KeyModifiers_Super = 1 << 3,
+		// KeyModifiers_Function = 1 << 4,
 
-		switch (keyCode)
-		{
-		case KeyCode_Unknown: return "Unknown";
-		case KeyCode_MouseLeft: return "Mouse Left";
-		case KeyCode_MouseRight: return "Mouse Right";
-		case KeyCode_MouseMiddle: return "Mouse Middle";
-		case KeyCode_MouseX1: return "Mouse X1";
-		case KeyCode_MouseX2: return "Mouse X2";
-		case KeyCode_Backspace: return "Backspace";
-		case KeyCode_Tab: return "Tab";
-		case KeyCode_Clear: return "Clear";
-		case KeyCode_Enter: return "Enter";
-		case KeyCode_Shift: return "Shift";
-		case KeyCode_Control: return "Control";
-		case KeyCode_Alt: return "Alt";
-		case KeyCode_Pause: return "Pause";
-		case KeyCode_CapsLock: return "Caps Lock";
-		case KeyCode_Escape: return "Escape";
-		case KeyCode_Space: return "Space";
-		case KeyCode_Prior: return "Prior";
-		case KeyCode_Next: return "Next";
-		case KeyCode_End: return "End";
-		case KeyCode_Home: return "Home";
-		case KeyCode_Left: return "Left";
-		case KeyCode_Up: return "Up";
-		case KeyCode_Right: return "Right";
-		case KeyCode_Down: return "Down";
-		case KeyCode_Select: return "Select";
-		case KeyCode_Print: return "Print";
-		case KeyCode_Insert: return "Insert";
-		case KeyCode_Delete: return "Delete";
-		case KeyCode_Help: return "Help";
-		case KeyCode_0: return "0";
-		case KeyCode_1: return "1";
-		case KeyCode_2: return "2";
-		case KeyCode_3: return "3";
-		case KeyCode_4: return "4";
-		case KeyCode_5: return "5";
-		case KeyCode_6: return "6";
-		case KeyCode_7: return "7";
-		case KeyCode_8: return "8";
-		case KeyCode_9: return "9";
-		case KeyCode_A: return "A";
-		case KeyCode_B: return "B";
-		case KeyCode_C: return "C";
-		case KeyCode_D: return "D";
-		case KeyCode_E: return "E";
-		case KeyCode_F: return "F";
-		case KeyCode_G: return "G";
-		case KeyCode_H: return "H";
-		case KeyCode_I: return "I";
-		case KeyCode_J: return "J";
-		case KeyCode_K: return "K";
-		case KeyCode_L: return "L";
-		case KeyCode_M: return "M";
-		case KeyCode_N: return "N";
-		case KeyCode_O: return "O";
-		case KeyCode_P: return "P";
-		case KeyCode_Q: return "Q";
-		case KeyCode_R: return "R";
-		case KeyCode_S: return "S";
-		case KeyCode_T: return "T";
-		case KeyCode_U: return "U";
-		case KeyCode_V: return "V";
-		case KeyCode_W: return "W";
-		case KeyCode_X: return "X";
-		case KeyCode_Y: return "Y";
-		case KeyCode_Z: return "Z";
-		case KeyCode_LeftWin: return "Left Win";
-		case KeyCode_RightWin: return "Right Win";
-		case KeyCode_Apps: return "Apps";
-		case KeyCode_Sleep: return "Sleep";
-		case KeyCode_Numpad0: return "Numpad 0";
-		case KeyCode_Numpad1: return "Numpad 1";
-		case KeyCode_Numpad2: return "Numpad 2";
-		case KeyCode_Numpad3: return "Numpad 3";
-		case KeyCode_Numpad4: return "Numpad 4";
-		case KeyCode_Numpad5: return "Numpad 5";
-		case KeyCode_Numpad6: return "Numpad 6";
-		case KeyCode_Numpad7: return "Numpad 7";
-		case KeyCode_Numpad8: return "Numpad 8";
-		case KeyCode_Numpad9: return "Numpad 9";
-		case KeyCode_Multiply: return "Multiply";
-		case KeyCode_Add: return "Add";
-		case KeyCode_Separator: return "Separator";
-		case KeyCode_Subtract: return "Subtract";
-		case KeyCode_Decimal: return "Decimal";
-		case KeyCode_Divide: return "Divide";
-		case KeyCode_F1: return "F1";
-		case KeyCode_F2: return "F2";
-		case KeyCode_F3: return "F3";
-		case KeyCode_F4: return "F4";
-		case KeyCode_F5: return "F5";
-		case KeyCode_F6: return "F6";
-		case KeyCode_F7: return "F7";
-		case KeyCode_F8: return "F8";
-		case KeyCode_F9: return "F9";
-		case KeyCode_F10: return "F10";
-		case KeyCode_F11: return "F11";
-		case KeyCode_F12: return "F12";
-		case KeyCode_F13: return "F13";
-		case KeyCode_F14: return "F14";
-		case KeyCode_F15: return "F15";
-		case KeyCode_F16: return "F16";
-		case KeyCode_F17: return "F17";
-		case KeyCode_F18: return "F18";
-		case KeyCode_F19: return "F19";
-		case KeyCode_F20: return "F20";
-		case KeyCode_F21: return "F21";
-		case KeyCode_F22: return "F22";
-		case KeyCode_F23: return "F23";
-		case KeyCode_F24: return "F24";
-		case KeyCode_NumLock: return "Num Lock";
-		case KeyCode_Scroll: return "Scroll";
-		case KeyCode_LeftShift: return "Left Shift";
-		case KeyCode_RightShift: return "Right Shift";
-		case KeyCode_LeftControl: return "Left Control";
-		case KeyCode_RightControl: return "Right Control";
-		case KeyCode_LeftAlt: return "Left Alt";
-		case KeyCode_RightAlt: return "Right Alt";
-		case KeyCode_BrowserBack: return "Browser Back";
-		case KeyCode_BrowserForward: return "Browser Forward";
-		case KeyCode_BrowserRefresh: return "Browser Refresh";
-		case KeyCode_BrowserStop: return "Browser Stop";
-		case KeyCode_BrowserSearch: return "Browser Search";
-		case KeyCode_BrowserFavorites: return "Browser Favorite";
-		case KeyCode_BrowserHome: return "Browser Home";
-		case KeyCode_VolumeMute: return "Volume Mute";
-		case KeyCode_VolumeDown: return "Volume Down";
-		case KeyCode_VolumeUp: return "Volume Up";
-		case KeyCode_MediaNextTrack: return "Media Next Track";
-		case KeyCode_MediaPrevTrack: return "Media Prev Track";
-		case KeyCode_MediaStop: return "Media Stop";
-		case KeyCode_MediaPlayPause: return "Media Play Pause";
-		case KeyCode_LaunchMail: return "Launch Mail";
-		case KeyCode_LaunchMediaSelect: return "Launch Media Select";
-		case KeyCode_LaunchApp1: return "Launch App 1";
-		case KeyCode_LaunchApp2: return "Launch App 2";
-		case KeyCode_OEM1: return "OEM 1";
-		case KeyCode_OEMPlus: return "Plus";
-		case KeyCode_OEMComma: return "Comma";
-		case KeyCode_OEMMinus: return "Minus";
-		case KeyCode_OEMPeriod: return "Period";
-		case KeyCode_OEM2: return "OEM 2";
-		case KeyCode_OEM3: return "OEM 3";
-		case KeyCode_OEM4: return "OEM 4";
-		case KeyCode_OEM5: return "OEM 5";
-		case KeyCode_OEM6: return "OEM 6";
-		case KeyCode_OEM7: return "OEM 7";
-		case KeyCode_OEM8: return "OEM 8";
-		case KeyCode_OEM102: return "OEM 102";
-		case KeyCode_IMEProcessKey: return "IME Process Key";
-		case KeyCode_Packet: return "Packet";
-		case KeyCode_Attn: return "Attn";
-		case KeyCode_CrSel: return "CrSel";
-		case KeyCode_ExSel: return "ExSel";
-		case KeyCode_EraseEOF: return "Erase EOF";
-		case KeyCode_Play: return "Play";
-		case KeyCode_Zoom: return "Zoom";
-		case KeyCode_NoName: return "No Name";
-		case KeyCode_PA1: return "PA1";
-		case KeyCode_OEMClear: return "OEM Clear";
+		KeyModifiers_CtrlShift = KeyModifiers_Ctrl | KeyModifiers_Shift,
+		KeyModifiers_CtrlShiftAlt = KeyModifiers_Ctrl | KeyModifiers_Shift | KeyModifiers_Alt,
+		KeyModifiers_All = KeyModifiers_CtrlShiftAlt,
+	};
 
-		default:
-			assert(keyCode < KeyCode_Unknown);
-			return nullptr;
-		}
+	using ModifierBehavior = u8;
+	enum ModifierBehaviorEnum : ModifierBehavior
+	{
+		ModifierBehavior_Strict,
+		ModifierBehavior_Relaxed,
+	};
+
+	template <typename Func>
+	constexpr void ForEachKeyCodeInKeyModifiers(const KeyModifiers modifiers, Func func)
+	{
+		if (modifiers & KeyModifiers_Ctrl) func(KeyCode_Ctrl);
+		if (modifiers & KeyModifiers_Shift) func(KeyCode_Shift);
+		if (modifiers & KeyModifiers_Alt) func(KeyCode_Alt);
 	}
+
+	constexpr KeyModifiers InvertKeyModifiers(const KeyModifiers modifiers)
+	{
+		return (~modifiers & KeyModifiers_All);
+	}
+
+	constexpr size_t MaxMultiBindingCount = 8;
+
+	enum class BindingType : u8
+	{
+		None,
+		Keyboard,
+		// TODO: Generic DirectInput support and controller GUID whitelist (?)
+		Controller,
+		// TODO: Special window focus/hover behavior (?)
+		// Mouse,
+	};
+
+	struct Binding
+	{
+		BindingType Type;
+		KeyCode Key;
+		KeyModifiers KeyModifiers;
+		ModifierBehavior Behavior;
+		DS4Button Button;
+	};
+
+	struct MultiBinding
+	{
+		std::array<Binding, MaxMultiBindingCount> Bindings;
+		u8 BindingCount;
+
+		constexpr auto begin() const { return Bindings.begin(); }
+		constexpr auto end() const { return Bindings.begin() + BindingCount; }
+	};
+
+	constexpr Binding MakeBinding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict)
+	{
+		return { Binding { BindingType::Keyboard, key, modifiers, behavior } };
+	}
+
+	constexpr MultiBinding MakeMultiBinding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict)
+	{
+		return MultiBinding { { Binding { BindingType::Keyboard, key, modifiers, behavior } }, 1 };
+	}
+
+	constexpr MultiBinding MakeMultiBinding(KeyCode key, KeyModifiers modifiers, ModifierBehavior behavior, KeyCode secondaryKey, KeyModifiers secondaryModifiers, ModifierBehavior secondaryBehavior)
+	{
+		return MultiBinding { { Binding { BindingType::Keyboard, key, modifiers, behavior }, Binding { BindingType::Keyboard, secondaryKey, secondaryModifiers, secondaryBehavior } }, 2 };
+	}
+
+	constexpr MultiBinding MakeMultiBinding(DS4Button button)
+	{
+		return MultiBinding { { Binding { BindingType::Controller, 0, 0, 0, button } }, 1 };
+	}
+
+	constexpr MultiBinding MakeMultiBinding(KeyCode key, KeyModifiers modifiers, ModifierBehavior behavior, DS4Button secondaryButton)
+	{
+		return MultiBinding { { Binding { BindingType::Keyboard, key, modifiers, behavior }, Binding { BindingType::Controller, 0, 0, 0, secondaryButton } }, 2 };
+	}
+
+	template <size_t Size>
+	constexpr MultiBinding MakeMultiBinding(const std::array<Binding, Size>& initializer)
+	{
+		static_assert(Size < MaxMultiBindingCount);
+		MultiBinding result = {};
+		for (size_t i = 0; i < Size; i++)
+			result.Bindings[i] = initializer[i];
+		result.BindingCount = static_cast<u8>(Size);
+		return result;
+	}
+
+	using FormatBuffer = std::array<char, 64>;
+
+	std::string_view GetKeyCodeNameView(const KeyCode keyCode);
+	const char* GetKeyCodeName(const KeyCode keyCode);
+
+	void ToStringInplace(const KeyCode keyCode, char* buffer, size_t bufferSize);
+	FormatBuffer ToString(const KeyCode keyCode);
+
+	void ToStringInplace(const Binding& binding, char* buffer, size_t bufferSize);
+	FormatBuffer ToString(const Binding& binding);
+
+	void ToStringInplace(const MultiBinding& binding, char* buffer, size_t bufferSize);
+	FormatBuffer ToString(const MultiBinding& binding);
+}
+
+namespace Comfy::Input
+{
+	bool AreAllModifiersDown(const KeyModifiers modifiers);
+	bool AreAllModifiersUp(const KeyModifiers modifiers);
+	bool AreOnlyModifiersDown(const KeyModifiers modifiers);
+
+	bool IsKeyDown(const KeyCode keyCode);
+	bool IsKeyPressed(const KeyCode keyCode, bool repeat = true);
+	bool IsKeyReleased(const KeyCode keyCode);
+
+	bool IsDown(const Binding& binding);
+	bool IsPressed(const Binding& binding, bool repeat = true);
+	bool IsReleased(const Binding& binding);
+
+	bool IsAnyDown(const MultiBinding& binding);
+	bool IsAnyPressed(const MultiBinding& binding, bool repeat = true);
+	bool IsAnyReleased(const MultiBinding& binding);
+	bool IsLastReleased(const MultiBinding& binding);
 }
