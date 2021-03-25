@@ -15,6 +15,7 @@ namespace Comfy::Audio
 	public:
 		// NOTE: Amplitude axis, should be but doesn't have to be equal to the timeline height
 		static constexpr i32 TextureResolution = /*128*/ 216 /*256*/;
+		static constexpr i32 MinAmplitudePixels = 1; // 0;
 
 		// NOTE: Time axis, smaller means better performance when streaming in chunks slowly but also means having to render more
 		static constexpr i32 PixelsPerChunk = /*128*/ 256 /*512*/ /*1024*/ /*2048*/;

@@ -154,8 +154,11 @@ namespace Comfy::Audio
 
 		for (u32 c = 0; c < ChannelsToVisualize; c++)
 		{
-			const auto amplitude = waveform.GetNormalizedPCMForPixel(waveformPixel, c);
-			const auto amplitudePixels = static_cast<i32>(amplitude * static_cast<f32>(TextureResolution));
+			const f32 amplitude = waveform.GetNormalizedPCMForPixel(waveformPixel, c);
+			i32 amplitudePixels = static_cast<i32>(amplitude * static_cast<f32>(TextureResolution));
+
+			if constexpr (MinAmplitudePixels > 0)
+				amplitudePixels = std::max(amplitudePixels, MinAmplitudePixels);
 
 			for (size_t x = 0; x < amplitudePixels; x++)
 			{
