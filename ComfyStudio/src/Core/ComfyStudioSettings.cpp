@@ -343,6 +343,10 @@ namespace Comfy::Studio
 		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
 		const std::string PositionTool = "position_tool";
+		const std::string PositionTool_ShowDistanceGuides = "show_distance_guides";
+		const std::string PositionTool_ShowTargetGrabTooltip = "show_target_grab_tooltip";
+		const std::string PositionTool_UseAxisSnapGuides = "use_axis_snap_guides";
+		const std::string PositionTool_AxisSnapGuideDistanceThreshold = "axis_snap_guide_distance_threshold";
 		const std::string PositionTool_PositionMouseSnap = "position_mouse_snap";
 		const std::string PositionTool_PositionMouseSnapRough = "position_mouse_snap_rough";
 		const std::string PositionTool_PositionMouseSnapPrecise = "position_mouse_snap_precise";
@@ -462,6 +466,10 @@ namespace Comfy::Studio
 
 		if (const json* positionToolJson = JsonFind(rootJson, UserIDs::PositionTool))
 		{
+			JsonTryAssign(PositionTool.ShowDistanceGuides, JsonTryGetBool(JsonFind(*positionToolJson, UserIDs::PositionTool_ShowDistanceGuides)));
+			JsonTryAssign(PositionTool.ShowTargetGrabTooltip, JsonTryGetBool(JsonFind(*positionToolJson, UserIDs::PositionTool_ShowTargetGrabTooltip)));
+			JsonTryAssign(PositionTool.UseAxisSnapGuides, JsonTryGetBool(JsonFind(*positionToolJson, UserIDs::PositionTool_UseAxisSnapGuides)));
+			JsonTryAssign(PositionTool.AxisSnapGuideDistanceThreshold, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_AxisSnapGuideDistanceThreshold)));
 			JsonTryAssign(PositionTool.PositionMouseSnap, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnap)));
 			JsonTryAssign(PositionTool.PositionMouseSnapRough, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapRough)));
 			JsonTryAssign(PositionTool.PositionMouseSnapPrecise, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapPrecise)));
@@ -643,6 +651,10 @@ namespace Comfy::Studio
 
 		json& positionToolJson = rootJson[UserIDs::PositionTool];
 		{
+			positionToolJson[UserIDs::PositionTool_ShowDistanceGuides] = PositionTool.ShowDistanceGuides;
+			positionToolJson[UserIDs::PositionTool_ShowTargetGrabTooltip] = PositionTool.ShowTargetGrabTooltip;
+			positionToolJson[UserIDs::PositionTool_UseAxisSnapGuides] = PositionTool.UseAxisSnapGuides;
+			positionToolJson[UserIDs::PositionTool_AxisSnapGuideDistanceThreshold] = PositionTool.AxisSnapGuideDistanceThreshold;
 			positionToolJson[UserIDs::PositionTool_PositionMouseSnap] = PositionTool.PositionMouseSnap;
 			positionToolJson[UserIDs::PositionTool_PositionMouseSnapRough] = PositionTool.PositionMouseSnapRough;
 			positionToolJson[UserIDs::PositionTool_PositionMouseSnapPrecise] = PositionTool.PositionMouseSnapPrecise;
@@ -856,6 +868,10 @@ namespace Comfy::Studio
 		TargetPreview.PostHitLingerDuration = BeatTick::FromBeats(1);
 		TargetPreview.DisplayPracticeBackground = false;
 
+		PositionTool.ShowDistanceGuides = true;
+		PositionTool.ShowTargetGrabTooltip = true;
+		PositionTool.UseAxisSnapGuides = true;
+		PositionTool.AxisSnapGuideDistanceThreshold = Rules::GridStepDistance / 2.0f;
 		PositionTool.PositionMouseSnap = Rules::TickToDistance(BeatTick::FromBars(1) / 192);
 		PositionTool.PositionMouseSnapRough = Rules::GridStepDistance;
 		PositionTool.PositionMouseSnapPrecise = 1.0f;

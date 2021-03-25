@@ -114,7 +114,10 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::PostRenderGUI(Chart& chart, ImDrawList& drawList)
 	{
-		DrawTickDistanceGuides(chart, drawList);
+		if (GlobalUserData.PositionTool.ShowDistanceGuides)
+			DrawTickDistanceGuides(chart, drawList);
+
+		DrawFlushThisFrameGuides(drawList);
 		DrawRowDirectionGuide(chart, drawList);
 	}
 
@@ -143,9 +146,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::DrawTickDistanceGuides(Chart& chart, ImDrawList& drawList)
 	{
-		if (!drawDistanceGuides)
-			return;
-
 		// NOTE: To both prevent needless visual overload and to not overflow 16bit vertex indices too easily
 		const i32 maxGuidesToDraw = GlobalUserData.System.Gui.TargetDistanceGuideMaxCount;
 		i32 guideDrawCount = 0;
@@ -192,6 +192,19 @@ namespace Comfy::Studio::Editor
 			assert(firstTargetOfPair.Flags.SyncPairCount >= 1);
 			i += firstTargetOfPair.Flags.SyncPairCount;
 		}
+	}
+
+	void TargetPositionTool::DrawFlushThisFrameGuides(ImDrawList& drawList)
+	{
+		if (thisFrameGuides.empty())
+			return;
+
+		if (GlobalUserData.PositionTool.UseAxisSnapGuides)
+		{
+			for (const auto& guide : thisFrameGuides)
+				drawList.AddLine(glm::round(renderWindow.TargetAreaToScreenSpace(guide.Start)), glm::round(renderWindow.TargetAreaToScreenSpace(guide.End)), guide.Color, 1.0f);
+		}
+		thisFrameGuides.clear();
 	}
 
 	void TargetPositionTool::DrawRowDirectionGuide(Chart& chart, ImDrawList& drawList)
@@ -402,6 +415,10 @@ namespace Comfy::Studio::Editor
 		{
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
+			const auto& grabbedTarget = chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)];
+			if (GlobalUserData.PositionTool.UseAxisSnapGuides)
+				SetupAxisGrabGuides(grabbedTarget);
+
 			if ((grab.ThisPos != grab.LastPos) || (grab.ThisGridSnap != grab.LastGridSnap))
 			{
 				// TODO: Make modifiers configurable too (?)
@@ -410,13 +427,19 @@ namespace Comfy::Studio::Editor
 					io.KeyShift ? GlobalUserData.PositionTool.PositionMouseSnapRough :
 					io.KeyAlt ? GlobalUserData.PositionTool.PositionMouseSnapPrecise : GlobalUserData.PositionTool.PositionMouseSnap;
 
-				const vec2 grabMovedPosition = Rules::SnapPositionTo(grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom), positionSnap);
-				const vec2 positionIncrement = (grabMovedPosition - Rules::TryGetProperties(chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)]).Position);
+				vec2 grabMovedPosition = grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom);
+				if (GlobalUserData.PositionTool.UseAxisSnapGuides)
+					grabMovedPosition = TrySnapGrabPositionToGuides(grabMovedPosition);
+				grabMovedPosition = Rules::SnapPositionTo(grabMovedPosition, positionSnap);
+
+				const vec2 positionIncrement = (grabMovedPosition - Rules::TryGetProperties(grabbedTarget).Position);
 
 				if (positionIncrement != vec2(0.0f))
 					IncrementSelectedTargetPositionsBy(undoManager, chart, positionIncrement);
 			}
-			}
+
+			if (GlobalUserData.PositionTool.ShowTargetGrabTooltip)
+				GuiTargetGrabTooltip(chart);
 		}
 	}
 
@@ -460,6 +483,72 @@ namespace Comfy::Studio::Editor
 					PositionSelectedTargetsInCardinalRow(undoManager, chart, AngleToNearestCardinal(row.Angle), GetSelectedRowPerBeatDiagonalSpacing(), row.Backwards);
 			}
 		}
+	}
+
+	void TargetPositionTool::SetupAxisGrabGuides(const TimelineTarget& grabbedTarget)
+	{
+		const vec2 grabbedTargetPosition = Rules::TryGetProperties(grabbedTarget).Position;
+		const vec2 movedSoFar = (grabbedTargetPosition - grab.TargetPositionOnGrab);
+
+		static constexpr u8 guideAlpha = 0xDD;
+		auto addVerticalGuide = [this](f32 x, ButtonType type) { thisFrameGuides.push_back({ vec2(x, 0.0f), vec2(x, Rules::PlacementAreaSize.y), GetButtonTypeColorU32(type, guideAlpha) }); };
+		auto addhorizontalGuide = [this](f32 y, ButtonType type) { thisFrameGuides.push_back({ vec2(0.0f, y), vec2(Rules::PlacementAreaSize.x, y), GetButtonTypeColorU32(type, guideAlpha) }); };
+
+		if (movedSoFar.x == 0.0f)
+			addVerticalGuide(grabbedTargetPosition.x, grabbedTarget.Type);
+		if (movedSoFar.y == 0.0f)
+			addhorizontalGuide(grabbedTargetPosition.y, grabbedTarget.Type);
+	}
+
+	vec2 TargetPositionTool::TrySnapGrabPositionToGuides(vec2 grabMovedPosition) const
+	{
+		const f32 snapThreshold = GlobalUserData.PositionTool.AxisSnapGuideDistanceThreshold;
+
+		for (const auto& guide : thisFrameGuides)
+		{
+			for (vec2::length_type component = 0; component < vec2::length(); component++)
+			{
+				if (guide.Start[component] == guide.End[component])
+				{
+					if (glm::distance(guide.Start[component], grabMovedPosition[component]) <= snapThreshold)
+						grabMovedPosition[component] = guide.Start[component];
+					break;
+				}
+			}
+		}
+
+		return grabMovedPosition;
+	}
+
+	void TargetPositionTool::GuiTargetGrabTooltip(const Chart& chart) const
+	{
+		const auto& grabbedTarget = chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)];
+		const vec2 grabbedTargetPosition = Rules::TryGetProperties(grabbedTarget).Position;
+		const vec2 movedSoFar = (grabbedTargetPosition - grab.TargetPositionOnGrab);
+		Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(3.0f, 3.0f));
+		Gui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+		{
+			Gui::PushStyleColor(ImGuiCol_PopupBg, Gui::GetColorU32(ImGuiCol_PopupBg, 0.85f));
+			Gui::PushStyleColor(ImGuiCol_Border, Gui::GetColorU32(ImGuiCol_BorderShadow, 4.0f));
+			Gui::PushStyleColor(ImGuiCol_Separator, Gui::GetColorU32(ImGuiCol_BorderShadow, 3.0f));
+			Gui::BeginTooltip();
+			{
+				Gui::BeginChild("ColumnChild", vec2(112.0f, 52.0f + 2.0f), false, ImGuiWindowFlags_NoBackground);
+				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_None);
+				Gui::SetColumnWidth(0, 25.0f + 2.0f);
+
+				Gui::TextUnformatted(" " ICON_FA_ARROWS_ALT); Gui::NextColumn(); Gui::Text(":  %4.f, %4.f px", grabbedTargetPosition.x, grabbedTargetPosition.y); Gui::NextColumn();
+				Gui::Separator();
+				Gui::TextUnformatted(movedSoFar.x < 0.0f ? " " ICON_FA_ARROW_LEFT : " " ICON_FA_ARROW_RIGHT); Gui::NextColumn(); Gui::Text(":  %4.f px", glm::abs(movedSoFar.x)); Gui::NextColumn();
+				Gui::TextUnformatted(movedSoFar.y < 0.0f ? " " ICON_FA_ARROW_UP : " " ICON_FA_ARROW_DOWN); Gui::NextColumn(); Gui::Text(":  %4.f px", glm::abs(movedSoFar.y)); Gui::NextColumn();
+
+				Gui::EndColumns();
+				Gui::EndChild();
+			}
+			Gui::EndTooltip();
+			Gui::PopStyleColor(3);
+		}
+		Gui::PopStyleVar(2);
 	}
 
 	vec2 TargetPositionTool::GetSelectedRowPerBeatDiagonalSpacing() const

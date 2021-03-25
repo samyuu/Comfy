@@ -32,12 +32,17 @@ namespace Comfy::Studio::Editor
 		enum class FlipMode : u8 { Horizontal, Vertical, HorizontalLocal, VerticalLocal, Count };
 
 		void DrawTickDistanceGuides(Chart& chart, ImDrawList& drawList);
+		void DrawFlushThisFrameGuides(ImDrawList& drawList);
 		void DrawRowDirectionGuide(Chart& chart, ImDrawList& drawList);
 
 		void UpdateKeyboardKeyBindingsInput(Chart& chart);
 		void UpdateKeyboardStepInput(Chart& chart);
 		void UpdateMouseGrabInput(Chart& chart);
 		void UpdateMouseRowInput(Chart& chart);
+
+		void SetupAxisGrabGuides(const TimelineTarget& grabbedTarget);
+		vec2 TrySnapGrabPositionToGuides(vec2 grabMovedPosition) const;
+		void GuiTargetGrabTooltip(const Chart& chart) const;
 
 		vec2 GetSelectedRowPerBeatDiagonalSpacing() const;
 
@@ -55,8 +60,6 @@ namespace Comfy::Studio::Editor
 	private:
 		std::vector<TimelineTarget*> selectedTargetsBuffer;
 		size_t lastFrameSelectionCount = 0;
-
-		bool drawDistanceGuides = true;
 
 		struct GrabData
 		{
@@ -79,5 +82,13 @@ namespace Comfy::Studio::Editor
 			bool Backwards;
 			bool SteepThisFrame, SteepLastFrame;
 		} row = {};
+
+		struct GuideData
+		{
+			vec2 Start, End;
+			u32 Color;
+		};
+
+		std::vector<GuideData> thisFrameGuides;
 	};
 }

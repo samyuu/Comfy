@@ -418,6 +418,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::CollapsingHeader("Position Tool", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
+
 			if (auto v = vec3(userData.PositionTool.PositionMouseSnap, userData.PositionTool.PositionMouseSnapRough, userData.PositionTool.PositionMouseSnapPrecise);
 				GuiSettingsInputVec3("Position Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
 			{
@@ -426,6 +427,14 @@ namespace Comfy::Studio::Editor
 				userData.PositionTool.PositionMouseSnapPrecise = v[2];
 			}
 			GuiSettingsInputF32("Mouse Row Movement Threshold", userData.PositionTool.MouseRowMovementDistanceThreshold);
+			GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
+			GuiSettingsCheckbox("Show Target Grab Tooltip", userData.PositionTool.ShowTargetGrabTooltip);
+
+			GuiSettingsCheckbox("Use Axis Snap Guides", userData.PositionTool.UseAxisSnapGuides);
+			Gui::PushItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
+			GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold);
+			Gui::PopItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
+
 			GuiEndSettingsColumns();
 		}
 
