@@ -64,7 +64,7 @@ namespace Comfy::Studio::Editor
 				const f32 buttonWidth = Gui::GetFrameHeight() * 2.0f;
 
 				GuiPropertyRAII::ItemWidth width(std::max(Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 2.0f - buttonWidth, 1.0f));
-				bool result = Gui::InputFormattedTimeSpan(GuiProperty::Detail::DummyLabel, &duration);
+				bool result = Gui::InputFormattedTimeSpan(GuiProperty::Detail::DummyLabel, &duration, {}, ImGuiInputTextFlags_AutoSelectAll);
 
 				Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
 				if (Gui::Button("Set##Cursor", vec2(std::max(Gui::GetContentRegionAvailWidth(), buttonWidth), 0.0f))) { duration = timeline.GetCursorTime(); result = true; }
