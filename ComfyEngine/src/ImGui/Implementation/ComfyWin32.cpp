@@ -17,6 +17,7 @@
 #include <Windows.h>
 
 #include "Window/ApplicationHost.h"
+#include "Input/Input.h"
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
@@ -209,7 +210,7 @@ namespace ImGui
 				::ScreenToClient(g_hWnd, &mouse_client_pos);
 				io.MousePos = ImVec2((float)mouse_client_pos.x, (float)mouse_client_pos.y);
 			}
-	}
+		}
 #else
 		if (HWND focused_hwnd = ::GetForegroundWindow())
 		{
@@ -305,6 +306,8 @@ namespace ImGui
 		if (ImGui::GetCurrentContext() == NULL)
 			return 0;
 
+		using namespace Comfy::Input;
+
 		ImGuiIO& io = ImGui::GetIO();
 		switch (msg)
 		{
@@ -313,14 +316,20 @@ namespace ImGui
 		case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
 		case WM_XBUTTONDOWN: case WM_XBUTTONDBLCLK:
 		{
-			int button = 0;
-			if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) { button = 0; }
-			if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; }
-			if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; }
-			if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
+			int button = 0; KeyCode keyCode = 0;
+			if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) { button = 0; keyCode = KeyCode_MouseLeft; }
+			if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; keyCode = KeyCode_MouseRight; }
+			if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; keyCode = KeyCode_MouseMiddle; }
+			if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK)
+			{
+				button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4;
+				keyCode = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? KeyCode_MouseX1 : KeyCode_MouseX2;
+			}
+
 			if (!ImGui::IsAnyMouseDown() && ::GetCapture() == NULL)
 				::SetCapture(hwnd);
 			io.MouseDown[button] = true;
+			io.KeysDown[keyCode] = true;
 			return 0;
 		}
 		case WM_LBUTTONUP:
@@ -328,12 +337,17 @@ namespace ImGui
 		case WM_MBUTTONUP:
 		case WM_XBUTTONUP:
 		{
-			int button = 0;
-			if (msg == WM_LBUTTONUP) { button = 0; }
-			if (msg == WM_RBUTTONUP) { button = 1; }
-			if (msg == WM_MBUTTONUP) { button = 2; }
-			if (msg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
+			int button = 0; KeyCode keyCode = 0;
+			if (msg == WM_LBUTTONUP) { button = 0; keyCode = KeyCode_MouseLeft; }
+			if (msg == WM_RBUTTONUP) { button = 1; keyCode = KeyCode_MouseRight; }
+			if (msg == WM_MBUTTONUP) { button = 2; keyCode = KeyCode_MouseMiddle; }
+			if (msg == WM_XBUTTONUP)
+			{
+				button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4;
+				keyCode = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? KeyCode_MouseX1 : KeyCode_MouseX2;
+			}
 			io.MouseDown[button] = false;
+			io.KeysDown[keyCode] = false;
 			if (!ImGui::IsAnyMouseDown() && ::GetCapture() == hwnd)
 				::ReleaseCapture();
 			return 0;
