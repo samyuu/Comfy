@@ -750,12 +750,14 @@ namespace Comfy::Studio::Editor
 			const auto center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[buttonIndex]);
 			const auto scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
 
-			// TODO: Come up with a better visualization ... (?)
 			const bool tooEarly = (target.Tick < BeatTick::FromBars(1));
-			constexpr auto tooEarlyOpacity = 0.5f;
+			const bool isSelected = target.IsSelected;
 
-			renderHelper.DrawButtonIcon(windowDrawList, target, center, scale, tooEarly ? tooEarlyOpacity : GetButtonEdgeFadeOpacity(screenX));
+			constexpr f32 tooEarlyOpacity = 0.5f, selectionOpacity = 0.75f;
+			const f32 edgeFadeOpacity = GetButtonEdgeFadeOpacity(screenX);
+			const f32 finalOpacity = tooEarly ? tooEarlyOpacity : isSelected ? (edgeFadeOpacity * selectionOpacity) : edgeFadeOpacity;
 
+			renderHelper.DrawButtonIcon(windowDrawList, target, center, scale, finalOpacity);
 			if (target.IsSelected)
 				tempSelectedTargetPositionBuffer.push_back(center);
 		}
