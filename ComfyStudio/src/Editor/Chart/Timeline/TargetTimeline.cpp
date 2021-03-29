@@ -1250,10 +1250,6 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		// NOTE: Mouse X buttons, increase / decrease grid division
-		if (Gui::IsMouseClicked(3)) SelectNextPresetGridDivision(-1);
-		if (Gui::IsMouseClicked(4)) SelectNextPresetGridDivision(+1);
-
 		if (Gui::GetIO().KeyCtrl)
 			return;
 
