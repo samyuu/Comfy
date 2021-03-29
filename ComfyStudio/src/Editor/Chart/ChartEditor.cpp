@@ -751,15 +751,19 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiChildWindows()
 	{
-		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sync Target Presets", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
+			historyWindow.Gui();
+		Gui::End();
+
+		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sync Target Presets##ChartEditor", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SyncGui(*chart);
 		Gui::End();
-		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sequence Target Presets", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_DRAFTING_COMPASS "  Sequence Target Presets##ChartEditor", nullptr, ImGuiWindowFlags_None))
 			presetWindow.SequenceGui(*chart);
 		Gui::End();
 		presetWindow.UpdateStateAfterBothGuiPartsHaveBeenDrawn();
 
-		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_MUSIC "  Target Timeline##ChartEditor##ChartEditor", nullptr, ImGuiWindowFlags_None))
 			timeline->DrawTimelineGui();
 		Gui::End();
 
@@ -777,11 +781,7 @@ namespace Comfy::Studio::Editor
 
 		renderWindow->BeginEndGui(ICON_FA_CHART_BAR "  Target Preview##ChartEditor");
 
-		if (Gui::Begin(ICON_FA_HISTORY "  Chart Editor History##ChartEditor"))
-			historyWindow.Gui();
-		Gui::End();
-
-		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties", nullptr, ImGuiWindowFlags_None))
+		if (Gui::Begin(ICON_FA_LIST_UL "  Chart Properties##ChartEditor", nullptr, ImGuiWindowFlags_None))
 			chartPropertiesWindow.Gui(*chart);
 		Gui::End();
 	}
