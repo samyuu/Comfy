@@ -118,11 +118,7 @@ namespace Comfy
 			if (!InternalCreateWindow())
 				return false;
 
-			Input::InitializeDirectInput(GlobalModuleHandle);
-
-			if (!CheckConnectedDevices())
-				return false;
-
+			Input::GlobalSystemInitialize(Window.Handle);
 			Audio::AudioEngine::CreateInstance();
 
 			if (!GuiRenderer.Initialize())
@@ -184,13 +180,11 @@ namespace Comfy
 		{
 			GuiRenderer.Dispose();
 
-			Input::Keyboard::DeleteInstance();
-			Input::DualShock4::DeleteInstance();
-
 			if (Audio::AudioEngine::InstanceValid())
 				Audio::AudioEngine::GetInstance().StopCloseStream();
 			Audio::AudioEngine::DeleteInstance();
 
+			Input::GlobalSystemDispose(Window.Handle);
 			Render::D3D11::D3D.Dispose();
 			DisposeWindow();
 		}
@@ -422,21 +416,6 @@ namespace Comfy
 			Exit();
 		}
 
-		bool CheckConnectedDevices()
-		{
-			if (!Input::Keyboard::GetInstanceInitialized() && Input::Keyboard::TryInitializeInstance())
-			{
-				Logger::LogLine(__FUNCTION__"(): Keyboard connected and initialized");
-			}
-
-			if (!Input::DualShock4::GetInstanceInitialized() && Input::DualShock4::TryInitializeInstance())
-			{
-				Logger::LogLine(__FUNCTION__"(): DualShock4 connected and initialized");
-			}
-
-			return true;
-		}
-
 	public:
 		void UpdateFullscreenRequests()
 		{
@@ -612,17 +591,7 @@ namespace Comfy
 			Input.MouseScrolledDown = Input.LastMouseWheel > Input.MouseWheel;
 			Input.LastMouseWheel = Input.MouseWheel;
 
-			if (Input::Keyboard::GetInstanceInitialized())
-				Input::Keyboard::GetInstance()->PollInput();
-
-			if (Input::DualShock4::GetInstanceInitialized())
-			{
-				if (!Input::DualShock4::GetInstance()->PollInput())
-				{
-					Input::DualShock4::DeleteInstance();
-					Logger::LogLine(__FUNCTION__"(): DualShock4 connection lost");
-				}
-			}
+			Input::GlobalSystemUpdateFrame(Timing.ElapsedTime, Window.AnyFocused);
 		}
 
 		void DisposeWindow()
@@ -700,7 +669,7 @@ namespace Comfy
 
 			case WM_DEVICECHANGE:
 			{
-				CheckConnectedDevices();
+				Input::GlobalSystemRefreshDevices();
 				return 0;
 			}
 

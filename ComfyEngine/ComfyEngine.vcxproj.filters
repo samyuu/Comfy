@@ -48,25 +48,7 @@
     <ClInclude Include="src\Audio\Core\ChannelMixer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DirectInput.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DirectInputDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DualShock4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Input\Input.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\Core\IInputDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\Core\Keyboard.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\Core\KeyCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Render\Render.h">
@@ -276,12 +258,6 @@
     <ClInclude Include="src\Render\Core\RenderSnapshot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DS4Button.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input\DirectInput\DS4State.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\ImGui\Widgets\LoadingTextAnimation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -318,6 +294,12 @@
     <ClInclude Include="src\Audio\Misc\SfxArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Input\Core\InputSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\Core\InputBaseTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -348,18 +330,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Audio\Core\ChannelMixer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\DirectInput\DirectInput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\DirectInput\DirectInputDevice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\DirectInput\DualShock4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input\Core\Keyboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Render\D3D11\Buffer\ConstantBuffer.cpp">
@@ -506,7 +476,10 @@
     <ClCompile Include="src\Audio\Misc\SfxArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Input\Core\KeyCode.cpp">
+    <ClCompile Include="src\Input\Core\InputSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\Core\InputBaseTypes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

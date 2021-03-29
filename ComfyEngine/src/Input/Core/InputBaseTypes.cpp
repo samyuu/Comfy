@@ -1,6 +1,4 @@
-// HACK: Quickly hacking together using strcat...
-#define _CRT_SECURE_NO_WARNINGS
-#include "KeyCode.h"
+#include "InputBaseTypes.h"
 
 namespace Comfy::Input
 {
@@ -11,7 +9,7 @@ namespace Comfy::Input
 
 		switch (keyCode)
 		{
-		case KeyCode_Unknown: return "Unknown";
+		case KeyCode_None: return "";
 		case KeyCode_MouseLeft: return "Mouse Left";
 		case KeyCode_MouseRight: return "Mouse Right";
 		case KeyCode_MouseMiddle: return "Mouse Middle";
@@ -173,7 +171,6 @@ namespace Comfy::Input
 		case KeyCode_OEMClear: return "OEM Clear";
 
 		default:
-			assert(keyCode < KeyCode_Unknown);
 			return nullptr;
 		}
 	}
@@ -181,6 +178,48 @@ namespace Comfy::Input
 	const char* GetKeyCodeName(const KeyCode keyCode)
 	{
 		return GetKeyCodeNameView(keyCode).data();
+	}
+
+	std::string_view GetButtonNameView(const Button button)
+	{
+		switch (button)
+		{
+		case Button::None: return "";
+		case Button::DPadUp: return "DPad Up";
+		case Button::DPadLeft: return "DPad Left";
+		case Button::DPadDown: return "DPad Down";
+		case Button::DPadRight: return "DPad Right";
+		case Button::FaceUp: return "Face Up";
+		case Button::FaceLeft: return "Face Left";
+		case Button::FaceDown: return "Face Down";
+		case Button::FaceRight: return "Face Right";
+		case Button::LeftStickUp: return "Left Stick Up";
+		case Button::LeftStickLeft: return "Left Stick Left";
+		case Button::LeftStickDown: return "Left Stick Down";
+		case Button::LeftStickRight: return "Left Stick Right";
+		case Button::LeftStickPush: return "Left Stick Push";
+		case Button::RightStickUp: return "Right Stick Up";
+		case Button::RightStickLeft: return "Right Stick Left";
+		case Button::RightStickDown: return "Right Stick Down";
+		case Button::RightStickRight: return "Right Stick Right";
+		case Button::RightStickPush: return "Right Stick Push";
+		case Button::LeftBumper: return "Left Bumper";
+		case Button::RightBumper: return "Right Bumper";
+		case Button::LeftTrigger: return "Left Trigger";
+		case Button::RightTrigger: return "Right Trigger";
+		case Button::Select: return "Select";
+		case Button::Start: return "Start";
+		case Button::Home: return "Home";
+		case Button::TouchPad: return "Touch Pad";
+
+		default:
+			return nullptr;
+		}
+	}
+
+	const char* GetButtonName(const Button button)
+	{
+		return GetButtonNameView(button).data();
 	}
 
 	void ToStringInplace(const KeyCode keyCode, char* buffer, size_t bufferSize)
@@ -199,24 +238,37 @@ namespace Comfy::Input
 
 	void ToStringInplace(const Binding& binding, char* buffer, size_t bufferSize)
 	{
-		buffer[0] = '\0';
+		char* bufferStart = buffer;
+		char* bufferEnd = buffer + bufferSize;
 
+		auto appendToBuffer = [&](std::string_view toAppend)
+		{
+			if (toAppend == "")
+				return;
+
+			std::memcpy(buffer, toAppend.data(), toAppend.size());
+			buffer[toAppend.size()] = '\0';
+			buffer += toAppend.size();
+			bufferSize -= toAppend.size() + 1;
+		};
+
+		buffer[0] = '\0';
 		if (binding.Type == BindingType::Keyboard)
 		{
-			// TODO: Optimize...
-			ForEachKeyCodeInKeyModifiers(binding.KeyModifiers, [&](KeyCode keyCode)
+			ForEachKeyCodeInKeyModifiers(binding.Data.Keyboard.Modifiers, [&](KeyCode keyCode)
 			{
-				strcat(buffer, GetKeyCodeName(keyCode));
-				strcat(buffer, " + ");
+				appendToBuffer(GetKeyCodeName(keyCode));
+				appendToBuffer(" + ");
 			});
 
-			strcat(buffer, GetKeyCodeName(binding.Key));
+			appendToBuffer(GetKeyCodeName(binding.Data.Keyboard.Key));
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
-			// TODO: Implement
-			sprintf_s(buffer, bufferSize, "DS4Button{%d}", static_cast<i32>(binding.Button));
+			appendToBuffer(GetButtonName(binding.Data.Controller.Button));
 		}
+
+		assert(buffer <= bufferEnd);
 	}
 
 	FormatBuffer ToString(const Binding& binding)
@@ -239,127 +291,5 @@ namespace Comfy::Input
 		FormatBuffer buffer;
 		ToStringInplace(binding, buffer.data(), buffer.size());
 		return buffer;
-	}
-}
-
-// HACK: Just relaying to ImGui for now to get things up and running...
-#include "Input/DirectInput/DualShock4.h"
-#include "ImGui/Gui.h"
-
-namespace Comfy::Input
-{
-	bool AreAllModifiersDown(const KeyModifiers modifiers)
-	{
-		bool allDown = true;
-		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allDown &= IsKeyDown(keyCode); });
-		return allDown;
-	}
-
-	bool AreAllModifiersUp(const KeyModifiers modifiers)
-	{
-		bool allUp = true;
-		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allUp &= !IsKeyDown(keyCode); });
-		return allUp;
-	}
-
-	bool AreOnlyModifiersDown(const KeyModifiers modifiers)
-	{
-		return (AreAllModifiersDown(modifiers) && AreAllModifiersUp(InvertKeyModifiers(modifiers)));
-	}
-
-	bool IsKeyDown(const KeyCode keyCode)
-	{
-		return Gui::IsKeyDown(keyCode);
-	}
-
-	bool IsKeyPressed(const KeyCode keyCode, bool repeat)
-	{
-		return Gui::IsKeyPressed(keyCode, repeat);
-	}
-
-	bool IsKeyReleased(const KeyCode keyCode)
-	{
-		return Gui::IsKeyReleased(keyCode);
-	}
-
-	bool IsDown(const Binding& binding)
-	{
-		if (binding.Type == BindingType::Keyboard)
-		{
-			if (binding.Behavior == ModifierBehavior_Strict)
-				return IsKeyDown(binding.Key) && AreOnlyModifiersDown(binding.KeyModifiers);
-			else
-				return IsKeyDown(binding.Key) && AreAllModifiersDown(binding.KeyModifiers);
-		}
-		else if (binding.Type == BindingType::Controller)
-		{
-			return DualShock4::IsDown(binding.Button);
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	bool IsPressed(const Binding& binding, bool repeat)
-	{
-		if (binding.Type == BindingType::Keyboard)
-		{
-			if (binding.Behavior == ModifierBehavior_Strict)
-				return IsKeyPressed(binding.Key, repeat) && AreOnlyModifiersDown(binding.KeyModifiers);
-			else
-				return IsKeyPressed(binding.Key, repeat) && AreAllModifiersDown(binding.KeyModifiers);
-		}
-		else if (binding.Type == BindingType::Controller)
-		{
-			return DualShock4::IsTapped(binding.Button);
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	bool IsReleased(const Binding& binding)
-	{
-		if (binding.Type == BindingType::Keyboard)
-		{
-			// TODO: How should this best be handled..?
-			if (binding.Behavior == ModifierBehavior_Strict)
-				return IsKeyReleased(binding.Key) && AreOnlyModifiersDown(binding.KeyModifiers);
-			else
-				return IsKeyReleased(binding.Key) && AreAllModifiersDown(binding.KeyModifiers);
-		}
-		else if (binding.Type == BindingType::Controller)
-		{
-			return DualShock4::IsReleased(binding.Button);
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	bool IsAnyDown(const MultiBinding& binding)
-	{
-		return std::any_of(binding.begin(), binding.end(), [](auto& b) { return IsDown(b); });
-	}
-
-	bool IsAnyPressed(const MultiBinding& binding, bool repeat)
-	{
-		return std::any_of(binding.begin(), binding.end(), [repeat](auto& b) { return IsPressed(b, repeat); });
-	}
-
-	bool IsAnyReleased(const MultiBinding& binding)
-	{
-		return std::any_of(binding.begin(), binding.end(), [](auto& b) { return IsReleased(b); });
-	}
-
-	bool IsLastReleased(const MultiBinding& binding)
-	{
-		const bool allUp = std::all_of(binding.begin(), binding.end(), [](auto& b) { return !IsDown(b); });
-		const bool anyReleased = std::any_of(binding.begin(), binding.end(), [](auto& b) { return IsReleased(b); });
-
-		return (allUp && anyReleased);
 	}
 }

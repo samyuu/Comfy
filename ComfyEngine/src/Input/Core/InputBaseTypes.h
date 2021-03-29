@@ -2,15 +2,11 @@
 #include "Types.h"
 #include "CoreTypes.h"
 
-// HACK: Gotta restructure all of this...
-#include "Input/DirectInput/DS4Button.h"
-
 namespace Comfy::Input
 {
-	using KeyCode = i16;
+	using KeyCode = u16;
 	enum KeyCodeEnum : KeyCode
 	{
-		KeyCode_Unknown = -1,
 		KeyCode_None = 0x00,
 		KeyCode_MouseLeft = 0x01,
 		KeyCode_MouseRight = 0x02,
@@ -186,8 +182,6 @@ namespace Comfy::Input
 		KeyModifiers_Ctrl = 1 << 0,
 		KeyModifiers_Shift = 1 << 1,
 		KeyModifiers_Alt = 1 << 2,
-		// KeyModifiers_Super = 1 << 3,
-		// KeyModifiers_Function = 1 << 4,
 
 		KeyModifiers_CtrlShift = KeyModifiers_Ctrl | KeyModifiers_Shift,
 		KeyModifiers_CtrlShiftAlt = KeyModifiers_Ctrl | KeyModifiers_Shift | KeyModifiers_Alt,
@@ -213,14 +207,125 @@ namespace Comfy::Input
 	{
 		return (~modifiers & KeyModifiers_All);
 	}
+}
 
+namespace Comfy::Input
+{
+	// NOTE: Unknown layout therefore only referenced by their indices
+	enum class NativeButton : u8
+	{
+		None,
+		FirstButton,
+		LastButton = FirstButton + 31, // 127,
+
+		// NOTE: DPads 0 to 3 each with Top, Left, Down, Right directions
+		FirstDPad = LastButton + 1,
+		LastDPad = FirstDPad + (4 * 4) - 1,
+
+		// NOTE: Axes 0 to 7 each either Negative, Positive or Trigger
+		FirstAxis,
+		LastAxis = FirstAxis + (8 * 3) - 1,
+
+		Count,
+	};
+
+	enum class NativeAxis : u8
+	{
+		None,
+		First,
+		Last = First + 7,
+
+		Count,
+	};
+
+	// NOTE: Standard meant to abstract a DualShock / Xbox style controller layout
+	enum class Button : u8
+	{
+		None,
+		DPadUp,
+		DPadLeft,
+		DPadDown,
+		DPadRight,
+		FaceUp,
+		FaceLeft,
+		FaceDown,
+		FaceRight,
+		LeftStickUp,
+		LeftStickLeft,
+		LeftStickDown,
+		LeftStickRight,
+		LeftStickPush,
+		RightStickUp,
+		RightStickLeft,
+		RightStickDown,
+		RightStickRight,
+		RightStickPush,
+		LeftBumper,
+		RightBumper,
+		LeftTrigger,
+		RightTrigger,
+		Select,
+		Start,
+		Home,
+		TouchPad,
+
+		Count
+	};
+
+	// NOTE: Standard represented as normalized float values
+	enum class Axis : u8
+	{
+		None,
+		LeftStickX,
+		LeftStickY,
+		RightStickX,
+		RightStickY,
+		LeftTrigger,
+		RightTrigger,
+
+		Count
+	};
+
+	// NOTE: Vec2 center normalized wrapper around the original axes
+	enum class Stick : u8
+	{
+		None,
+		LeftStick,
+		RightStick,
+
+		Count
+	};
+
+	struct ControllerID
+	{
+		std::array<u8, 16> GUID;
+	};
+
+	struct StandardControllerLayoutMapping
+	{
+		ControllerID ProductID;
+		std::array<NativeButton, EnumCount<Button>()> Buttons;
+		std::array<NativeAxis, EnumCount<Axis>()> Axes;
+		// std::array<f32, EnumCount<Axis>()> AxesDeadZones;
+	};
+
+	struct ControllerInfoView
+	{
+		ControllerID InstanceID;
+		ControllerID ProductID;
+		std::string_view InstanceName;
+		std::string_view ProductName;
+	};
+}
+
+namespace Comfy::Input
+{
 	constexpr size_t MaxMultiBindingCount = 8;
 
 	enum class BindingType : u8
 	{
 		None,
 		Keyboard,
-		// TODO: Generic DirectInput support and controller GUID whitelist (?)
 		Controller,
 		// TODO: Special window focus/hover behavior (?)
 		// Mouse,
@@ -228,62 +333,56 @@ namespace Comfy::Input
 
 	struct Binding
 	{
-		BindingType Type;
-		KeyCode Key;
-		KeyModifiers KeyModifiers;
-		ModifierBehavior Behavior;
-		DS4Button Button;
+		BindingType Type = BindingType::None;
+		union
+		{
+			struct
+			{
+				KeyCode Key;
+				KeyModifiers Modifiers;
+				ModifierBehavior Behavior;
+			} Keyboard;
+			struct
+			{
+				Button Button;
+			} Controller;
+		} Data = {};
+
+		constexpr Binding() {}
+		constexpr Binding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict) : Type(BindingType::Keyboard)
+		{
+			Data.Keyboard = { key, modifiers, behavior };
+		}
+		constexpr Binding(Button button) : Type(BindingType::Controller)
+		{
+			Data.Controller.Button = button;
+		}
 	};
 
 	struct MultiBinding
 	{
-		std::array<Binding, MaxMultiBindingCount> Bindings;
-		u8 BindingCount;
+		std::array<Binding, MaxMultiBindingCount> Bindings = {};
+		u8 BindingCount = 0;
+
+		constexpr MultiBinding() {}
+		constexpr MultiBinding(Binding primary) : Bindings({ primary }), BindingCount(1) {}
+		constexpr MultiBinding(Binding primary, Binding secondary) : Bindings({ primary, secondary }), BindingCount(2) {}
 
 		constexpr auto begin() const { return Bindings.begin(); }
 		constexpr auto end() const { return Bindings.begin() + BindingCount; }
 	};
+}
 
-	constexpr Binding MakeBinding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict)
-	{
-		return { Binding { BindingType::Keyboard, key, modifiers, behavior } };
-	}
-
-	constexpr MultiBinding MakeMultiBinding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict)
-	{
-		return MultiBinding { { Binding { BindingType::Keyboard, key, modifiers, behavior } }, 1 };
-	}
-
-	constexpr MultiBinding MakeMultiBinding(KeyCode key, KeyModifiers modifiers, ModifierBehavior behavior, KeyCode secondaryKey, KeyModifiers secondaryModifiers, ModifierBehavior secondaryBehavior)
-	{
-		return MultiBinding { { Binding { BindingType::Keyboard, key, modifiers, behavior }, Binding { BindingType::Keyboard, secondaryKey, secondaryModifiers, secondaryBehavior } }, 2 };
-	}
-
-	constexpr MultiBinding MakeMultiBinding(DS4Button button)
-	{
-		return MultiBinding { { Binding { BindingType::Controller, 0, 0, 0, button } }, 1 };
-	}
-
-	constexpr MultiBinding MakeMultiBinding(KeyCode key, KeyModifiers modifiers, ModifierBehavior behavior, DS4Button secondaryButton)
-	{
-		return MultiBinding { { Binding { BindingType::Keyboard, key, modifiers, behavior }, Binding { BindingType::Controller, 0, 0, 0, secondaryButton } }, 2 };
-	}
-
-	template <size_t Size>
-	constexpr MultiBinding MakeMultiBinding(const std::array<Binding, Size>& initializer)
-	{
-		static_assert(Size < MaxMultiBindingCount);
-		MultiBinding result = {};
-		for (size_t i = 0; i < Size; i++)
-			result.Bindings[i] = initializer[i];
-		result.BindingCount = static_cast<u8>(Size);
-		return result;
-	}
-
-	using FormatBuffer = std::array<char, 64>;
+namespace Comfy::Input
+{
+	constexpr size_t FormatBufferSize = 64;
+	using FormatBuffer = std::array<char, FormatBufferSize>;
 
 	std::string_view GetKeyCodeNameView(const KeyCode keyCode);
 	const char* GetKeyCodeName(const KeyCode keyCode);
+
+	std::string_view GetButtonNameView(const Button button);
+	const char* GetButtonName(const Button button);
 
 	void ToStringInplace(const KeyCode keyCode, char* buffer, size_t bufferSize);
 	FormatBuffer ToString(const KeyCode keyCode);
@@ -293,24 +392,4 @@ namespace Comfy::Input
 
 	void ToStringInplace(const MultiBinding& binding, char* buffer, size_t bufferSize);
 	FormatBuffer ToString(const MultiBinding& binding);
-}
-
-namespace Comfy::Input
-{
-	bool AreAllModifiersDown(const KeyModifiers modifiers);
-	bool AreAllModifiersUp(const KeyModifiers modifiers);
-	bool AreOnlyModifiersDown(const KeyModifiers modifiers);
-
-	bool IsKeyDown(const KeyCode keyCode);
-	bool IsKeyPressed(const KeyCode keyCode, bool repeat = true);
-	bool IsKeyReleased(const KeyCode keyCode);
-
-	bool IsDown(const Binding& binding);
-	bool IsPressed(const Binding& binding, bool repeat = true);
-	bool IsReleased(const Binding& binding);
-
-	bool IsAnyDown(const MultiBinding& binding);
-	bool IsAnyPressed(const MultiBinding& binding, bool repeat = true);
-	bool IsAnyReleased(const MultiBinding& binding);
-	bool IsLastReleased(const MultiBinding& binding);
 }
