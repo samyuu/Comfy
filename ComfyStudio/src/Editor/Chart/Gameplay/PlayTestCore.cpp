@@ -19,7 +19,7 @@ namespace Comfy::Studio::Editor
 		{
 			ButtonTypeFlags ButtonTypes;
 			SlidePositionType SlidePosition;
-			std::variant<Input::KeyCode, Input::DS4Button> InputSource;
+			std::variant<Input::KeyCode, Input::Button> InputSource;
 		};
 
 		constexpr std::array PlayTestInputBindings =
@@ -48,25 +48,25 @@ namespace Comfy::Studio::Editor
 			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_9 },
 			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_0 },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::DS4Button::Triangle },
-			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::DS4Button::Square },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::DS4Button::Cross },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::DS4Button::Circle },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::Button::FaceUp },
+			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::Button::FaceLeft },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::Button::FaceDown },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::Button::FaceRight },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::DS4Button::DPad_Up },
-			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::DS4Button::DPad_Left },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::DS4Button::DPad_Down },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::DS4Button::DPad_Right },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::Button::DPadUp },
+			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::Button::DPadLeft },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::Button::DPadDown },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::Button::DPadRight },
 
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::/*Any*/Left, Input::DS4Button::L1 },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::/*Any*/Right, Input::DS4Button::R1 },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Left, Input::DS4Button::L_Stick_Left },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Left, Input::DS4Button::L_Stick_Right },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Right, Input::DS4Button::R_Stick_Left },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Right, Input::DS4Button::R_Stick_Right },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::/*Any*/Left, Input::Button::LeftBumper },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::/*Any*/Right, Input::Button::RightBumper },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Left, Input::Button::LeftStickLeft },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Left, Input::Button::LeftStickRight },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Right, Input::Button::RightStickLeft },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Right, Input::Button::RightStickRight },
 
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::DS4Button::L_Trigger },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::DS4Button::R_Trigger },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::Button::LeftTrigger },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::Button::RightTrigger },
 		};
 
 		struct PlayTestTarget
@@ -237,13 +237,12 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		// BUG: Need to check window focus for DS4
 		inline bool IsBindingPressed(const PlayTestInputBinding& binding)
 		{
 			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
 				return Gui::IsKeyPressed(*key, false);
-			else if (auto button = std::get_if<Input::DS4Button>(&binding.InputSource))
-				return Input::DualShock4::IsTapped(*button);
+			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
+				return Input::IsPressed(*button);
 			else
 				assert(false);
 			return false;
@@ -253,8 +252,8 @@ namespace Comfy::Studio::Editor
 		{
 			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
 				return Gui::IsKeyDown(*key);
-			else if (auto button = std::get_if<Input::DS4Button>(&binding.InputSource))
-				return Input::DualShock4::IsDown(*button);
+			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
+				return Input::IsDown(*button);
 			else
 				assert(false);
 			return false;
@@ -264,8 +263,8 @@ namespace Comfy::Studio::Editor
 		{
 			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
 				return Gui::IsKeyReleased(*key);
-			else if (auto button = std::get_if<Input::DS4Button>(&binding.InputSource))
-				return Input::DualShock4::IsReleased(*button);
+			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
+				return Input::IsReleased(*button);
 			else
 				assert(false);
 			return false;

@@ -177,7 +177,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Exit", Input::ToString(Input::MakeBinding(Input::KeyCode_F4, Input::KeyModifiers_Alt)).data()))
+			if (Gui::MenuItem("Exit", Input::ToString(Input::Binding(Input::KeyCode_F4, Input::KeyModifiers_Alt)).data()))
 				applicationExitRequested = true;
 
 			Gui::EndMenu();

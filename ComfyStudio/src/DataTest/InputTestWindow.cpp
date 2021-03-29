@@ -31,57 +31,119 @@ namespace Comfy::Studio::DataTest
 			Gui::TextColored(condition ? onColor : offColor, condition ? trueText : falseText);
 		};
 
+		// TODO: Restructure all of this
 		Gui::Text("Input Test:");
 		Gui::Separator();
 
 		if (Gui::Button("Refresh Devices", vec2(Gui::GetWindowWidth(), 0.0f)))
-			RefreshDevices();
+			Input::GlobalSystemRefreshDevices();
 		Gui::Separator();
 
-		if (Gui::CollapsingHeader("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Keyboard"/*, ImGuiTreeNodeFlags_DefaultOpen*/))
 		{
-			const bool initialized = Input::Keyboard::GetInstanceInitialized();
-			boolColoredText("KEYBOARD : ", "OK", "NG", initialized);
-
-			if (initialized)
+			for (Input::KeyCode key = Input::KeyCode_KeyboardFirst; key < Input::KeyCode_KeyboardLast; key++)
 			{
-				for (Input::KeyCode key = Input::KeyCode_KeyboardFirst; key < Input::KeyCode_KeyboardLast; key++)
+				if (Input::IsDown(key))
 				{
-					if (Input::Keyboard::IsDown(key))
-					{
-						if (const char* keyName = Input::GetKeyCodeName(key); keyName != nullptr)
-							Gui::BulletText(keyName);
-						else
-							Gui::BulletText("Unknown Key 0x%02X", key);
-					}
+					if (const char* keyName = Input::GetKeyCodeName(key); keyName != nullptr)
+						Gui::BulletText(keyName);
+					else
+						Gui::BulletText("Unknown Key 0x%02X", key);
 				}
 			}
 		}
 		Gui::Separator();
 
-		if (Gui::CollapsingHeader("DualShock4", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Combined Controller"/*, ImGuiTreeNodeFlags_DefaultOpen*/))
 		{
-			const bool initialized = Input::DualShock4::GetInstanceInitialized();
-			boolColoredText("DUALSHOCK4 : ", "OK", "NG", initialized);
-
-			if (initialized)
+			Gui::BeginChild("ButtonsChild", vec2(0.0f, 60.0f));
+			for (size_t buttonIndex = 0; buttonIndex < EnumCount<Input::Button>(); buttonIndex++)
 			{
-				for (size_t button = 0; button < EnumCount<Input::DS4Button>(); button++)
+				const auto button = static_cast<Input::Button>(buttonIndex);
+				if (Input::IsDown(button))
 				{
-					if (Input::DualShock4::IsDown(static_cast<Input::DS4Button>(button)))
-						Gui::BulletText(ds4ButtonNames[button]);
+					if (const char* buttonName = Input::GetButtonName(button); buttonName != nullptr)
+						Gui::BulletText(buttonName);
+					else
+						Gui::BulletText("Unknown Button 0x%02X", buttonIndex);
 				}
 			}
+			Gui::EndChild();
+
+			Gui::BeginChild("AxesChild", vec2(0.0f, 88.0f));
+			auto stickGui = [](const char* label, Input::Stick stick)
+			{
+				Gui::Button(label, vec2(84.0f));
+				const auto rect = ImRect(Gui::GetItemRectMin(), Gui::GetItemRectMax());
+				Gui::GetWindowDrawList()->AddCircle(rect.GetCenter() + (Input::GetStick(stick) * (rect.GetSize() / 2.0f - vec2(4.0f))), 4.0f, 0xDD0000FF);
+			};
+			auto triggerGui = [](const char* label, Input::Axis axis)
+			{
+				Gui::Button(label, vec2(84.0f));
+				const auto rect = ImRect(Gui::GetItemRectMin(), Gui::GetItemRectMax());
+				Gui::GetWindowDrawList()->AddRectFilled(rect.GetTL(), rect.GetTR() + vec2(0.0f, rect.GetHeight() * Input::GetAxis(axis)), 0x440000FF);
+			};
+			stickGui("Left Stick", Input::Stick::LeftStick);
+			Gui::SameLine();
+			stickGui("Right Stick", Input::Stick::RightStick);
+			Gui::SameLine();
+			triggerGui("Left Trigger", Input::Axis::LeftTrigger);
+			Gui::SameLine();
+			triggerGui("Right Trigger", Input::Axis::RightTrigger);
+			Gui::EndChild();
 		}
 		Gui::Separator();
-	}
 
-	void InputTestWindow::RefreshDevices()
-	{
-		if (!Input::Keyboard::GetInstanceInitialized())
-			Input::Keyboard::TryInitializeInstance(/*GetParent()->GetHost().GetWindow()*/);
+		if (Gui::CollapsingHeader("Controllers", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			using namespace Input;
 
-		if (!Input::DualShock4::GetInstanceInitialized())
-			Input::DualShock4::TryInitializeInstance();
+			GlobalSystemForEachConnectedController([&](size_t index, const ControllerInfoView& controllerView)
+			{
+				Gui::Text("%s - Product: %s Instance: %s", controllerView.ProductName.data(), ControllerIDToString(controllerView.ProductID).data(), ControllerIDToString(controllerView.InstanceID).data());
+				Gui::BeginChild("ControllersButtonsChild", vec2(0.0f, 60.0f));
+				for (u8 i = static_cast<u8>(NativeButton::FirstButton); i <= static_cast<u8>(NativeButton::LastButton); i++)
+				{
+					if (IsNativeButtonDown(controllerView.InstanceID, static_cast<NativeButton>(i)))
+						Gui::BulletText("Button %d (Abs: %d)", i, i);
+				}
+				Gui::EndChild();
+
+				Gui::BeginChild("ControllersButtonsDPadChild", vec2(0.0f, 60.0f));
+				for (u8 i = static_cast<u8>(NativeButton::FirstDPad); i <= static_cast<u8>(NativeButton::LastDPad); i++)
+				{
+					if (IsNativeButtonDown(controllerView.InstanceID, static_cast<NativeButton>(i)))
+						Gui::BulletText("DPad %d (Abs: %d)", i - static_cast<u8>(NativeButton::FirstDPad), i);
+				}
+				Gui::EndChild();
+
+				Gui::BeginChild("ControllersButtonsAxesChild", vec2(0.0f, 60.0f));
+				for (u8 i = static_cast<u8>(NativeButton::FirstAxis); i <= static_cast<u8>(NativeButton::LastAxis);)
+				{
+					const auto negative = static_cast<NativeButton>(i++);
+					const auto positive = static_cast<NativeButton>(i++);
+					const auto trigger = static_cast<NativeButton>(i++);
+
+					if (IsNativeButtonDown(controllerView.InstanceID, negative))
+						Gui::BulletText("Neg Axis %d (Abs: %d)", static_cast<u8>(negative) - static_cast<u8>(NativeButton::FirstAxis), static_cast<u8>(negative));
+
+					if (IsNativeButtonDown(controllerView.InstanceID, positive))
+						Gui::BulletText("Pos Axis %d (Abs: %d)", static_cast<u8>(positive) - static_cast<u8>(NativeButton::FirstAxis), static_cast<u8>(positive));
+				}
+				Gui::EndChild();
+
+				Gui::BeginChild("ControllersAxesChild", vec2(0.0f, 0.0f));
+				for (u8 i = static_cast<u8>(NativeAxis::First); i <= static_cast<u8>(NativeAxis::Last); i++)
+				{
+					const f32 axisValue = GetNativeAxis(controllerView.InstanceID, static_cast<NativeAxis>(i));
+
+					char overlayBuffer[64];
+					sprintf_s(overlayBuffer, "Axis %d", i);
+					Gui::ProgressBar(axisValue, vec2(-1.0f, 0.0f), overlayBuffer);
+				}
+				Gui::EndChild();
+			});
+		}
+		Gui::Separator();
 	}
 }
