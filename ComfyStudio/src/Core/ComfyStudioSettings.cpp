@@ -11,7 +11,8 @@ namespace Comfy::Studio
 	{
 		const std::string FileVersion = ".file_version";
 
-		const std::string TargetProperties_Position = "position";
+		const std::string TargetProperties_PositionX = "position_x";
+		const std::string TargetProperties_PositionY = "position_y";
 		const std::string TargetProperties_Angle = "angle";
 		const std::string TargetProperties_Frequency = "frequency";
 		const std::string TargetProperties_Amplitude = "amplitude";
@@ -255,9 +256,11 @@ namespace Comfy::Studio
 					{},
 				},
 
+#if 0 // TODO: Add once bezier path presets are implemented
 				SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Small Heart", {}, SequencePreset::BezierPathData {} },
 				SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Triangle Clockwise", {}, SequencePreset::BezierPathData {} },
 				SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Triangle Counterclockwise", {}, SequencePreset::BezierPathData {} },
+#endif
 				SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy A", {}, SequencePreset::BezierPathData {} },
 				SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy B", {}, SequencePreset::BezierPathData {} },
 				SequencePreset { SequencePresetType::BezierPath, SequencePresetButtonType::SingleLine, "Dummy C", {}, SequencePreset::BezierPathData {} },
@@ -265,41 +268,22 @@ namespace Comfy::Studio
 			};
 		}
 
-		std::optional<TargetProperties> JsonTryGetTargetProperties(const json& j)
+		TargetProperties JsonTryGetTargetProperties(const json& j)
 		{
 			TargetProperties result;
-
-			if (const json* foundJson = JsonFind(j, IDs::TargetProperties_Position))
-				result.Position = JsonTryGetVec2(*foundJson).value_or(vec2(0.0f));
-			else
-				return std::nullopt;
-
-			if (const json* foundJson = JsonFind(j, IDs::TargetProperties_Angle))
-				result.Angle = JsonTryGetF32(*foundJson).value_or(0.0f);
-			else
-				return std::nullopt;
-
-			if (const json* foundJson = JsonFind(j, IDs::TargetProperties_Frequency))
-				result.Frequency = JsonTryGetF32(*foundJson).value_or(0.0f);
-			else
-				return std::nullopt;
-
-			if (const json* foundJson = JsonFind(j, IDs::TargetProperties_Amplitude))
-				result.Amplitude = JsonTryGetF32(*foundJson).value_or(0.0f);
-			else
-				return std::nullopt;
-
-			if (const json* foundJson = JsonFind(j, IDs::TargetProperties_Distance))
-				result.Distance = JsonTryGetF32(*foundJson).value_or(0.0f);
-			else
-				return std::nullopt;
-
+			result.Position.x = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_PositionX)).value_or(0.0f);
+			result.Position.y = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_PositionY)).value_or(0.0f);
+			result.Angle = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Angle)).value_or(0.0f);
+			result.Frequency = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Frequency)).value_or(0.0f);
+			result.Amplitude = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Amplitude)).value_or(0.0f);
+			result.Distance = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Distance)).value_or(0.0f);
 			return result;
 		}
 
 		void JsonSetTargetProperties(json& j, const TargetProperties& v)
 		{
-			JsonSetVec2(j[IDs::TargetProperties_Position], v.Position);
+			j[IDs::TargetProperties_PositionX] = v.Position.x;
+			j[IDs::TargetProperties_PositionY] = v.Position.y;
 			j[IDs::TargetProperties_Angle] = v.Angle;
 			j[IDs::TargetProperties_Frequency] = v.Frequency;
 			j[IDs::TargetProperties_Amplitude] = v.Amplitude;
@@ -352,7 +336,8 @@ namespace Comfy::Studio
 		const std::string PositionTool_PositionMouseSnapPrecise = "position_mouse_snap_precise";
 		const std::string PositionTool_MouseRowMovementDistanceThreshold = "mouse_row_movement_distance_threshold";
 		const std::string PositionTool_DiagonalMouseRowLayouts = "diagonal_mouse_row_layouts";
-		const std::string PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacing = "per_beat_diagonal_spacing";
+		const std::string PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX = "per_beat_diagonal_spacing_x";
+		const std::string PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY = "per_beat_diagonal_spacing_y";
 		const std::string PositionTool_DiagonalMouseRowLayouts_DisplayName = "display_name";
 
 		const std::string PathTool = "path_tool";
@@ -380,7 +365,8 @@ namespace Comfy::Studio
 		const std::string TargetPreset_SequencePresets_Circle_DurationTicks = "duration_ticks";
 		const std::string TargetPreset_SequencePresets_Circle_Radius = "radius";
 		const std::string TargetPreset_SequencePresets_Circle_Direction = "direction";
-		const std::string TargetPreset_SequencePresets_Circle_Center = "center";
+		const std::string TargetPreset_SequencePresets_Circle_CenterX = "center_x";
+		const std::string TargetPreset_SequencePresets_Circle_CenterY = "center_y";
 		const std::string TargetPreset_SequencePresets_BezierPath = "bezier_path";
 
 		const std::string TargetPreset_InspectorDropdown = "inspector_dropdown";
@@ -481,7 +467,8 @@ namespace Comfy::Studio
 				for (const json& rowLayoutJson : *diagonalRowLayoutsJson)
 				{
 					auto& rowLayout = PositionTool.DiagonalMouseRowLayouts.emplace_back();
-					rowLayout.PerBeatDiagonalSpacing = JsonTryGetVec2(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacing)).value_or(vec2(0.0f));
+					rowLayout.PerBeatDiagonalSpacing.x = JsonTryGetF32(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX)).value_or(0.0f);
+					rowLayout.PerBeatDiagonalSpacing.y = JsonTryGetF32(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY)).value_or(0.0f);
 					rowLayout.DisplayName = std::move(JsonTryGetStr(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName)).value_or(""));
 				}
 			}
@@ -521,7 +508,7 @@ namespace Comfy::Studio
 								targetData.Type = static_cast<ButtonType>(JsonTryGetI32(JsonFind(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType)).value_or(0));
 
 								if (const json* propertiesJson = JsonFind(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties))
-									targetData.Properties = JsonTryGetTargetProperties(*propertiesJson).value_or(TargetProperties {});
+									targetData.Properties = JsonTryGetTargetProperties(*propertiesJson);
 							}
 						}
 					}
@@ -544,7 +531,8 @@ namespace Comfy::Studio
 						sequencePreset.Circle.Duration = BeatTick::FromTicks(JsonTryGetI32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks)).value_or(0));
 						sequencePreset.Circle.Radius = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_Radius)).value_or(0.0f);
 						sequencePreset.Circle.Direction = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_Direction)).value_or(0.0f);
-						sequencePreset.Circle.Center = JsonTryGetVec2(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_Center)).value_or(vec2(0.0f));
+						sequencePreset.Circle.Center.x = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_CenterX)).value_or(0.0f);
+						sequencePreset.Circle.Center.y = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_CenterY)).value_or(0.0f);
 					}
 					else if (const json* bezierPathJson = JsonFind(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_BezierPath))
 					{
@@ -664,7 +652,8 @@ namespace Comfy::Studio
 			for (const auto& rowLayout : PositionTool.DiagonalMouseRowLayouts)
 			{
 				json& rowLayoutJson = diagonalRowLayoutsJson.emplace_back(json::object());
-				JsonSetVec2(rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacing], rowLayout.PerBeatDiagonalSpacing);
+				rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX] = rowLayout.PerBeatDiagonalSpacing.x;
+				rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY] = rowLayout.PerBeatDiagonalSpacing.y;
 				rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName] = rowLayout.DisplayName;
 			}
 		}
@@ -716,7 +705,8 @@ namespace Comfy::Studio
 					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks] = sequencePreset.Circle.Duration.Ticks();
 					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Radius] = sequencePreset.Circle.Radius;
 					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Direction] = sequencePreset.Circle.Direction;
-					JsonSetVec2(circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Center], sequencePreset.Circle.Center);
+					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_CenterX] = sequencePreset.Circle.Center.x;
+					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_CenterY] = sequencePreset.Circle.Center.y;
 				}
 				else if (sequencePreset.Type == SequencePresetType::BezierPath)
 				{
