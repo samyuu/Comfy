@@ -240,9 +240,9 @@ namespace Comfy::Studio::Editor
 		inline bool IsBindingPressed(const PlayTestInputBinding& binding)
 		{
 			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
-				return Gui::IsKeyPressed(*key, false);
+				return Input::IsKeyPressed(*key, false);
 			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
-				return Input::IsPressed(*button);
+				return Input::IsPressed(*button, false);
 			else
 				assert(false);
 			return false;
@@ -251,7 +251,7 @@ namespace Comfy::Studio::Editor
 		inline bool IsBindingDown(const PlayTestInputBinding& binding)
 		{
 			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
-				return Gui::IsKeyDown(*key);
+				return Input::IsKeyDown(*key);
 			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
 				return Input::IsDown(*button);
 			else
@@ -262,7 +262,7 @@ namespace Comfy::Studio::Editor
 		inline bool IsBindingReleased(const PlayTestInputBinding& binding)
 		{
 			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
-				return Gui::IsKeyReleased(*key);
+				return Input::IsKeyReleased(*key);
 			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
 				return Input::IsReleased(*button);
 			else
