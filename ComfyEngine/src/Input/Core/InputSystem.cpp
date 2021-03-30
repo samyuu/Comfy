@@ -41,8 +41,8 @@ namespace Comfy::Input
 
 	struct SimplifiedCombinedControllerState
 	{
-		// TODO: Implement key repeat
-		std::array<bool, EnumCount<Button>()> Buttons;
+		std::array<bool, EnumCount<Button>()> ButtonsDown;
+		std::array<bool, EnumCount<Button>()> ButtonsRepeat;
 		std::array<f32, EnumCount<Axis>()> Axes;
 		std::array<vec2, EnumCount<Stick>()> Sticks;
 	};
@@ -57,6 +57,7 @@ namespace Comfy::Input
 		std::vector<DirectInputControllerData> ConnectedControllers;
 
 		SimplifiedCombinedControllerState ThisFrameCombinedControllerState, LastFrameCombinedControllerState;
+		std::array<TimeSpan, EnumCount<Button>()> ThisFrameCombinedControllerButtonHoldDurations;
 	};
 
 	static_assert((static_cast<size_t>(NativeButton::LastButton) - static_cast<size_t>(NativeButton::FirstButton) + 1) == ARRAYSIZE(decltype(DirectInputControllerData::PolledDeviceState::NativeJoy)::rgbButtons));
@@ -306,6 +307,8 @@ namespace Comfy::Input
 
 		Global.LastFrameCombinedControllerState = Global.ThisFrameCombinedControllerState;
 		Global.ThisFrameCombinedControllerState = {};
+		if (!hasApplicationFocus)
+			Global.ThisFrameCombinedControllerButtonHoldDurations = {};
 
 		if (hasApplicationFocus)
 		{
@@ -318,7 +321,7 @@ namespace Comfy::Input
 				for (size_t i = 0; i < EnumCount<Button>(); i++)
 				{
 					if (Detail::IsNativeButtonDownForKnownController(controllerData, foundMapping->Buttons[i]))
-						Global.ThisFrameCombinedControllerState.Buttons[i] = true;;
+						Global.ThisFrameCombinedControllerState.ButtonsDown[i] = true;;
 				}
 
 				for (size_t i = 0; i < EnumCount<Axis>(); i++)
@@ -337,6 +340,35 @@ namespace Comfy::Input
 
 				updateStickWithAxes(Stick::LeftStick, Axis::LeftStickX, Axis::LeftStickY);
 				updateStickWithAxes(Stick::RightStick, Axis::RightStickX, Axis::RightStickY);
+			}
+
+			const auto repeatDelay = TimeSpan::FromSeconds(Gui::GetIO().KeyRepeatDelay);
+			const auto repeatRate = TimeSpan::FromSeconds(Gui::GetIO().KeyRepeatRate);
+			if (repeatRate > TimeSpan::Zero())
+			{
+				for (size_t i = 0; i < EnumCount<Button>(); i++)
+				{
+					TimeSpan& holdDurationThisFrame = Global.ThisFrameCombinedControllerButtonHoldDurations[i];
+					const bool downThisFrame = Global.ThisFrameCombinedControllerState.ButtonsDown[i];
+					const bool downLastFrame = Global.LastFrameCombinedControllerState.ButtonsDown[i];
+					bool& repeatThisFrame = Global.ThisFrameCombinedControllerState.ButtonsRepeat[i];
+
+					holdDurationThisFrame = downThisFrame ? (holdDurationThisFrame + elapsedTime) : TimeSpan::Zero();
+					if (downThisFrame && !downLastFrame)
+					{
+						repeatThisFrame = true;
+					}
+					else if (holdDurationThisFrame > repeatDelay)
+					{
+						const i32 repeatAmount = Gui::CalcTypematicPressedRepeatAmount(
+							static_cast<f32>(holdDurationThisFrame.TotalSeconds()),
+							static_cast<f32>((holdDurationThisFrame - elapsedTime).TotalSeconds()),
+							static_cast<f32>(repeatDelay.TotalSeconds()),
+							static_cast<f32>(repeatRate.TotalSeconds()));
+
+						repeatThisFrame = (repeatAmount > 0);
+					}
+				}
 			}
 		}
 	}
@@ -487,7 +519,7 @@ namespace Comfy::Input
 		if (!Detail::IsValidButton(button))
 			return false;
 
-		return Global.ThisFrameCombinedControllerState.Buttons[static_cast<u8>(button)];
+		return Global.ThisFrameCombinedControllerState.ButtonsDown[static_cast<u8>(button)];
 	}
 
 	bool IsButtonPressed(const Button button, bool repeat)
@@ -495,9 +527,11 @@ namespace Comfy::Input
 		if (!Detail::IsValidButton(button))
 			return false;
 
-		// TODO: Implement repeat
 		const auto index = static_cast<u8>(button);
-		return (Global.ThisFrameCombinedControllerState.Buttons[index] && !Global.LastFrameCombinedControllerState.Buttons[index]);
+		if (repeat)
+			return Global.ThisFrameCombinedControllerState.ButtonsRepeat[index];
+		else
+			return (Global.ThisFrameCombinedControllerState.ButtonsDown[index] && !Global.LastFrameCombinedControllerState.ButtonsDown[index]);
 	}
 
 	bool IsButtonReleased(const Button button)
@@ -506,7 +540,7 @@ namespace Comfy::Input
 			return false;
 
 		const auto index = static_cast<u8>(button);
-		return (!Global.ThisFrameCombinedControllerState.Buttons[index] && Global.LastFrameCombinedControllerState.Buttons[index]);
+		return (!Global.ThisFrameCombinedControllerState.ButtonsDown[index] && Global.LastFrameCombinedControllerState.ButtonsDown[index]);
 	}
 
 	f32 GetAxis(const Axis axis)
