@@ -24,8 +24,8 @@ namespace Comfy::Input
 		KeyCode_CapsLock = 0x14,
 		KeyCode_Escape = 0x1B,
 		KeyCode_Space = 0x20,
-		KeyCode_Prior = 0x21,
-		KeyCode_Next = 0x22,
+		KeyCode_PageUp = 0x21,
+		KeyCode_PageDown = 0x22,
 		KeyCode_End = 0x23,
 		KeyCode_Home = 0x24,
 		KeyCode_Left = 0x25,
@@ -172,7 +172,7 @@ namespace Comfy::Input
 		KeyCode_MouseFirst = KeyCode_MouseLeft,
 		KeyCode_MouseLast = KeyCode_MouseX2,
 		KeyCode_KeyboardFirst = KeyCode_Backspace,
-		KeyCode_KeyboardLast = KeyCode_Count,
+		KeyCode_KeyboardLast = KeyCode_OEMClear,
 	};
 
 	using KeyModifiers = u8;
@@ -357,6 +357,12 @@ namespace Comfy::Input
 		{
 			Data.Controller.Button = button;
 		}
+		constexpr bool IsEmpty() const
+		{
+			return
+				(Type == BindingType::Keyboard) ? (Data.Keyboard.Key == KeyCode_None) :
+				(Type == BindingType::Controller) ? (Data.Controller.Button == Button::None) : true;
+		}
 	};
 
 	struct MultiBinding
@@ -375,14 +381,13 @@ namespace Comfy::Input
 
 namespace Comfy::Input
 {
-	constexpr size_t FormatBufferSize = 64;
+	constexpr size_t FormatBufferSize = 128;
 	using FormatBuffer = std::array<char, FormatBufferSize>;
 
-	std::string_view GetKeyCodeNameView(const KeyCode keyCode);
 	const char* GetKeyCodeName(const KeyCode keyCode);
-
-	std::string_view GetButtonNameView(const Button button);
+	const char* GetKeyCodeEnumName(const KeyCode keyCode);
 	const char* GetButtonName(const Button button);
+	const char* GetButtonEnumName(const Button button);
 
 	void ToStringInplace(const KeyCode keyCode, char* buffer, size_t bufferSize);
 	FormatBuffer ToString(const KeyCode keyCode);
@@ -392,4 +397,7 @@ namespace Comfy::Input
 
 	void ToStringInplace(const MultiBinding& binding, char* buffer, size_t bufferSize);
 	FormatBuffer ToString(const MultiBinding& binding);
+
+	Binding BindingFromStorageString(std::string_view string);
+	FormatBuffer BindingToStorageString(const Binding& binding);
 }

@@ -1,230 +1,342 @@
 #include "InputBaseTypes.h"
+#include "Misc/StringUtil.h"
 
 namespace Comfy::Input
 {
-	std::string_view GetKeyCodeNameView(const KeyCode keyCode)
+	namespace
 	{
-		if (keyCode >= KeyCode_Count)
-			return nullptr;
-
-		switch (keyCode)
+		struct EnumNamePair
 		{
-		case KeyCode_None: return "";
-		case KeyCode_MouseLeft: return "Mouse Left";
-		case KeyCode_MouseRight: return "Mouse Right";
-		case KeyCode_MouseMiddle: return "Mouse Middle";
-		case KeyCode_MouseX1: return "Mouse X1";
-		case KeyCode_MouseX2: return "Mouse X2";
-		case KeyCode_Backspace: return "Backspace";
-		case KeyCode_Tab: return "Tab";
-		case KeyCode_Clear: return "Clear";
-		case KeyCode_Enter: return "Enter";
-		case KeyCode_Shift: return "Shift";
-		case KeyCode_Ctrl: return "Ctrl";
-		case KeyCode_Alt: return "Alt";
-		case KeyCode_Pause: return "Pause";
-		case KeyCode_CapsLock: return "Caps Lock";
-		case KeyCode_Escape: return "Escape";
-		case KeyCode_Space: return "Space";
-		case KeyCode_Prior: return "Prior";
-		case KeyCode_Next: return "Next";
-		case KeyCode_End: return "End";
-		case KeyCode_Home: return "Home";
-		case KeyCode_Left: return "Left";
-		case KeyCode_Up: return "Up";
-		case KeyCode_Right: return "Right";
-		case KeyCode_Down: return "Down";
-		case KeyCode_Select: return "Select";
-		case KeyCode_Print: return "Print";
-		case KeyCode_Insert: return "Insert";
-		case KeyCode_Delete: return "Del";
-		case KeyCode_Help: return "Help";
-		case KeyCode_0: return "0";
-		case KeyCode_1: return "1";
-		case KeyCode_2: return "2";
-		case KeyCode_3: return "3";
-		case KeyCode_4: return "4";
-		case KeyCode_5: return "5";
-		case KeyCode_6: return "6";
-		case KeyCode_7: return "7";
-		case KeyCode_8: return "8";
-		case KeyCode_9: return "9";
-		case KeyCode_A: return "A";
-		case KeyCode_B: return "B";
-		case KeyCode_C: return "C";
-		case KeyCode_D: return "D";
-		case KeyCode_E: return "E";
-		case KeyCode_F: return "F";
-		case KeyCode_G: return "G";
-		case KeyCode_H: return "H";
-		case KeyCode_I: return "I";
-		case KeyCode_J: return "J";
-		case KeyCode_K: return "K";
-		case KeyCode_L: return "L";
-		case KeyCode_M: return "M";
-		case KeyCode_N: return "N";
-		case KeyCode_O: return "O";
-		case KeyCode_P: return "P";
-		case KeyCode_Q: return "Q";
-		case KeyCode_R: return "R";
-		case KeyCode_S: return "S";
-		case KeyCode_T: return "T";
-		case KeyCode_U: return "U";
-		case KeyCode_V: return "V";
-		case KeyCode_W: return "W";
-		case KeyCode_X: return "X";
-		case KeyCode_Y: return "Y";
-		case KeyCode_Z: return "Z";
-		case KeyCode_LeftWin: return "Left Win";
-		case KeyCode_RightWin: return "Right Win";
-		case KeyCode_Apps: return "Apps";
-		case KeyCode_Sleep: return "Sleep";
-		case KeyCode_Numpad0: return "Numpad 0";
-		case KeyCode_Numpad1: return "Numpad 1";
-		case KeyCode_Numpad2: return "Numpad 2";
-		case KeyCode_Numpad3: return "Numpad 3";
-		case KeyCode_Numpad4: return "Numpad 4";
-		case KeyCode_Numpad5: return "Numpad 5";
-		case KeyCode_Numpad6: return "Numpad 6";
-		case KeyCode_Numpad7: return "Numpad 7";
-		case KeyCode_Numpad8: return "Numpad 8";
-		case KeyCode_Numpad9: return "Numpad 9";
-		case KeyCode_Multiply: return "Multiply";
-		case KeyCode_Add: return "Add";
-		case KeyCode_Separator: return "Separator";
-		case KeyCode_Subtract: return "Subtract";
-		case KeyCode_Decimal: return "Decimal";
-		case KeyCode_Divide: return "Divide";
-		case KeyCode_F1: return "F1";
-		case KeyCode_F2: return "F2";
-		case KeyCode_F3: return "F3";
-		case KeyCode_F4: return "F4";
-		case KeyCode_F5: return "F5";
-		case KeyCode_F6: return "F6";
-		case KeyCode_F7: return "F7";
-		case KeyCode_F8: return "F8";
-		case KeyCode_F9: return "F9";
-		case KeyCode_F10: return "F10";
-		case KeyCode_F11: return "F11";
-		case KeyCode_F12: return "F12";
-		case KeyCode_F13: return "F13";
-		case KeyCode_F14: return "F14";
-		case KeyCode_F15: return "F15";
-		case KeyCode_F16: return "F16";
-		case KeyCode_F17: return "F17";
-		case KeyCode_F18: return "F18";
-		case KeyCode_F19: return "F19";
-		case KeyCode_F20: return "F20";
-		case KeyCode_F21: return "F21";
-		case KeyCode_F22: return "F22";
-		case KeyCode_F23: return "F23";
-		case KeyCode_F24: return "F24";
-		case KeyCode_NumLock: return "Num Lock";
-		case KeyCode_Scroll: return "Scroll";
-		case KeyCode_LeftShift: return "Left Shift";
-		case KeyCode_RightShift: return "Right Shift";
-		case KeyCode_LeftCtrl: return "Left Ctrl";
-		case KeyCode_RightCtrl: return "Right Ctrl";
-		case KeyCode_LeftAlt: return "Left Alt";
-		case KeyCode_RightAlt: return "Right Alt";
-		case KeyCode_BrowserBack: return "Browser Back";
-		case KeyCode_BrowserForward: return "Browser Forward";
-		case KeyCode_BrowserRefresh: return "Browser Refresh";
-		case KeyCode_BrowserStop: return "Browser Stop";
-		case KeyCode_BrowserSearch: return "Browser Search";
-		case KeyCode_BrowserFavorites: return "Browser Favorite";
-		case KeyCode_BrowserHome: return "Browser Home";
-		case KeyCode_VolumeMute: return "Volume Mute";
-		case KeyCode_VolumeDown: return "Volume Down";
-		case KeyCode_VolumeUp: return "Volume Up";
-		case KeyCode_MediaNextTrack: return "Media Next Track";
-		case KeyCode_MediaPrevTrack: return "Media Prev Track";
-		case KeyCode_MediaStop: return "Media Stop";
-		case KeyCode_MediaPlayPause: return "Media Play Pause";
-		case KeyCode_LaunchMail: return "Launch Mail";
-		case KeyCode_LaunchMediaSelect: return "Launch Media Select";
-		case KeyCode_LaunchApp1: return "Launch App 1";
-		case KeyCode_LaunchApp2: return "Launch App 2";
-		case KeyCode_OEM1: return "OEM 1";
-		case KeyCode_OEMPlus: return "+";
-		case KeyCode_OEMComma: return ",";
-		case KeyCode_OEMMinus: return "-";
-		case KeyCode_OEMPeriod: return ".";
-		case KeyCode_OEM2: return "OEM 2";
-		case KeyCode_OEM3: return "OEM 3";
-		case KeyCode_OEM4: return "OEM 4";
-		case KeyCode_OEM5: return "OEM 5";
-		case KeyCode_OEM6: return "OEM 6";
-		case KeyCode_OEM7: return "OEM 7";
-		case KeyCode_OEM8: return "OEM 8";
-		case KeyCode_OEM102: return "OEM 102";
-		case KeyCode_IMEProcessKey: return "IME Process Key";
-		case KeyCode_Packet: return "Packet";
-		case KeyCode_Attn: return "Attn";
-		case KeyCode_CrSel: return "CrSel";
-		case KeyCode_ExSel: return "ExSel";
-		case KeyCode_EraseEOF: return "Erase EOF";
-		case KeyCode_Play: return "Play";
-		case KeyCode_Zoom: return "Zoom";
-		case KeyCode_NoName: return "No Name";
-		case KeyCode_PA1: return "PA1";
-		case KeyCode_OEMClear: return "OEM Clear";
+			const char* EnumName;
+			const char* DisplayName;
+		};
 
-		default:
-			return nullptr;
-		}
+		constexpr std::array<EnumNamePair, KeyCode_Count> KeyCodeNameLookup =
+		{
+			EnumNamePair { "KeyCode_None", "None" },
+			EnumNamePair { "KeyCode_MouseLeft", "Mouse Left" },
+			EnumNamePair { "KeyCode_MouseRight", "Mouse Right" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_MouseMiddle", "Mouse Middle" },
+			EnumNamePair { "KeyCode_MouseX1", "Mouse X1" },
+			EnumNamePair { "KeyCode_MouseX2", "Mouse X2" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Backspace", "Backspace" },
+			EnumNamePair { "KeyCode_Tab", "Tab" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Clear", "Clear" },
+			EnumNamePair { "KeyCode_Enter", "Enter" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Shift", "Shift" },
+			EnumNamePair { "KeyCode_Ctrl", "Ctrl" },
+			EnumNamePair { "KeyCode_Alt", "Alt" },
+			EnumNamePair { "KeyCode_Pause", "Pause" },
+			EnumNamePair { "KeyCode_CapsLock", "Caps Lock" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Escape", "Escape" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Space", "Space" },
+			EnumNamePair { "KeyCode_PageUp", "Page Up" },
+			EnumNamePair { "KeyCode_PageDown", "Page Down" },
+			EnumNamePair { "KeyCode_End", "End" },
+			EnumNamePair { "KeyCode_Home", "Home" },
+			EnumNamePair { "KeyCode_Left", "Left" },
+			EnumNamePair { "KeyCode_Up", "Up" },
+			EnumNamePair { "KeyCode_Right", "Right" },
+			EnumNamePair { "KeyCode_Down", "Down" },
+			EnumNamePair { "KeyCode_Select", "Select" },
+			EnumNamePair { "KeyCode_Print", "Print" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Insert", "Insert" },
+			EnumNamePair { "KeyCode_Delete", "Del" },
+			EnumNamePair { "KeyCode_Help", "Help" },
+			EnumNamePair { "KeyCode_0", "0" },
+			EnumNamePair { "KeyCode_1", "1" },
+			EnumNamePair { "KeyCode_2", "2" },
+			EnumNamePair { "KeyCode_3", "3" },
+			EnumNamePair { "KeyCode_4", "4" },
+			EnumNamePair { "KeyCode_5", "5" },
+			EnumNamePair { "KeyCode_6", "6" },
+			EnumNamePair { "KeyCode_7", "7" },
+			EnumNamePair { "KeyCode_8", "8" },
+			EnumNamePair { "KeyCode_9", "9" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_A", "A" },
+			EnumNamePair { "KeyCode_B", "B" },
+			EnumNamePair { "KeyCode_C", "C" },
+			EnumNamePair { "KeyCode_D", "D" },
+			EnumNamePair { "KeyCode_E", "E" },
+			EnumNamePair { "KeyCode_F", "F" },
+			EnumNamePair { "KeyCode_G", "G" },
+			EnumNamePair { "KeyCode_H", "H" },
+			EnumNamePair { "KeyCode_I", "I" },
+			EnumNamePair { "KeyCode_J", "J" },
+			EnumNamePair { "KeyCode_K", "K" },
+			EnumNamePair { "KeyCode_L", "L" },
+			EnumNamePair { "KeyCode_M", "M" },
+			EnumNamePair { "KeyCode_N", "N" },
+			EnumNamePair { "KeyCode_O", "O" },
+			EnumNamePair { "KeyCode_P", "P" },
+			EnumNamePair { "KeyCode_Q", "Q" },
+			EnumNamePair { "KeyCode_R", "R" },
+			EnumNamePair { "KeyCode_S", "S" },
+			EnumNamePair { "KeyCode_T", "T" },
+			EnumNamePair { "KeyCode_U", "U" },
+			EnumNamePair { "KeyCode_V", "V" },
+			EnumNamePair { "KeyCode_W", "W" },
+			EnumNamePair { "KeyCode_X", "X" },
+			EnumNamePair { "KeyCode_Y", "Y" },
+			EnumNamePair { "KeyCode_Z", "Z" },
+			EnumNamePair { "KeyCode_LeftWin", "Left Win" },
+			EnumNamePair { "KeyCode_RightWin", "Right Win" },
+			EnumNamePair { "KeyCode_Apps", "Apps" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Sleep", "Sleep" },
+			EnumNamePair { "KeyCode_Numpad0", "Numpad 0" },
+			EnumNamePair { "KeyCode_Numpad1", "Numpad 1" },
+			EnumNamePair { "KeyCode_Numpad2", "Numpad 2" },
+			EnumNamePair { "KeyCode_Numpad3", "Numpad 3" },
+			EnumNamePair { "KeyCode_Numpad4", "Numpad 4" },
+			EnumNamePair { "KeyCode_Numpad5", "Numpad 5" },
+			EnumNamePair { "KeyCode_Numpad6", "Numpad 6" },
+			EnumNamePair { "KeyCode_Numpad7", "Numpad 7" },
+			EnumNamePair { "KeyCode_Numpad8", "Numpad 8" },
+			EnumNamePair { "KeyCode_Numpad9", "Numpad 9" },
+			EnumNamePair { "KeyCode_Multiply", "Multiply" },
+			EnumNamePair { "KeyCode_Add", "Add" },
+			EnumNamePair { "KeyCode_Separator", "Separator" },
+			EnumNamePair { "KeyCode_Subtract", "Subtract" },
+			EnumNamePair { "KeyCode_Decimal", "Decimal" },
+			EnumNamePair { "KeyCode_Divide", "Divide" },
+			EnumNamePair { "KeyCode_F1", "F1" },
+			EnumNamePair { "KeyCode_F2", "F2" },
+			EnumNamePair { "KeyCode_F3", "F3" },
+			EnumNamePair { "KeyCode_F4", "F4" },
+			EnumNamePair { "KeyCode_F5", "F5" },
+			EnumNamePair { "KeyCode_F6", "F6" },
+			EnumNamePair { "KeyCode_F7", "F7" },
+			EnumNamePair { "KeyCode_F8", "F8" },
+			EnumNamePair { "KeyCode_F9", "F9" },
+			EnumNamePair { "KeyCode_F10", "F10" },
+			EnumNamePair { "KeyCode_F11", "F11" },
+			EnumNamePair { "KeyCode_F12", "F12" },
+			EnumNamePair { "KeyCode_F13", "F13" },
+			EnumNamePair { "KeyCode_F14", "F14" },
+			EnumNamePair { "KeyCode_F15", "F15" },
+			EnumNamePair { "KeyCode_F16", "F16" },
+			EnumNamePair { "KeyCode_F17", "F17" },
+			EnumNamePair { "KeyCode_F18", "F18" },
+			EnumNamePair { "KeyCode_F19", "F19" },
+			EnumNamePair { "KeyCode_F20", "F20" },
+			EnumNamePair { "KeyCode_F21", "F21" },
+			EnumNamePair { "KeyCode_F22", "F22" },
+			EnumNamePair { "KeyCode_F23", "F23" },
+			EnumNamePair { "KeyCode_F24", "F24" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_NumLock", "Num Lock" },
+			EnumNamePair { "KeyCode_Scroll", "Scroll" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_LeftShift", "Left Shift" },
+			EnumNamePair { "KeyCode_RightShift", "Right Shift" },
+			EnumNamePair { "KeyCode_LeftCtrl", "Left Ctrl" },
+			EnumNamePair { "KeyCode_RightCtrl", "Right Ctrl" },
+			EnumNamePair { "KeyCode_LeftAlt", "Left Alt" },
+			EnumNamePair { "KeyCode_RightAlt", "Right Alt" },
+			EnumNamePair { "KeyCode_BrowserBack", "Browser Back" },
+			EnumNamePair { "KeyCode_BrowserForward",	"Browser Forward" },
+			EnumNamePair { "KeyCode_BrowserRefresh",	"Browser Refresh" },
+			EnumNamePair { "KeyCode_BrowserStop", "Browser Stop" },
+			EnumNamePair { "KeyCode_BrowserSearch",	"Browser Search" },
+			EnumNamePair { "KeyCode_BrowserFavorites",	"Browser Favorite" },
+			EnumNamePair { "KeyCode_BrowserHome", "Browser Home" },
+			EnumNamePair { "KeyCode_VolumeMute", "Volume Mute" },
+			EnumNamePair { "KeyCode_VolumeDown", "Volume Down" },
+			EnumNamePair { "KeyCode_VolumeUp", "Volume Up" },
+			EnumNamePair { "KeyCode_MediaNextTrack",	"Media Next Track" },
+			EnumNamePair { "KeyCode_MediaPrevTrack",	"Media Prev Track" },
+			EnumNamePair { "KeyCode_MediaStop", "Media Stop" },
+			EnumNamePair { "KeyCode_MediaPlayPause",	"Media Play Pause" },
+			EnumNamePair { "KeyCode_LaunchMail", "Launch Mail" },
+			EnumNamePair { "KeyCode_LaunchMediaSelect", "Launch Media Select" },
+			EnumNamePair { "KeyCode_LaunchApp1", "Launch App 1" },
+			EnumNamePair { "KeyCode_LaunchApp2", "Launch App 2" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_OEM1", "OEM 1" },
+			EnumNamePair { "KeyCode_OEMPlus", "+" },
+			EnumNamePair { "KeyCode_OEMComma", "," },
+			EnumNamePair { "KeyCode_OEMMinus", "-" },
+			EnumNamePair { "KeyCode_OEMPeriod", "." },
+			EnumNamePair { "KeyCode_OEM2", "OEM 2" },
+			EnumNamePair { "KeyCode_OEM3", "OEM 3" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_OEM4", "OEM 4" },
+			EnumNamePair { "KeyCode_OEM5", "OEM 5" },
+			EnumNamePair { "KeyCode_OEM6", "OEM 6" },
+			EnumNamePair { "KeyCode_OEM7", "OEM 7" },
+			EnumNamePair { "KeyCode_OEM8", "OEM 8" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_OEM102", "OEM 102" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_IMEProcessKey",	"IME Process Key" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Packet", "Packet" },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { nullptr, nullptr },
+			EnumNamePair { "KeyCode_Attn", "Attn" },
+			EnumNamePair { "KeyCode_CrSel", "CrSel" },
+			EnumNamePair { "KeyCode_ExSel", "ExSel" },
+			EnumNamePair { "KeyCode_EraseEOF", "Erase EOF" },
+			EnumNamePair { "KeyCode_Play", "Play" },
+			EnumNamePair { "KeyCode_Zoom", "Zoom" },
+			EnumNamePair { "KeyCode_NoName", "No Name" },
+			EnumNamePair { "KeyCode_PA1", "PA1" },
+			EnumNamePair { "KeyCode_OEMClear", "OEM Clear" },
+		};
+
+		constexpr std::array<EnumNamePair, EnumCount<Button>()> ButtonNameLookup =
+		{
+			EnumNamePair { "Button_None", "None" },
+			EnumNamePair { "Button_DPadUp", "DPad Up" },
+			EnumNamePair { "Button_DPadLeft", "DPad Left" },
+			EnumNamePair { "Button_DPadDown", "DPad Down" },
+			EnumNamePair { "Button_DPadRight", "DPad Right" },
+			EnumNamePair { "Button_FaceUp", "Face Up" },
+			EnumNamePair { "Button_FaceLeft", "Face Left" },
+			EnumNamePair { "Button_FaceDown", "Face Down" },
+			EnumNamePair { "Button_FaceRight", "Face Right" },
+			EnumNamePair { "Button_LeftStickUp", "Left Stick Up" },
+			EnumNamePair { "Button_LeftStickLeft", "Left Stick Left" },
+			EnumNamePair { "Button_LeftStickDown", "Left Stick Down" },
+			EnumNamePair { "Button_LeftStickRight", "Left Stick Right" },
+			EnumNamePair { "Button_LeftStickPush", "Left Stick Push" },
+			EnumNamePair { "Button_RightStickUp", "Right Stick Up" },
+			EnumNamePair { "Button_RightStickLeft", "Right Stick Left" },
+			EnumNamePair { "Button_RightStickDown", "Right Stick Down" },
+			EnumNamePair { "Button_RightStickRight", "Right Stick Right" },
+			EnumNamePair { "Button_RightStickPush", "Right Stick Push" },
+			EnumNamePair { "Button_LeftBumper", "Left Bumper" },
+			EnumNamePair { "Button_RightBumper", "Right Bumper" },
+			EnumNamePair { "Button_LeftTrigger", "Left Trigger" },
+			EnumNamePair { "Button_RightTrigger", "Right Trigger" },
+			EnumNamePair { "Button_Select", "Select" },
+			EnumNamePair { "Button_Start", "Start" },
+			EnumNamePair { "Button_Home", "Home" },
+			EnumNamePair { "Button_TouchPad", "Touch Pad" },
+		};
+
+		constexpr std::string_view BindingStorageStringKeyboardPrefix = "Keyboard";
+		constexpr std::string_view BindingStorageStringCtrlModifier = "Ctrl+";
+		constexpr std::string_view BindingStorageStringShiftModifier = "Shift+";
+		constexpr std::string_view BindingStorageStringAltModifier = "Alt+";
+		constexpr std::string_view BindingStorageStringStrictSuffix = "(Strict)";
+		constexpr std::string_view BindingStorageStringRelaxedSuffix = "(Relaxed)";
+		constexpr std::string_view BindingStorageStringControllerPrefix = "Controller";
 	}
 
 	const char* GetKeyCodeName(const KeyCode keyCode)
 	{
-		return GetKeyCodeNameView(keyCode).data();
+		const auto name = IndexOr(keyCode, KeyCodeNameLookup, EnumNamePair {}).DisplayName;
+		return (name != nullptr) ? name : "";
 	}
 
-	std::string_view GetButtonNameView(const Button button)
+	const char* GetKeyCodeEnumName(const KeyCode keyCode)
 	{
-		switch (button)
-		{
-		case Button::None: return "";
-		case Button::DPadUp: return "DPad Up";
-		case Button::DPadLeft: return "DPad Left";
-		case Button::DPadDown: return "DPad Down";
-		case Button::DPadRight: return "DPad Right";
-		case Button::FaceUp: return "Face Up";
-		case Button::FaceLeft: return "Face Left";
-		case Button::FaceDown: return "Face Down";
-		case Button::FaceRight: return "Face Right";
-		case Button::LeftStickUp: return "Left Stick Up";
-		case Button::LeftStickLeft: return "Left Stick Left";
-		case Button::LeftStickDown: return "Left Stick Down";
-		case Button::LeftStickRight: return "Left Stick Right";
-		case Button::LeftStickPush: return "Left Stick Push";
-		case Button::RightStickUp: return "Right Stick Up";
-		case Button::RightStickLeft: return "Right Stick Left";
-		case Button::RightStickDown: return "Right Stick Down";
-		case Button::RightStickRight: return "Right Stick Right";
-		case Button::RightStickPush: return "Right Stick Push";
-		case Button::LeftBumper: return "Left Bumper";
-		case Button::RightBumper: return "Right Bumper";
-		case Button::LeftTrigger: return "Left Trigger";
-		case Button::RightTrigger: return "Right Trigger";
-		case Button::Select: return "Select";
-		case Button::Start: return "Start";
-		case Button::Home: return "Home";
-		case Button::TouchPad: return "Touch Pad";
-
-		default:
-			return nullptr;
-		}
+		const auto name = IndexOr(keyCode, KeyCodeNameLookup, EnumNamePair {}).EnumName;
+		return (name != nullptr) ? name : "";
 	}
 
 	const char* GetButtonName(const Button button)
 	{
-		return GetButtonNameView(button).data();
+		const auto name = IndexOr(static_cast<size_t>(button), ButtonNameLookup, EnumNamePair {}).DisplayName;
+		return (name != nullptr) ? name : "";
+	}
+
+	const char* GetButtonEnumName(const Button button)
+	{
+		const auto name = IndexOr(static_cast<size_t>(button), ButtonNameLookup, EnumNamePair {}).EnumName;
+		return (name != nullptr) ? name : "";
 	}
 
 	void ToStringInplace(const KeyCode keyCode, char* buffer, size_t bufferSize)
 	{
-		const auto keyCodeName = GetKeyCodeNameView(keyCode);
+		const std::string_view keyCodeName = GetKeyCodeName(keyCode);
 		std::memcpy(buffer, keyCodeName.data(), keyCodeName.size());
 		buffer[keyCodeName.size()] = '\0';
 	}
@@ -292,4 +404,304 @@ namespace Comfy::Input
 		ToStringInplace(binding, buffer.data(), buffer.size());
 		return buffer;
 	}
+
+	Binding BindingFromStorageString(std::string_view string)
+	{
+		Binding result = {};
+		std::string_view stripped = Util::Trim(string);
+
+		if (Util::StartsWithInsensitive(stripped, BindingStorageStringKeyboardPrefix))
+		{
+			result.Type = BindingType::Keyboard;
+			stripped = Util::TrimLeft(stripped.substr(BindingStorageStringKeyboardPrefix.size()));
+
+			if (Util::EndsWithInsensitive(stripped, BindingStorageStringStrictSuffix))
+			{
+				result.Data.Keyboard.Behavior = ModifierBehavior_Strict;
+				stripped = Util::TrimRight(stripped.substr(0, stripped.size() - BindingStorageStringStrictSuffix.size()));
+			}
+			else if (Util::EndsWithInsensitive(stripped, BindingStorageStringRelaxedSuffix))
+			{
+				result.Data.Keyboard.Behavior = ModifierBehavior_Relaxed;
+				stripped = Util::TrimRight(stripped.substr(0, stripped.size() - BindingStorageStringRelaxedSuffix.size()));
+			}
+			else
+			{
+				result.Data.Keyboard.Behavior = ModifierBehavior_Strict;
+			}
+
+			if (Util::StartsWithInsensitive(stripped, BindingStorageStringCtrlModifier))
+			{
+				stripped = Util::TrimLeft(stripped.substr(BindingStorageStringCtrlModifier.size()));
+				result.Data.Keyboard.Modifiers |= KeyModifiers_Ctrl;
+			}
+			if (Util::StartsWithInsensitive(stripped, BindingStorageStringShiftModifier))
+			{
+				stripped = Util::TrimLeft(stripped.substr(BindingStorageStringShiftModifier.size()));
+				result.Data.Keyboard.Modifiers |= KeyModifiers_Shift;
+			}
+			if (Util::StartsWithInsensitive(stripped, BindingStorageStringAltModifier))
+			{
+				stripped = Util::TrimLeft(stripped.substr(BindingStorageStringAltModifier.size()));
+				result.Data.Keyboard.Modifiers |= KeyModifiers_Alt;
+			}
+
+			// HACK: A linear search isn't exactly the most performant but works fine enough for now...
+			for (size_t i = 0; i < KeyCodeNameLookup.size(); i++)
+			{
+				if (KeyCodeNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(stripped, KeyCodeNameLookup[i].DisplayName))
+				{
+					result.Data.Keyboard.Key = static_cast<KeyCode>(i);
+					break;
+				}
+			}
+		}
+		else if (Util::StartsWithInsensitive(stripped, BindingStorageStringControllerPrefix))
+		{
+			result.Type = BindingType::Controller;
+			stripped = Util::TrimLeft(stripped.substr(BindingStorageStringControllerPrefix.size()));
+
+			for (size_t i = 0; i < ButtonNameLookup.size(); i++)
+			{
+				if (ButtonNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(stripped, ButtonNameLookup[i].DisplayName))
+				{
+					result.Data.Controller.Button = static_cast<Button>(i);
+					break;
+				}
+			}
+		}
+
+		return result;
+	}
+
+	FormatBuffer BindingToStorageString(const Binding& binding)
+	{
+		FormatBuffer buffer;
+		buffer[0] = '\0';
+
+		char* writeHead = buffer.data();
+		auto appendToBuffer = [&](std::string_view toAppend)
+		{
+			if (toAppend == "")
+				return;
+
+			std::memcpy(writeHead, toAppend.data(), toAppend.size());
+			writeHead[toAppend.size()] = '\0';
+			writeHead += toAppend.size();
+		};
+
+		if (binding.Type == BindingType::Keyboard)
+		{
+			appendToBuffer(BindingStorageStringKeyboardPrefix);
+			appendToBuffer(" ");
+
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Ctrl)
+				appendToBuffer(BindingStorageStringCtrlModifier);
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Shift)
+				appendToBuffer(BindingStorageStringShiftModifier);
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Alt)
+				appendToBuffer(BindingStorageStringAltModifier);
+
+			appendToBuffer(GetKeyCodeName(binding.Data.Keyboard.Key));
+
+			if (binding.Data.Keyboard.Behavior == ModifierBehavior_Strict)
+			{
+#if 0 // NOTE: Don't really need to specify the default so leaving it out should make it a bit more readable..?
+				appendToBuffer(" ");
+				appendToBuffer(BindingStorageStringStrictSuffix);
+#endif
+			}
+			else if (binding.Data.Keyboard.Behavior == ModifierBehavior_Relaxed)
+			{
+				appendToBuffer(" ");
+				appendToBuffer(BindingStorageStringRelaxedSuffix);
+			}
+		}
+		else if (binding.Type == BindingType::Controller)
+		{
+			appendToBuffer(BindingStorageStringControllerPrefix);
+			appendToBuffer(" ");
+			appendToBuffer(GetButtonName(binding.Data.Controller.Button));
+		}
+
+		return buffer;
+	}
 }
+
+#if COMFY_DEBUG && 1
+namespace Comfy::Input
+{
+	constexpr bool ConstexprStrCmp(std::string_view a, std::string_view b)
+	{
+		if (a.data() == nullptr || a.size() != b.size())
+			return false;
+		for (size_t i = 0; i < a.size(); i++)
+			if (a[i] != b[i])
+				return false;
+		return true;
+	}
+
+#define DEBUG_CHECK_KEYCODE_ENUM_STRING(x) static_assert(ConstexprStrCmp(KeyCodeNameLookup[x].EnumName, #x), #x);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_None);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MouseLeft);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MouseRight);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MouseMiddle);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MouseX1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MouseX2);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Backspace);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Tab);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Clear);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Enter);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Shift);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Ctrl);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Alt);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Pause);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_CapsLock);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Escape);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Space);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_PageUp);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_PageDown);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_End);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Home);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Left);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Up);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Right);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Down);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Select);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Print);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Insert);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Delete);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Help);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_0);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_2);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_3);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_4);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_5);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_6);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_7);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_8);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_9);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_A);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_B);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_C);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_D);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_E);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_G);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_H);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_I);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_J);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_K);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_L);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_M);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_N);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_O);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_P);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Q);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_R);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_S);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_T);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_U);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_V);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_W);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_X);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Y);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Z);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LeftWin);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_RightWin);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Apps);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Sleep);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad0);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad2);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad3);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad4);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad5);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad6);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad7);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad8);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Numpad9);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Multiply);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Add);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Separator);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Subtract);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Decimal);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Divide);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F2);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F3);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F4);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F5);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F6);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F7);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F8);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F9);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F10);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F11);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F12);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F13);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F14);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F15);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F16);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F17);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F18);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F19);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F20);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F21);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F22);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F23);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_F24);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_NumLock);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Scroll);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LeftShift);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_RightShift);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LeftCtrl);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_RightCtrl);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LeftAlt);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_RightAlt);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_BrowserBack);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_BrowserForward);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_BrowserRefresh);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_BrowserStop);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_BrowserSearch);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_BrowserFavorites);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_BrowserHome);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_VolumeMute);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_VolumeDown);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_VolumeUp);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MediaNextTrack);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MediaPrevTrack);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MediaStop);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_MediaPlayPause);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LaunchMail);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LaunchMediaSelect);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LaunchApp1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LaunchApp2);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMPlus);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMComma);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMMinus);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMPeriod);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM2);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM3);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM4);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM5);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM6);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM7);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM8);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM102);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_IMEProcessKey);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Packet);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Attn);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_CrSel);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_ExSel);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_EraseEOF);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Play);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Zoom);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_NoName);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_PA1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMClear);
+#undef DEBUG_CHECK_KEYCODE_STRING
+}
+#endif
