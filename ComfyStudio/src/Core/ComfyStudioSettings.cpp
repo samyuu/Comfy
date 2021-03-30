@@ -388,6 +388,85 @@ namespace Comfy::Studio
 		const std::string Playtest = "playtest";
 		const std::string Playtest_EnterFullscreenOnMaximizedStart = "enter_fullscreen_on_maximized_start";
 		const std::string Playtest_AutoHideCursor = "auto_hide_cursor";
+
+		template <typename Func>
+		void ForEachMultiBindingWithID(/* const */ ComfyStudioUserSettings& userData, Func func)
+		{
+			func(userData.Input.App_ToggleFullscreen, "app_toggle_fullscreen");
+			func(userData.Input.App_Dialog_YesOrOk, "app_dialog_yes_or_ok");
+			func(userData.Input.App_Dialog_No, "app_dialog_no");
+			func(userData.Input.App_Dialog_Cancel, "app_dialog_cancel");
+			func(userData.Input.App_Dialog_SelectNextTab, "app_dialog_select_next_tab");
+			func(userData.Input.App_Dialog_SelectPreviousTab, "app_dialog_select_previous_tab");
+			func(userData.Input.ChartEditor_ChartNew, "chart_editor_chart_new");
+			func(userData.Input.ChartEditor_ChartOpen, "chart_editor_chart_open");
+			func(userData.Input.ChartEditor_ChartSave, "chart_editor_chart_save");
+			func(userData.Input.ChartEditor_ChartSaveAs, "chart_editor_chart_save_as");
+			func(userData.Input.ChartEditor_ChartOpenDirectory, "chart_editor_chart_open_directory");
+			func(userData.Input.ChartEditor_Undo, "chart_editor_undo");
+			func(userData.Input.ChartEditor_Redo, "chart_editor_redo");
+			func(userData.Input.ChartEditor_OpenSettings, "chart_editor_open_settings");
+			func(userData.Input.ChartEditor_StartPlaytestFromStart, "chart_editor_start_playtest_from_start");
+			func(userData.Input.ChartEditor_StartPlaytestFromCursor, "chart_editor_start_playtest_from_cursor");
+			func(userData.Input.Timeline_CenterCursor, "timeline_center_cursor");
+			func(userData.Input.Timeline_TogglePlayback, "timeline_toggle_playback");
+			func(userData.Input.Timeline_StopPlayback, "timeline_stop_playback");
+			func(userData.Input.TargetTimeline_Cut, "target_timeline_cut");
+			func(userData.Input.TargetTimeline_Copy, "target_timeline_copy");
+			func(userData.Input.TargetTimeline_Paste, "target_timeline_paste");
+			func(userData.Input.TargetTimeline_MoveCursorLeft, "target_timeline_move_cursor_left");
+			func(userData.Input.TargetTimeline_MoveCursorRight, "target_timeline_move_cursor_right");
+			func(userData.Input.TargetTimeline_IncreaseGridPrecision, "target_timeline_increase_grid_precision");
+			func(userData.Input.TargetTimeline_DecreaseGridPrecision, "target_timeline_decrease_grid_precision");
+			func(userData.Input.TargetTimeline_StartEndRangeSelection, "target_timeline_start_end_range_selection");
+			func(userData.Input.TargetTimeline_DeleteSelection, "target_timeline_delete_selection");
+			func(userData.Input.TargetTimeline_IncreasePlaybackSpeed, "target_timeline_increase_playback_speed");
+			func(userData.Input.TargetTimeline_DecreasePlaybackSpeed, "target_timeline_decrease_playback_speed");
+			func(userData.Input.TargetTimeline_ToggleMetronome, "target_timeline_toggle_metronome");
+			func(userData.Input.TargetTimeline_ToggleTargetHolds, "target_timeline_toggle_target_holds");
+			func(userData.Input.TargetTimeline_PlaceTriangle, "target_timeline_place_triangle");
+			func(userData.Input.TargetTimeline_PlaceSquare, "target_timeline_place_square");
+			func(userData.Input.TargetTimeline_PlaceCross, "target_timeline_place_cross");
+			func(userData.Input.TargetTimeline_PlaceCircle, "target_timeline_place_circle");
+			func(userData.Input.TargetTimeline_PlaceSlideL, "target_timeline_place_slide_l");
+			func(userData.Input.TargetTimeline_PlaceSlideR, "target_timeline_place_slide_r");
+			func(userData.Input.TargetPreview_JumpToPreviousTarget, "target_preview_jump_to_previous_target");
+			func(userData.Input.TargetPreview_JumpToNextTarget, "target_preview_jump_to_next_target");
+			func(userData.Input.TargetPreview_TogglePlayback, "target_preview_toggle_playback");
+			func(userData.Input.TargetPreview_SelectPositionTool, "target_preview_select_position_tool");
+			func(userData.Input.TargetPreview_SelectPathTool, "target_preview_select_path_tool");
+			func(userData.Input.TargetPreview_PositionTool_MoveUp, "target_preview_position_tool_move_up");
+			func(userData.Input.TargetPreview_PositionTool_MoveLeft, "target_preview_position_tool_move_left");
+			func(userData.Input.TargetPreview_PositionTool_MoveDown, "target_preview_position_tool_move_down");
+			func(userData.Input.TargetPreview_PositionTool_MoveRight, "target_preview_position_tool_move_right");
+			func(userData.Input.TargetPreview_PositionTool_FlipHorizontal, "target_preview_position_tool_flip_horizontal");
+			func(userData.Input.TargetPreview_PositionTool_FlipHorizontalLocal, "target_preview_position_tool_flip_horizontal_local");
+			func(userData.Input.TargetPreview_PositionTool_FlipVertical, "target_preview_position_tool_flip_vertical");
+			func(userData.Input.TargetPreview_PositionTool_FlipVerticalLocal, "target_preview_position_tool_flip_vertical_local");
+			func(userData.Input.TargetPreview_PositionTool_PositionInRow, "target_preview_position_tool_position_in_row");
+			func(userData.Input.TargetPreview_PositionTool_PositionInRowBack, "target_preview_position_tool_position_in_row_back");
+			func(userData.Input.TargetPreview_PositionTool_InterpolateLinear, "target_preview_position_tool_interpolate_linear");
+			func(userData.Input.TargetPreview_PositionTool_InterpolateCircular, "target_preview_position_tool_interpolate_circular");
+			func(userData.Input.TargetPreview_PositionTool_InterpolateCircularFlip, "target_preview_position_tool_interpolate_circular_flip");
+			func(userData.Input.TargetPreview_PositionTool_StackPositions, "target_preview_position_tool_stack_positions");
+			func(userData.Input.TargetPreview_PathTool_InvertFrequencies, "target_preview_path_tool_invert_frequencies");
+			func(userData.Input.TargetPreview_PathTool_InterpolateAnglesClockwise, "target_preview_path_tool_interpolate_angles_clockwise");
+			func(userData.Input.TargetPreview_PathTool_InterpolateAnglesCounterclockwise, "target_preview_path_tool_interpolate_angles");
+			func(userData.Input.TargetPreview_PathTool_InterpolateDistances, "target_preview_path_tool_interpolate_distances");
+			func(userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositive, "target_preview_path_tool_apply_angle_increments_positive");
+			func(userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositiveBack, "target_preview_path_tool_apply_angle_increments_positive_back");
+			func(userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegative, "target_preview_path_tool_apply_angle_increments_negative");
+			func(userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegativeBack, "target_preview_path_tool_apply_angle_increments_negative_back");
+			func(userData.Input.BPMCalculator_Tap, "bpm_calculator_tap");
+			func(userData.Input.BPMCalculator_Reset, "bpm_calculator_reset");
+			func(userData.Input.Playtest_ReturnToEditorCurrent, "playtest_return_to_editor_current");
+			func(userData.Input.Playtest_ReturnToEditorPrePlaytest, "playtest_return_to_editor_pre_playtest");
+			func(userData.Input.Playtest_ToggleAutoplay, "playtest_toggle_autoplay");
+			func(userData.Input.Playtest_TogglePause, "playtest_toggle_pause");
+			func(userData.Input.Playtest_RestartFromResetPoint, "playtest_restart_from_reset_point");
+			func(userData.Input.Playtest_MoveResetPointBackward, "playtest_move_reset_point_backward");
+			func(userData.Input.Playtest_MoveResetPointForward, "playtest_move_reset_point_forward");
+		}
 	}
 
 	bool ComfyStudioUserSettings::LoadFromFile(std::string_view filePath)
@@ -434,7 +513,24 @@ namespace Comfy::Studio
 
 		if (const json* inputJson = JsonFind(rootJson, UserIDs::Input))
 		{
-			// TODO: ...
+			UserIDs::ForEachMultiBindingWithID(*this, [&](Input::MultiBinding& multiBinding, auto&& multiBindingID)
+			{
+				if (const json* multiBindingJson = JsonFind(*inputJson, multiBindingID))
+				{
+					multiBinding.BindingCount = 0;
+					for (const json& bindingJson : *multiBindingJson)
+					{
+						if (multiBinding.BindingCount < multiBinding.Bindings.size() && bindingJson.is_string())
+						{
+							auto& binding = multiBinding.Bindings[multiBinding.BindingCount++];
+							binding = Input::BindingFromStorageString(bindingJson.get<std::string_view>());
+
+							if (binding.IsEmpty())
+								multiBinding.BindingCount--;
+						}
+					}
+				}
+			});
 		}
 
 		if (const json* targetPreviewJson = JsonFind(rootJson, UserIDs::TargetPreview))
@@ -622,8 +718,14 @@ namespace Comfy::Studio
 
 		json& inputJson = rootJson[UserIDs::Input];
 		{
-			// TODO: ...
 			inputJson = json::object();
+			UserIDs::ForEachMultiBindingWithID(*const_cast<ComfyStudioUserSettings*>(this), [&](const Input::MultiBinding& multiBinding, auto&& multiBindingID)
+			{
+				json& multiBindingJson = inputJson[multiBindingID];
+				multiBindingJson = json::array();
+				for (const auto& binding : multiBinding)
+					multiBindingJson.emplace_back(Input::BindingToStorageString(binding).data());
+			});
 		}
 
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
