@@ -795,8 +795,8 @@ namespace Comfy::Studio
 			Input.TargetTimeline_Paste = MultiBinding(Binding(KeyCode_V, KeyModifiers_Ctrl, ModifierBehavior_Strict));
 			Input.TargetTimeline_MoveCursorLeft = MultiBinding(Binding(KeyCode_Left, KeyModifiers_None, ModifierBehavior_Relaxed));
 			Input.TargetTimeline_MoveCursorRight = MultiBinding(Binding(KeyCode_Right, KeyModifiers_None, ModifierBehavior_Relaxed));
-			Input.TargetTimeline_IncreaseGridPrecision = MultiBinding(Binding(KeyCode_Up, KeyModifiers_None, ModifierBehavior_Relaxed), Binding(KeyCode_MouseX1, KeyModifiers_None, ModifierBehavior_Relaxed));
-			Input.TargetTimeline_DecreaseGridPrecision = MultiBinding(Binding(KeyCode_Down, KeyModifiers_None, ModifierBehavior_Relaxed), Binding(KeyCode_MouseX2, KeyModifiers_None, ModifierBehavior_Relaxed));
+			Input.TargetTimeline_IncreaseGridPrecision = MultiBinding(Binding(KeyCode_Up, KeyModifiers_None, ModifierBehavior_Relaxed), Binding(KeyCode_MouseX2, KeyModifiers_None, ModifierBehavior_Relaxed));
+			Input.TargetTimeline_DecreaseGridPrecision = MultiBinding(Binding(KeyCode_Down, KeyModifiers_None, ModifierBehavior_Relaxed), Binding(KeyCode_MouseX1, KeyModifiers_None, ModifierBehavior_Relaxed));
 			Input.TargetTimeline_StartEndRangeSelection = MultiBinding(Binding(KeyCode_Tab, KeyModifiers_None, ModifierBehavior_Strict));
 			Input.TargetTimeline_DeleteSelection = MultiBinding(Binding(KeyCode_Delete, KeyModifiers_None, ModifierBehavior_Strict));
 			Input.TargetTimeline_IncreasePlaybackSpeed = MultiBinding(Binding(KeyCode_OEMPeriod, KeyModifiers_None, ModifierBehavior_Strict));

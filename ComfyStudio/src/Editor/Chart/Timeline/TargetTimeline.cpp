@@ -935,9 +935,9 @@ namespace Comfy::Studio::Editor
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorRight, true))
 			AdvanceCursorByGridDivisionTick(+1, useBeatStep, stepDistanceFactor);
 
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_IncreaseGridPrecision, true))
-			SelectNextPresetGridDivision(-1);
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DecreaseGridPrecision, true))
+			SelectNextPresetGridDivision(-1);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_IncreaseGridPrecision, true))
 			SelectNextPresetGridDivision(+1);
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_StartEndRangeSelection, false))
