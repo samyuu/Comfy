@@ -30,6 +30,8 @@ namespace Comfy::Studio::Editor
 		hovered.Sync.DynamicPreset = {};
 		hovered.Sync.StaticPreset = {};
 		hovered.Sync.AnyChildWindow = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+		hovered.Sync.ContextMenu = false;
+		hovered.Sync.ContextMenuOpen = false;
 
 		const auto& style = Gui::GetStyle();
 		const auto presetSettingsContextMenuID = Gui::GetCurrentWindow()->GetID("PresetWindowSyncSettingsContextMenu");
@@ -107,7 +109,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 					hovered.Sync.StaticPreset = static_cast<size_t>(std::distance(&*GlobalUserData.TargetPreset.StaticSyncPresets.cbegin(), &staticSyncPreset));
 
-				// TODO: At least basic item context menu for changing the name, move up/down and delete
+				// TODO: At least basic item context menu for changing the name, move up/down and delete (?)
 			}
 		}
 		Gui::EndChild();
@@ -149,15 +151,39 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::EndChild();
 
+		if (Gui::IsMouseReleased(1) && (hovered.AnyHoveredThisFrame && Gui::WasHoveredWindowHoveredOnMouseClicked(1)) && Gui::IsMouseSteady())
+			Gui::OpenPopupEx(presetSettingsContextMenuID);
+
 		if (Gui::BeginPopupEx(presetSettingsContextMenuID, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking)))
 		{
 			hovered.Sync.ContextMenu = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+			hovered.Sync.ContextMenuOpen = true;
 
-			Gui::TextUnformatted("Sync Preset Settings  " ICON_FA_COG);
+			static constexpr std::array checkboxBindings =
+			{
+				Input::Binding(Input::KeyCode_1), Input::Binding(Input::KeyCode_2), Input::Binding(Input::KeyCode_3),
+				Input::Binding(Input::KeyCode_4), Input::Binding(Input::KeyCode_5), Input::Binding(Input::KeyCode_6),
+				Input::Binding(Input::KeyCode_7), Input::Binding(Input::KeyCode_8), Input::Binding(Input::KeyCode_9),
+			};
+
+			auto checkbox = [](const char* label, bool& inOutBool, u32 checkboxIndex, const char* description = nullptr)
+			{
+				const auto* binding = IndexOrNull(checkboxIndex, checkboxBindings);
+				if (Gui::MenuItemWithFlags(label, (binding != nullptr) ? Input::ToString(*binding).data() : nullptr, inOutBool, true, ImGuiSelectableFlags_DontClosePopups))
+					inOutBool ^= true;
+
+				if (binding != nullptr && Gui::IsWindowFocused() && Input::IsPressed(*binding, false))
+					inOutBool ^= true;
+
+				// NOTE: Extra long delay time to hopefully not get in the way
+				if (description != nullptr && !inOutBool && Gui::IsItemHoveredDelayed(ImGuiHoveredFlags_None, 1.5f))
+					Gui::WideSetTooltip(description);
+			};
+
+			u32 checkboxIndex = 0;
+			Gui::TextUnformatted("Dynamic Sync Preset Settings:\t\t\t\t");
 			Gui::Separator();
-
-			Gui::Checkbox("Steep Angles", &dynamicSyncPresetSettings.SteepAngles);
-			Gui::SameLineHelpMarker(
+			checkbox("Steep Angles", dynamicSyncPresetSettings.SteepAngles, checkboxIndex++,
 				"Applies to vertical and horizontal sync presets\n"
 				"- Use steeper 35 instead of 45 degree vertical angles\n"
 				"- Use steeper 10 instead of 20 degree horizontal angles\n"
@@ -165,24 +191,17 @@ namespace Comfy::Studio::Editor
 				"- Sync pairs placed in quick succession\n"
 				"- Sync pairs positioned closely to the top / bottom edge of the screen"
 			);
-
-			Gui::Checkbox("Same Direction Angles", &dynamicSyncPresetSettings.SameDirectionAngles);
-			Gui::SameLineHelpMarker(
+			checkbox("Same Direction Angles", dynamicSyncPresetSettings.SameDirectionAngles, checkboxIndex++,
 				"Applies to vertical and horizontal sync presets\n"
 				"- Set all angles to the same direction"
 			);
-
 			Gui::Separator();
-
-			Gui::Checkbox("Inside Out Angles", &dynamicSyncPresetSettings.InsideOutAngles);
-			Gui::SameLineHelpMarker(
+			checkbox("Inside Out Angles", dynamicSyncPresetSettings.InsideOutAngles, checkboxIndex++,
 				"Applies to square and triangle sync presets\n"
 				"- Flip angles by 180 degrees\n"
 				"- Increase button distances"
 			);
-
-			Gui::Checkbox("Elevate Bottom Row", &dynamicSyncPresetSettings.ElevateBottomRow);
-			Gui::SameLineHelpMarker(
+			checkbox("Elevate Bottom Row", dynamicSyncPresetSettings.ElevateBottomRow, checkboxIndex++,
 				"Applies to square and triangle sync presets\n"
 				"- Raise position height of bottom row targets by one 1/8th step"
 			);
@@ -272,6 +291,8 @@ namespace Comfy::Studio::Editor
 		if (hovered.Sequence.AnyChildWindow)
 			anyHovered = true;
 		if (hovered.Sequence.Preset.has_value())
+			anyHovered = true;
+		if (hovered.Sync.ContextMenuOpen)
 			anyHovered = true;
 
 		hovered.AnyHoveredLastFrame = hovered.AnyHoveredThisFrame;

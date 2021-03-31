@@ -47,6 +47,7 @@ namespace Comfy::Studio::Editor
 				bool StaticChildWindow;
 				bool AddChildWindow;
 				bool ContextMenu;
+				bool ContextMenuOpen;
 				std::optional<DynamicSyncPreset> DynamicPreset;
 				std::optional<size_t> StaticPreset;
 			} Sync;

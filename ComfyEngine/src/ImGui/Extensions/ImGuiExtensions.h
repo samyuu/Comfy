@@ -101,6 +101,8 @@ namespace ImGui
 	bool WideCombo(const char* label, int* current_item, const char* items_separated_by_zeros, int popup_max_height_in_items = -1);
 	bool WideCombo(const char* label, int* current_item, bool(*items_getter)(void* data, int idx, const char** out_text), void* data, int items_count, int popup_max_height_in_items = -1);
 
+	bool MenuItemWithFlags(const char* label, const char* shortcut, bool selected, bool enabled, ImGuiSelectableFlags flags);
+
 	void SetWideItemTooltip(const char* fmt, ...);
 	void WideSetTooltip(const char* fmt, ...);
 	void WideTooltip(const std::function<void(void)>& func);
@@ -109,6 +111,8 @@ namespace ImGui
 	void SameLineHelpMarker(std::string_view description);
 	void SameLineHelpMarker(float localPosX, float spacingWidth, std::string_view description);
 	void SameLineHelpMarkerRightAlign(std::string_view description);
+
+	bool IsMouseSteady();
 
 	// TODO: Use templates instead of std::function wherever possible
 	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
