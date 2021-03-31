@@ -307,8 +307,13 @@ namespace Comfy::Studio::Editor
 					RequestWindowCloseAndKeepChanges();
 				if (Gui::Button("Cancel", vec2(buttonWidth, 0.0f)))
 					RequestWindowCloseAndRevertChanges();
+
+				const bool disableApplyButton = !pendingChanges;
+				Gui::PushItemDisabledAndTextColorIf(disableApplyButton);
 				if (Gui::Button("Apply", vec2(buttonWidth, 0.0f)))
 					KeepChangesSaveToFile();
+				Gui::PopItemDisabledAndTextColorIf(disableApplyButton);
+
 				if (Gui::Button("Prev", vec2(buttonWidth, 0.0f)))
 					SelectNextTab(-1);
 				if (Gui::Button("Next", vec2(buttonWidth, 0.0f)))
@@ -352,25 +357,31 @@ namespace Comfy::Studio::Editor
 	void ChartEditorSettingsWindow::SaveUserDataCopy()
 	{
 		userDataPreEditCopy = GlobalUserData;
+		pendingChanges = false;
 	}
 
 	void ChartEditorSettingsWindow::RestoreUserDataCopy()
 	{
 		GlobalUserData.Mutable() = userDataPreEditCopy;
+		pendingChanges = false;
 	}
 
 	void ChartEditorSettingsWindow::KeepChangesSaveToFile()
 	{
 		userDataPreEditCopy = GlobalUserData;
-		GlobalUserData.SaveToFile();
+		if (pendingChanges)
+		{
+			pendingChanges = false;
+			GlobalUserData.SaveToFile();
 
-		auto& audioEngine = Audio::AudioEngine().GetInstance();
-		const bool wasStreamRunnig = audioEngine.GetIsStreamOpenRunning();
+			auto& audioEngine = Audio::AudioEngine().GetInstance();
+			const bool wasStreamRunnig = audioEngine.GetIsStreamOpenRunning();
 
-		audioEngine.SetAudioBackend(GlobalUserData.System.Audio.RequestExclusiveDeviceAccess ? Audio::AudioBackend::WASAPIExclusive : Audio::AudioBackend::WASAPIShared);
+			audioEngine.SetAudioBackend(GlobalUserData.System.Audio.RequestExclusiveDeviceAccess ? Audio::AudioBackend::WASAPIExclusive : Audio::AudioBackend::WASAPIShared);
 
-		if (wasStreamRunnig)
-			audioEngine.EnsureStreamRunning();
+			if (wasStreamRunnig)
+				audioEngine.EnsureStreamRunning();
+		}
 	}
 
 	void ChartEditorSettingsWindow::RequestWindowCloseAndKeepChanges()
@@ -390,7 +401,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::CollapsingHeader("Chart Properties", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			GuiSettingsInputText("Chart Creator Default Name", userData.ChartProperties.ChartCreatorDefaultName, "n/a");
+			pendingChanges |= GuiSettingsInputText("Chart Creator Default Name", userData.ChartProperties.ChartCreatorDefaultName, "n/a");
 			GuiEndSettingsColumns();
 		}
 
@@ -398,17 +409,19 @@ namespace Comfy::Studio::Editor
 		{
 			GuiBeginSettingsColumns();
 
-			GuiSettingsCheckbox("Show Target Buttons", userData.TargetPreview.ShowButtons);
-			GuiSettingsCheckbox("Preview Hold Info", userData.TargetPreview.ShowHoldInfo);
-			if (auto v = userData.TargetPreview.PostHitLingerDuration.Ticks(); GuiSettingsInputI32("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
+			pendingChanges |= GuiSettingsCheckbox("Show Target Buttons", userData.TargetPreview.ShowButtons);
+			pendingChanges |= GuiSettingsCheckbox("Preview Hold Info", userData.TargetPreview.ShowHoldInfo);
+			if (auto v = userData.TargetPreview.PostHitLingerDuration.Ticks();
+				pendingChanges |= GuiSettingsInputI32("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
 				userData.TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v);
 
-			GuiSettingsCheckbox("Display Practice Background", userData.TargetPreview.DisplayPracticeBackground);
+			pendingChanges |= GuiSettingsCheckbox("Display Practice Background", userData.TargetPreview.DisplayPracticeBackground);
 
 			Gui::PushItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
-			GuiSettingsCheckbox("Show Target Grid", userData.TargetPreview.ShowGrid);
-			GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
-			if (auto v = userData.TargetPreview.BackgroundDim * 100.0f; GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%"))
+			pendingChanges |= GuiSettingsCheckbox("Show Target Grid", userData.TargetPreview.ShowGrid);
+			pendingChanges |= GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
+			if (auto v = userData.TargetPreview.BackgroundDim * 100.0f;
+				pendingChanges |= GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%"))
 				userData.TargetPreview.BackgroundDim = (v / 100.0f);
 			Gui::PopItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
 
@@ -420,16 +433,16 @@ namespace Comfy::Studio::Editor
 			GuiBeginSettingsColumns();
 
 			if (auto v = vec3(userData.PositionTool.PositionMouseSnap, userData.PositionTool.PositionMouseSnapRough, userData.PositionTool.PositionMouseSnapPrecise);
-				GuiSettingsInputVec3("Position Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+				pendingChanges |= GuiSettingsInputVec3("Position Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
 			{
 				userData.PositionTool.PositionMouseSnap = v[0];
 				userData.PositionTool.PositionMouseSnapRough = v[1];
 				userData.PositionTool.PositionMouseSnapPrecise = v[2];
 			}
-			GuiSettingsInputF32("Position Interpolation Command Snap", userData.PositionTool.PositionInterpolationCommandSnap);
+			pendingChanges |= GuiSettingsInputF32("Position Interpolation Command Snap", userData.PositionTool.PositionInterpolationCommandSnap);
 
 			if (auto v = vec3(userData.PositionTool.PositionKeyMoveStep, userData.PositionTool.PositionKeyMoveStepRough, userData.PositionTool.PositionKeyMoveStepPrecise);
-				GuiSettingsInputVec3("Position Key Move Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+				pendingChanges |= GuiSettingsInputVec3("Position Key Move Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
 			{
 				userData.PositionTool.PositionKeyMoveStep = v[0];
 				userData.PositionTool.PositionKeyMoveStepRough = v[1];
@@ -437,14 +450,14 @@ namespace Comfy::Studio::Editor
 			}
 
 			if (showRarelyUsedSettings)
-				GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold);
+				pendingChanges |= GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold);
 
-			GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
-			GuiSettingsCheckbox("Show Target Grab Tooltip", userData.PositionTool.ShowTargetGrabTooltip);
+			pendingChanges |= GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
+			pendingChanges |= GuiSettingsCheckbox("Show Target Grab Tooltip", userData.PositionTool.ShowTargetGrabTooltip);
 
-			GuiSettingsCheckbox("Use Axis Snap Guides", userData.PositionTool.UseAxisSnapGuides);
+			pendingChanges |= GuiSettingsCheckbox("Use Axis Snap Guides", userData.PositionTool.UseAxisSnapGuides);
 			Gui::PushItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
-			GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold);
+			pendingChanges |= GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold);
 			Gui::PopItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
 
 			GuiEndSettingsColumns();
@@ -455,30 +468,31 @@ namespace Comfy::Studio::Editor
 			GuiBeginSettingsColumns();
 
 			if (auto v = vec3(userData.PathTool.AngleMouseScrollStep, userData.PathTool.AngleMouseScrollRough, userData.PathTool.AngleMouseScrollPrecise);
-				GuiSettingsInputVec3("Angle Scroll Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+				pendingChanges |= GuiSettingsInputVec3("Angle Scroll Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
 			{
 				userData.PathTool.AngleMouseScrollStep = v[0];
 				userData.PathTool.AngleMouseScrollRough = v[1];
 				userData.PathTool.AngleMouseScrollPrecise = v[2];
 			}
 
-			if (auto v = (userData.PathTool.AngleMouseScrollDirection > 0.0f); GuiSettingsCheckbox("Flip Mouse Scroll Direction", v))
+			if (auto v = (userData.PathTool.AngleMouseScrollDirection > 0.0f);
+				pendingChanges |= GuiSettingsCheckbox("Flip Mouse Scroll Direction", v))
 			{
 				userData.PathTool.AngleMouseScrollDirection = (v ? +1.0f : -1.0f);
 			}
 
 			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
-				GuiSettingsInputVec3("Angle Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+				pendingChanges |= GuiSettingsInputVec3("Angle Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
 			{
 				userData.PathTool.AngleMouseSnap = v[0];
 				userData.PathTool.AngleMouseSnapRough = v[1];
 				userData.PathTool.AngleMouseSnapPrecise = v[2];
 			}
 
-			GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold);
+			pendingChanges |= GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold);
 
 			if (showRarelyUsedSettings)
-				GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
+				pendingChanges |= GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
 
 			GuiEndSettingsColumns();
 		}
@@ -543,12 +557,12 @@ namespace Comfy::Studio::Editor
 				if constexpr (isInt)
 				{
 					i32 dummyValue = 0;
-					Gui::InputInt("##ValueI32", (selectedValue != nullptr) ? selectedValue : &dummyValue, 1, 5);
+					pendingChanges |= Gui::InputInt("##ValueI32", (selectedValue != nullptr) ? selectedValue : &dummyValue, 1, 5);
 				}
 				else
 				{
 					f32 dummyValue = 0.0f;
-					Gui::InputFloat("##ValueF32", (selectedValue != nullptr) ? selectedValue : &dummyValue, 25.0f, 250.0f, "%.2f");
+					pendingChanges |= Gui::InputFloat("##ValueF32", (selectedValue != nullptr) ? selectedValue : &dummyValue, 25.0f, 250.0f, "%.2f");
 				}
 				Gui::PopItemDisabledAndTextColorIf(selectedValue == nullptr);
 				Gui::PopItemWidth();
@@ -567,12 +581,14 @@ namespace Comfy::Studio::Editor
 						inOutVector.erase(inOutVector.begin() + selectedItemIndex);
 						inOutVector.emplace(inOutVector.begin() + selectedItemIndex - 1, valueToMove);
 						selectedItemIndex--;
+						pendingChanges = true;
 					}
 					else if (moveItemDown && (selectedItemIndex + 1) < static_cast<i32>(inOutVector.size()))
 					{
 						inOutVector.erase(inOutVector.begin() + selectedItemIndex);
 						inOutVector.emplace(inOutVector.begin() + selectedItemIndex + 1, valueToMove);
 						selectedItemIndex++;
+						pendingChanges = true;
 					}
 				}
 				else if (addItem)
@@ -580,12 +596,14 @@ namespace Comfy::Studio::Editor
 					selectedItemIndex = static_cast<i32>(inOutVector.size());
 					inOutVector.emplace_back();
 					scrollToBottomOnNextFrame = true;
+					pendingChanges = true;
 				}
 				else if (removeItem && indexInBounds)
 				{
 					inOutVector.erase(inOutVector.begin() + selectedItemIndex);
 					if (selectedItemIndex > 0 && selectedItemIndex == static_cast<i32>(inOutVector.size()))
 						selectedItemIndex--;
+					pendingChanges = true;
 				}
 
 				Gui::EndChild();
@@ -612,17 +630,17 @@ namespace Comfy::Studio::Editor
 		if (Gui::CollapsingHeader("BPM Calculator", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			GuiSettingsCombo("Tap Sound Type", userData.BPMCalculator.TapSoundType, BPMTapSoundTypeNames);
-			GuiSettingsCheckbox("Auto Reset Enabled", userData.BPMCalculator.AutoResetEnabled);
-			GuiSettingsCheckbox("Apply To Tempo Map", userData.BPMCalculator.ApplyToTempoMap);
+			pendingChanges |= GuiSettingsCombo("Tap Sound Type", userData.BPMCalculator.TapSoundType, BPMTapSoundTypeNames);
+			pendingChanges |= GuiSettingsCheckbox("Auto Reset Enabled", userData.BPMCalculator.AutoResetEnabled);
+			pendingChanges |= GuiSettingsCheckbox("Apply To Tempo Map", userData.BPMCalculator.ApplyToTempoMap);
 			GuiEndSettingsColumns();
 		}
 
 		if (Gui::CollapsingHeader("Playtest", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			GuiSettingsCheckbox("Enter Fullscreen on Maximized Start", userData.Playtest.EnterFullscreenOnMaximizedStart);
-			GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
+			pendingChanges |= GuiSettingsCheckbox("Enter Fullscreen on Maximized Start", userData.Playtest.EnterFullscreenOnMaximizedStart);
+			pendingChanges |= GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
 			GuiEndSettingsColumns();
 		}
 	}
@@ -632,19 +650,19 @@ namespace Comfy::Studio::Editor
 		if (Gui::CollapsingHeader("Volume Levels", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			GuiSettingsVolumeSlider("Song Volume", userData.System.Audio.SongVolume);
-			GuiSettingsVolumeSlider("Button Sound Volume", userData.System.Audio.ButtonSoundVolume);
-			GuiSettingsVolumeSlider("Sound Effect Volume", userData.System.Audio.SoundEffectVolume);
-			GuiSettingsVolumeSlider("Metronome Volume", userData.System.Audio.MetronomeVolume, true);
+			pendingChanges |= GuiSettingsVolumeSlider("Song Volume", userData.System.Audio.SongVolume);
+			pendingChanges |= GuiSettingsVolumeSlider("Button Sound Volume", userData.System.Audio.ButtonSoundVolume);
+			pendingChanges |= GuiSettingsVolumeSlider("Sound Effect Volume", userData.System.Audio.SoundEffectVolume);
+			pendingChanges |= GuiSettingsVolumeSlider("Metronome Volume", userData.System.Audio.MetronomeVolume, true);
 			GuiEndSettingsColumns();
 		}
 
 		if (Gui::CollapsingHeader("Behavior", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			GuiSettingsCheckbox("Open Device on Startup", userData.System.Audio.OpenDeviceOnStartup);
-			GuiSettingsCheckbox("Close Device on Idle Focus Loss", userData.System.Audio.CloseDeviceOnIdleFocusLoss);
-			GuiSettingsCheckbox("Request Exclusive Device Access", userData.System.Audio.RequestExclusiveDeviceAccess);
+			pendingChanges |= GuiSettingsCheckbox("Open Device on Startup", userData.System.Audio.OpenDeviceOnStartup);
+			pendingChanges |= GuiSettingsCheckbox("Close Device on Idle Focus Loss", userData.System.Audio.CloseDeviceOnIdleFocusLoss);
+			pendingChanges |= GuiSettingsCheckbox("Request Exclusive Device Access", userData.System.Audio.RequestExclusiveDeviceAccess);
 			GuiEndSettingsColumns();
 		}
 	}

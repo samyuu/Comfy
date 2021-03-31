@@ -37,14 +37,15 @@ namespace Comfy::Studio::Editor
 		bool closeWindowThisFrame = false;
 		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
 
+		bool showRarelyUsedSettings = false;
+		bool pendingChanges = false;
+
 		i32 selectedTabIndex = {};
 		ComfyStudioUserSettings userDataPreEditCopy = {};
 
 		std::array<i32, TargetPropertyType_Count> inspectorDropdownItemIndices = {};
 		std::array<bool, TargetPropertyType_Count> inspectorDropdownScrollToBottomOnNextFrames = {};
 		TargetPropertyType selectedInspectorDropdownPropertyType = TargetPropertyType_Count;
-
-		bool showRarelyUsedSettings = false;
 
 	private:
 		struct NamedTab { const char* Name; void(ChartEditorSettingsWindow::*GuiFunction)(ComfyStudioUserSettings&); };
