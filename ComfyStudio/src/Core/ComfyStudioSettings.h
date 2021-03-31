@@ -41,7 +41,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 6, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 7, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -195,7 +195,11 @@ namespace Comfy::Studio
 			f32 PositionMouseSnap;
 			f32 PositionMouseSnapRough;
 			f32 PositionMouseSnapPrecise;
-			f32 MouseRowMovementDistanceThreshold;
+			f32 PositionKeyMoveStep;
+			f32 PositionKeyMoveStepRough;
+			f32 PositionKeyMoveStepPrecise;
+			f32 PositionInterpolationCommandSnap;
+			f32 MouseRowCenterDistanceThreshold;
 			std::vector<Editor::Rules::DiagonalRowLayoutUserDefinition> DiagonalMouseRowLayouts;
 		} PositionTool;
 

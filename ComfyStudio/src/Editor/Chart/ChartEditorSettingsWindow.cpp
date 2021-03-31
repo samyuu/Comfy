@@ -420,13 +420,25 @@ namespace Comfy::Studio::Editor
 			GuiBeginSettingsColumns();
 
 			if (auto v = vec3(userData.PositionTool.PositionMouseSnap, userData.PositionTool.PositionMouseSnapRough, userData.PositionTool.PositionMouseSnapPrecise);
-				GuiSettingsInputVec3("Position Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+				GuiSettingsInputVec3("Position Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
 			{
 				userData.PositionTool.PositionMouseSnap = v[0];
 				userData.PositionTool.PositionMouseSnapRough = v[1];
 				userData.PositionTool.PositionMouseSnapPrecise = v[2];
 			}
-			GuiSettingsInputF32("Mouse Row Movement Threshold", userData.PositionTool.MouseRowMovementDistanceThreshold);
+			GuiSettingsInputF32("Position Interpolation Command Snap", userData.PositionTool.PositionInterpolationCommandSnap);
+
+			if (auto v = vec3(userData.PositionTool.PositionKeyMoveStep, userData.PositionTool.PositionKeyMoveStepRough, userData.PositionTool.PositionKeyMoveStepPrecise);
+				GuiSettingsInputVec3("Position Key Move Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+			{
+				userData.PositionTool.PositionKeyMoveStep = v[0];
+				userData.PositionTool.PositionKeyMoveStepRough = v[1];
+				userData.PositionTool.PositionKeyMoveStepPrecise = v[2];
+			}
+
+			if (showRarelyUsedSettings)
+				GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold);
+
 			GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
 			GuiSettingsCheckbox("Show Target Grab Tooltip", userData.PositionTool.ShowTargetGrabTooltip);
 
@@ -456,7 +468,7 @@ namespace Comfy::Studio::Editor
 			}
 
 			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
-				GuiSettingsInputVec3("Angle Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+				GuiSettingsInputVec3("Angle Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
 			{
 				userData.PathTool.AngleMouseSnap = v[0];
 				userData.PathTool.AngleMouseSnapRough = v[1];
@@ -464,7 +476,9 @@ namespace Comfy::Studio::Editor
 			}
 
 			GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold);
-			GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
+
+			if (showRarelyUsedSettings)
+				GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
 
 			GuiEndSettingsColumns();
 		}

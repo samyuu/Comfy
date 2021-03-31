@@ -44,6 +44,8 @@ namespace Comfy::Studio::Editor
 		std::array<bool, TargetPropertyType_Count> inspectorDropdownScrollToBottomOnNextFrames = {};
 		TargetPropertyType selectedInspectorDropdownPropertyType = TargetPropertyType_Count;
 
+		bool showRarelyUsedSettings = false;
+
 	private:
 		struct NamedTab { const char* Name; void(ChartEditorSettingsWindow::*GuiFunction)(ComfyStudioUserSettings&); };
 		static constexpr NamedTab namedTabs[] =

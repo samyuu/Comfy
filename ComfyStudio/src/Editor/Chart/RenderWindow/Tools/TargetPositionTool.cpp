@@ -8,6 +8,15 @@
 
 namespace Comfy::Studio::Editor
 {
+	namespace
+	{
+		vec2 PositionInterpolationSnap(const vec2 position)
+		{
+			const f32 snapDistance = GlobalUserData.PositionTool.PositionInterpolationCommandSnap;
+			return (snapDistance <= 0.0f) ? position : Rules::SnapPositionTo(position, snapDistance);
+		}
+	}
+
 	void TargetPositionTool::OnSelected()
 	{
 	}
@@ -349,8 +358,12 @@ namespace Comfy::Studio::Editor
 
 		auto moveInDirection = [&](vec2 direction)
 		{
+			const auto& io = Gui::GetIO();
+			const f32 stepDistance =
+				io.KeyShift ? GlobalUserData.PositionTool.PositionKeyMoveStepRough :
+				io.KeyAlt ? GlobalUserData.PositionTool.PositionKeyMoveStepPrecise : GlobalUserData.PositionTool.PositionKeyMoveStep;
+
 			// TODO: Improve command merge behavior (?)
-			const auto stepDistance = Gui::GetIO().KeyShift ? Rules::GridStepDistance : Rules::PreciseStepDistance;
 			IncrementSelectedTargetPositionsBy(undoManager, chart, direction * stepDistance);
 		};
 
@@ -477,7 +490,7 @@ namespace Comfy::Studio::Editor
 
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
-			if (selectedTargetsBuffer.size() > 1 && glm::distance(row.Start, row.End) > GlobalUserData.PositionTool.MouseRowMovementDistanceThreshold)
+			if (selectedTargetsBuffer.size() > 1 && glm::distance(row.Start, row.End) > GlobalUserData.PositionTool.MouseRowCenterDistanceThreshold)
 			{
 				if (row.Start != row.End && (mouseWasMoved || steepStateChanged))
 					PositionSelectedTargetsInCardinalRow(undoManager, chart, AngleToNearestCardinal(row.Angle), GetSelectedRowPerBeatDiagonalSpacing(), row.Backwards);
@@ -774,7 +787,7 @@ namespace Comfy::Studio::Editor
 
 				auto& data = targetData.emplace_back();
 				data.ID = target.ID;
-				data.NewValue.Position = startPosition;
+				data.NewValue.Position = PositionInterpolationSnap(startPosition);
 			}
 		}
 		else
@@ -794,7 +807,7 @@ namespace Comfy::Studio::Editor
 
 					if (targetData.size() == 1)
 					{
-						data.NewValue.Position = Rules::TryGetProperties(*thisTargetIt).Position;
+						data.NewValue.Position = PositionInterpolationSnap(Rules::TryGetProperties(*thisTargetIt).Position);
 					}
 					else
 					{
@@ -806,7 +819,7 @@ namespace Comfy::Studio::Editor
 						else if (/*slideHeadTouch*/false) // NOTE: Don't apply here because it requires knowing the direction which feels beyond this function (?)
 							distance += Rules::SlideHeadsTouchOffsetDistance;
 
-						data.NewValue.Position = prevTargetPosition + (rowDirection * distance);
+						data.NewValue.Position = PositionInterpolationSnap(prevTargetPosition + (rowDirection * distance));
 					}
 
 					prevTargetPosition = data.NewValue.Position;
@@ -853,7 +866,7 @@ namespace Comfy::Studio::Editor
 			const f32 t = static_cast<f32>(target.Tick.Ticks() - startTicks) * tickSpanReciprocal;
 			auto& data = targetData.emplace_back();
 			data.ID = target.ID;
-			data.NewValue.Position = ((1.0f - t) * startPosition) + (t * endPosition);
+			data.NewValue.Position = PositionInterpolationSnap(((1.0f - t) * startPosition) + (t * endPosition));
 		}
 
 		undoManager.DisallowMergeForLastCommand();
@@ -896,7 +909,7 @@ namespace Comfy::Studio::Editor
 
 			auto& data = targetData.emplace_back();
 			data.ID = target.ID;
-			data.NewValue.Position = centerPosition + pointOnCircle;
+			data.NewValue.Position = PositionInterpolationSnap(centerPosition + pointOnCircle);
 		}
 
 		undoManager.DisallowMergeForLastCommand();
