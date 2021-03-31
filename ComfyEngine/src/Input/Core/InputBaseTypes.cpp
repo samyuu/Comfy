@@ -303,8 +303,11 @@ namespace Comfy::Input
 
 		constexpr std::string_view BindingStorageStringKeyboardPrefix = "Keyboard";
 		constexpr std::string_view BindingStorageStringCtrlModifier = "Ctrl+";
+		constexpr std::string_view BindingStorageStringCtrlModifierSpace = "Ctrl +";
 		constexpr std::string_view BindingStorageStringShiftModifier = "Shift+";
+		constexpr std::string_view BindingStorageStringShiftModifierSpace = "Shift +";
 		constexpr std::string_view BindingStorageStringAltModifier = "Alt+";
+		constexpr std::string_view BindingStorageStringAltModifierSpace = "Alt +";
 		constexpr std::string_view BindingStorageStringStrictSuffix = "(Strict)";
 		constexpr std::string_view BindingStorageStringRelaxedSuffix = "(Relaxed)";
 		constexpr std::string_view BindingStorageStringControllerPrefix = "Controller";
@@ -407,44 +410,37 @@ namespace Comfy::Input
 
 	Binding BindingFromStorageString(std::string_view string)
 	{
+		auto tryParseAndTrimLeft = [](std::string_view& inOutStripped, const std::string_view prefix) -> bool
+		{
+			if (!Util::StartsWithInsensitive(inOutStripped, prefix)) return false;
+			inOutStripped = Util::TrimLeft(inOutStripped.substr(prefix.size())); return true;
+		};
+		auto tryParseAndTrimRight = [](std::string_view& inOutStripped, const std::string_view suffix) -> bool
+		{
+			if (!Util::EndsWithInsensitive(inOutStripped, suffix)) return false;
+			inOutStripped = Util::TrimRight(inOutStripped.substr(0, inOutStripped.size() - suffix.size())); return true;
+		};
+
 		Binding result = {};
 		std::string_view stripped = Util::Trim(string);
 
-		if (Util::StartsWithInsensitive(stripped, BindingStorageStringKeyboardPrefix))
+		if (tryParseAndTrimLeft(stripped, BindingStorageStringKeyboardPrefix))
 		{
 			result.Type = BindingType::Keyboard;
-			stripped = Util::TrimLeft(stripped.substr(BindingStorageStringKeyboardPrefix.size()));
 
-			if (Util::EndsWithInsensitive(stripped, BindingStorageStringStrictSuffix))
-			{
+			if (tryParseAndTrimRight(stripped, BindingStorageStringStrictSuffix))
 				result.Data.Keyboard.Behavior = ModifierBehavior_Strict;
-				stripped = Util::TrimRight(stripped.substr(0, stripped.size() - BindingStorageStringStrictSuffix.size()));
-			}
-			else if (Util::EndsWithInsensitive(stripped, BindingStorageStringRelaxedSuffix))
-			{
+			else if (tryParseAndTrimRight(stripped, BindingStorageStringRelaxedSuffix))
 				result.Data.Keyboard.Behavior = ModifierBehavior_Relaxed;
-				stripped = Util::TrimRight(stripped.substr(0, stripped.size() - BindingStorageStringRelaxedSuffix.size()));
-			}
 			else
-			{
 				result.Data.Keyboard.Behavior = ModifierBehavior_Strict;
-			}
 
-			if (Util::StartsWithInsensitive(stripped, BindingStorageStringCtrlModifier))
-			{
-				stripped = Util::TrimLeft(stripped.substr(BindingStorageStringCtrlModifier.size()));
+			if (tryParseAndTrimLeft(stripped, BindingStorageStringCtrlModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringCtrlModifierSpace))
 				result.Data.Keyboard.Modifiers |= KeyModifiers_Ctrl;
-			}
-			if (Util::StartsWithInsensitive(stripped, BindingStorageStringShiftModifier))
-			{
-				stripped = Util::TrimLeft(stripped.substr(BindingStorageStringShiftModifier.size()));
+			if (tryParseAndTrimLeft(stripped, BindingStorageStringShiftModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringShiftModifierSpace))
 				result.Data.Keyboard.Modifiers |= KeyModifiers_Shift;
-			}
-			if (Util::StartsWithInsensitive(stripped, BindingStorageStringAltModifier))
-			{
-				stripped = Util::TrimLeft(stripped.substr(BindingStorageStringAltModifier.size()));
+			if (tryParseAndTrimLeft(stripped, BindingStorageStringAltModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringAltModifierSpace))
 				result.Data.Keyboard.Modifiers |= KeyModifiers_Alt;
-			}
 
 			// HACK: A linear search isn't exactly the most performant but works fine enough for now...
 			for (size_t i = 0; i < KeyCodeNameLookup.size(); i++)
@@ -456,10 +452,9 @@ namespace Comfy::Input
 				}
 			}
 		}
-		else if (Util::StartsWithInsensitive(stripped, BindingStorageStringControllerPrefix))
+		else if (tryParseAndTrimLeft(stripped, BindingStorageStringControllerPrefix))
 		{
 			result.Type = BindingType::Controller;
-			stripped = Util::TrimLeft(stripped.substr(BindingStorageStringControllerPrefix.size()));
 
 			for (size_t i = 0; i < ButtonNameLookup.size(); i++)
 			{
@@ -480,48 +475,51 @@ namespace Comfy::Input
 		buffer[0] = '\0';
 
 		char* writeHead = buffer.data();
-		auto appendToBuffer = [&](std::string_view toAppend)
+		auto appendToBufferOne = [&writeHead](std::string_view toAppend)
 		{
-			if (toAppend == "")
+			if (toAppend.empty())
 				return;
-
 			std::memcpy(writeHead, toAppend.data(), toAppend.size());
 			writeHead[toAppend.size()] = '\0';
 			writeHead += toAppend.size();
 		};
+		auto appendToBufferTwo = [&writeHead, &appendToBufferOne](std::string_view toAppendA, std::string_view toAppendB)
+		{
+			appendToBufferOne(toAppendA);
+			appendToBufferOne(toAppendB);
+		};
 
 		if (binding.Type == BindingType::Keyboard)
 		{
-			appendToBuffer(BindingStorageStringKeyboardPrefix);
-			appendToBuffer(" ");
+			appendToBufferTwo(BindingStorageStringKeyboardPrefix, " ");
 
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Ctrl)
-				appendToBuffer(BindingStorageStringCtrlModifier);
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Shift)
-				appendToBuffer(BindingStorageStringShiftModifier);
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Alt)
-				appendToBuffer(BindingStorageStringAltModifier);
+#if 1
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Ctrl) appendToBufferTwo(BindingStorageStringCtrlModifierSpace, " ");
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Shift) appendToBufferTwo(BindingStorageStringShiftModifierSpace, " ");
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Alt) appendToBufferTwo(BindingStorageStringAltModifierSpace, " ");
+#else
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Ctrl) appendToBufferOne(BindingStorageStringCtrlModifier);
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Shift) appendToBufferOne(BindingStorageStringShiftModifier);
+			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Alt) appendToBufferOne(BindingStorageStringAltModifier);
+#endif
 
-			appendToBuffer(GetKeyCodeName(binding.Data.Keyboard.Key));
+			appendToBufferOne(GetKeyCodeName(binding.Data.Keyboard.Key));
 
 			if (binding.Data.Keyboard.Behavior == ModifierBehavior_Strict)
 			{
 #if 0 // NOTE: Don't really need to specify the default so leaving it out should make it a bit more readable..?
-				appendToBuffer(" ");
-				appendToBuffer(BindingStorageStringStrictSuffix);
+				appendToBufferTwo(" ", BindingStorageStringStrictSuffix);
 #endif
 			}
 			else if (binding.Data.Keyboard.Behavior == ModifierBehavior_Relaxed)
 			{
-				appendToBuffer(" ");
-				appendToBuffer(BindingStorageStringRelaxedSuffix);
+				appendToBufferTwo(" ", BindingStorageStringRelaxedSuffix);
 			}
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
-			appendToBuffer(BindingStorageStringControllerPrefix);
-			appendToBuffer(" ");
-			appendToBuffer(GetButtonName(binding.Data.Controller.Button));
+			appendToBufferTwo(BindingStorageStringControllerPrefix, " ");
+			appendToBufferOne(GetButtonName(binding.Data.Controller.Button));
 		}
 
 		return buffer;
