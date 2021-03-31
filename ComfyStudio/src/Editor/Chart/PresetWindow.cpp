@@ -9,6 +9,9 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
+		constexpr f32 MaxDimRender = 0.15f, MaxDimOverlay = 0.45f;
+		constexpr f32 HoverFadeInMS = 60.0f, HoverFadeOutMS = 75.0f;
+
 		constexpr vec2 PresetButtonSpacing = vec2(2.0f);
 
 		constexpr f32 DynamicSyncButtonHeight = 44.0f;
@@ -295,11 +298,17 @@ namespace Comfy::Studio::Editor
 		if (hovered.Sync.ContextMenuOpen)
 			anyHovered = true;
 
+		// HACK: Super hacky but mainly to prevent undesired hover detecting for cases like resize hovering a docked window...
+		if (auto c = Gui::GetMouseCursor(); c != ImGuiMouseCursor_None && c != ImGuiMouseCursor_Arrow && c != ImGuiMouseCursor_Hand)
+			anyHovered = false;
+
 		hovered.AnyHoveredLastFrame = hovered.AnyHoveredThisFrame;
 		hovered.AnyHoveredThisFrame = anyHovered;
 
 		if (anyHovered)
 			hovered.LastHoverStopwatch.Restart();
+		else
+			hovered.HoverDurationStopwatch.Restart();
 	}
 
 	void PresetWindow::OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer)
@@ -340,13 +349,17 @@ namespace Comfy::Studio::Editor
 		if (const auto dimness = GetPresetPreviewDimness(true); dimness > 0.0f)
 			drawList.AddRectFilled(windowRect.GetTL(), windowRect.GetBR(), ImColor(0.0f, 0.0f, 0.0f, dimness));
 
+		// NOTE: Helps to reduce visual noise while quickly mouse hover skipping over a preset window
+		const f32 hoverFadeOpacity = GetHoverFadeInPreviewOpacity();
+		const u32 hoverFadeOpacityU8 = static_cast<u8>(hoverFadeOpacity * std::numeric_limits<u8>::max());
+
 		if (hovered.Sync.DynamicPreset.has_value() || hovered.Sync.StaticPreset.has_value())
 		{
 			for (u32 i = 0; i < syncPresetPreview.TargetCount; i++)
 			{
 				const auto& presetTarget = syncPresetPreview.Targets[i];
 
-				const auto color = GetButtonTypeColorU32(presetTarget.Type);
+				const u32 color = GetButtonTypeColorU32(presetTarget.Type, hoverFadeOpacityU8);
 				DrawCurvedButtonPathLine(renderWindow, drawList, presetTarget.Properties, color, 2.0f);
 
 				const f32 stepDistance = 1.0f / static_cast<f32>(GlobalUserData.System.Gui.TargetButtonPathCurveSegments);
@@ -363,7 +376,7 @@ namespace Comfy::Studio::Editor
 
 			if (preset.Type == SequencePresetType::Circle)
 			{
-				constexpr u32 circleColor = 0xFFB1B1B1;
+				const u32 circleColor = ImColor(0.69f, 0.69f, 0.69f, hoverFadeOpacity);
 				drawList.AddCircle(renderWindow.TargetAreaToScreenSpace(preset.Circle.Center), preset.Circle.Radius * renderWindow.GetCamera().Zoom, circleColor, 64, 2.0f);
 
 				constexpr i32 arrowCount = 8; // 4;
@@ -403,18 +416,31 @@ namespace Comfy::Studio::Editor
 
 	f32 PresetWindow::GetPresetPreviewDimness(bool overlayPass) const
 	{
-		// TODO: Rework this to avoid annoying accidental fades
-		constexpr f32 maxDimRender = 0.15f, maxDimOverlay = 0.45f, transitionMS = 75.0f;
-		const f32 max = overlayPass ? maxDimOverlay : maxDimRender;
+		const f32 max = overlayPass ? MaxDimOverlay : MaxDimRender;
 
-		if (!hovered.LastHoverStopwatch.IsRunning())
-			return 0.0f;
 		if (hovered.AnyHoveredThisFrame)
-			return max;
+		{
+			if (!hovered.HoverDurationStopwatch.IsRunning())
+				return max;
 
-		const f32 sinceHoverMS = static_cast<f32>(hovered.LastHoverStopwatch.GetElapsed().TotalMilliseconds());
-		const f32 dim = ConvertRange<f32>(0.0f, transitionMS, max, 0.0f, sinceHoverMS);
-		return std::clamp(dim, 0.0f, max);
+			const f32 hoverMS = static_cast<f32>(hovered.HoverDurationStopwatch.GetElapsed().TotalMilliseconds());
+			return std::clamp(ConvertRange<f32>(0.0f, HoverFadeInMS, 0.0f, max, hoverMS), 0.0f, max);
+		}
+		else
+		{
+			if (!hovered.LastHoverStopwatch.IsRunning())
+				return 0.0f;
+
+			const f32 sinceHoverMS = static_cast<f32>(hovered.LastHoverStopwatch.GetElapsed().TotalMilliseconds());
+			return std::clamp(ConvertRange<f32>(0.0f, HoverFadeOutMS, max, 0.0f, sinceHoverMS), 0.0f, max);
+		}
+	}
+
+	f32 PresetWindow::GetHoverFadeInPreviewOpacity() const
+	{
+		const f32 hoverMS = static_cast<f32>(hovered.HoverDurationStopwatch.GetElapsed().TotalMilliseconds());
+		const f32 opacity = std::clamp<f32>(ConvertRange<f32>(0.0f, HoverFadeInMS, 0.0f, 1.0f, hoverMS), 0.0f, 1.0f);
+		return (opacity * opacity);
 	}
 
 	void PresetWindow::RenderSyncPresetPreview(Render::Renderer2D& renderer, TargetRenderHelper& renderHelper, u32 targetCount, const std::array<PresetTargetData, Rules::MaxSyncPairCount>& presetTargets)

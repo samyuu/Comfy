@@ -29,6 +29,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		f32 GetPresetPreviewDimness(bool overlayPass) const;
+		f32 GetHoverFadeInPreviewOpacity() const;
 
 		void RenderSyncPresetPreview(Render::Renderer2D& renderer, TargetRenderHelper& renderHelper, u32 targetCount, const std::array<PresetTargetData, Rules::MaxSyncPairCount>& presetTargets);
 
@@ -62,6 +63,7 @@ namespace Comfy::Studio::Editor
 
 			bool AnyHoveredThisFrame, AnyHoveredLastFrame;
 			Stopwatch LastHoverStopwatch;
+			Stopwatch HoverDurationStopwatch;
 		} hovered = {};
 
 		struct SyncPresetPreviewData
