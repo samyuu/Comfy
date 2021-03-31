@@ -322,7 +322,7 @@ namespace Comfy::Studio
 		const std::string TargetPreview_ShowGrid = "show_grid";
 		const std::string TargetPreview_ShowHoldInfo = "show_hold_info";
 		const std::string TargetPreview_ShowBackgroundCheckerboard = "show_background_checkerboard";
-		const std::string TargetPreview_BackgroundDimPercentage = "background_dim_percentage";
+		const std::string TargetPreview_BackgroundDim = "background_dim";
 		const std::string TargetPreview_PostHitLingerDurationTicks = "post_hit_linger_duration_ticks";
 		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
@@ -539,8 +539,7 @@ namespace Comfy::Studio
 			JsonTryAssign(TargetPreview.ShowGrid, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)));
 			JsonTryAssign(TargetPreview.ShowHoldInfo, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowHoldInfo)));
 			JsonTryAssign(TargetPreview.ShowBackgroundCheckerboard, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)));
-			if (auto v = JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDimPercentage)); v.has_value())
-				TargetPreview.BackgroundDim = static_cast<f32>(v.value()) / 100.0f;
+			JsonTryAssign(TargetPreview.BackgroundDim, JsonTryGetF32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDim)));
 			if (auto v = JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)); v.has_value())
 				TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v.value());
 			JsonTryAssign(TargetPreview.DisplayPracticeBackground, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)));
@@ -734,7 +733,7 @@ namespace Comfy::Studio
 			targetPreviewJson[UserIDs::TargetPreview_ShowGrid] = TargetPreview.ShowGrid;
 			targetPreviewJson[UserIDs::TargetPreview_ShowHoldInfo] = TargetPreview.ShowHoldInfo;
 			targetPreviewJson[UserIDs::TargetPreview_ShowBackgroundCheckerboard] = TargetPreview.ShowBackgroundCheckerboard;
-			targetPreviewJson[UserIDs::TargetPreview_BackgroundDimPercentage] = static_cast<i32>(glm::round(TargetPreview.BackgroundDim * 100.0f));
+			targetPreviewJson[UserIDs::TargetPreview_BackgroundDim] = TargetPreview.BackgroundDim;
 			targetPreviewJson[UserIDs::TargetPreview_PostHitLingerDurationTicks] = TargetPreview.PostHitLingerDuration.Ticks();
 			targetPreviewJson[UserIDs::TargetPreview_DisplayPracticeBackground] = TargetPreview.DisplayPracticeBackground;
 		}
