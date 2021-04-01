@@ -169,6 +169,8 @@ namespace Comfy::Input
 		KeyCode_OEMClear = 0xFE,
 
 		KeyCode_Count,
+		KeyCode_First = KeyCode_MouseLeft,
+		KeyCode_Last = KeyCode_OEMClear,
 		KeyCode_MouseFirst = KeyCode_MouseLeft,
 		KeyCode_MouseLast = KeyCode_MouseX2,
 		KeyCode_KeyboardFirst = KeyCode_Backspace,
