@@ -13,6 +13,7 @@
 #include "RenderWindow/TargetRenderWindow.h"
 #include "Gameplay/PlayTestWindow.h"
 #include "PVScript/PVScriptImportWindow.h"
+#include "PVScript/PVScriptExportWindow.h"
 #include "Editor/Common/UndoHistoryWindow.h"
 #include "Editor/Common/SoundEffectManager.h"
 #include "Editor/Common/RecentFilesList.h"
@@ -63,6 +64,8 @@ namespace Comfy::Studio::Editor
 		void OpenPVScriptImportWindow(std::string_view filePath);
 		bool OpenReadImportPVScriptFileDialogThenOpenImportWindow();
 
+		void OpenPVScriptExportWindow();
+
 		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
 
 		std::string GetOpenReadImageFileDialogPath() const;
@@ -95,6 +98,7 @@ namespace Comfy::Studio::Editor
 
 		void GuiSettingsPopup();
 		void GuiPVScriptImportPopup();
+		void GuiPVScriptExportPopup();
 		void GuiFileNotFoundPopup();
 		void GuiSaveConfirmationPopup();
 
@@ -143,6 +147,12 @@ namespace Comfy::Studio::Editor
 			bool OpenOnNextFrame;
 			PVScriptImportWindow Window;
 		} pvScriptImportPopup = {};
+
+		struct PVScriptExportPopupData
+		{
+			bool OpenOnNextFrame;
+			PVScriptExportWindow Window;
+		} pvScriptExportPopup = {};
 
 		struct SaveConfirmationPopupData
 		{

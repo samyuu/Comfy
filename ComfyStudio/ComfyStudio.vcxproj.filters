@@ -222,6 +222,9 @@
     <ClCompile Include="src\CLI\CommandLineOption.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\PVScript\PVScriptExportWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -516,6 +519,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\CLI\CommandLineOption.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\PVScript\PVScriptExportWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

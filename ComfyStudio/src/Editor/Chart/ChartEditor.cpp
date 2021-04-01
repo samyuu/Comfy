@@ -12,11 +12,6 @@
 
 namespace Comfy::Studio::Editor
 {
-	namespace ApplicationConfigIDs
-	{
-		constexpr std::string_view RecentFiles = "Comfy::Studio::ChartEditor::RecentFiles";
-	}
-
 	namespace
 	{
 		constexpr std::string_view FallbackChartFileName = "Untitled Chart.csfm";
@@ -35,7 +30,6 @@ namespace Comfy::Studio::Editor
 
 	ChartEditor::ChartEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-
 		chart = std::make_unique<Chart>();
 		chart->UpdateMapTimes();
 		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
@@ -91,6 +85,7 @@ namespace Comfy::Studio::Editor
 
 		GuiSettingsPopup();
 		GuiPVScriptImportPopup();
+		GuiPVScriptExportPopup();
 		GuiFileNotFoundPopup();
 		GuiSaveConfirmationPopup();
 
@@ -171,6 +166,9 @@ namespace Comfy::Studio::Editor
 			{
 				if (Gui::MenuItem("Export UPDC Chart...", nullptr, false, true))
 					OpenSaveExportPJEChartFileDialog();
+
+				if (Gui::MenuItem("Expot PV Script Chart...", nullptr, false, true))
+					OpenPVScriptExportWindow();
 
 				Gui::EndMenu();
 			}
@@ -560,6 +558,11 @@ namespace Comfy::Studio::Editor
 		pvScriptImportPopup.OpenOnNextFrame = true;
 	}
 
+	void ChartEditor::OpenPVScriptExportWindow()
+	{
+		pvScriptExportPopup.OpenOnNextFrame = true;
+	}
+
 	bool ChartEditor::OpenReadImportPVScriptFileDialogThenOpenImportWindow()
 	{
 		IO::Shell::FileDialog fileDialog;
@@ -858,6 +861,30 @@ namespace Comfy::Studio::Editor
 
 		if (!isOpen)
 			pvScriptImportPopup.Window.TryMoveImportedChartBeforeClosing();
+	}
+
+	void ChartEditor::GuiPVScriptExportPopup()
+	{
+		constexpr const char* pvScriptExportWindowID = "Export PV Script Chart";
+		if (pvScriptExportPopup.OpenOnNextFrame)
+		{
+			Gui::OpenPopup(pvScriptExportWindowID);
+			pvScriptExportPopup.OpenOnNextFrame = false;
+		}
+
+		const auto* viewport = Gui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
+
+		bool isOpen = true;
+		if (Gui::WideBeginPopupModal(pvScriptExportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			pvScriptExportPopup.Window.Gui();
+
+			if (pvScriptExportPopup.Window.GetAndClearCloseRequestThisFrame())
+				Gui::CloseCurrentPopup();
+
+			Gui::EndPopup();
+		}
 	}
 
 	void ChartEditor::GuiFileNotFoundPopup()
