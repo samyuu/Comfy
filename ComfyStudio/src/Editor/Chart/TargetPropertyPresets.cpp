@@ -295,7 +295,7 @@ namespace Comfy::Studio::Editor
 
 		bool ApplyStaticSyncPresetToSyncPair(const StaticSyncPreset& preset, const TimelineTarget* const syncPair, const i32 pairCount, ApplySyncPreset::Data* outProperties)
 		{
-			assert(syncPair != nullptr && pairCount > 1 && preset.TargetCount < preset.Targets.size() && outProperties != nullptr);
+			assert(syncPair != nullptr && pairCount > 1 && preset.TargetCount <= preset.Targets.size() && outProperties != nullptr);
 			assert(std::is_sorted(preset.Targets.begin(), preset.Targets.begin() + pairCount, [](auto& a, auto& b) { return a.Type < b.Type; }));
 
 			if (pairCount != preset.TargetCount)
