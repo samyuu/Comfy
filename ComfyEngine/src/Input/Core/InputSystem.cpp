@@ -563,14 +563,14 @@ namespace Comfy::Input
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Data.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyDown(binding.Data.Keyboard.Key) && AreOnlyModifiersDown(binding.Data.Keyboard.Behavior);
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+				return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Behavior);
 			else
-				return IsKeyDown(binding.Data.Keyboard.Key) && AreAllModifiersDown(binding.Data.Keyboard.Behavior);
+				return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Behavior);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
-			return IsButtonDown(binding.Data.Controller.Button);
+			return IsButtonDown(binding.Controller.Button);
 		}
 		else
 		{
@@ -582,14 +582,14 @@ namespace Comfy::Input
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Data.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyPressed(binding.Data.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Data.Keyboard.Modifiers);
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers);
 			else
-				return IsKeyPressed(binding.Data.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Data.Keyboard.Modifiers);
+				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
-			return IsButtonPressed(binding.Data.Controller.Button, repeat);
+			return IsButtonPressed(binding.Controller.Button, repeat);
 		}
 		else
 		{
@@ -602,14 +602,14 @@ namespace Comfy::Input
 		if (binding.Type == BindingType::Keyboard)
 		{
 			// TODO: How should this best be handled..?
-			if (binding.Data.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyReleased(binding.Data.Keyboard.Key) && AreOnlyModifiersDown(binding.Data.Keyboard.Modifiers);
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+				return IsKeyReleased(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers);
 			else
-				return IsKeyReleased(binding.Data.Keyboard.Key) && AreAllModifiersDown(binding.Data.Keyboard.Modifiers);
+				return IsKeyReleased(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
-			return IsButtonReleased(binding.Data.Controller.Button);
+			return IsButtonReleased(binding.Controller.Button);
 		}
 		else
 		{

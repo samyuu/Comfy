@@ -325,6 +325,29 @@ namespace Comfy::Input
 		return (name != nullptr) ? name : "";
 	}
 
+	// HACK: A linear search for all of these isn't exactly the most performant but works fine enough for now...
+	KeyCode ParseKeyCodeName(std::string_view keyCodeName)
+	{
+		for (size_t i = 0; i < KeyCodeNameLookup.size(); i++)
+		{
+			if (KeyCodeNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(keyCodeName, KeyCodeNameLookup[i].DisplayName))
+				return static_cast<KeyCode>(i);
+		}
+
+		return KeyCode_None;
+	}
+
+	KeyCode ParseKeyCodeEnumName(std::string_view keyCodeEnumName)
+	{
+		for (size_t i = 0; i < KeyCodeNameLookup.size(); i++)
+		{
+			if (KeyCodeNameLookup[i].EnumName != nullptr && Util::MatchesInsensitive(keyCodeEnumName, KeyCodeNameLookup[i].EnumName))
+				return static_cast<KeyCode>(i);
+		}
+
+		return KeyCode_None;
+	}
+
 	const char* GetButtonName(const Button button)
 	{
 		const auto name = IndexOr(static_cast<size_t>(button), ButtonNameLookup, EnumNamePair {}).DisplayName;
@@ -335,6 +358,28 @@ namespace Comfy::Input
 	{
 		const auto name = IndexOr(static_cast<size_t>(button), ButtonNameLookup, EnumNamePair {}).EnumName;
 		return (name != nullptr) ? name : "";
+	}
+
+	Button ParseButtonName(std::string_view buttonName)
+	{
+		for (size_t i = 0; i < ButtonNameLookup.size(); i++)
+		{
+			if (ButtonNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(buttonName, ButtonNameLookup[i].DisplayName))
+				return static_cast<Button>(i);
+		}
+
+		return Button::None;
+	}
+
+	Button ParseButtonEnumName(std::string_view buttonEnumName)
+	{
+		for (size_t i = 0; i < ButtonNameLookup.size(); i++)
+		{
+			if (ButtonNameLookup[i].EnumName != nullptr && Util::MatchesInsensitive(buttonEnumName, ButtonNameLookup[i].EnumName))
+				return static_cast<Button>(i);
+		}
+
+		return Button::None;
 	}
 
 	void ToStringInplace(const KeyCode keyCode, char* buffer, size_t bufferSize)
@@ -370,17 +415,17 @@ namespace Comfy::Input
 		buffer[0] = '\0';
 		if (binding.Type == BindingType::Keyboard)
 		{
-			ForEachKeyCodeInKeyModifiers(binding.Data.Keyboard.Modifiers, [&](KeyCode keyCode)
+			ForEachKeyCodeInKeyModifiers(binding.Keyboard.Modifiers, [&](KeyCode keyCode)
 			{
 				appendToBuffer(GetKeyCodeName(keyCode));
 				appendToBuffer(" + ");
 			});
 
-			appendToBuffer(GetKeyCodeName(binding.Data.Keyboard.Key));
+			appendToBuffer(GetKeyCodeName(binding.Keyboard.Key));
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
-			appendToBuffer(GetButtonName(binding.Data.Controller.Button));
+			appendToBuffer(GetButtonName(binding.Controller.Button));
 		}
 
 		assert(buffer <= bufferEnd);
@@ -429,41 +474,25 @@ namespace Comfy::Input
 			result.Type = BindingType::Keyboard;
 
 			if (tryParseAndTrimRight(stripped, BindingStorageStringStrictSuffix))
-				result.Data.Keyboard.Behavior = ModifierBehavior_Strict;
+				result.Keyboard.Behavior = ModifierBehavior_Strict;
 			else if (tryParseAndTrimRight(stripped, BindingStorageStringRelaxedSuffix))
-				result.Data.Keyboard.Behavior = ModifierBehavior_Relaxed;
+				result.Keyboard.Behavior = ModifierBehavior_Relaxed;
 			else
-				result.Data.Keyboard.Behavior = ModifierBehavior_Strict;
+				result.Keyboard.Behavior = ModifierBehavior_Strict;
 
 			if (tryParseAndTrimLeft(stripped, BindingStorageStringCtrlModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringCtrlModifierSpace))
-				result.Data.Keyboard.Modifiers |= KeyModifiers_Ctrl;
+				result.Keyboard.Modifiers |= KeyModifiers_Ctrl;
 			if (tryParseAndTrimLeft(stripped, BindingStorageStringShiftModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringShiftModifierSpace))
-				result.Data.Keyboard.Modifiers |= KeyModifiers_Shift;
+				result.Keyboard.Modifiers |= KeyModifiers_Shift;
 			if (tryParseAndTrimLeft(stripped, BindingStorageStringAltModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringAltModifierSpace))
-				result.Data.Keyboard.Modifiers |= KeyModifiers_Alt;
+				result.Keyboard.Modifiers |= KeyModifiers_Alt;
 
-			// HACK: A linear search isn't exactly the most performant but works fine enough for now...
-			for (size_t i = 0; i < KeyCodeNameLookup.size(); i++)
-			{
-				if (KeyCodeNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(stripped, KeyCodeNameLookup[i].DisplayName))
-				{
-					result.Data.Keyboard.Key = static_cast<KeyCode>(i);
-					break;
-				}
-			}
+			result.Keyboard.Key = ParseKeyCodeName(stripped);
 		}
 		else if (tryParseAndTrimLeft(stripped, BindingStorageStringControllerPrefix))
 		{
 			result.Type = BindingType::Controller;
-
-			for (size_t i = 0; i < ButtonNameLookup.size(); i++)
-			{
-				if (ButtonNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(stripped, ButtonNameLookup[i].DisplayName))
-				{
-					result.Data.Controller.Button = static_cast<Button>(i);
-					break;
-				}
-			}
+			result.Controller.Button = ParseButtonName(stripped);
 		}
 
 		return result;
@@ -494,24 +523,24 @@ namespace Comfy::Input
 			appendToBufferTwo(BindingStorageStringKeyboardPrefix, " ");
 
 #if 1
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Ctrl) appendToBufferTwo(BindingStorageStringCtrlModifierSpace, " ");
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Shift) appendToBufferTwo(BindingStorageStringShiftModifierSpace, " ");
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Alt) appendToBufferTwo(BindingStorageStringAltModifierSpace, " ");
+			if (binding.Keyboard.Modifiers & KeyModifiers_Ctrl) appendToBufferTwo(BindingStorageStringCtrlModifierSpace, " ");
+			if (binding.Keyboard.Modifiers & KeyModifiers_Shift) appendToBufferTwo(BindingStorageStringShiftModifierSpace, " ");
+			if (binding.Keyboard.Modifiers & KeyModifiers_Alt) appendToBufferTwo(BindingStorageStringAltModifierSpace, " ");
 #else
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Ctrl) appendToBufferOne(BindingStorageStringCtrlModifier);
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Shift) appendToBufferOne(BindingStorageStringShiftModifier);
-			if (binding.Data.Keyboard.Modifiers & KeyModifiers_Alt) appendToBufferOne(BindingStorageStringAltModifier);
+			if (binding.Keyboard.Modifiers & KeyModifiers_Ctrl) appendToBufferOne(BindingStorageStringCtrlModifier);
+			if (binding.Keyboard.Modifiers & KeyModifiers_Shift) appendToBufferOne(BindingStorageStringShiftModifier);
+			if (binding.Keyboard.Modifiers & KeyModifiers_Alt) appendToBufferOne(BindingStorageStringAltModifier);
 #endif
 
-			appendToBufferOne(GetKeyCodeName(binding.Data.Keyboard.Key));
+			appendToBufferOne(GetKeyCodeName(binding.Keyboard.Key));
 
-			if (binding.Data.Keyboard.Behavior == ModifierBehavior_Strict)
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
 			{
 #if 0 // NOTE: Don't really need to specify the default so leaving it out should make it a bit more readable..?
 				appendToBufferTwo(" ", BindingStorageStringStrictSuffix);
 #endif
 			}
-			else if (binding.Data.Keyboard.Behavior == ModifierBehavior_Relaxed)
+			else if (binding.Keyboard.Behavior == ModifierBehavior_Relaxed)
 			{
 				appendToBufferTwo(" ", BindingStorageStringRelaxedSuffix);
 			}
@@ -519,7 +548,7 @@ namespace Comfy::Input
 		else if (binding.Type == BindingType::Controller)
 		{
 			appendToBufferTwo(BindingStorageStringControllerPrefix, " ");
-			appendToBufferOne(GetButtonName(binding.Data.Controller.Button));
+			appendToBufferOne(GetButtonName(binding.Controller.Button));
 		}
 
 		return buffer;

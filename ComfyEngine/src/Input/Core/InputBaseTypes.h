@@ -335,7 +335,7 @@ namespace Comfy::Input
 
 	struct Binding
 	{
-		BindingType Type = BindingType::None;
+		BindingType Type;
 		union
 		{
 			struct
@@ -348,22 +348,25 @@ namespace Comfy::Input
 			{
 				Button Button;
 			} Controller;
-		} Data = {};
+		};
 
-		constexpr Binding() {}
-		constexpr Binding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict) : Type(BindingType::Keyboard)
+		constexpr Binding()
+			: Type(BindingType::None), Keyboard()
 		{
-			Data.Keyboard = { key, modifiers, behavior };
 		}
-		constexpr Binding(Button button) : Type(BindingType::Controller)
+		constexpr Binding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict)
+			: Type(BindingType::Keyboard), Keyboard({ key, modifiers, behavior })
 		{
-			Data.Controller.Button = button;
+		}
+		constexpr Binding(Button button)
+			: Type(BindingType::Controller), Controller({ button })
+		{
 		}
 		constexpr bool IsEmpty() const
 		{
 			return
-				(Type == BindingType::Keyboard) ? (Data.Keyboard.Key == KeyCode_None) :
-				(Type == BindingType::Controller) ? (Data.Controller.Button == Button::None) : true;
+				(Type == BindingType::Keyboard) ? (Keyboard.Key == KeyCode_None) :
+				(Type == BindingType::Controller) ? (Controller.Button == Button::None) : true;
 		}
 	};
 
@@ -388,8 +391,13 @@ namespace Comfy::Input
 
 	const char* GetKeyCodeName(const KeyCode keyCode);
 	const char* GetKeyCodeEnumName(const KeyCode keyCode);
+	KeyCode ParseKeyCodeName(std::string_view keyCodeName);
+	KeyCode ParseKeyCodeEnumName(std::string_view keyCodeEnumName);
+
 	const char* GetButtonName(const Button button);
 	const char* GetButtonEnumName(const Button button);
+	Button ParseButtonName(std::string_view buttonName);
+	Button ParseButtonEnumName(std::string_view buttonEnumName);
 
 	void ToStringInplace(const KeyCode keyCode, char* buffer, size_t bufferSize);
 	FormatBuffer ToString(const KeyCode keyCode);

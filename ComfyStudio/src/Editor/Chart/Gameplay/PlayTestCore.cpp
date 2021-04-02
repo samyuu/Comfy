@@ -7,7 +7,7 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		enum class SlidePositionType : u8
+		enum class PlayTestSlidePositionType : u8
 		{
 			None,
 			Left,
@@ -18,61 +18,74 @@ namespace Comfy::Studio::Editor
 		struct PlayTestInputBinding
 		{
 			ButtonTypeFlags ButtonTypes;
-			SlidePositionType SlidePosition;
-			std::variant<Input::KeyCode, Input::Button> InputSource;
+			PlayTestSlidePositionType SlidePosition;
+			Input::Binding InputSource;
+
+			constexpr PlayTestInputBinding()
+				: ButtonTypes(), SlidePosition(), InputSource()
+			{
+			}
+			constexpr PlayTestInputBinding(ButtonTypeFlags buttonTypes, PlayTestSlidePositionType slidePosition, Input::KeyCode keyCode)
+				: ButtonTypes(buttonTypes), SlidePosition(slidePosition), InputSource(keyCode)
+			{
+			}
+			constexpr PlayTestInputBinding(ButtonTypeFlags buttonTypes, PlayTestSlidePositionType slidePosition, Input::Button button)
+				: ButtonTypes(buttonTypes), SlidePosition(slidePosition), InputSource(button)
+			{
+			}
 		};
 
 		constexpr std::array PlayTestInputBindings =
 		{
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::KeyCode_W },
-			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::KeyCode_A },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::KeyCode_S },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::KeyCode_D },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Left, Input::KeyCode_Q },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Left, Input::KeyCode_E },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::KeyCode_W },
+			PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::KeyCode_A },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::KeyCode_S },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::KeyCode_D },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Left, Input::KeyCode_Q },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Left, Input::KeyCode_E },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::KeyCode_I },
-			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::KeyCode_J },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::KeyCode_K },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::KeyCode_L },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Right, Input::KeyCode_U },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Right, Input::KeyCode_O },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::KeyCode_I },
+			PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::KeyCode_J },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::KeyCode_K },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::KeyCode_L },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Right, Input::KeyCode_U },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Right, Input::KeyCode_O },
 
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_1 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_2 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_3 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_4 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_1 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_2 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_3 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_4 },
 
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_7 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_8 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_9 },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::KeyCode_0 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_7 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_8 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_9 },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_0 },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::Button::FaceUp },
-			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::Button::FaceLeft },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::Button::FaceDown },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::Button::FaceRight },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::Button::FaceUp },
+			PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::Button::FaceLeft },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::Button::FaceDown },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::Button::FaceRight },
 
-			PlayTestInputBinding { ButtonTypeFlags_Triangle, SlidePositionType::None, Input::Button::DPadUp },
-			PlayTestInputBinding { ButtonTypeFlags_Square, SlidePositionType::None, Input::Button::DPadLeft },
-			PlayTestInputBinding { ButtonTypeFlags_Cross, SlidePositionType::None, Input::Button::DPadDown },
-			PlayTestInputBinding { ButtonTypeFlags_Circle, SlidePositionType::None, Input::Button::DPadRight },
+			PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::Button::DPadUp },
+			PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::Button::DPadLeft },
+			PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::Button::DPadDown },
+			PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::Button::DPadRight },
 
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::/*Any*/Left, Input::Button::LeftBumper },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::/*Any*/Right, Input::Button::RightBumper },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Left, Input::Button::LeftStickLeft },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Left, Input::Button::LeftStickRight },
-			PlayTestInputBinding { ButtonTypeFlags_SlideL, SlidePositionType::Right, Input::Button::RightStickLeft },
-			PlayTestInputBinding { ButtonTypeFlags_SlideR, SlidePositionType::Right, Input::Button::RightStickRight },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Left, Input::Button::LeftBumper },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Right, Input::Button::RightBumper },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Left, Input::Button::LeftStickLeft },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Left, Input::Button::LeftStickRight },
+			PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Right, Input::Button::RightStickLeft },
+			PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Right, Input::Button::RightStickRight },
 
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::Button::LeftTrigger },
-			PlayTestInputBinding { ButtonTypeFlags_NormalAll, SlidePositionType::None, Input::Button::RightTrigger },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::Button::LeftTrigger },
+			PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::Button::RightTrigger },
 		};
 
 		struct PlayTestTarget
 		{
 			ButtonType Type;
-			SlidePositionType SlidePosition;
+			PlayTestSlidePositionType SlidePosition;
 			TargetFlags Flags;
 			TargetProperties Properties;
 
@@ -115,7 +128,6 @@ namespace Comfy::Studio::Editor
 			Stopwatch LastSoundStopwatch = Stopwatch::StartNew();
 			TimeSpan SoundInterval = TimeSpan::FromMilliseconds(50.0);
 		};
-
 
 		enum class PlayTestHoldEventType : u8
 		{
@@ -237,37 +249,14 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		inline bool IsBindingPressed(const PlayTestInputBinding& binding)
+		inline bool IsPlayTestBindingPressed(const PlayTestInputBinding& binding)
 		{
-			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
-				return Input::IsKeyPressed(*key, false);
-			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
-				return Input::IsPressed(*button, false);
-			else
-				assert(false);
-			return false;
+			return Input::IsPressed(binding.InputSource, false);
 		}
 
-		inline bool IsBindingDown(const PlayTestInputBinding& binding)
+		inline bool IsPlayTestBindingDown(const PlayTestInputBinding& binding)
 		{
-			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
-				return Input::IsKeyDown(*key);
-			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
-				return Input::IsDown(*button);
-			else
-				assert(false);
-			return false;
-		}
-
-		inline bool IsBindingReleased(const PlayTestInputBinding& binding)
-		{
-			if (auto key = std::get_if<Input::KeyCode>(&binding.InputSource))
-				return Input::IsKeyReleased(*key);
-			else if (auto button = std::get_if<Input::Button>(&binding.InputSource))
-				return Input::IsReleased(*button);
-			else
-				assert(false);
-			return false;
+			return Input::IsDown(binding.InputSource);
 		}
 
 		inline void ChartToPlayTestTargets(Chart& chart, std::vector<PlayTestSyncPair>& outTargets)
@@ -286,7 +275,7 @@ namespace Comfy::Studio::Editor
 
 					auto& newTarget = newPair.Targets[i];
 					newTarget.Type = sourceTarget.Type;
-					newTarget.SlidePosition = SlidePositionType::None;
+					newTarget.SlidePosition = PlayTestSlidePositionType::None;
 					newTarget.Flags = sourceTarget.Flags;
 					newTarget.Properties = Rules::TryGetProperties(sourceTarget);
 				}
@@ -297,7 +286,7 @@ namespace Comfy::Studio::Editor
 					if (thisSyncSlide.Flags.IsSync && IsSlideButtonType(thisSyncSlide.Type))
 					{
 						auto& otherSyncSlide = newPair.Targets[(i == 0) ? 1 : 0];
-						thisSyncSlide.SlidePosition = (thisSyncSlide.Properties.Position.x <= otherSyncSlide.Properties.Position.x) ? SlidePositionType::Left : SlidePositionType::Right;
+						thisSyncSlide.SlidePosition = (thisSyncSlide.Properties.Position.x <= otherSyncSlide.Properties.Position.x) ? PlayTestSlidePositionType::Left : PlayTestSlidePositionType::Right;
 					}
 				}
 
@@ -329,7 +318,7 @@ namespace Comfy::Studio::Editor
 			return nullptr;
 		}
 
-		constexpr PlayTestTarget* FindBestSuitableUnhitTargetToEvaluateNext(PlayTestSyncPair& syncPair, ButtonType inputButtonType, SlidePositionType inputSlidePosition)
+		constexpr PlayTestTarget* FindBestSuitableUnhitTargetToEvaluateNext(PlayTestSyncPair& syncPair, ButtonType inputButtonType, PlayTestSlidePositionType inputSlidePosition)
 		{
 			if (IsSlideButtonType(inputButtonType))
 			{
@@ -527,7 +516,7 @@ namespace Comfy::Studio::Editor
 							auto& heldDownBindings = holdState.PerTypeHeldDownBindings[i];
 							if (!heldDownBindings.empty())
 							{
-								heldDownBindings.erase(std::remove_if(heldDownBindings.begin(), heldDownBindings.end(), [](auto* b) { return !IsBindingDown(*b); }), heldDownBindings.end());
+								heldDownBindings.erase(std::remove_if(heldDownBindings.begin(), heldDownBindings.end(), [](auto* b) { return !IsPlayTestBindingDown(*b); }), heldDownBindings.end());
 
 								if (heldDownBindings.empty())
 									ProcessHoldStateCancelNow();
@@ -541,7 +530,7 @@ namespace Comfy::Studio::Editor
 					{
 						UpdateInputBindingButtonInputs(binding);
 
-						if (IsBindingDown(binding))
+						if (IsPlayTestBindingDown(binding))
 						{
 							chainSlideHoldCountL += ((binding.ButtonTypes & ButtonTypeFlags_SlideL) != 0);
 							chainSlideHoldCountR += ((binding.ButtonTypes & ButtonTypeFlags_SlideR) != 0);
@@ -1251,7 +1240,7 @@ namespace Comfy::Studio::Editor
 
 		void UpdateInputBindingButtonInputs(const PlayTestInputBinding& binding)
 		{
-			if (!IsBindingPressed(binding))
+			if (!IsPlayTestBindingPressed(binding))
 				return;
 
 			const auto playbackTime = GetPlaybackTime();
@@ -1417,7 +1406,7 @@ namespace Comfy::Studio::Editor
 				}
 			}
 
-			if ((binding.SlidePosition == SlidePositionType::None))
+			if ((binding.SlidePosition == PlayTestSlidePositionType::None))
 			{
 				if (!anyTargetWasHit)
 				{
