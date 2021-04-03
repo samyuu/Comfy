@@ -65,6 +65,8 @@ namespace Comfy::Input
 		BitArray<KeyCode_Count> KeysPress;
 		BitArray<KeyCode_Count> KeysRepeat;
 		BitArray<KeyCode_Count> KeysRelease;
+		KeyModifiers ModifiersDown;
+
 		BitArray<EnumCount<Button>()> ButtonsDown;
 		BitArray<EnumCount<Button>()> ButtonsPress;
 		BitArray<EnumCount<Button>()> ButtonsRepeat;
@@ -77,7 +79,8 @@ namespace Comfy::Input
 	{
 		std::array<f32, EnumCount<Button>()> ButtonHoldDurationSeconds;
 		std::array<i32, EnumCount<Button>()> ButtonHoldDurationFrames;
-		f32 ElapsedTimeSeconds;
+		f32 TimeSinceLastModifiersChange;
+		f32 FrameTimeSeconds;
 	};
 
 	struct GlobalInputSystemState
@@ -169,7 +172,19 @@ namespace Comfy::Input
 			return 0.0f;
 		}
 
-		bool AreModifiersDownFirst(GlobalInputSystemState& global, KeyCode keyCode, KeyModifiers modifiers)
+		bool IsKeyDownAfterAllModifiers(const GlobalInputSystemState& global, KeyCode keyCode)
+		{
+			const f32 keyDuration = IsValidKey(keyCode) ? GImGui->IO.KeysDownDuration[keyCode] : 0.0f;
+			return global.ThisFrameTiming.TimeSinceLastModifiersChange >= keyDuration;
+		}
+
+		bool WasKeyDownAfterAllModifiers(const GlobalInputSystemState& global, KeyCode keyCode)
+		{
+			const f32 keyDuration = IsValidKey(keyCode) ? GImGui->IO.KeysDownDurationPrev[keyCode] : 0.0f;
+			return global.LastFrameTiming.TimeSinceLastModifiersChange >= keyDuration;
+		}
+
+		bool AreModifiersDownFirst(const GlobalInputSystemState& global, KeyCode keyCode, KeyModifiers modifiers)
 		{
 			const f32 keyDuration = IsValidKey(keyCode) ? GImGui->IO.KeysDownDuration[keyCode] : 0.0f;
 			bool allLonger = true;
@@ -178,7 +193,7 @@ namespace Comfy::Input
 			return allLonger;
 		}
 
-		bool WereModifiersDownFirst(GlobalInputSystemState& global, KeyCode keyCode, KeyModifiers modifiers)
+		bool WereModifiersDownFirst(const GlobalInputSystemState& global, KeyCode keyCode, KeyModifiers modifiers)
 		{
 			const f32 keyDuration = IsValidKey(keyCode) ? GImGui->IO.KeysDownDurationPrev[keyCode] : 0.0f;
 			bool allLonger = true;
@@ -371,7 +386,7 @@ namespace Comfy::Input
 
 		Global.LastFrameTiming = Global.ThisFrameTiming;
 		if (!hasApplicationFocus) Global.ThisFrameTiming = {};
-		Global.ThisFrameTiming.ElapsedTimeSeconds = elapsedTimeSec;
+		Global.ThisFrameTiming.FrameTimeSeconds = elapsedTimeSec;
 
 		if (hasApplicationFocus)
 		{
@@ -383,6 +398,17 @@ namespace Comfy::Input
 				Global.ThisFrameState.KeysRepeat[i] = Gui::IsKeyPressed(i, true);
 			for (KeyCode i = 0; i < KeyCode_Count; i++)
 				Global.ThisFrameState.KeysRelease[i] = Gui::IsKeyReleased(i);
+
+			ForEachKeyCodeInKeyModifiers(KeyModifiers_All, [&](KeyCode modifierKey)
+			{
+				if (Global.ThisFrameState.KeysDown[modifierKey])
+					Global.ThisFrameState.ModifiersDown |= KeyCodeToKeyModifiers(modifierKey);
+			});
+
+			if (Global.ThisFrameState.ModifiersDown == Global.LastFrameState.ModifiersDown)
+				Global.ThisFrameTiming.TimeSinceLastModifiersChange += elapsedTimeSec;
+			else
+				Global.ThisFrameTiming.TimeSinceLastModifiersChange = 0.0;
 
 			for (const auto& controllerData : Global.ConnectedControllers)
 			{
@@ -576,40 +602,32 @@ namespace Comfy::Input
 
 	bool AreAllModifiersDown(const KeyModifiers modifiers)
 	{
-		bool allDown = true;
-		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allDown &= IsKeyDown(keyCode); });
-		return allDown;
+		return ((Global.ThisFrameState.ModifiersDown & modifiers) == modifiers);
 	}
 
 	bool WereAllModifiersDown(const KeyModifiers modifiers)
 	{
-		bool allDown = true;
-		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allDown &= WasKeyDown(keyCode); });
-		return allDown;
+		return ((Global.LastFrameState.ModifiersDown & modifiers) == modifiers);
 	}
 
 	bool AreAllModifiersUp(const KeyModifiers modifiers)
 	{
-		bool allUp = true;
-		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allUp &= !IsKeyDown(keyCode); });
-		return allUp;
+		return (Global.ThisFrameState.ModifiersDown & modifiers) == 0;
 	}
 
 	bool WereAllModifiersUp(const KeyModifiers modifiers)
 	{
-		bool allUp = true;
-		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allUp &= !WasKeyDown(keyCode); });
-		return allUp;
+		return (Global.LastFrameState.ModifiersDown & modifiers) == 0;
 	}
 
 	bool AreOnlyModifiersDown(const KeyModifiers modifiers)
 	{
-		return (AreAllModifiersDown(modifiers) && AreAllModifiersUp(InvertKeyModifiers(modifiers)));
+		return (Global.ThisFrameState.ModifiersDown == modifiers);
 	}
 
 	bool WereOnlyModifiersDown(const KeyModifiers modifiers)
 	{
-		return (WereAllModifiersDown(modifiers) && WereAllModifiersUp(InvertKeyModifiers(modifiers)));
+		return (Global.LastFrameState.ModifiersDown == modifiers);
 	}
 
 	bool IsKeyDown(const KeyCode keyCode)
@@ -704,10 +722,17 @@ namespace Comfy::Input
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			if (binding.Keyboard.Modifiers != KeyModifiers_None)
+			{
+				if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+					return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
+				else
+					return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			}
 			else
-				return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			{
+				return IsKeyDown(binding.Keyboard.Key);
+			}
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
@@ -723,10 +748,17 @@ namespace Comfy::Input
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-				return WasKeyDown(binding.Keyboard.Key) && WereOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			if (binding.Keyboard.Modifiers != KeyModifiers_None)
+			{
+				if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+					return WasKeyDown(binding.Keyboard.Key) && WereOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::WasKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
+				else
+					return WasKeyDown(binding.Keyboard.Key) && WereAllModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			}
 			else
-				return WasKeyDown(binding.Keyboard.Key) && WereAllModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			{
+				return WasKeyDown(binding.Keyboard.Key);
+			}
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
@@ -738,16 +770,22 @@ namespace Comfy::Input
 		}
 	}
 
-	// BUG: Strict behavior keybinding doesn't correctly report a press after having been canceled by pressing an unbound (inverse) modifier
 	bool IsPressed(const Binding& binding, bool repeat)
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			// NOTE: Still have to explictily check the modifier hold durations here in case of repeat
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			if (binding.Keyboard.Modifiers != KeyModifiers_None)
+			{
+				// NOTE: Still have to explictily check the modifier hold durations here in case of repeat
+				if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+					return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
+				else
+					return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			}
 			else
-				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			{
+				return IsKeyPressed(binding.Keyboard.Key, repeat);
+			}
 		}
 		else if (binding.Type == BindingType::Controller)
 		{

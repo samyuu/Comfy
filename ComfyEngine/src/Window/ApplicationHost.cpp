@@ -560,6 +560,8 @@ namespace Comfy
 		{
 			GuiRenderer.BeginFrame();
 			{
+				// NOTE: Make sure to update the input system after ImGui as it partially relies on it
+				Input::GlobalSystemUpdateFrame(Timing.ElapsedTime, Window.AnyFocused);
 				Callback.UpdateFunction();
 				Render::D3D11::D3D.WindowRenderTarget->BindSetViewport();
 				Render::D3D11::D3D.WindowRenderTarget->Clear(Window.ClearColor);
@@ -590,8 +592,6 @@ namespace Comfy
 			Input.MouseScrolledUp = Input.LastMouseWheel < Input.MouseWheel;
 			Input.MouseScrolledDown = Input.LastMouseWheel > Input.MouseWheel;
 			Input.LastMouseWheel = Input.MouseWheel;
-
-			Input::GlobalSystemUpdateFrame(Timing.ElapsedTime, Window.AnyFocused);
 		}
 
 		void DisposeWindow()

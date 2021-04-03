@@ -209,6 +209,14 @@ namespace Comfy::Input
 	{
 		return (~modifiers & KeyModifiers_All);
 	}
+
+	constexpr KeyModifiers KeyCodeToKeyModifiers(const KeyCode keyCode)
+	{
+		if (keyCode == KeyCode_Ctrl) return KeyModifiers_Ctrl;
+		if (keyCode == KeyCode_Shift) return KeyModifiers_Shift;
+		if (keyCode == KeyCode_Alt) return KeyModifiers_Alt;
+		return KeyModifiers_None;
+	}
 }
 
 namespace Comfy::Input
