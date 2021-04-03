@@ -22,6 +22,8 @@ namespace Comfy::Input
 		for (size_t i = 0; i < count; i++)
 			func(i, GlobalSystemGetConnectedControllerInfoAt(i));
 	}
+
+	TimeSpan GlobalSystemGetUpdateFrameProcessDuration();
 }
 
 namespace Comfy::Input
@@ -33,14 +35,19 @@ namespace Comfy::Input
 	f32 GetNativeAxis(const ControllerID& instanceID, NativeAxis nativeAxis);
 
 	bool AreAllModifiersDown(const KeyModifiers modifiers);
+	bool WereAllModifiersDown(const KeyModifiers modifiers);
 	bool AreAllModifiersUp(const KeyModifiers modifiers);
+	bool WereAllModifiersUp(const KeyModifiers modifiers);
 	bool AreOnlyModifiersDown(const KeyModifiers modifiers);
+	bool WereOnlyModifiersDown(const KeyModifiers modifiers);
 
 	bool IsKeyDown(const KeyCode keyCode);
+	bool WasKeyDown(const KeyCode keyCode);
 	bool IsKeyPressed(const KeyCode keyCode, bool repeat = true);
 	bool IsKeyReleased(const KeyCode keyCode);
 
 	bool IsButtonDown(const Button button);
+	bool WasButtonDown(const Button button);
 	bool IsButtonPressed(const Button button, bool repeat = true);
 	bool IsButtonReleased(const Button button);
 
@@ -48,6 +55,7 @@ namespace Comfy::Input
 	vec2 GetStick(const Stick stick);
 
 	bool IsDown(const Binding& binding);
+	bool WasDown(const Binding& binding);
 	bool IsPressed(const Binding& binding, bool repeat = true);
 	bool IsReleased(const Binding& binding);
 

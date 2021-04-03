@@ -1,6 +1,7 @@
 #include "InputSystem.h"
 #include "Misc/UTF8.h"
 #include "Core/Logger.h"
+#include "Time/Stopwatch.h"
 
 // NOTE: Relaying to ImGui for input consistency and simplicity. Could easily be changed in the future however if so required
 #include "ImGui/Gui.h"
@@ -8,9 +9,28 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include "Core/Win32/ComfyWindows.h"
 #include <dinput.h>
+#include <bitset>
 
 namespace Comfy::Input
 {
+	/* // NOTE: Approximate process time to run input frame update
+	std::array<bool>
+	~0.0433ms (Debug)
+	~0.0024ms (Release)
+
+	std::bitset
+	~0.1462ms (Debug)
+	~0.0029ms (Release)
+	*/
+
+#if 1
+	template<size_t Size>
+	using BitArray = std::array<bool, Size>;
+#else
+	template<size_t Size>
+	using BitArray = std::bitset<Size>;
+#endif
+
 	struct DirectInputControllerData
 	{
 		DIDEVICEINSTANCEA InstanceData;
@@ -39,12 +59,25 @@ namespace Comfy::Input
 		} ThisFrameState, LastFrameState;
 	};
 
-	struct SimplifiedCombinedControllerState
+	struct SimplifiedCombinedState
 	{
-		std::array<bool, EnumCount<Button>()> ButtonsDown;
-		std::array<bool, EnumCount<Button>()> ButtonsRepeat;
+		BitArray<KeyCode_Count> KeysDown;
+		BitArray<KeyCode_Count> KeysPress;
+		BitArray<KeyCode_Count> KeysRepeat;
+		BitArray<KeyCode_Count> KeysRelease;
+		BitArray<EnumCount<Button>()> ButtonsDown;
+		BitArray<EnumCount<Button>()> ButtonsPress;
+		BitArray<EnumCount<Button>()> ButtonsRepeat;
+		BitArray<EnumCount<Button>()> ButtonsRelease;
 		std::array<f32, EnumCount<Axis>()> Axes;
 		std::array<vec2, EnumCount<Stick>()> Sticks;
+	};
+
+	struct SimplifiedCombinedTimingState
+	{
+		std::array<f32, EnumCount<Button>()> ButtonHoldDurationSeconds;
+		std::array<i32, EnumCount<Button>()> ButtonHoldDurationFrames;
+		f32 ElapsedTimeSeconds;
 	};
 
 	struct GlobalInputSystemState
@@ -56,8 +89,11 @@ namespace Comfy::Input
 		std::vector<StandardControllerLayoutMapping> LayoutMappings;
 		std::vector<DirectInputControllerData> ConnectedControllers;
 
-		SimplifiedCombinedControllerState ThisFrameCombinedControllerState, LastFrameCombinedControllerState;
-		std::array<TimeSpan, EnumCount<Button>()> ThisFrameCombinedControllerButtonHoldDurations;
+		SimplifiedCombinedState ThisFrameState, LastFrameState;
+		SimplifiedCombinedTimingState ThisFrameTiming, LastFrameTiming;
+
+		Stopwatch UpdateFrameStopwatch;
+		TimeSpan UpdateFrameStopwatchElapsed;
 	};
 
 	static_assert((static_cast<size_t>(NativeButton::LastButton) - static_cast<size_t>(NativeButton::FirstButton) + 1) == ARRAYSIZE(decltype(DirectInputControllerData::PolledDeviceState::NativeJoy)::rgbButtons));
@@ -71,6 +107,7 @@ namespace Comfy::Input
 		inline ControllerID WindowGUIDToControllerID(const GUID& guid) { return *reinterpret_cast<const ControllerID*>(&guid); }
 		inline GUID ControllerIDToWindowGUID(const ControllerID& id) { return *reinterpret_cast<const GUID*>(&id); }
 
+		constexpr bool IsValidKey(KeyCode key) { return (key > KeyCode_None && key < KeyCode_Count); }
 		constexpr bool IsValidButton(Button button) { return (button > Button::None && button < Button::Count); }
 		constexpr bool IsValidAxis(Axis axis) { return (axis > Axis::None && axis < Axis::Count); }
 		constexpr bool IsValidStick(Stick stick) { return (stick > Stick::None && stick < Stick::Count); }
@@ -131,6 +168,24 @@ namespace Comfy::Input
 
 			return 0.0f;
 		}
+
+		bool AreModifiersDownFirst(GlobalInputSystemState& global, KeyCode keyCode, KeyModifiers modifiers)
+		{
+			const f32 keyDuration = IsValidKey(keyCode) ? GImGui->IO.KeysDownDuration[keyCode] : 0.0f;
+			bool allLonger = true;
+
+			ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode modifierKey) { allLonger &= (GImGui->IO.KeysDownDuration[modifierKey] >= keyDuration); });
+			return allLonger;
+		}
+
+		bool WereModifiersDownFirst(GlobalInputSystemState& global, KeyCode keyCode, KeyModifiers modifiers)
+		{
+			const f32 keyDuration = IsValidKey(keyCode) ? GImGui->IO.KeysDownDurationPrev[keyCode] : 0.0f;
+			bool allLonger = true;
+
+			ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode modifierKey) { allLonger &= (GImGui->IO.KeysDownDurationPrev[modifierKey] >= keyDuration); });
+			return allLonger;
+		}
 	}
 }
 
@@ -140,6 +195,9 @@ namespace Comfy::Input
 
 	void GlobalSystemInitialize(void* windowHandle)
 	{
+		if (Global.DirectInput != nullptr)
+			return;
+
 		const auto result = ::DirectInput8Create(::GetModuleHandleW(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8A, reinterpret_cast<void**>(&Global.DirectInput), nullptr);
 		Global.JoyDataFormat = std::is_same_v<decltype(DirectInputControllerData::PolledDeviceState::NativeJoy), DIJOYSTATE2> ? &c_dfDIJoystick2 : &c_dfDIJoystick;
 		Global.MainWindowHandle = static_cast<HWND>(windowHandle);
@@ -223,8 +281,11 @@ namespace Comfy::Input
 
 	void GlobalSystemUpdateFrame(TimeSpan elapsedTime, bool hasApplicationFocus)
 	{
+		const f32 elapsedTimeSec = static_cast<f32>(elapsedTime.TotalSeconds());
 		if (Global.DirectInput == nullptr)
 			return;
+
+		Global.UpdateFrameStopwatch.Restart();
 
 		bool wasAnyConnectionLost = false;
 		for (auto& controllerData : Global.ConnectedControllers)
@@ -305,13 +366,24 @@ namespace Comfy::Input
 				[](auto& c) { return (c.Interface == nullptr); }), Global.ConnectedControllers.end());
 		}
 
-		Global.LastFrameCombinedControllerState = Global.ThisFrameCombinedControllerState;
-		Global.ThisFrameCombinedControllerState = {};
-		if (!hasApplicationFocus)
-			Global.ThisFrameCombinedControllerButtonHoldDurations = {};
+		Global.LastFrameState = Global.ThisFrameState;
+		Global.ThisFrameState = {};
+
+		Global.LastFrameTiming = Global.ThisFrameTiming;
+		if (!hasApplicationFocus) Global.ThisFrameTiming = {};
+		Global.ThisFrameTiming.ElapsedTimeSeconds = elapsedTimeSec;
 
 		if (hasApplicationFocus)
 		{
+			for (KeyCode i = 0; i < KeyCode_Count; i++)
+				Global.ThisFrameState.KeysDown[i] = GImGui->IO.KeysDown[i];
+			for (KeyCode i = 0; i < KeyCode_Count; i++)
+				Global.ThisFrameState.KeysPress[i] = Gui::IsKeyPressed(i, false);
+			for (KeyCode i = 0; i < KeyCode_Count; i++)
+				Global.ThisFrameState.KeysRepeat[i] = Gui::IsKeyPressed(i, true);
+			for (KeyCode i = 0; i < KeyCode_Count; i++)
+				Global.ThisFrameState.KeysRelease[i] = Gui::IsKeyReleased(i);
+
 			for (const auto& controllerData : Global.ConnectedControllers)
 			{
 				const auto foundMapping = FindIfOrNull(Global.LayoutMappings, [&](const auto& mapping) { return Detail::ControllerIDToWindowGUID(mapping.ProductID) == controllerData.InstanceData.guidProduct; });
@@ -321,56 +393,73 @@ namespace Comfy::Input
 				for (size_t i = 0; i < EnumCount<Button>(); i++)
 				{
 					if (Detail::IsNativeButtonDownForKnownController(controllerData, foundMapping->Buttons[i]))
-						Global.ThisFrameCombinedControllerState.ButtonsDown[i] = true;;
+						Global.ThisFrameState.ButtonsDown[i] = true;
 				}
 
 				for (size_t i = 0; i < EnumCount<Axis>(); i++)
 				{
 					const bool isTriggerAxis = (static_cast<Axis>(i) == Axis::LeftTrigger || static_cast<Axis>(i) == Axis::RightTrigger);
-					if (auto v = Detail::GetNativeAxisForKnownController(controllerData, foundMapping->Axes[i], !isTriggerAxis); glm::length(v) > glm::length(Global.ThisFrameCombinedControllerState.Axes[i]))
-						Global.ThisFrameCombinedControllerState.Axes[i] = v;
+					if (auto v = Detail::GetNativeAxisForKnownController(controllerData, foundMapping->Axes[i], !isTriggerAxis); glm::length(v) > glm::length(Global.ThisFrameState.Axes[i]))
+						Global.ThisFrameState.Axes[i] = v;
 				}
 
 				auto updateStickWithAxes = [&](Stick stick, Axis x, Axis y)
 				{
-					Global.ThisFrameCombinedControllerState.Sticks[static_cast<u8>(stick)] = vec2(
-						Global.ThisFrameCombinedControllerState.Axes[static_cast<u8>(x)],
-						Global.ThisFrameCombinedControllerState.Axes[static_cast<u8>(y)]);
+					Global.ThisFrameState.Sticks[static_cast<u8>(stick)] = vec2(
+						Global.ThisFrameState.Axes[static_cast<u8>(x)],
+						Global.ThisFrameState.Axes[static_cast<u8>(y)]);
 				};
 
 				updateStickWithAxes(Stick::LeftStick, Axis::LeftStickX, Axis::LeftStickY);
 				updateStickWithAxes(Stick::RightStick, Axis::RightStickX, Axis::RightStickY);
 			}
 
-			const auto repeatDelay = TimeSpan::FromSeconds(Gui::GetIO().KeyRepeatDelay);
-			const auto repeatRate = TimeSpan::FromSeconds(Gui::GetIO().KeyRepeatRate);
-			if (repeatRate > TimeSpan::Zero())
+			for (size_t i = 0; i < EnumCount<Button>(); i++)
+			{
+				if (Global.ThisFrameState.ButtonsDown[i])
+					Global.ThisFrameTiming.ButtonHoldDurationSeconds[i] += elapsedTimeSec;
+				else
+					Global.ThisFrameTiming.ButtonHoldDurationSeconds[i] = 0.0f;
+			}
+
+			for (size_t i = 0; i < EnumCount<Button>(); i++)
+			{
+				if (Global.ThisFrameState.ButtonsDown[i])
+					Global.ThisFrameTiming.ButtonHoldDurationFrames[i] += 1;
+				else
+					Global.ThisFrameTiming.ButtonHoldDurationFrames[i] = 0;
+			}
+
+			for (size_t i = 0; i < EnumCount<Button>(); i++)
+				Global.ThisFrameState.ButtonsPress[i] = Global.ThisFrameState.ButtonsDown[i] && !Global.LastFrameState.ButtonsDown[i];
+
+			for (size_t i = 0; i < EnumCount<Button>(); i++)
+				Global.ThisFrameState.ButtonsRelease[i] = !Global.ThisFrameState.ButtonsDown[i] && Global.LastFrameState.ButtonsDown[i];
+
+			const f32 repeatDelay = GImGui->IO.KeyRepeatDelay;
+			const f32 repeatRate = GImGui->IO.KeyRepeatRate;
+			if (repeatRate > 0.0f)
 			{
 				for (size_t i = 0; i < EnumCount<Button>(); i++)
 				{
-					TimeSpan& holdDurationThisFrame = Global.ThisFrameCombinedControllerButtonHoldDurations[i];
-					const bool downThisFrame = Global.ThisFrameCombinedControllerState.ButtonsDown[i];
-					const bool downLastFrame = Global.LastFrameCombinedControllerState.ButtonsDown[i];
-					bool& repeatThisFrame = Global.ThisFrameCombinedControllerState.ButtonsRepeat[i];
+					f32& downDuration = Global.ThisFrameTiming.ButtonHoldDurationSeconds[i];
+					const bool downThisFrame = Global.ThisFrameState.ButtonsDown[i];
+					const bool downLastFrame = Global.LastFrameState.ButtonsDown[i];
 
-					holdDurationThisFrame = downThisFrame ? (holdDurationThisFrame + elapsedTime) : TimeSpan::Zero();
 					if (downThisFrame && !downLastFrame)
 					{
-						repeatThisFrame = true;
+						Global.ThisFrameState.ButtonsRepeat[i] = true;
 					}
-					else if (holdDurationThisFrame > repeatDelay)
+					else if (downDuration > repeatDelay)
 					{
-						const i32 repeatAmount = Gui::CalcTypematicPressedRepeatAmount(
-							static_cast<f32>(holdDurationThisFrame.TotalSeconds()),
-							static_cast<f32>((holdDurationThisFrame - elapsedTime).TotalSeconds()),
-							static_cast<f32>(repeatDelay.TotalSeconds()),
-							static_cast<f32>(repeatRate.TotalSeconds()));
-
-						repeatThisFrame = (repeatAmount > 0);
+						const i32 repeatAmount = Gui::CalcTypematicPressedRepeatAmount(downDuration, (downDuration - elapsedTimeSec), repeatDelay, repeatRate);
+						Global.ThisFrameState.ButtonsRepeat[i] = (repeatAmount > 0);
 					}
 				}
 			}
 		}
+
+		Global.UpdateFrameStopwatchElapsed = Global.UpdateFrameStopwatch.GetElapsed();
 	}
 
 	void GlobalSystemRefreshDevices()
@@ -436,6 +525,11 @@ namespace Comfy::Input
 		}
 		return outInfoView;
 	}
+
+	TimeSpan GlobalSystemGetUpdateFrameProcessDuration()
+	{
+		return Global.UpdateFrameStopwatchElapsed;
+	}
 }
 
 namespace Comfy::Input
@@ -487,10 +581,24 @@ namespace Comfy::Input
 		return allDown;
 	}
 
+	bool WereAllModifiersDown(const KeyModifiers modifiers)
+	{
+		bool allDown = true;
+		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allDown &= WasKeyDown(keyCode); });
+		return allDown;
+	}
+
 	bool AreAllModifiersUp(const KeyModifiers modifiers)
 	{
 		bool allUp = true;
 		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allUp &= !IsKeyDown(keyCode); });
+		return allUp;
+	}
+
+	bool WereAllModifiersUp(const KeyModifiers modifiers)
+	{
+		bool allUp = true;
+		ForEachKeyCodeInKeyModifiers(modifiers, [&](KeyCode keyCode) { allUp &= !WasKeyDown(keyCode); });
 		return allUp;
 	}
 
@@ -499,19 +607,44 @@ namespace Comfy::Input
 		return (AreAllModifiersDown(modifiers) && AreAllModifiersUp(InvertKeyModifiers(modifiers)));
 	}
 
+	bool WereOnlyModifiersDown(const KeyModifiers modifiers)
+	{
+		return (WereAllModifiersDown(modifiers) && WereAllModifiersUp(InvertKeyModifiers(modifiers)));
+	}
+
 	bool IsKeyDown(const KeyCode keyCode)
 	{
-		return Gui::IsKeyDown(keyCode);
+		if (!Detail::IsValidKey(keyCode))
+			return false;
+
+		return Global.ThisFrameState.KeysDown[keyCode];
+	}
+
+	bool WasKeyDown(const KeyCode keyCode)
+	{
+		if (!Detail::IsValidKey(keyCode))
+			return false;
+
+		return Global.LastFrameState.KeysDown[keyCode];
 	}
 
 	bool IsKeyPressed(const KeyCode keyCode, bool repeat)
 	{
-		return Gui::IsKeyPressed(keyCode, repeat);
+		if (!Detail::IsValidKey(keyCode))
+			return false;
+
+		if (repeat)
+			return Global.ThisFrameState.KeysRepeat[keyCode];
+		else
+			return Global.ThisFrameState.KeysPress[keyCode];
 	}
 
 	bool IsKeyReleased(const KeyCode keyCode)
 	{
-		return Gui::IsKeyReleased(keyCode);
+		if (!Detail::IsValidKey(keyCode))
+			return false;
+
+		return (!Global.ThisFrameState.KeysDown[keyCode] && Global.LastFrameState.KeysDown[keyCode]);
 	}
 
 	bool IsButtonDown(const Button button)
@@ -519,7 +652,15 @@ namespace Comfy::Input
 		if (!Detail::IsValidButton(button))
 			return false;
 
-		return Global.ThisFrameCombinedControllerState.ButtonsDown[static_cast<u8>(button)];
+		return Global.ThisFrameState.ButtonsDown[static_cast<u8>(button)];
+	}
+
+	bool WasButtonDown(const Button button)
+	{
+		if (!Detail::IsValidButton(button))
+			return false;
+
+		return Global.LastFrameState.ButtonsDown[static_cast<u8>(button)];
 	}
 
 	bool IsButtonPressed(const Button button, bool repeat)
@@ -529,9 +670,9 @@ namespace Comfy::Input
 
 		const auto index = static_cast<u8>(button);
 		if (repeat)
-			return Global.ThisFrameCombinedControllerState.ButtonsRepeat[index];
+			return Global.ThisFrameState.ButtonsRepeat[index];
 		else
-			return (Global.ThisFrameCombinedControllerState.ButtonsDown[index] && !Global.LastFrameCombinedControllerState.ButtonsDown[index]);
+			return Global.ThisFrameState.ButtonsPress[index];
 	}
 
 	bool IsButtonReleased(const Button button)
@@ -540,7 +681,7 @@ namespace Comfy::Input
 			return false;
 
 		const auto index = static_cast<u8>(button);
-		return (!Global.ThisFrameCombinedControllerState.ButtonsDown[index] && Global.LastFrameCombinedControllerState.ButtonsDown[index]);
+		return Global.ThisFrameState.ButtonsRelease[index];
 	}
 
 	f32 GetAxis(const Axis axis)
@@ -548,7 +689,7 @@ namespace Comfy::Input
 		if (!Detail::IsValidAxis(axis))
 			return false;
 
-		return Global.ThisFrameCombinedControllerState.Axes[static_cast<u8>(axis)];
+		return Global.ThisFrameState.Axes[static_cast<u8>(axis)];
 	}
 
 	vec2 GetStick(const Stick stick)
@@ -556,7 +697,7 @@ namespace Comfy::Input
 		if (!Detail::IsValidStick(stick))
 			return vec2(0.0f);
 
-		return Global.ThisFrameCombinedControllerState.Sticks[static_cast<u8>(stick)];
+		return Global.ThisFrameState.Sticks[static_cast<u8>(stick)];
 	}
 
 	bool IsDown(const Binding& binding)
@@ -564,9 +705,9 @@ namespace Comfy::Input
 		if (binding.Type == BindingType::Keyboard)
 		{
 			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Behavior);
+				return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
 			else
-				return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Behavior);
+				return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
@@ -578,14 +719,35 @@ namespace Comfy::Input
 		}
 	}
 
-	bool IsPressed(const Binding& binding, bool repeat)
+	bool WasDown(const Binding& binding)
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
 			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers);
+				return WasKeyDown(binding.Keyboard.Key) && WereOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
 			else
-				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers);
+				return WasKeyDown(binding.Keyboard.Key) && WereAllModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+		}
+		else if (binding.Type == BindingType::Controller)
+		{
+			return WasButtonDown(binding.Controller.Button);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	// BUG: Strict behavior keybinding doesn't correctly report a press after having been canceled by pressing an unbound (inverse) modifier
+	bool IsPressed(const Binding& binding, bool repeat)
+	{
+		if (binding.Type == BindingType::Keyboard)
+		{
+			// NOTE: Still have to explictily check the modifier hold durations here in case of repeat
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
+			else
+				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
@@ -599,22 +761,7 @@ namespace Comfy::Input
 
 	bool IsReleased(const Binding& binding)
 	{
-		if (binding.Type == BindingType::Keyboard)
-		{
-			// TODO: How should this best be handled..?
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-				return IsKeyReleased(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers);
-			else
-				return IsKeyReleased(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers);
-		}
-		else if (binding.Type == BindingType::Controller)
-		{
-			return IsButtonReleased(binding.Controller.Button);
-		}
-		else
-		{
-			return false;
-		}
+		return !IsDown(binding) && WasDown(binding);
 	}
 
 	bool IsAnyDown(const MultiBinding& binding)
