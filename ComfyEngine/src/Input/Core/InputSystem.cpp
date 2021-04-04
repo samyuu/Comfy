@@ -722,17 +722,10 @@ namespace Comfy::Input
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Keyboard.Modifiers != KeyModifiers_None)
-			{
-				if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-					return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
-				else
-					return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
-			}
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+				return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
 			else
-			{
-				return IsKeyDown(binding.Keyboard.Key);
-			}
+				return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
@@ -748,17 +741,10 @@ namespace Comfy::Input
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Keyboard.Modifiers != KeyModifiers_None)
-			{
-				if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-					return WasKeyDown(binding.Keyboard.Key) && WereOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::WasKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
-				else
-					return WasKeyDown(binding.Keyboard.Key) && WereAllModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
-			}
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+				return WasKeyDown(binding.Keyboard.Key) && WereOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::WasKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
 			else
-			{
-				return WasKeyDown(binding.Keyboard.Key);
-			}
+				return WasKeyDown(binding.Keyboard.Key) && WereAllModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
@@ -774,18 +760,11 @@ namespace Comfy::Input
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Keyboard.Modifiers != KeyModifiers_None)
-			{
-				// NOTE: Still have to explictily check the modifier hold durations here in case of repeat
-				if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-					return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
-				else
-					return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
-			}
+			// NOTE: Still have to explictily check the modifier hold durations here in case of repeat
+			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
 			else
-			{
-				return IsKeyPressed(binding.Keyboard.Key, repeat);
-			}
+				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
 		}
 		else if (binding.Type == BindingType::Controller)
 		{
