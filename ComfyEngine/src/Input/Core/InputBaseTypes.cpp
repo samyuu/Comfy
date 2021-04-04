@@ -308,8 +308,6 @@ namespace Comfy::Input
 		constexpr std::string_view BindingStorageStringShiftModifierSpace = "Shift +";
 		constexpr std::string_view BindingStorageStringAltModifier = "Alt+";
 		constexpr std::string_view BindingStorageStringAltModifierSpace = "Alt +";
-		constexpr std::string_view BindingStorageStringStrictSuffix = "(Strict)";
-		constexpr std::string_view BindingStorageStringRelaxedSuffix = "(Relaxed)";
 		constexpr std::string_view BindingStorageStringControllerPrefix = "Controller";
 	}
 
@@ -473,13 +471,6 @@ namespace Comfy::Input
 		{
 			result.Type = BindingType::Keyboard;
 
-			if (tryParseAndTrimRight(stripped, BindingStorageStringStrictSuffix))
-				result.Keyboard.Behavior = ModifierBehavior_Strict;
-			else if (tryParseAndTrimRight(stripped, BindingStorageStringRelaxedSuffix))
-				result.Keyboard.Behavior = ModifierBehavior_Relaxed;
-			else
-				result.Keyboard.Behavior = ModifierBehavior_Strict;
-
 			if (tryParseAndTrimLeft(stripped, BindingStorageStringCtrlModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringCtrlModifierSpace))
 				result.Keyboard.Modifiers |= KeyModifiers_Ctrl;
 			if (tryParseAndTrimLeft(stripped, BindingStorageStringShiftModifier) || tryParseAndTrimLeft(stripped, BindingStorageStringShiftModifierSpace))
@@ -533,17 +524,6 @@ namespace Comfy::Input
 #endif
 
 			appendToBufferOne(GetKeyCodeName(binding.Keyboard.Key));
-
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
-			{
-#if 0 // NOTE: Don't really need to specify the default so leaving it out should make it a bit more readable..?
-				appendToBufferTwo(" ", BindingStorageStringStrictSuffix);
-#endif
-			}
-			else if (binding.Keyboard.Behavior == ModifierBehavior_Relaxed)
-			{
-				appendToBufferTwo(" ", BindingStorageStringRelaxedSuffix);
-			}
 		}
 		else if (binding.Type == BindingType::Controller)
 		{

@@ -54,13 +54,13 @@ namespace Comfy::Input
 	f32 GetAxis(const Axis axis);
 	vec2 GetStick(const Stick stick);
 
-	bool IsDown(const Binding& binding);
-	bool WasDown(const Binding& binding);
-	bool IsPressed(const Binding& binding, bool repeat = true);
-	bool IsReleased(const Binding& binding);
+	bool IsDown(const Binding& binding, ModifierBehavior behavior = ModifierBehavior_Strict);
+	bool WasDown(const Binding& binding, ModifierBehavior behavior = ModifierBehavior_Strict);
+	bool IsPressed(const Binding& binding, bool repeat = true, ModifierBehavior behavior = ModifierBehavior_Strict);
+	bool IsReleased(const Binding& binding, ModifierBehavior behavior = ModifierBehavior_Strict);
 
-	bool IsAnyDown(const MultiBinding& binding);
-	bool IsAnyPressed(const MultiBinding& binding, bool repeat = true);
-	bool IsAnyReleased(const MultiBinding& binding);
-	bool IsLastReleased(const MultiBinding& binding);
+	bool IsAnyDown(const MultiBinding& binding, ModifierBehavior behavior = ModifierBehavior_Strict);
+	bool IsAnyPressed(const MultiBinding& binding, bool repeat = true, ModifierBehavior behavior = ModifierBehavior_Strict);
+	bool IsAnyReleased(const MultiBinding& binding, ModifierBehavior behavior = ModifierBehavior_Strict);
+	bool IsLastReleased(const MultiBinding& binding, ModifierBehavior behavior = ModifierBehavior_Strict);
 }

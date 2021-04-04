@@ -187,13 +187,13 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsWindowFocused())
 		{
-			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_JumpToPreviousTarget, true))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_JumpToPreviousTarget, true, Input::ModifierBehavior_Relaxed))
 				timeline.AdvanceCursorToNextTarget(-1);
 
-			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_JumpToNextTarget, true))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_JumpToNextTarget, true, Input::ModifierBehavior_Relaxed))
 				timeline.AdvanceCursorToNextTarget(+1);
 
-			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_TogglePlayback, false))
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_TogglePlayback, false, Input::ModifierBehavior_Relaxed))
 				timeline.GetIsPlayback() ? timeline.PausePlayback() : timeline.ResumePlayback();
 
 			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_SelectPositionTool, false))
@@ -215,8 +215,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::BeginPopup(contextMenuID, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
 		{
-			std::optional<TargetToolType> newToolToSelect = {};
-
+			TargetToolType newToolToSelect = TargetToolType::Count;
 			for (size_t toolIndex = 0; toolIndex < availableTools.size(); toolIndex++)
 			{
 				const auto toolType = static_cast<TargetToolType>(toolIndex);
@@ -238,8 +237,8 @@ namespace Comfy::Studio::Editor
 				selectedTool->OnContextMenuGUI(*workingChart);
 
 			// NOTE: Avoid mid-frame tool switching to prevent ugly single frame context menu changes
-			if (newToolToSelect.has_value())
-				selectedToolType = newToolToSelect.value();
+			if (newToolToSelect < TargetToolType::Count)
+				selectedToolType = newToolToSelect;
 
 			Gui::EndPopup();
 		}

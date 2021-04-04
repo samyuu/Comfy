@@ -221,7 +221,6 @@ namespace Comfy::Studio::Editor
 			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_InterpolateDistances, false))
 				InterpolateSelectedTargetDistances(undoManager, chart);
 
-			// HACK: Explicitly checked in this order because of the assumed "alt modifier + relaxed behavior" binding
 			if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositiveBack, false))
 				ApplySelectedTargetAngleIncrements(undoManager, chart, +1.0f, true);
 			else if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositive, false))

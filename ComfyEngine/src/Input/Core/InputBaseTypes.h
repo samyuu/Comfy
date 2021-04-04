@@ -187,13 +187,20 @@ namespace Comfy::Input
 
 		KeyModifiers_CtrlShift = KeyModifiers_Ctrl | KeyModifiers_Shift,
 		KeyModifiers_CtrlShiftAlt = KeyModifiers_Ctrl | KeyModifiers_Shift | KeyModifiers_Alt,
+		KeyModifiers_ShiftAlt = KeyModifiers_Shift | KeyModifiers_Alt,
 		KeyModifiers_All = KeyModifiers_CtrlShiftAlt,
 	};
 
+	// NOTE: No longer part of the Keyboard Binding itself to avoid needless complexity for the user, because the desired behavior is usually known at compile time
+	//		 and because an "Optionally hold Shift + Key" binding can be simulated with Strict behavior by creating multiple same-key different-modifier binding variants
 	using ModifierBehavior = u8;
 	enum ModifierBehaviorEnum : ModifierBehavior
 	{
+		// NOTE: Bindings are only triggered if the *exact* key modifiers are held down; no more, no less.
+		//		 Intended for most standard commands, to avoid conflicts between multiple same key bindings only differing in their modifiers
 		ModifierBehavior_Strict,
+		// NOTE: Bindings are triggered if all of the modifiers are held down even if unspecified modifiers are held down too.
+		//		 Intended for mostly single key bindings that make use of modifiers to change their behavior (i.e. holding shift/alt to increase/decrease step distance)
 		ModifierBehavior_Relaxed,
 	};
 
@@ -350,7 +357,6 @@ namespace Comfy::Input
 			{
 				KeyCode Key;
 				KeyModifiers Modifiers;
-				ModifierBehavior Behavior;
 			} Keyboard;
 			struct
 			{
@@ -362,8 +368,8 @@ namespace Comfy::Input
 			: Type(BindingType::None), Keyboard()
 		{
 		}
-		constexpr Binding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None, ModifierBehavior behavior = ModifierBehavior_Strict)
-			: Type(BindingType::Keyboard), Keyboard({ key, modifiers, behavior })
+		constexpr Binding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None)
+			: Type(BindingType::Keyboard), Keyboard({ key, modifiers })
 		{
 		}
 		constexpr Binding(Button button)

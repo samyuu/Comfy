@@ -220,7 +220,7 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowFocused())
 			return;
 
-		if (Input::IsAnyPressed(GlobalUserData.Input.Timeline_TogglePlayback, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.Timeline_TogglePlayback, false, Input::ModifierBehavior_Relaxed))
 		{
 			if (GetIsPlayback())
 				PausePlayback();

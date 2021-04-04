@@ -930,9 +930,9 @@ namespace Comfy::Studio::Editor
 		const bool useBeatStep = Gui::GetIO().KeyShift || isPlayback;
 		const i32 stepDistanceFactor = isPlayback ? 2 : 1;
 
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorLeft, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorLeft, true, Input::ModifierBehavior_Relaxed))
 			AdvanceCursorByGridDivisionTick(-1, useBeatStep, stepDistanceFactor);
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorRight, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorRight, true, Input::ModifierBehavior_Relaxed))
 			AdvanceCursorByGridDivisionTick(+1, useBeatStep, stepDistanceFactor);
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DecreaseGridPrecision, true))
@@ -1261,17 +1261,17 @@ namespace Comfy::Studio::Editor
 				PlaceOrRemoveTarget(undoManager, *workingChart, RoundTickToGrid(GetCursorTick()), buttonType);
 		};
 
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceTriangle, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceTriangle, false, Input::ModifierBehavior_Relaxed))
 			onButtonTypePressed(ButtonType::Triangle);
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSquare, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSquare, false, Input::ModifierBehavior_Relaxed))
 			onButtonTypePressed(ButtonType::Square);
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceCross, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceCross, false, Input::ModifierBehavior_Relaxed))
 			onButtonTypePressed(ButtonType::Cross);
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceCircle, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceCircle, false, Input::ModifierBehavior_Relaxed))
 			onButtonTypePressed(ButtonType::Circle);
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSlideL, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSlideL, false, Input::ModifierBehavior_Relaxed))
 			onButtonTypePressed(ButtonType::SlideL);
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSlideR, false))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceSlideR, false, Input::ModifierBehavior_Relaxed))
 			onButtonTypePressed(ButtonType::SlideR);
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DeleteSelection, false))

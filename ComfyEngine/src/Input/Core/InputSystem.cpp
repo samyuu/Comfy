@@ -718,11 +718,11 @@ namespace Comfy::Input
 		return Global.ThisFrameState.Sticks[static_cast<u8>(stick)];
 	}
 
-	bool IsDown(const Binding& binding)
+	bool IsDown(const Binding& binding, ModifierBehavior behavior)
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+			if (behavior == ModifierBehavior_Strict)
 				return IsKeyDown(binding.Keyboard.Key) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
 			else
 				return IsKeyDown(binding.Keyboard.Key) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
@@ -737,11 +737,11 @@ namespace Comfy::Input
 		}
 	}
 
-	bool WasDown(const Binding& binding)
+	bool WasDown(const Binding& binding, ModifierBehavior behavior)
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+			if (behavior == ModifierBehavior_Strict)
 				return WasKeyDown(binding.Keyboard.Key) && WereOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::WasKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
 			else
 				return WasKeyDown(binding.Keyboard.Key) && WereAllModifiersDown(binding.Keyboard.Modifiers) && Detail::WereModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
@@ -756,12 +756,12 @@ namespace Comfy::Input
 		}
 	}
 
-	bool IsPressed(const Binding& binding, bool repeat)
+	bool IsPressed(const Binding& binding, bool repeat, ModifierBehavior behavior)
 	{
 		if (binding.Type == BindingType::Keyboard)
 		{
 			// NOTE: Still have to explictily check the modifier hold durations here in case of repeat
-			if (binding.Keyboard.Behavior == ModifierBehavior_Strict)
+			if (behavior == ModifierBehavior_Strict)
 				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreOnlyModifiersDown(binding.Keyboard.Modifiers) && Detail::IsKeyDownAfterAllModifiers(Global, binding.Keyboard.Key);
 			else
 				return IsKeyPressed(binding.Keyboard.Key, repeat) && AreAllModifiersDown(binding.Keyboard.Modifiers) && Detail::AreModifiersDownFirst(Global, binding.Keyboard.Key, binding.Keyboard.Modifiers);
@@ -776,30 +776,30 @@ namespace Comfy::Input
 		}
 	}
 
-	bool IsReleased(const Binding& binding)
+	bool IsReleased(const Binding& binding, ModifierBehavior behavior)
 	{
-		return !IsDown(binding) && WasDown(binding);
+		return !IsDown(binding, behavior) && WasDown(binding, behavior);
 	}
 
-	bool IsAnyDown(const MultiBinding& binding)
+	bool IsAnyDown(const MultiBinding& binding, ModifierBehavior behavior)
 	{
-		return std::any_of(binding.begin(), binding.end(), [](auto& b) { return IsDown(b); });
+		return std::any_of(binding.begin(), binding.end(), [&](auto& b) { return IsDown(b, behavior); });
 	}
 
-	bool IsAnyPressed(const MultiBinding& binding, bool repeat)
+	bool IsAnyPressed(const MultiBinding& binding, bool repeat, ModifierBehavior behavior)
 	{
-		return std::any_of(binding.begin(), binding.end(), [repeat](auto& b) { return IsPressed(b, repeat); });
+		return std::any_of(binding.begin(), binding.end(), [&](auto& b) { return IsPressed(b, repeat, behavior); });
 	}
 
-	bool IsAnyReleased(const MultiBinding& binding)
+	bool IsAnyReleased(const MultiBinding& binding, ModifierBehavior behavior)
 	{
-		return std::any_of(binding.begin(), binding.end(), [](auto& b) { return IsReleased(b); });
+		return std::any_of(binding.begin(), binding.end(), [&](auto& b) { return IsReleased(b, behavior); });
 	}
 
-	bool IsLastReleased(const MultiBinding& binding)
+	bool IsLastReleased(const MultiBinding& binding, ModifierBehavior behavior)
 	{
-		const bool allUp = std::all_of(binding.begin(), binding.end(), [](auto& b) { return !IsDown(b); });
-		const bool anyReleased = std::any_of(binding.begin(), binding.end(), [](auto& b) { return IsReleased(b); });
+		const bool allUp = std::all_of(binding.begin(), binding.end(), [&](auto& b) { return !IsDown(b, behavior); });
+		const bool anyReleased = std::any_of(binding.begin(), binding.end(), [&](auto& b) { return IsReleased(b, behavior); });
 
 		return (allUp && anyReleased);
 	}

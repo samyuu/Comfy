@@ -367,13 +367,13 @@ namespace Comfy::Studio::Editor
 			IncrementSelectedTargetPositionsBy(undoManager, chart, direction * stepDistance);
 		};
 
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveUp, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveUp, true, Input::ModifierBehavior_Relaxed))
 			moveInDirection(vec2(+0.0f, -1.0f));
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveLeft, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveLeft, true, Input::ModifierBehavior_Relaxed))
 			moveInDirection(vec2(-1.0f, +0.0f));
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveDown, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveDown, true, Input::ModifierBehavior_Relaxed))
 			moveInDirection(vec2(+0.0f, +1.0f));
-		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveRight, true))
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetPreview_PositionTool_MoveRight, true, Input::ModifierBehavior_Relaxed))
 			moveInDirection(vec2(+1.0f, +0.0f));
 	}
 
