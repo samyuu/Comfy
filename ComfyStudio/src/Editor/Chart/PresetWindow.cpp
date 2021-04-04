@@ -449,6 +449,8 @@ namespace Comfy::Studio::Editor
 		if (targetCount < 1)
 			return;
 
+		const f32 hoverFadeOpacity = GetHoverFadeInPreviewOpacity();
+
 		TargetRenderHelper::ButtonSyncLineData syncLineData = {};
 		TargetRenderHelper::TargetData targetData = {};
 
@@ -459,7 +461,7 @@ namespace Comfy::Studio::Editor
 		syncLineData.SyncPairCount = targetCount;
 		syncLineData.Progress = 0.0f;
 		syncLineData.Scale = 1.0f;
-		syncLineData.Opacity = 1.0f;
+		syncLineData.Opacity = hoverFadeOpacity;
 		for (size_t i = 0; i < targetCount; i++)
 		{
 			syncLineData.TargetPositions[i] = presetTargets[i].Properties.Position;
@@ -474,8 +476,8 @@ namespace Comfy::Studio::Editor
 			targetData.Type = presetTarget.Type;
 			targetData.Position = presetTarget.Properties.Position;
 			targetData.NoScale = true;
-			targetData.Transparent = true;
 			targetData.Scale = 1.0f;
+			targetData.Opacity = hoverFadeOpacity;
 			renderHelper.DrawTarget(renderer, targetData);
 		}
 	}

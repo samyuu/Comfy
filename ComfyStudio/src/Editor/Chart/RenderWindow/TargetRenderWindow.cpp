@@ -514,7 +514,6 @@ namespace Comfy::Studio::Editor
 				targetData.Type = target.Type;
 				targetData.NoHand = !inCursorBarRange;
 				// NOTE: Transparent to make the background grid visible and make pre-, post- and cursor bar targets look more uniform
-				targetData.Transparent = (target.IsSelected || !inCursorBarRange);
 				targetData.NoScale = !isPlayback;
 				targetData.Sync = target.Flags.IsSync;
 				targetData.HoldText = target.Flags.IsHold;
@@ -525,6 +524,7 @@ namespace Comfy::Studio::Editor
 				targetData.Position = properties.Position;
 				targetData.Progress = progress;
 				targetData.Scale = 1.0f;
+				targetData.Opacity = (target.IsSelected || !inCursorBarRange) ? 0.5f : 1.0f;
 
 				if (inCursorBarRange)
 				{

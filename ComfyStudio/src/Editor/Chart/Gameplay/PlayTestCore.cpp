@@ -777,6 +777,7 @@ namespace Comfy::Studio::Editor
 						targetData.Position = properties.Position;
 						targetData.Progress = progressUnbound;
 						targetData.Scale = hitMissProgress;
+						targetData.Opacity = 1.0f;
 
 						auto& targetAppearData = context.RenderHelperEx.EmplaceTargetAppear();
 						targetAppearData.Position = properties.Position;

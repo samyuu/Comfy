@@ -1031,8 +1031,7 @@ namespace Comfy::Studio::Editor
 
 			auto transform = Transform2D(data.Position);
 			transform.Scale = vec2(data.Scale);
-			if (data.Transparent)
-				transform.Opacity = 0.5f;
+			transform.Opacity = data.Opacity;
 
 			constexpr auto layerFrameScale = 360.0f;
 			renderer.Aet().DrawLayer(*layer, data.Progress * layerFrameScale, transform);

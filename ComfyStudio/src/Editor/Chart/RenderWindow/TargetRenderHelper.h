@@ -116,7 +116,6 @@ namespace Comfy::Studio::Editor
 		{
 			ButtonType Type;
 			bool NoHand;
-			bool Transparent;
 			bool NoScale;
 			bool Sync;
 			bool HoldText;
@@ -127,6 +126,7 @@ namespace Comfy::Studio::Editor
 			vec2 Position;
 			f32 Progress;
 			f32 Scale;
+			f32 Opacity;
 		};
 
 		void DrawTarget(Render::Renderer2D& renderer, const TargetData& data) const;
