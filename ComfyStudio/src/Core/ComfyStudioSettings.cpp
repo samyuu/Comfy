@@ -316,6 +316,8 @@ namespace Comfy::Studio
 		const std::string System_Gui_TargetButtonPathMaxCount = "target_button_path_max_count";
 
 		const std::string Input = "input";
+		const std::string Input_Bindings = "bindings";
+		const std::string Input_PlaytestBindings = "playtest_bindings";
 
 		const std::string TargetPreview = "target_preview";
 		const std::string TargetPreview_ShowButtons = "show_buttons";
@@ -517,24 +519,38 @@ namespace Comfy::Studio
 
 		if (const json* inputJson = JsonFind(rootJson, UserIDs::Input))
 		{
-			UserIDs::ForEachMultiBindingWithID(*this, [&](Input::MultiBinding& multiBinding, auto&& multiBindingID)
+			if (const json* bindingsJson = JsonFind(*inputJson, UserIDs::Input_Bindings))
 			{
-				if (const json* multiBindingJson = JsonFind(*inputJson, multiBindingID))
+				UserIDs::ForEachMultiBindingWithID(*this, [&](Input::MultiBinding& multiBinding, auto&& multiBindingID)
 				{
-					multiBinding.BindingCount = 0;
-					for (const json& bindingJson : *multiBindingJson)
+					if (const json* multiBindingJson = JsonFind(*bindingsJson, multiBindingID))
 					{
-						if (multiBinding.BindingCount < multiBinding.Bindings.size() && bindingJson.is_string())
+						multiBinding.BindingCount = 0;
+						for (const json& bindingJson : *multiBindingJson)
 						{
-							auto& binding = multiBinding.Bindings[multiBinding.BindingCount++];
-							binding = Input::BindingFromStorageString(bindingJson.get<std::string_view>());
+							if (multiBinding.BindingCount < multiBinding.Bindings.size() && bindingJson.is_string())
+							{
+								auto& binding = multiBinding.Bindings[multiBinding.BindingCount++];
+								binding = Input::BindingFromStorageString(bindingJson.get<std::string_view>());
 
-							if (binding.IsEmpty())
-								multiBinding.BindingCount--;
+								if (binding.IsEmpty())
+									multiBinding.BindingCount--;
+							}
 						}
 					}
+				});
+			}
+
+			if (const json* playtestBindingsJson = JsonFind(*inputJson, UserIDs::Input_PlaytestBindings))
+			{
+				Input.PlaytestBindings.clear();
+				Input.PlaytestBindings.reserve(playtestBindingsJson->size());
+				for (const json& playtestBindingJson : *playtestBindingsJson)
+				{
+					if (auto playtestBinding = PlayTestBindingFromStorageString(playtestBindingJson.get<std::string_view>()); !playtestBinding.IsEmpty())
+						Input.PlaytestBindings.push_back(std::move(playtestBinding));
 				}
-			});
+			}
 		}
 
 		if (const json* targetPreviewJson = JsonFind(rootJson, UserIDs::TargetPreview))
@@ -725,14 +741,19 @@ namespace Comfy::Studio
 
 		json& inputJson = rootJson[UserIDs::Input];
 		{
-			inputJson = json::object();
+			json& bindingsJson = inputJson[UserIDs::Input_Bindings];
 			UserIDs::ForEachMultiBindingWithID(*const_cast<ComfyStudioUserSettings*>(this), [&](const Input::MultiBinding& multiBinding, auto&& multiBindingID)
 			{
-				json& multiBindingJson = inputJson[multiBindingID];
+				json& multiBindingJson = bindingsJson[multiBindingID];
 				multiBindingJson = json::array();
 				for (const auto& binding : multiBinding)
 					multiBindingJson.emplace_back(Input::BindingToStorageString(binding).data());
 			});
+
+			json& playtestBindingsJson = inputJson[UserIDs::Input_PlaytestBindings];
+			playtestBindingsJson = json::array();
+			for (const auto& playtestBinding : Input.PlaytestBindings)
+				playtestBindingsJson.emplace_back(PlayTestBindingToStorageString(playtestBinding).data());
 		}
 
 		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
@@ -961,6 +982,53 @@ namespace Comfy::Studio
 			Input.Playtest_RestartFromResetPoint = MultiBinding(Binding(KeyCode_Enter, KeyModifiers_None, ModifierBehavior_Strict), Binding(Button::RightStickPush));
 			Input.Playtest_MoveResetPointBackward = MultiBinding(Binding(KeyCode_Tab, KeyModifiers_Shift, ModifierBehavior_Strict), Binding(Button::LeftStickPush));
 			Input.Playtest_MoveResetPointForward = MultiBinding(Binding(KeyCode_Tab, KeyModifiers_None, ModifierBehavior_Strict), Binding(Button::TouchPad));
+
+			Input.PlaytestBindings =
+			{
+				PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::KeyCode_W },
+				PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::KeyCode_A },
+				PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::KeyCode_S },
+				PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::KeyCode_D },
+				PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Left, Input::KeyCode_Q },
+				PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Left, Input::KeyCode_E },
+
+				PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::KeyCode_I },
+				PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::KeyCode_J },
+				PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::KeyCode_K },
+				PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::KeyCode_L },
+				PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Right, Input::KeyCode_U },
+				PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Right, Input::KeyCode_O },
+
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_1 },
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_2 },
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_3 },
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_4 },
+
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_7 },
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_8 },
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_9 },
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::KeyCode_0 },
+
+				PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::Button::FaceUp },
+				PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::Button::FaceLeft },
+				PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::Button::FaceDown },
+				PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::Button::FaceRight },
+
+				PlayTestInputBinding { ButtonTypeFlags_Triangle, PlayTestSlidePositionType::None, Input::Button::DPadUp },
+				PlayTestInputBinding { ButtonTypeFlags_Square, PlayTestSlidePositionType::None, Input::Button::DPadLeft },
+				PlayTestInputBinding { ButtonTypeFlags_Cross, PlayTestSlidePositionType::None, Input::Button::DPadDown },
+				PlayTestInputBinding { ButtonTypeFlags_Circle, PlayTestSlidePositionType::None, Input::Button::DPadRight },
+
+				PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Left, Input::Button::LeftBumper },
+				PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Right, Input::Button::RightBumper },
+				PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Left, Input::Button::LeftStickLeft },
+				PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Left, Input::Button::LeftStickRight },
+				PlayTestInputBinding { ButtonTypeFlags_SlideL, PlayTestSlidePositionType::Right, Input::Button::RightStickLeft },
+				PlayTestInputBinding { ButtonTypeFlags_SlideR, PlayTestSlidePositionType::Right, Input::Button::RightStickRight },
+
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::Button::LeftTrigger },
+				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::Button::RightTrigger },
+			};
 		}
 
 		TargetPreview.ShowButtons = true;
