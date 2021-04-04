@@ -477,7 +477,7 @@ namespace Comfy::Studio::Editor
 			targetData.Position = presetTarget.Properties.Position;
 			targetData.NoScale = true;
 			targetData.Scale = 1.0f;
-			targetData.Opacity = hoverFadeOpacity;
+			targetData.Opacity = hoverFadeOpacity * 0.5f;
 			renderHelper.DrawTarget(renderer, targetData);
 		}
 	}
