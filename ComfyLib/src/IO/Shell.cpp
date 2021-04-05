@@ -222,20 +222,25 @@ namespace Comfy::IO
 
 		bool FileDialog::OpenRead()
 		{
-			return CreateOpenShowDialog(false);
+			return InternalCreateAndShowDialog(false, false);
 		}
 
 		bool FileDialog::OpenSave()
 		{
-			return CreateOpenShowDialog(true);
+			return InternalCreateAndShowDialog(true, false);
 		}
 
-		bool FileDialog::CreateOpenShowDialog(bool openSave)
+		bool FileDialog::OpenSelectFolder()
+		{
+			return InternalCreateAndShowDialog(false, true);
+		}
+
+		bool FileDialog::InternalCreateAndShowDialog(bool save, bool selectFolder)
 		{
 			HRESULT result = S_OK;
 			IFileDialog* fileDialog = nullptr;
 
-			if (result = ::CoCreateInstance(openSave ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog)); !SUCCEEDED(result))
+			if (result = ::CoCreateInstance(save ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog)); !SUCCEEDED(result))
 				return false;
 
 			DWORD eventCookie = 0;
@@ -251,7 +256,7 @@ namespace Comfy::IO
 
 					DWORD existingOptionsFlags = 0;
 					result = fileDialog->GetOptions(&existingOptionsFlags);
-					result = fileDialog->SetOptions(existingOptionsFlags | FOS_FORCEFILESYSTEM);
+					result = fileDialog->SetOptions(existingOptionsFlags | FOS_FORCEFILESYSTEM | (selectFolder ? FOS_PICKFOLDERS : 0));
 
 					if (!Title.empty())
 						result = fileDialog->SetTitle(UTF8::WideArg(Title).c_str());
@@ -262,7 +267,7 @@ namespace Comfy::IO
 					if (!DefaultExtension.empty())
 						result = fileDialog->SetDefaultExtension(UTF8::WideArg(Util::StripPrefix(DefaultExtension, ".")).c_str());
 
-					if (!Filters.empty())
+					if (!selectFolder && !Filters.empty())
 					{
 						std::vector<std::wstring> owningWideStrings;
 						owningWideStrings.reserve(Filters.size() * 2);
@@ -305,9 +310,10 @@ namespace Comfy::IO
 
 							::CoTaskMemFree(filePath);
 						}
-
-						itemResult->Release();
 					}
+
+					if (itemResult != nullptr)
+						itemResult->Release();
 				}
 			}
 

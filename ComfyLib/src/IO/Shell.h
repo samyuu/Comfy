@@ -65,9 +65,10 @@ namespace Comfy::IO
 		public:
 			COMFY_NODISCARD bool OpenRead();
 			COMFY_NODISCARD bool OpenSave();
+			COMFY_NODISCARD bool OpenSelectFolder();
 
 		private:
-			bool CreateOpenShowDialog(bool openSave);
+			bool InternalCreateAndShowDialog(bool openSave, bool pickFolder);
 		};
 	}
 }
