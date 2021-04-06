@@ -400,6 +400,27 @@ namespace Comfy
 
 		struct PVEnd : LayoutBase<PVEnd, PVCommandType::PVEnd> {};
 
+		struct SceneFade : LayoutBase<SceneFade, PVCommandType::SceneFade>
+		{
+			i32 Transition;
+			i32 StartAlpha;
+			i32 EndAlpha;
+			i32 Red;
+			i32 Green;
+			i32 Blue;
+
+			SceneFade() = default;
+			constexpr SceneFade(TimeSpan transition, f32 startAlpha, f32 endAlpha, vec3 color) :
+				Transition(static_cast<i32>(transition.TotalMilliseconds())),
+				StartAlpha(static_cast<i32>(startAlpha * 1000.0f)),
+				EndAlpha(static_cast<i32>(endAlpha * 1000.0f)),
+				Red(static_cast<i32>(color.r * 1000.0f)),
+				Green(static_cast<i32>(color.g * 1000.0f)),
+				Blue(static_cast<i32>(color.b * 1000.0f))
+			{
+			}
+		};
+
 		struct TargetFlyingTime : LayoutBase<TargetFlyingTime, PVCommandType::TargetFlyingTime>
 		{
 			i32 DurationMS;
