@@ -421,6 +421,22 @@ namespace Comfy
 		{
 			PVBranchModeType Mode;
 		};
+
+		struct MoviePlay : LayoutBase<MoviePlay, PVCommandType::MoviePlay>
+		{
+			i32 ID;
+
+			MoviePlay() = default;
+			MoviePlay(i32 id) : ID(id) {}
+		};
+
+		struct MovieDisp : LayoutBase<MovieDisp, PVCommandType::MovieDisp>
+		{
+			i32 Visible;
+
+			MovieDisp() = default;
+			MovieDisp(bool visible) : Visible(visible) {}
+		};
 	}
 
 	enum class PVScriptVersion : u32
