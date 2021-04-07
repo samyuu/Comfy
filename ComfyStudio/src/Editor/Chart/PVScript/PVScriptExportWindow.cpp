@@ -287,6 +287,7 @@ namespace Comfy::Studio::Editor
 				char b[512];
 				std::string pvDB;
 				pvDB.reserve(0x800);
+				pvDB.append("\n\n");
 				pvDB.append("# --- COMFY STUDIO MDATA EXPORT: ---\n");
 				pvDB.append(b, sprintf_s(b, "pv_%03d.bpm=%d\n", param.OutPVID, static_cast<i32>(inData.Chart->TempoMap.GetTempoChangeAt(0).Tempo.BeatsPerMinute)));
 				pvDB.append(b, sprintf_s(b, "pv_%03d.chainslide_failure_name=", param.OutPVID)).append(chainSlideFailureName).append("\n");
@@ -343,12 +344,58 @@ namespace Comfy::Studio::Editor
 
 				if (param.MergeWithExistingMData && !param.InMergeBaseMDataPVDB.empty())
 				{
-					// TODO: Find right place to insert instead of always at the end
+					auto forEachPVDBLine = [](std::string_view pvDB, auto perLineReturnFalseToStopFunc)
+					{
+						for (size_t absoulteIndex = 0; absoulteIndex < pvDB.size(); absoulteIndex++)
+						{
+							const std::string_view remainingPVDB = pvDB.substr(absoulteIndex);
+							for (size_t relativeIndex = 0; relativeIndex < remainingPVDB.size(); relativeIndex++)
+							{
+								if (remainingPVDB[relativeIndex] == '\n')
+								{
+									const std::string_view line = remainingPVDB.substr(0, relativeIndex);
+									if (relativeIndex + 1 < remainingPVDB.size() && remainingPVDB[relativeIndex + 1] == '\r')
+										relativeIndex++;
+
+									if (!line.empty() && line[0] != '#' && !perLineReturnFalseToStopFunc(line))
+										return;
+
+									absoulteIndex += relativeIndex;
+									break;
+								}
+							}
+						}
+					};
+
 					std::string basePVDB = IO::File::ReadAllText(param.InMergeBaseMDataPVDB);
 
+					char pvUnderscoreIDBuffer[16];
+					const auto pvUnderscoreIDStr = std::string_view(pvUnderscoreIDBuffer, sprintf_s(pvUnderscoreIDBuffer, "pv_%03d", param.OutPVID));
+
+					std::string_view lineToInsertAfter = {};
+					forEachPVDBLine(basePVDB, [&](std::string_view line)
+					{
+						if (line.size() > 6 && Util::StartsWith(line, "pv_"))
+						{
+							if (line.substr(0, 6) < pvUnderscoreIDStr)
+								lineToInsertAfter = line;
+							else
+								return false;
+						}
+
+						return true;
+					});
+
 					std::string combinedPVDB = std::move(basePVDB);
-					combinedPVDB += "\n";
-					combinedPVDB += pvDB;
+					if (lineToInsertAfter.data() != nullptr)
+					{
+						const size_t insertionIndex = static_cast<size_t>(lineToInsertAfter.data() - &combinedPVDB.front()) + lineToInsertAfter.size();
+						combinedPVDB.insert(insertionIndex, pvDB);
+					}
+					else
+					{
+						combinedPVDB.append(pvDB);
+					}
 
 					IO::File::WriteAllText(param.OutMDataPVDB, combinedPVDB);
 				}
@@ -549,7 +596,7 @@ namespace Comfy::Studio::Editor
 			{
 				PathTextInputWithBrowserButton(param.RootDirectory, "\"...\" to select a folder", [&](std::string& inOutPath)
 				{
-					if (auto p = OpenSelectFolderDialog("Select Base Game Directory"); !p.empty())
+					if (auto p = OpenSelectFolderDialog("Select Root Directory"); !p.empty())
 					{
 						inOutPath = p;
 						return true;
