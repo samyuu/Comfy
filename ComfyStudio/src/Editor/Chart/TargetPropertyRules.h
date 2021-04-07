@@ -275,5 +275,13 @@ namespace Comfy::Studio::Editor
 			else
 				return normalized;
 		}
+
+		inline bool ButtonSpawnsOffScreen(const TargetProperties& properties)
+		{
+			const f32 radians = glm::radians(properties.Angle) - glm::radians(90.0f);
+			const vec2 direction = vec2(glm::cos(radians), glm::sin(radians));
+			const vec2 position = properties.Position + (direction * properties.Distance);
+			return !(position.x >= 0.0f && position.y >= 0.0f && position.x <= PlacementAreaSize.x && position.y <= PlacementAreaSize.y);
+		}
 	}
 }

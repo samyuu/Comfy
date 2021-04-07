@@ -151,7 +151,12 @@ namespace Comfy::Studio::Editor
 
 			// NOTE: For readibility sake always draw the main drag arrow on top
 			if (dragTarget != nullptr)
-				DrawCurvedButtonPathLineArrowHeads(renderWindow, drawList, Rules::TryGetProperties(*dragTarget), GetButtonTypeColorU32(dragTarget->Type, 0xD6), 2.0f);
+			{
+				u32 problematicButtonSpawnArrowColor = 0xD6808080;
+				const auto dragTargetProperties = Rules::TryGetProperties(*dragTarget);
+				const u32 arrowColor = Rules::ButtonSpawnsOffScreen(dragTargetProperties) ? GetButtonTypeColorU32(dragTarget->Type, 0xD6) : problematicButtonSpawnArrowColor;
+				DrawCurvedButtonPathLineArrowHeads(renderWindow, drawList, dragTargetProperties, arrowColor, 2.0f);
+			}
 		}
 		else
 		{
@@ -205,7 +210,8 @@ namespace Comfy::Studio::Editor
 		// TODO: Turn into tooltip (?) just like for the Position Tool
 		const u32 dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.85f);
 		drawList.AddRectFilled(textPos, textPos + textSize, dimColor);
-		drawList.AddText(textPos + (textPadding / 2.0f), Gui::GetColorU32(ImGuiCol_Text), Gui::StringViewStart(bufferView), Gui::StringViewEnd(bufferView));
+
+		Gui::AddTextWithShadow(&drawList, textPos + (textPadding / 2.0f), bufferView, Gui::GetColorU32(ImGuiCol_Text));
 	}
 
 	void TargetPathTool::UpdateKeyboardKeyBindingsInput(Chart& chart)
