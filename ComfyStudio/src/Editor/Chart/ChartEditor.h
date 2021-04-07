@@ -65,6 +65,7 @@ namespace Comfy::Studio::Editor
 		bool OpenReadImportPVScriptFileDialogThenOpenImportWindow();
 
 		void OpenPVScriptExportWindow();
+		bool OpenSaveExportSimplePVScriptChartFileDialog();
 
 		void CheckOpenSaveConfirmationPopupThenCall(std::function<void()> onSuccess);
 

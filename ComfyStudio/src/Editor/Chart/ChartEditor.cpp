@@ -105,12 +105,11 @@ namespace Comfy::Studio::Editor
 			const auto& recentFilesView = GlobalAppData.RecentFiles.ChartFiles.View();
 			if (Gui::BeginMenu("Open Recent", !recentFilesView.empty()))
 			{
-				size_t reserveFileIndex = 0, indexToRemove = std::numeric_limits<size_t>::max();
-
+				size_t recentFileIndex = 0;
 				std::for_each(recentFilesView.rbegin(), recentFilesView.rend(), [&](const auto& path)
 				{
 					// NOTE: Even without handling keyboard input this still helps with readability
-					const char shortcutBuffer[2] = { (reserveFileIndex < 9) ? static_cast<char>('1' + reserveFileIndex) : '\0', '\0' };
+					const char shortcutBuffer[2] = { (recentFileIndex < 9) ? static_cast<char>('1' + recentFileIndex) : '\0', '\0' };
 
 					if (Gui::MenuItem(path.c_str(), shortcutBuffer))
 					{
@@ -129,7 +128,7 @@ namespace Comfy::Studio::Editor
 							};
 						}
 					}
-					reserveFileIndex++;
+					recentFileIndex++;
 				});
 
 				Gui::Separator();
@@ -167,9 +166,12 @@ namespace Comfy::Studio::Editor
 				if (Gui::MenuItem("Export UPDC Chart...", nullptr, false, true))
 					OpenSaveExportPJEChartFileDialog();
 
-				if (Gui::MenuItem("Expot PV Script Chart...", nullptr, false, true))
+				if (Gui::MenuItem("Expot PV Script MData...", nullptr, false, true))
 					OpenPVScriptExportWindow();
 
+				if (Gui::MenuItem("Expot PV Script Chart...", nullptr, false, true))
+					OpenSaveExportSimplePVScriptChartFileDialog();
+				
 				Gui::EndMenu();
 			}
 
@@ -563,6 +565,22 @@ namespace Comfy::Studio::Editor
 		pvScriptExportPopup.OpenOnNextFrame = true;
 	}
 
+	bool ChartEditor::OpenSaveExportSimplePVScriptChartFileDialog()
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Export As PV Script Chart";
+		fileDialog.FileName = GetChartSaveDialogFileName(*chart);
+		fileDialog.DefaultExtension = PVScript::Extension;
+		fileDialog.Filters = { { std::string(PVScript::FilterName), std::string(PVScript::FilterSpec) }, };
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
+
+		if (!fileDialog.OpenSave())
+			return false;
+
+		pvScriptExportPopup.Window.ConvertAndSaveSimpleScriptSync(fileDialog.OutFilePath, *chart);
+		return true;
+	}
+
 	bool ChartEditor::OpenReadImportPVScriptFileDialogThenOpenImportWindow()
 	{
 		IO::Shell::FileDialog fileDialog;
@@ -865,11 +883,12 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiPVScriptExportPopup()
 	{
-		constexpr const char* pvScriptExportWindowID = "Export PV Script Chart";
+		constexpr const char* pvScriptExportWindowID = "Export PV Script MData (Experimental)";
 		if (pvScriptExportPopup.OpenOnNextFrame)
 		{
 			Gui::OpenPopup(pvScriptExportWindowID);
 			pvScriptExportPopup.OpenOnNextFrame = false;
+			pvScriptExportPopup.Window.OnWindowOpen();
 		}
 
 		const auto* viewport = Gui::GetMainViewport();
@@ -878,13 +897,19 @@ namespace Comfy::Studio::Editor
 		bool isOpen = true;
 		if (Gui::WideBeginPopupModal(pvScriptExportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			pvScriptExportPopup.Window.Gui();
+			PVScriptExportWindowInputData data;
+			data.Chart = chart.get();
+			data.SoundEffectManager = &soundEffectManager;
+			pvScriptExportPopup.Window.Gui(data);
 
 			if (pvScriptExportPopup.Window.GetAndClearCloseRequestThisFrame())
 				Gui::CloseCurrentPopup();
 
 			Gui::EndPopup();
 		}
+
+		if (!isOpen)
+			pvScriptExportPopup.Window.OnCloseButtonClicked();
 	}
 
 	void ChartEditor::GuiFileNotFoundPopup()
