@@ -19,6 +19,10 @@ namespace Comfy::Studio::Editor
 
 		constexpr f32 GuiSettingsInnerMargin = 40.0f;
 		constexpr f32 GuiSettingsItemWidth = -GuiSettingsInnerMargin;
+
+		constexpr f32 GuiSettingsInnerSubChildMargin = 8.0f;
+		constexpr f32 GuiSettingsSubChildItemWidth = -GuiSettingsInnerSubChildMargin;
+
 		constexpr f32 GuiSettingsLabelSpacing = 4.0f;
 		constexpr f32 GuiSettingsCheckboxLabelSpacing = 6.0f;
 
@@ -217,6 +221,120 @@ namespace Comfy::Studio::Editor
 
 			return result;
 		}
+
+		bool GuiSettingsInteractiveAwaitKeyPressInputBindingButton(Input::Binding& inOutBinding, vec2 buttonSize, Input::Binding*& inOutAwaitInputBinding, Stopwatch& inOutAwaitInputStopwatch)
+		{
+			constexpr auto timeoutThreshold = TimeSpan::FromSeconds(4.0);
+			constexpr auto mouseClickThreshold = TimeSpan::FromMilliseconds(200.0);
+			constexpr f32 blinkFrequency = static_cast<f32>(timeoutThreshold.TotalSeconds() * 1.2);
+			constexpr f32 blinkLow = 0.25f, blinkHigh = 1.45f;
+			constexpr f32 blinkMin = 0.25f, blinkMax = 1.00f;
+			auto getSinBlinkOpacity = [&](TimeSpan elapsed) { return std::clamp(ConvertRange(-1.0f, +1.0f, blinkLow, blinkHigh, glm::sin(static_cast<f32>(elapsed.TotalSeconds() * blinkFrequency) + 1.0f)), blinkMin, blinkMax); };
+
+			auto requestAsignmentForNewBinding = [&](Input::Binding* bindingToRequestAsignmentFor)
+			{
+				inOutAwaitInputBinding = bindingToRequestAsignmentFor;
+				inOutAwaitInputStopwatch.Restart();
+			};
+
+			auto finishBindingAsignment = [&](std::optional<Input::Binding> newBindingToAsign)
+			{
+				inOutAwaitInputBinding = nullptr;
+				inOutAwaitInputStopwatch.Stop();
+				if (newBindingToAsign.has_value())
+					inOutBinding = newBindingToAsign.value();
+			};
+
+			const Input::Binding inBindingCopy = inOutBinding;
+			Input::FormatBuffer buffer = Input::ToString(inOutBinding);
+
+			if (!inOutBinding.IsEmpty())
+			{
+				if (inOutBinding.Type == Input::BindingType::Keyboard)
+				{
+					if (inOutBinding.Keyboard.Key >= Input::KeyCode_MouseFirst && inOutBinding.Keyboard.Key <= Input::KeyCode_MouseLast)
+						strcat_s(buffer.data(), buffer.size(), "  (Mouse)");
+					else if (inOutBinding.Keyboard.Key >= Input::KeyCode_KeyboardFirst && inOutBinding.Keyboard.Key <= Input::KeyCode_KeyboardLast)
+						strcat_s(buffer.data(), buffer.size(), "  (Keyboard)");
+				}
+				else if (inOutBinding.Type == Input::BindingType::Controller)
+				{
+					if (inOutBinding.Controller.Button > Input::Button::None && inOutBinding.Controller.Button < Input::Button::Count)
+						strcat_s(buffer.data(), buffer.size(), "  (Controller)");
+				}
+			}
+			else
+			{
+				strcpy_s(buffer.data(), buffer.size(), "(None)");
+			}
+
+			if (inOutAwaitInputBinding == &inOutBinding)
+				strcpy_s(buffer.data(), buffer.size(), "[Press any Key]");
+
+			strcat_s(buffer.data(), buffer.size(), "###BindingButton");
+
+			if (inOutAwaitInputBinding == &inOutBinding)
+			{
+				Gui::PushStyleColor(ImGuiCol_Text, vec4(0.814f, 0.814f, 0.242f, getSinBlinkOpacity(inOutAwaitInputStopwatch.GetElapsed())));
+				Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+			}
+			else
+			{
+				Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_Text));
+				Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(ImGuiCol_Button));
+			}
+
+			if (Gui::Button(buffer.data(), buttonSize))
+			{
+				if (inOutAwaitInputBinding != &inOutBinding)
+					requestAsignmentForNewBinding(&inOutBinding);
+			}
+			const bool buttonHovered = Gui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+			Gui::PopStyleColor(2);
+
+			if (inOutAwaitInputBinding == &inOutBinding)
+			{
+				const bool timedOut = (inOutAwaitInputStopwatch.GetElapsed() > timeoutThreshold);
+				const bool mouseClickCancelRequest = (inOutAwaitInputStopwatch.GetElapsed() > mouseClickThreshold && !buttonHovered && (Gui::IsMouseClicked(0, false) || Gui::IsMouseClicked(1, false)));
+
+				if (timedOut || mouseClickCancelRequest)
+					finishBindingAsignment(std::nullopt);
+
+				Gui::SetActiveID(Gui::GetID(&inOutBinding), Gui::GetCurrentWindow());
+
+				for (Input::KeyCode keyCode = Input::KeyCode_KeyboardFirst; keyCode <= Input::KeyCode_KeyboardLast; keyCode++)
+				{
+					if (Input::IsKeyReleased(keyCode))
+					{
+						Input::KeyModifiers heldModifiers = Input::KeyModifiers_None;
+						Input::ForEachKeyCodeInKeyModifiers(Input::KeyModifiers_All, [&](Input::KeyCode modifierKey)
+						{
+							if (Input::IsKeyDown(modifierKey))
+								heldModifiers |= Input::KeyCodeToKeyModifiers(modifierKey);
+						});
+
+						finishBindingAsignment(Input::Binding(keyCode, heldModifiers));
+					}
+				}
+
+				// NOTE: Assume for now that binding the left / right mouse button is never desired
+				//		 otherwise there will have to be a different system for asigning those such as through a context menu
+				for (Input::KeyCode mouseKeyCode : { Input::KeyCode_MouseMiddle, Input::KeyCode_MouseX1, Input::KeyCode_MouseX2 })
+				{
+					if (Input::IsKeyReleased(mouseKeyCode))
+						finishBindingAsignment(Input::Binding(mouseKeyCode));
+				}
+
+				for (size_t i = 0; i <= EnumCount<Input::Button>(); i++)
+				{
+					const auto button = static_cast<Input::Button>(i);
+					if (Input::IsButtonReleased(button))
+						finishBindingAsignment(Input::Binding(button));
+				}
+			}
+
+			return (inOutBinding != inBindingCopy);
+		}
 	}
 
 	namespace
@@ -261,8 +379,12 @@ namespace Comfy::Studio::Editor
 			Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemSpacing.x, 3.0f));
 			for (i32 i = 0; i < static_cast<i32>(std::size(namedTabs)); i++)
 			{
-				if (Gui::Selectable(namedTabs[i].Name, (i == selectedTabIndex)))
+				Gui::PushID(i);
+				if (Gui::Selectable("##SelectableTab", (i == selectedTabIndex)))
 					selectedTabIndex = i;
+				Gui::SameLine(0.0f, 1.0f);
+				Gui::TextUnformatted(namedTabs[i].Name);
+				Gui::PopID();
 			}
 			Gui::PopStyleVar(1);
 		}
@@ -667,11 +789,286 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void ChartEditorSettingsWindow::GuiTabInput(ComfyStudioUserSettings& userData)
+	void ChartEditorSettingsWindow::GuiTabControllerLayout(ComfyStudioUserSettings& userData)
 	{
-		if (Gui::CollapsingHeader("Dummy", ImGuiTreeNodeFlags_DefaultOpen))
+		using namespace Input;
+
+		if (Gui::CollapsingHeader("Controller Layout", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			Gui::TextUnformatted("Dummy Text Here");
+			// TODO: ...
+		}
+	}
+
+	void ChartEditorSettingsWindow::GuiTabEditorBindings(ComfyStudioUserSettings& userData)
+	{
+		struct NamedBinding
+		{
+			Input::MultiBinding* MultiBinding;
+			std::string_view Name;
+		};
+
+		const NamedBinding namedMultiBindings[] =
+		{
+			{ &userData.Input.App_ToggleFullscreen, "App - Toggle Fullscreen" },
+			{ &userData.Input.App_Dialog_YesOrOk, "App - Dialog - Yes or OK" },
+			{ &userData.Input.App_Dialog_No, "App - Dialog - No" },
+			{ &userData.Input.App_Dialog_Cancel, "App - Dialog - Cancel" },
+			{ &userData.Input.App_Dialog_SelectNextTab, "App - Dialog - Select Next Tab" },
+			{ &userData.Input.App_Dialog_SelectPreviousTab, "App - Dialog - Select Previous Tab" },
+			{ &userData.Input.ChartEditor_ChartNew, "Chart Editor - Chart New" },
+			{ &userData.Input.ChartEditor_ChartOpen, "Chart Editor - Chart Open" },
+			{ &userData.Input.ChartEditor_ChartSave, "Chart Editor - Chart Save" },
+			{ &userData.Input.ChartEditor_ChartSaveAs, "Chart Editor - Chart Save As" },
+			{ &userData.Input.ChartEditor_ChartOpenDirectory, "Chart Editor - Chart Open Directory" },
+			{ &userData.Input.ChartEditor_Undo, "Chart Editor - Undo" },
+			{ &userData.Input.ChartEditor_Redo, "Chart Editor - Redo" },
+			{ &userData.Input.ChartEditor_OpenSettings, "Chart Editor - Open Settings" },
+			{ &userData.Input.ChartEditor_StartPlaytestFromStart, "Chart Editor - Start Playtest from Start" },
+			{ &userData.Input.ChartEditor_StartPlaytestFromCursor, "Chart Editor - Start Playtest from Cursor" },
+			{ &userData.Input.Timeline_CenterCursor, "Timeline - Center Cursor" },
+			{ &userData.Input.Timeline_TogglePlayback, "Timeline - Toggle Playback" },
+			{ &userData.Input.Timeline_StopPlayback, "Timeline - Stop Playback" },
+			{ &userData.Input.TargetTimeline_Cut, "Target Timeline - Cut" },
+			{ &userData.Input.TargetTimeline_Copy, "Target Timeline - Copy" },
+			{ &userData.Input.TargetTimeline_Paste, "Target Timeline - Paste" },
+			{ &userData.Input.TargetTimeline_MoveCursorLeft, "Target Timeline - Move Cursor Left" },
+			{ &userData.Input.TargetTimeline_MoveCursorRight, "Target Timeline - Move Cursor Right" },
+			{ &userData.Input.TargetTimeline_IncreaseGridPrecision, "Target Timeline - Increase Grid Precision" },
+			{ &userData.Input.TargetTimeline_DecreaseGridPrecision, "Target Timeline - Decrease Grid Precision" },
+			{ &userData.Input.TargetTimeline_StartEndRangeSelection, "Target Timeline - Start/End Range Selection" },
+			{ &userData.Input.TargetTimeline_DeleteSelection, "Target Timeline - Delete Selection" },
+			{ &userData.Input.TargetTimeline_IncreasePlaybackSpeed, "Target Timeline - Increase Playback Speed" },
+			{ &userData.Input.TargetTimeline_DecreasePlaybackSpeed, "Target Timeline - Decrease Playback Speed" },
+			{ &userData.Input.TargetTimeline_ToggleMetronome, "Target Timeline - Toggle Metronome" },
+			{ &userData.Input.TargetTimeline_ToggleTargetHolds, "Target Timeline - Toggle Target Holds" },
+			{ &userData.Input.TargetTimeline_PlaceTriangle, "Target Timeline - Place Triangle" },
+			{ &userData.Input.TargetTimeline_PlaceSquare, "Target Timeline - Place Square" },
+			{ &userData.Input.TargetTimeline_PlaceCross, "Target Timeline - Place Cross" },
+			{ &userData.Input.TargetTimeline_PlaceCircle, "Target Timeline - Place Circle" },
+			{ &userData.Input.TargetTimeline_PlaceSlideL, "Target Timeline - Place Slide L" },
+			{ &userData.Input.TargetTimeline_PlaceSlideR, "Target Timeline - Place Slide R" },
+			{ &userData.Input.TargetPreview_JumpToPreviousTarget, "Target Preview - Jump to Previous Target" },
+			{ &userData.Input.TargetPreview_JumpToNextTarget, "Target Preview - Jump to Next Target" },
+			{ &userData.Input.TargetPreview_TogglePlayback, "Target Preview - Toggle Playback" },
+			{ &userData.Input.TargetPreview_SelectPositionTool, "Target Preview - Select Position Tool" },
+			{ &userData.Input.TargetPreview_SelectPathTool, "Target Preview - Select Path Tool" },
+			{ &userData.Input.TargetPreview_PositionTool_MoveUp, "Target Preview - Position Tool - Move Up" },
+			{ &userData.Input.TargetPreview_PositionTool_MoveLeft, "Target Preview - Position Tool - Move Left" },
+			{ &userData.Input.TargetPreview_PositionTool_MoveDown, "Target Preview - Position Tool - Move Down" },
+			{ &userData.Input.TargetPreview_PositionTool_MoveRight, "Target Preview - Position Tool - Move Right" },
+			{ &userData.Input.TargetPreview_PositionTool_FlipHorizontal, "Target Preview - Position Tool - Flip Horizontal" },
+			{ &userData.Input.TargetPreview_PositionTool_FlipHorizontalLocal, "Target Preview - Position Tool - Flip Horizontal Local" },
+			{ &userData.Input.TargetPreview_PositionTool_FlipVertical, "Target Preview - Position Tool - Flip Vertical" },
+			{ &userData.Input.TargetPreview_PositionTool_FlipVerticalLocal, "Target Preview - Position Tool - Flip Vertical Local" },
+			{ &userData.Input.TargetPreview_PositionTool_PositionInRow, "Target Preview - Position Tool - Position in Row" },
+			{ &userData.Input.TargetPreview_PositionTool_PositionInRowBack, "Target Preview - Position Tool - Position in Row Back" },
+			{ &userData.Input.TargetPreview_PositionTool_InterpolateLinear, "Target Preview - Position Tool - Interpolate Linear" },
+			{ &userData.Input.TargetPreview_PositionTool_InterpolateCircular, "Target Preview - Position Tool - Interpolate Circular" },
+			{ &userData.Input.TargetPreview_PositionTool_InterpolateCircularFlip, "Target Preview - Position Tool - Interpolate Circular Flip" },
+			{ &userData.Input.TargetPreview_PositionTool_StackPositions, "Target Preview - Position Tool - Stack Positions" },
+			{ &userData.Input.TargetPreview_PathTool_InvertFrequencies, "Target Preview - Path Tool - Invert Frequencies" },
+			{ &userData.Input.TargetPreview_PathTool_InterpolateAnglesClockwise, "Target Preview - Path Tool - Interpolate Angles Clockwise" },
+			{ &userData.Input.TargetPreview_PathTool_InterpolateAnglesCounterclockwise, "Target Preview - Path Tool - Interpolate Angles" },
+			{ &userData.Input.TargetPreview_PathTool_InterpolateDistances, "Target Preview - Path Tool - Interpolate Distances" },
+			{ &userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositive, "Target Preview - Path Tool - Apply Angle Increments Positive" },
+			{ &userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsPositiveBack, "Target Preview - Path Tool - Apply Angle Increments Positive Back" },
+			{ &userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegative, "Target Preview - Path Tool - Apply Angle Increments Negative" },
+			{ &userData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegativeBack, "Target Preview - Path Tool - Apply Angle Increments Negative Back" },
+			{ &userData.Input.BPMCalculator_Tap, "BPM Calculator - Tap" },
+			{ &userData.Input.BPMCalculator_Reset, "BPM Calculator - Reset" },
+			{ &userData.Input.Playtest_ReturnToEditorCurrent, "Playtest - Return to Editor Current" },
+			{ &userData.Input.Playtest_ReturnToEditorPrePlaytest, "Playtest - Return to Editor pre Playtest" },
+			{ &userData.Input.Playtest_ToggleAutoplay, "Playtest - Toggle Autoplay" },
+			{ &userData.Input.Playtest_TogglePause, "Playtest - Toggle Pause" },
+			{ &userData.Input.Playtest_RestartFromResetPoint, "Playtest - Restart from Reset Point" },
+			{ &userData.Input.Playtest_MoveResetPointBackward, "Playtest - Move Reset Point Backward" },
+			{ &userData.Input.Playtest_MoveResetPointForward, "Playtest - Move Reset Point Forward" },
+		};
+
+		const auto& style = Gui::GetStyle();
+		constexpr f32 primaryColumWidthFactor = 0.65f;
+
+		if (Gui::CollapsingHeader("Editor Bindings", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			Gui::SetCursorPosX(Gui::GetCursorPosX() + GuiSettingsInnerSubChildMargin);
+			bindingFilter.Draw("##Filter", ICON_FA_SEARCH "  Search...", GuiSettingsSubChildItemWidth);
+
+			Gui::PushStyleColor(ImGuiCol_ChildBg, Gui::GetStyleColorVec4(ImGuiCol_FrameBg));
+			Gui::SetCursorPosX(Gui::GetCursorPosX() + GuiSettingsInnerSubChildMargin);
+			Gui::BeginChild("BindingsListChild", vec2(GuiSettingsSubChildItemWidth, Gui::GetContentRegionAvail().y * 0.65f), /*false*/1, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			Gui::PopStyleColor(1);
+			{
+				if (selectedMultiBinding == nullptr)
+					selectedMultiBinding = namedMultiBindings[0].MultiBinding;
+
+				Gui::PushStyleColor(ImGuiCol_Separator, Gui::GetColorU32(ImGuiCol_TextDisabled, 0.25f));
+				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoBorder | ImGuiColumnsFlags_NoResize);
+				Gui::SetColumnWidth(0, Gui::GetWindowWidth() * primaryColumWidthFactor);
+
+				for (const auto& namedBinding : namedMultiBindings)
+				{
+					if (!bindingFilter.PassFilter(Gui::StringViewStart(namedBinding.Name), Gui::StringViewEnd(namedBinding.Name)))
+						continue;
+
+					Gui::PushID(namedBinding.MultiBinding);
+					if (Gui::Selectable("##MultiBindingSelectable", selectedMultiBinding == namedBinding.MultiBinding, ImGuiSelectableFlags_SpanAllColumns))
+						selectedMultiBinding = namedBinding.MultiBinding;
+
+					Gui::SameLine();
+					Gui::TextUnformatted(Gui::StringViewStart(namedBinding.Name), Gui::StringViewEnd(namedBinding.Name));
+					Gui::NextColumn();
+					Gui::PushItemDisabledAndTextColor();
+					if (namedBinding.MultiBinding->BindingCount > 0)
+					{
+						combinedBindingShortcutBuffer += '(';
+						for (size_t i = 0; i < namedBinding.MultiBinding->BindingCount; i++)
+						{
+							if (namedBinding.MultiBinding->Bindings[i].IsEmpty())
+								combinedBindingShortcutBuffer += "None";
+							else
+								combinedBindingShortcutBuffer += Input::ToString(namedBinding.MultiBinding->Bindings[i]).data();
+
+							if (i + 1 < namedBinding.MultiBinding->BindingCount)
+								combinedBindingShortcutBuffer += ", ";
+						}
+
+						constexpr i32 targetCharCount = 32;
+						if (combinedBindingShortcutBuffer.size() > targetCharCount)
+						{
+							combinedBindingShortcutBuffer.erase(combinedBindingShortcutBuffer.begin() + (targetCharCount - 1), combinedBindingShortcutBuffer.end());
+							combinedBindingShortcutBuffer += "...";
+						}
+
+						combinedBindingShortcutBuffer += ')';
+
+						Gui::TextUnformatted(Gui::StringViewStart(combinedBindingShortcutBuffer), Gui::StringViewEnd(combinedBindingShortcutBuffer));
+						combinedBindingShortcutBuffer.clear();
+					}
+					else
+					{
+						Gui::TextUnformatted("(None)");
+					}
+					Gui::PopItemDisabledAndTextColor();
+					Gui::NextColumn();
+
+					Gui::PopID();
+
+					Gui::Separator();
+				}
+				Gui::EndColumns();
+				Gui::PopStyleColor(1);
+			}
+			Gui::EndChild();
+
+			Gui::SetCursorPosX(Gui::GetCursorPosX() + GuiSettingsInnerSubChildMargin);
+			Gui::BeginChild("BindingEditHeaderChild", vec2(GuiSettingsSubChildItemWidth, Gui::GetFrameHeight() + 4.0f), true, ImGuiWindowFlags_None);
+			{
+				std::string_view selectedMultiBindingName = "Unnamed Binding";
+				for (size_t i = 0; i < std::size(namedMultiBindings); i++)
+				{
+					if (namedMultiBindings[i].MultiBinding == selectedMultiBinding)
+						selectedMultiBindingName = namedMultiBindings[i].Name;
+				}
+
+				Gui::SameLine();
+				Gui::AlignTextToFramePadding();
+				Gui::Text("(%.*s)", static_cast<i32>(selectedMultiBindingName.size()), selectedMultiBindingName.data());
+
+				if (selectedMultiBinding != nullptr)
+				{
+					const bool canAddNewBinding =
+						(selectedMultiBinding->BindingCount < Input::MaxMultiBindingCount &&
+						(selectedMultiBinding->BindingCount == 0 || !selectedMultiBinding->Bindings[selectedMultiBinding->BindingCount - 1].IsEmpty()));
+
+					// HACK: Hardcoded offset to align with buttons below
+					Gui::SameLine(Gui::GetContentRegionAvailWidth() * primaryColumWidthFactor - 5.0f);
+
+					Gui::PushItemDisabledAndTextColorIf(!canAddNewBinding);
+					if (Gui::Button("Add", Gui::GetContentRegionAvail()))
+					{
+						awaitInputBinding = &selectedMultiBinding->Bindings[selectedMultiBinding->BindingCount];
+						awaitInputStopwatch.Restart();
+						selectedMultiBinding->Bindings[selectedMultiBinding->BindingCount++] = Input::Binding();
+						pendingChanges = true;
+					}
+					Gui::PopItemDisabledAndTextColorIf(!canAddNewBinding);
+				}
+			}
+			Gui::EndChild();
+
+			Gui::SetCursorPosX(Gui::GetCursorPosX() + GuiSettingsInnerSubChildMargin);
+			Gui::BeginChild("BindingEditChild", vec2(GuiSettingsSubChildItemWidth, 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			if (selectedMultiBinding != nullptr)
+			{
+				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemSpacing.x, 2.0f));
+				const f32 buttonHeight = Gui::GetFrameHeight();
+
+				if (selectedMultiBinding->BindingCount == 0)
+				{
+					Gui::SameLine();
+					Gui::AlignTextToFramePadding();
+					Gui::TextDisabled("(None)");
+					Gui::Separator();
+				}
+
+				size_t bindingIndexToRemove = Input::MaxMultiBindingCount;
+				size_t bindingIndexToMoveUp = Input::MaxMultiBindingCount;
+				size_t bindingIndexToMoveDown = Input::MaxMultiBindingCount;
+
+				for (size_t i = 0; i < selectedMultiBinding->BindingCount; i++)
+				{
+					auto& binding = selectedMultiBinding->Bindings[i];
+					Gui::PushID(&binding);
+
+					pendingChanges |= GuiSettingsInteractiveAwaitKeyPressInputBindingButton(binding, vec2(Gui::GetContentRegionAvailWidth() * primaryColumWidthFactor, buttonHeight), awaitInputBinding, awaitInputStopwatch);
+					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
+
+					const f32 upDownButtonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 3.0f) / 4.0f;
+					if (Gui::Button("Up", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveUp = i;
+					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
+
+					if (Gui::Button("Down", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveDown = i;
+					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
+
+					if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight)))
+						bindingIndexToRemove = i;
+					Gui::NextColumn();
+
+					Gui::PopID();
+					Gui::Separator();
+				}
+
+				if (bindingIndexToRemove < selectedMultiBinding->BindingCount)
+				{
+					if (selectedMultiBinding->BindingCount > 1)
+					{
+						for (size_t i = bindingIndexToRemove; i < selectedMultiBinding->BindingCount - 1; i++)
+							selectedMultiBinding->Bindings[i] = selectedMultiBinding->Bindings[i + 1];
+					}
+
+					selectedMultiBinding->BindingCount--;
+					pendingChanges = true;
+				}
+				else if (bindingIndexToMoveUp < selectedMultiBinding->BindingCount)
+				{
+					// TODO: Move up logic
+				}
+				else if (bindingIndexToMoveDown < selectedMultiBinding->BindingCount)
+				{
+					// TODO: Move down logic
+				}
+
+				Gui::PopStyleVar(1);
+			}
+			Gui::EndChild();
+		}
+	}
+
+	void ChartEditorSettingsWindow::GuiTabPlaytestBindings(ComfyStudioUserSettings& userData)
+	{
+		if (Gui::CollapsingHeader("Playtest Bindings", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			// TODO: ...
 		}
 	}
 

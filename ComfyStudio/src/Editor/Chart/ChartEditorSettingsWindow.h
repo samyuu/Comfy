@@ -30,7 +30,9 @@ namespace Comfy::Studio::Editor
 	private:
 		void GuiTabGeneral(ComfyStudioUserSettings& userData);
 		void GuiTabAudio(ComfyStudioUserSettings& userData);
-		void GuiTabInput(ComfyStudioUserSettings& userData);
+		void GuiTabControllerLayout(ComfyStudioUserSettings& userData);
+		void GuiTabEditorBindings(ComfyStudioUserSettings& userData);
+		void GuiTabPlaytestBindings(ComfyStudioUserSettings& userData);
 		void GuiTabThemeDebug(ComfyStudioUserSettings& userData);
 
 	private:
@@ -47,14 +49,26 @@ namespace Comfy::Studio::Editor
 		std::array<bool, TargetPropertyType_Count> inspectorDropdownScrollToBottomOnNextFrames = {};
 		TargetPropertyType selectedInspectorDropdownPropertyType = TargetPropertyType_Count;
 
+		Gui::ExtendedImGuiTextFilter bindingFilter = {};
+		// NOTE: Pointing inside a global struct so don't need to worry about lifetime or becoming invalidated
+		Input::MultiBinding* selectedMultiBinding = nullptr;
+
+		std::string combinedBindingShortcutBuffer;
+		
+		Input::Binding* awaitInputBinding = nullptr;
+		Stopwatch awaitInputStopwatch = {};
+
 	private:
 		struct NamedTab { const char* Name; void(ChartEditorSettingsWindow::*GuiFunction)(ComfyStudioUserSettings&); };
 		static constexpr NamedTab namedTabs[] =
 		{
 			{ "General", &GuiTabGeneral },
 			{ "Audio", &GuiTabAudio },
-			{ "Input", &GuiTabInput },
-#if COMFY_DEBUG
+			{ "Controller Layout", &GuiTabControllerLayout },
+			// TODO: Only problem is that this also includes things like "Playtest Pause" so not really exclusive to "Editor"...
+			{ "Editor Bindings", &GuiTabEditorBindings },
+			{ "Playtest Bindings", &GuiTabPlaytestBindings },
+#if COMFY_DEBUG && 0
 			{ "Theme (Debug)", &GuiTabThemeDebug },
 #endif
 		};
