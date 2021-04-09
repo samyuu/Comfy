@@ -382,6 +382,17 @@ namespace Comfy::Input
 				(Type == BindingType::Keyboard) ? (Keyboard.Key == KeyCode_None) :
 				(Type == BindingType::Controller) ? (Controller.Button == Button::None) : true;
 		}
+		constexpr bool operator==(const Binding& other) const
+		{
+			return 
+				(Type != other.Type) ? false :
+				(Type == BindingType::Keyboard) ? (Keyboard.Key == other.Keyboard.Key) && (Keyboard.Modifiers == other.Keyboard.Modifiers) :
+				(Type == BindingType::Controller) ? (Controller.Button == other.Controller.Button) : true;
+		}
+		constexpr bool operator!=(const Binding& other) const
+		{
+			return !(*this == other);
+		}
 	};
 
 	struct MultiBinding
