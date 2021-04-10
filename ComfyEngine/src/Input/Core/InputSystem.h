@@ -5,12 +5,15 @@
 
 namespace Comfy::Input
 {
+	using StandardControllerLayoutMappings = std::vector<StandardControllerLayoutMapping>;
+
+	std::pair<const StandardControllerLayoutMapping*, size_t> GetKnownDS4LayoutMappingsView();
+
 	void GlobalSystemInitialize(void* windowHandle);
 	void GlobalSystemDispose(void* windowHandle);
 	void GlobalSystemUpdateFrame(TimeSpan elapsedTime, bool hasApplicationFocus);
 	void GlobalSystemRefreshDevices();
-
-	std::vector<StandardControllerLayoutMapping>& GlobalSystemGetLayoutMappings();
+	void GlobalSystemSetExternalLayoutMappingsSource(const StandardControllerLayoutMappings* externalLayoutMappings);
 
 	size_t GlobalSystemGetConnectedControllerCount();
 	ControllerInfoView GlobalSystemGetConnectedControllerInfoAt(size_t index);

@@ -318,12 +318,21 @@ namespace Comfy::Input
 		std::array<u8, 16> GUID;
 	};
 
+	constexpr bool IsValidControllerID(const ControllerID& id)
+	{
+		for (size_t i = 0; i < id.GUID.size(); i++)
+			if (id.GUID[i] != 0)
+				return true;
+		return false;
+	}
+
 	struct StandardControllerLayoutMapping
 	{
 		ControllerID ProductID;
 		std::array<NativeButton, EnumCount<Button>()> Buttons;
 		std::array<NativeAxis, EnumCount<Axis>()> Axes;
 		// std::array<f32, EnumCount<Axis>()> AxesDeadZones;
+		std::string Name;
 	};
 
 	struct ControllerInfoView
@@ -332,6 +341,9 @@ namespace Comfy::Input
 		ControllerID ProductID;
 		std::string_view InstanceName;
 		std::string_view ProductName;
+		u32 ButtonCount;
+		u32 AxesCount;
+		u32 DPadCount;
 	};
 }
 
@@ -384,7 +396,7 @@ namespace Comfy::Input
 		}
 		constexpr bool operator==(const Binding& other) const
 		{
-			return 
+			return
 				(Type != other.Type) ? false :
 				(Type == BindingType::Keyboard) ? (Keyboard.Key == other.Keyboard.Key) && (Keyboard.Modifiers == other.Keyboard.Modifiers) :
 				(Type == BindingType::Controller) ? (Controller.Button == other.Controller.Button) : true;
@@ -435,4 +447,7 @@ namespace Comfy::Input
 
 	Binding BindingFromStorageString(std::string_view string);
 	FormatBuffer BindingToStorageString(const Binding& binding);
+
+	StandardControllerLayoutMapping ControllerLayoutMappingFromStorageString(std::string_view string);
+	std::string ControllerLayoutMappingToStorageString(const StandardControllerLayoutMapping& layoutMapping);
 }

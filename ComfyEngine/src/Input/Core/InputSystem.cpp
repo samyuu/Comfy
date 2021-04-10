@@ -89,7 +89,7 @@ namespace Comfy::Input
 		const DIDATAFORMAT* JoyDataFormat;
 		HWND MainWindowHandle;
 
-		std::vector<StandardControllerLayoutMapping> LayoutMappings;
+		const StandardControllerLayoutMappings* ExternalLayoutMappingsView;
 		std::vector<DirectInputControllerData> ConnectedControllers;
 
 		SimplifiedCombinedState ThisFrameState, LastFrameState;
@@ -208,6 +208,67 @@ namespace Comfy::Input
 {
 	GlobalInputSystemState Global = {};
 
+	struct NamedProductGUID
+	{
+		const std::string_view Name;
+		GUID ProductID;
+	};
+
+	constexpr std::array KnownDualShock4ProductGUIDs =
+	{
+		NamedProductGUID { "1st Gen DualShock 4", GUID { 0x05C4054C, 0x0000, 0x0000, { 0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44 } } },
+		NamedProductGUID { "2nd Gen DualShock 4", GUID { 0x09CC054C, 0x0000, 0x0000, { 0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44 } } },
+	};
+
+	std::pair<const StandardControllerLayoutMapping*, size_t> GetKnownDS4LayoutMappingsView()
+	{
+		static const auto staticDS4Layouts = []()
+		{
+			std::array<StandardControllerLayoutMapping, KnownDualShock4ProductGUIDs.size()> resultArray = {};
+			for (size_t i = 0; i < KnownDualShock4ProductGUIDs.size(); i++)
+			{
+				auto& ds4Mapping = resultArray[i];
+				ds4Mapping.Name = KnownDualShock4ProductGUIDs[i].Name;
+				ds4Mapping.ProductID = Detail::WindowGUIDToControllerID(KnownDualShock4ProductGUIDs[i].ProductID);
+				ds4Mapping.Buttons[static_cast<u8>(Button::DPadUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 0);
+				ds4Mapping.Buttons[static_cast<u8>(Button::DPadLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 1);
+				ds4Mapping.Buttons[static_cast<u8>(Button::DPadDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 2);
+				ds4Mapping.Buttons[static_cast<u8>(Button::DPadRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 3);
+				ds4Mapping.Buttons[static_cast<u8>(Button::FaceUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 3);
+				ds4Mapping.Buttons[static_cast<u8>(Button::FaceLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 0);
+				ds4Mapping.Buttons[static_cast<u8>(Button::FaceDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 1);
+				ds4Mapping.Buttons[static_cast<u8>(Button::FaceRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 2);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 3);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 0);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 4);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 1);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickPush)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 10);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 15);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 6);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 16);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 7);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickPush)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 11);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 4);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 5);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 6);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 7);
+				ds4Mapping.Buttons[static_cast<u8>(Button::Select)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 8);
+				ds4Mapping.Buttons[static_cast<u8>(Button::Start)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 9);
+				ds4Mapping.Buttons[static_cast<u8>(Button::Home)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 12);
+				ds4Mapping.Buttons[static_cast<u8>(Button::TouchPad)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 13);
+				ds4Mapping.Axes[static_cast<u8>(Axis::LeftStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 0);
+				ds4Mapping.Axes[static_cast<u8>(Axis::LeftStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 1);
+				ds4Mapping.Axes[static_cast<u8>(Axis::RightStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 2);
+				ds4Mapping.Axes[static_cast<u8>(Axis::RightStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 5);
+				ds4Mapping.Axes[static_cast<u8>(Axis::LeftTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 3);
+				ds4Mapping.Axes[static_cast<u8>(Axis::RightTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 4);
+			}
+			return resultArray;
+		}();
+
+		return std::make_pair(staticDS4Layouts.data(), staticDS4Layouts.size());
+	}
+
 	void GlobalSystemInitialize(void* windowHandle)
 	{
 		if (Global.DirectInput != nullptr)
@@ -225,54 +286,6 @@ namespace Comfy::Input
 		{
 			GlobalSystemRefreshDevices();
 		}
-
-#if 1 // TEMP: Hardcoded DS4 support for now
-		static constexpr std::array knownDualShock4GUIDs =
-		{
-			// NOTE: First Generation:	{05C4054C-0000-0000-0000-504944564944}
-			GUID { 0x05C4054C, 0x0000, 0x0000, { 0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44 } },
-			// NOTE: Second Generation:	{09CC054C-0000-0000-0000-504944564944}
-			GUID { 0x09CC054C, 0x0000, 0x0000, { 0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44 } },
-		};
-
-		for (const auto& ds4GUID : knownDualShock4GUIDs)
-		{
-			auto& ds4Mapping = Global.LayoutMappings.emplace_back();
-			ds4Mapping.ProductID = Detail::WindowGUIDToControllerID(ds4GUID);
-			ds4Mapping.Buttons[static_cast<u8>(Button::DPadUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 0);
-			ds4Mapping.Buttons[static_cast<u8>(Button::DPadLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 1);
-			ds4Mapping.Buttons[static_cast<u8>(Button::DPadDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 2);
-			ds4Mapping.Buttons[static_cast<u8>(Button::DPadRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 3);
-			ds4Mapping.Buttons[static_cast<u8>(Button::FaceUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 3);
-			ds4Mapping.Buttons[static_cast<u8>(Button::FaceLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 0);
-			ds4Mapping.Buttons[static_cast<u8>(Button::FaceDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 1);
-			ds4Mapping.Buttons[static_cast<u8>(Button::FaceRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 2);
-			ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 3);
-			ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 0);
-			ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 4);
-			ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 1);
-			ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickPush)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 10);
-			ds4Mapping.Buttons[static_cast<u8>(Button::RightStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 15);
-			ds4Mapping.Buttons[static_cast<u8>(Button::RightStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 6);
-			ds4Mapping.Buttons[static_cast<u8>(Button::RightStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 16);
-			ds4Mapping.Buttons[static_cast<u8>(Button::RightStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 7);
-			ds4Mapping.Buttons[static_cast<u8>(Button::RightStickPush)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 11);
-			ds4Mapping.Buttons[static_cast<u8>(Button::LeftBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 4);
-			ds4Mapping.Buttons[static_cast<u8>(Button::RightBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 5);
-			ds4Mapping.Buttons[static_cast<u8>(Button::LeftTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 6);
-			ds4Mapping.Buttons[static_cast<u8>(Button::RightTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 7);
-			ds4Mapping.Buttons[static_cast<u8>(Button::Select)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 8);
-			ds4Mapping.Buttons[static_cast<u8>(Button::Start)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 9);
-			ds4Mapping.Buttons[static_cast<u8>(Button::Home)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 12);
-			ds4Mapping.Buttons[static_cast<u8>(Button::TouchPad)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 13);
-			ds4Mapping.Axes[static_cast<u8>(Axis::LeftStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 0);
-			ds4Mapping.Axes[static_cast<u8>(Axis::LeftStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 1);
-			ds4Mapping.Axes[static_cast<u8>(Axis::RightStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 2);
-			ds4Mapping.Axes[static_cast<u8>(Axis::RightStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 5);
-			ds4Mapping.Axes[static_cast<u8>(Axis::LeftTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 3);
-			ds4Mapping.Axes[static_cast<u8>(Axis::RightTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 4);
-		}
-#endif
 	}
 
 	void GlobalSystemDispose(void* windowHandle)
@@ -410,34 +423,37 @@ namespace Comfy::Input
 			else
 				Global.ThisFrameTiming.TimeSinceLastModifiersChange = 0.0;
 
-			for (const auto& controllerData : Global.ConnectedControllers)
+			if (Global.ExternalLayoutMappingsView != nullptr)
 			{
-				const auto foundMapping = FindIfOrNull(Global.LayoutMappings, [&](const auto& mapping) { return Detail::ControllerIDToWindowGUID(mapping.ProductID) == controllerData.InstanceData.guidProduct; });
-				if (foundMapping == nullptr)
-					continue;
-
-				for (size_t i = 0; i < EnumCount<Button>(); i++)
+				for (const auto& controllerData : Global.ConnectedControllers)
 				{
-					if (Detail::IsNativeButtonDownForKnownController(controllerData, foundMapping->Buttons[i]))
-						Global.ThisFrameState.ButtonsDown[i] = true;
+					const auto* foundMapping = FindIfOrNull(*Global.ExternalLayoutMappingsView, [&](const auto& mapping) { return Detail::ControllerIDToWindowGUID(mapping.ProductID) == controllerData.InstanceData.guidProduct; });
+					if (foundMapping == nullptr)
+						continue;
+
+					for (size_t i = 0; i < EnumCount<Button>(); i++)
+					{
+						if (Detail::IsNativeButtonDownForKnownController(controllerData, foundMapping->Buttons[i]))
+							Global.ThisFrameState.ButtonsDown[i] = true;
+					}
+
+					for (size_t i = 0; i < EnumCount<Axis>(); i++)
+					{
+						const bool isTriggerAxis = (static_cast<Axis>(i) == Axis::LeftTrigger || static_cast<Axis>(i) == Axis::RightTrigger);
+						if (auto v = Detail::GetNativeAxisForKnownController(controllerData, foundMapping->Axes[i], !isTriggerAxis); glm::length(v) > glm::length(Global.ThisFrameState.Axes[i]))
+							Global.ThisFrameState.Axes[i] = v;
+					}
+
+					auto updateStickWithAxes = [&](Stick stick, Axis x, Axis y)
+					{
+						Global.ThisFrameState.Sticks[static_cast<u8>(stick)] = vec2(
+							Global.ThisFrameState.Axes[static_cast<u8>(x)],
+							Global.ThisFrameState.Axes[static_cast<u8>(y)]);
+					};
+
+					updateStickWithAxes(Stick::LeftStick, Axis::LeftStickX, Axis::LeftStickY);
+					updateStickWithAxes(Stick::RightStick, Axis::RightStickX, Axis::RightStickY);
 				}
-
-				for (size_t i = 0; i < EnumCount<Axis>(); i++)
-				{
-					const bool isTriggerAxis = (static_cast<Axis>(i) == Axis::LeftTrigger || static_cast<Axis>(i) == Axis::RightTrigger);
-					if (auto v = Detail::GetNativeAxisForKnownController(controllerData, foundMapping->Axes[i], !isTriggerAxis); glm::length(v) > glm::length(Global.ThisFrameState.Axes[i]))
-						Global.ThisFrameState.Axes[i] = v;
-				}
-
-				auto updateStickWithAxes = [&](Stick stick, Axis x, Axis y)
-				{
-					Global.ThisFrameState.Sticks[static_cast<u8>(stick)] = vec2(
-						Global.ThisFrameState.Axes[static_cast<u8>(x)],
-						Global.ThisFrameState.Axes[static_cast<u8>(y)]);
-				};
-
-				updateStickWithAxes(Stick::LeftStick, Axis::LeftStickX, Axis::LeftStickY);
-				updateStickWithAxes(Stick::RightStick, Axis::RightStickX, Axis::RightStickY);
 			}
 
 			for (size_t i = 0; i < EnumCount<Button>(); i++)
@@ -528,9 +544,9 @@ namespace Comfy::Input
 		HRESULT result = Global.DirectInput->EnumDevices(DI8DEVCLASS_GAMECTRL, static_cast<LPDIENUMDEVICESCALLBACKA>(gameControllerCallback), nullptr, DIEDFL_ATTACHEDONLY);
 	}
 
-	std::vector<StandardControllerLayoutMapping>& GlobalSystemGetLayoutMappings()
+	void GlobalSystemSetExternalLayoutMappingsSource(const StandardControllerLayoutMappings* externalLayoutMappings)
 	{
-		return Global.LayoutMappings;
+		Global.ExternalLayoutMappingsView = externalLayoutMappings;
 	}
 
 	size_t GlobalSystemGetConnectedControllerCount()
@@ -548,6 +564,9 @@ namespace Comfy::Input
 			outInfoView.ProductID = Detail::WindowGUIDToControllerID(controller.InstanceData.guidProduct);
 			outInfoView.InstanceName = controller.InstancetName;
 			outInfoView.ProductName = controller.ProductName;
+			outInfoView.ButtonCount = controller.Capabilities.dwButtons;
+			outInfoView.AxesCount = controller.Capabilities.dwAxes;
+			outInfoView.DPadCount = controller.Capabilities.dwPOVs;
 		}
 		return outInfoView;
 	}

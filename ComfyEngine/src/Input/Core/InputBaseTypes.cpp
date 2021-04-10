@@ -1,5 +1,7 @@
 #include "InputBaseTypes.h"
+#include "InputSystem.h"
 #include "Misc/StringUtil.h"
+#include "Misc/StringParseHelper.h"
 
 namespace Comfy::Input
 {
@@ -529,6 +531,114 @@ namespace Comfy::Input
 		{
 			appendToBufferTwo(BindingStorageStringControllerPrefix, " ");
 			appendToBufferOne(GetButtonName(binding.Controller.Button));
+		}
+
+		return buffer;
+	}
+
+	StandardControllerLayoutMapping ControllerLayoutMappingFromStorageString(std::string_view string)
+	{
+		auto forEachCommaSeparated = [](std::string_view string, auto perCommaFunc)
+		{
+			for (size_t absoulteIndex = 0; absoulteIndex < string.size(); absoulteIndex++)
+			{
+				const std::string_view remaining = string.substr(absoulteIndex);
+				for (size_t relativeIndex = 0; relativeIndex < remaining.size(); relativeIndex++)
+				{
+					if (remaining[relativeIndex] == ',')
+					{
+						perCommaFunc(Util::Trim(remaining.substr(0, relativeIndex)));
+						absoulteIndex += relativeIndex;
+						break;
+					}
+					else if (relativeIndex + 1 == remaining.size())
+					{
+						perCommaFunc(Util::Trim(remaining));
+						return;
+					}
+				}
+			}
+		};
+
+		StandardControllerLayoutMapping result = {};
+
+		const size_t idSeparator = string.find_first_of('|');
+		if (idSeparator == std::string_view::npos)
+			return result;
+
+		const size_t nameSeparator = string.substr().find_first_of('|', idSeparator + 1);
+		if (nameSeparator == std::string_view::npos)
+			return result;
+
+		const size_t buttonsSeparator = string.substr().find_first_of('|', nameSeparator + 1);
+		if (buttonsSeparator == std::string_view::npos)
+			return result;
+
+		const std::string_view idSubString = string.substr(0, idSeparator);
+		const std::string_view nameSubString = string.substr(idSeparator + 1, (nameSeparator - idSeparator) - 1);
+		const std::string_view buttonsSubString = string.substr(nameSeparator + 1, (buttonsSeparator - nameSeparator) - 1);
+		const std::string_view axesSubString = string.substr(buttonsSeparator + 1, std::string_view::npos);
+
+		result.ProductID = ControllerIDFromString(Util::Trim(idSubString));
+		result.Name = Util::Trim(nameSubString);
+
+		size_t buttonIndex = static_cast<size_t>(Button::None) + 1;
+		forEachCommaSeparated(buttonsSubString, [&](std::string_view intStr)
+		{
+			if (buttonIndex < EnumCount<Button>())
+				result.Buttons[buttonIndex++] = static_cast<NativeButton>(Util::StringParsing::ParseType<i32>(intStr));
+		});
+
+		size_t axisIndex = static_cast<size_t>(Axis::None) + 1;
+		forEachCommaSeparated(axesSubString, [&](std::string_view intStr)
+		{
+			if (axisIndex < EnumCount<Axis>())
+				result.Axes[axisIndex++] = static_cast<NativeAxis>(Util::StringParsing::ParseType<i32>(intStr));
+		});
+
+		return result;
+	}
+
+	std::string ControllerLayoutMappingToStorageString(const StandardControllerLayoutMapping& layoutMapping)
+	{
+		auto appendI32Str = [](std::string& outBuffer, const i32 inValue)
+		{
+			char intStrBuffer[34];
+			::_itoa_s(inValue, intStrBuffer, 10);
+			outBuffer += intStrBuffer;
+		};
+
+		std::string buffer;
+		buffer.reserve(FormatBufferSize * 2);
+		buffer += ControllerIDToString(layoutMapping.ProductID).data();
+		buffer += '|';
+
+		if (std::any_of(layoutMapping.Name.begin(), layoutMapping.Name.end(), [](char c) { return c == '|'; }))
+		{
+			for (const char c : layoutMapping.Name)
+				buffer += (c == '|') ? ' ' : c;
+		}
+		else
+		{
+			buffer += layoutMapping.Name;
+		}
+
+		buffer += '|';
+
+		for (size_t i = static_cast<size_t>(Button::None) + 1; i < EnumCount<Button>(); i++)
+		{
+			appendI32Str(buffer, static_cast<i32>(layoutMapping.Buttons[i]));
+			if (i + 1 < EnumCount<Button>())
+				buffer += ',';
+		}
+
+		buffer += '|';
+
+		for (size_t i = static_cast<size_t>(Axis::None) + 1; i < EnumCount<Axis>(); i++)
+		{
+			appendI32Str(buffer, static_cast<i32>(layoutMapping.Axes[i]));
+			if (i + 1 < EnumCount<Axis>())
+				buffer += ',';
 		}
 
 		return buffer;
