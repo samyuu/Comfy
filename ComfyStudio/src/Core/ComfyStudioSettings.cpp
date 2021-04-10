@@ -316,6 +316,7 @@ namespace Comfy::Studio
 		const std::string System_Gui_TargetButtonPathMaxCount = "target_button_path_max_count";
 
 		const std::string Input = "input";
+		const std::string Input_ControllerLayoutMappings = "controller_layout_mappings";
 		const std::string Input_Bindings = "bindings";
 		const std::string Input_PlaytestBindings = "playtest_bindings";
 
@@ -519,6 +520,18 @@ namespace Comfy::Studio
 
 		if (const json* inputJson = JsonFind(rootJson, UserIDs::Input))
 		{
+			if (const json* layoutMappingsJson = JsonFind(*inputJson, UserIDs::Input_ControllerLayoutMappings))
+			{
+				Input.ControllerLayoutMappings.clear();
+				Input.ControllerLayoutMappings.reserve(layoutMappingsJson->size());
+				for (const json& layoutMappingJson : *layoutMappingsJson)
+				{
+					auto layoutMapping = Input::ControllerLayoutMappingFromStorageString(JsonTryGetStrView(layoutMappingJson).value_or(""));
+					if (Input::IsValidControllerID(layoutMapping.ProductID))
+						Input.ControllerLayoutMappings.push_back(std::move(layoutMapping));
+				}
+			}
+
 			if (const json* bindingsJson = JsonFind(*inputJson, UserIDs::Input_Bindings))
 			{
 				UserIDs::ForEachMultiBindingWithID(*this, [&](Input::MultiBinding& multiBinding, auto&& multiBindingID)
@@ -531,7 +544,7 @@ namespace Comfy::Studio
 							if (multiBinding.BindingCount < multiBinding.Bindings.size() && bindingJson.is_string())
 							{
 								auto& binding = multiBinding.Bindings[multiBinding.BindingCount++];
-								binding = Input::BindingFromStorageString(bindingJson.get<std::string_view>());
+								binding = Input::BindingFromStorageString(JsonTryGetStrView(bindingJson).value_or(""));
 
 								if (binding.IsEmpty())
 									multiBinding.BindingCount--;
@@ -547,7 +560,7 @@ namespace Comfy::Studio
 				Input.PlaytestBindings.reserve(playtestBindingsJson->size());
 				for (const json& playtestBindingJson : *playtestBindingsJson)
 				{
-					if (auto playtestBinding = PlayTestBindingFromStorageString(playtestBindingJson.get<std::string_view>()); !playtestBinding.IsEmpty())
+					if (auto playtestBinding = PlayTestBindingFromStorageString(JsonTryGetStrView(playtestBindingJson).value_or("")); !playtestBinding.IsEmpty())
 						Input.PlaytestBindings.push_back(std::move(playtestBinding));
 				}
 			}
@@ -741,6 +754,11 @@ namespace Comfy::Studio
 
 		json& inputJson = rootJson[UserIDs::Input];
 		{
+			json& layoutMappingsJson = inputJson[UserIDs::Input_ControllerLayoutMappings];
+			layoutMappingsJson = json::array();
+			for (const auto& layoutMapping : Input.ControllerLayoutMappings)
+				layoutMappingsJson.emplace_back(Input::ControllerLayoutMappingToStorageString(layoutMapping));
+
 			json& bindingsJson = inputJson[UserIDs::Input_Bindings];
 			UserIDs::ForEachMultiBindingWithID(*const_cast<ComfyStudioUserSettings*>(this), [&](const Input::MultiBinding& multiBinding, auto&& multiBindingID)
 			{
@@ -902,6 +920,15 @@ namespace Comfy::Studio
 
 		{
 			using namespace Input;
+
+			Input.ControllerLayoutMappings.clear();
+			if (const auto[ds4Layouts, ds4LayoutsCount] = Input::GetKnownDS4LayoutMappingsView(); ds4Layouts != nullptr)
+			{
+				Input.ControllerLayoutMappings.reserve(ds4LayoutsCount);
+				for (size_t i = 0; i < ds4LayoutsCount; i++)
+					Input.ControllerLayoutMappings.push_back(ds4Layouts[i]);
+			}
+
 			Input.App_ToggleFullscreen = MultiBinding(Binding(KeyCode_F11));
 			Input.App_Dialog_YesOrOk = MultiBinding(Binding(KeyCode_Enter));
 			Input.App_Dialog_No = MultiBinding(Binding(KeyCode_Backspace));

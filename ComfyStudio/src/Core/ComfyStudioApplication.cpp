@@ -46,6 +46,8 @@ namespace Comfy::Studio
 		if (!GlobalUserDataExistedOnLoad)
 			GlobalUserData.Mutable().RestoreDefault();
 
+		Input::GlobalSystemSetExternalLayoutMappingsSource(&GlobalUserData.Input.ControllerLayoutMappings);
+
 		const auto hostParam = CreateHostParam();
 		host = std::make_unique<ApplicationHost>(hostParam);
 
@@ -613,5 +615,7 @@ namespace Comfy::Studio
 		if (!GlobalUserDataExistedOnLoad)
 			GlobalUserData.SaveToFile();
 #endif
+
+		Input::GlobalSystemSetExternalLayoutMappingsSource(nullptr);
 	}
 }
