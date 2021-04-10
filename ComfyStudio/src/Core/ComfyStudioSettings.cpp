@@ -1006,8 +1006,8 @@ namespace Comfy::Studio
 			Input.Playtest_ReturnToEditorPrePlaytest = MultiBinding(Binding(KeyCode_Escape, KeyModifiers_Shift));
 			Input.Playtest_ToggleAutoplay = MultiBinding(Binding(KeyCode_F1));
 			Input.Playtest_TogglePause = MultiBinding(Binding(KeyCode_Space), Binding(Button::Start));
-			Input.Playtest_RestartFromResetPoint = MultiBinding(Binding(KeyCode_Enter), Binding(Button::RightStickPush));
-			Input.Playtest_MoveResetPointBackward = MultiBinding(Binding(KeyCode_Tab, KeyModifiers_Shift), Binding(Button::LeftStickPush));
+			Input.Playtest_RestartFromResetPoint = MultiBinding(Binding(KeyCode_Enter), Binding(Button::RightStickClick));
+			Input.Playtest_MoveResetPointBackward = MultiBinding(Binding(KeyCode_Tab, KeyModifiers_Shift), Binding(Button::LeftStickClick));
 			Input.Playtest_MoveResetPointForward = MultiBinding(Binding(KeyCode_Tab), Binding(Button::TouchPad));
 
 			Input.PlaytestBindings =

@@ -271,12 +271,12 @@ namespace Comfy::Input
 		LeftStickLeft,
 		LeftStickDown,
 		LeftStickRight,
-		LeftStickPush,
+		LeftStickClick,
 		RightStickUp,
 		RightStickLeft,
 		RightStickDown,
 		RightStickRight,
-		RightStickPush,
+		RightStickClick,
 		LeftBumper,
 		RightBumper,
 		LeftTrigger,
@@ -342,8 +342,8 @@ namespace Comfy::Input
 		std::string_view InstanceName;
 		std::string_view ProductName;
 		u32 ButtonCount;
-		u32 AxesCount;
 		u32 DPadCount;
+		u32 AxesCount;
 	};
 }
 

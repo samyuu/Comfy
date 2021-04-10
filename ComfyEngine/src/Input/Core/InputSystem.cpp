@@ -242,12 +242,12 @@ namespace Comfy::Input
 				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 0);
 				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 4);
 				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 1);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickPush)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 10);
+				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 10);
 				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 15);
 				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 6);
 				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 16);
 				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 7);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickPush)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 11);
+				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 11);
 				ds4Mapping.Buttons[static_cast<u8>(Button::LeftBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 4);
 				ds4Mapping.Buttons[static_cast<u8>(Button::RightBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 5);
 				ds4Mapping.Buttons[static_cast<u8>(Button::LeftTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 6);
@@ -565,8 +565,8 @@ namespace Comfy::Input
 			outInfoView.InstanceName = controller.InstancetName;
 			outInfoView.ProductName = controller.ProductName;
 			outInfoView.ButtonCount = controller.Capabilities.dwButtons;
-			outInfoView.AxesCount = controller.Capabilities.dwAxes;
 			outInfoView.DPadCount = controller.Capabilities.dwPOVs;
+			outInfoView.AxesCount = controller.Capabilities.dwAxes;
 		}
 		return outInfoView;
 	}
