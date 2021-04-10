@@ -81,6 +81,14 @@ namespace Comfy
 				return std::nullopt;
 		}
 
+		inline std::optional<std::string_view> TryGetStringView(const json& j)
+		{
+			if (j.is_string())
+				return j.get<std::string_view>();
+			else
+				return std::nullopt;
+		}
+
 		template <typename VecType>
 		inline std::optional<VecType> TryGetVec(const json& j)
 		{
@@ -147,6 +155,8 @@ namespace Comfy
 
 	inline auto JsonTryGetStr(const json& j) { return JsonDetail::TryGetString(j); }
 	inline auto JsonTryGetStr(const json* j) { return (j != nullptr) ? JsonTryGetStr(*j) : std::nullopt; }
+	inline auto JsonTryGetStrView(const json& j) { return JsonDetail::TryGetStringView(j); }
+	inline auto JsonTryGetStrView(const json* j) { return (j != nullptr) ? JsonTryGetStrView(*j) : std::nullopt; }
 
 	inline auto JsonTryGetVec2(const json& j) { return JsonDetail::TryGetVec<vec2>(j); }
 	inline auto JsonTryGetVec2(const json* j) { return (j != nullptr) ? JsonTryGetVec2(*j) : std::nullopt; }
