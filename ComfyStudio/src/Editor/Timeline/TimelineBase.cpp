@@ -382,7 +382,7 @@ namespace Comfy::Studio::Editor
 				GImGui->CurrentWindow->Pos + positionOffset,
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size);
 
-			if (auto scroll = GetScrollX(); horizontalScrollbar.Gui(scroll, timelineContentRegion.GetWidth(), GetMaxScrollX(), scrollbarRegion))
+			if (auto scroll = GetScrollX(); horizontalScrollbar.Gui(scroll, timelineContentRegion.GetWidth(), GetMaxScrollX() + 1.0f, scrollbarRegion))
 				SetScrollX(scroll);
 		}
 		Gui::EndChild();
