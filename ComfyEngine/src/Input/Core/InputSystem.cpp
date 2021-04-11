@@ -230,38 +230,38 @@ namespace Comfy::Input
 				auto& ds4Mapping = resultArray[i];
 				ds4Mapping.Name = KnownDualShock4ProductGUIDs[i].Name;
 				ds4Mapping.ProductID = Detail::WindowGUIDToControllerID(KnownDualShock4ProductGUIDs[i].ProductID);
-				ds4Mapping.Buttons[static_cast<u8>(Button::DPadUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 0);
-				ds4Mapping.Buttons[static_cast<u8>(Button::DPadLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 1);
-				ds4Mapping.Buttons[static_cast<u8>(Button::DPadDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 2);
-				ds4Mapping.Buttons[static_cast<u8>(Button::DPadRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 3);
-				ds4Mapping.Buttons[static_cast<u8>(Button::FaceUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 3);
-				ds4Mapping.Buttons[static_cast<u8>(Button::FaceLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 0);
-				ds4Mapping.Buttons[static_cast<u8>(Button::FaceDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 1);
-				ds4Mapping.Buttons[static_cast<u8>(Button::FaceRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 2);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 3);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 0);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 4);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 1);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 10);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 15);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 6);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 16);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 7);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 11);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 4);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 5);
-				ds4Mapping.Buttons[static_cast<u8>(Button::LeftTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 6);
-				ds4Mapping.Buttons[static_cast<u8>(Button::RightTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 7);
-				ds4Mapping.Buttons[static_cast<u8>(Button::Select)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 8);
-				ds4Mapping.Buttons[static_cast<u8>(Button::Start)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 9);
-				ds4Mapping.Buttons[static_cast<u8>(Button::Home)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 12);
-				ds4Mapping.Buttons[static_cast<u8>(Button::TouchPad)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 13);
-				ds4Mapping.Axes[static_cast<u8>(Axis::LeftStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 0);
-				ds4Mapping.Axes[static_cast<u8>(Axis::LeftStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 1);
-				ds4Mapping.Axes[static_cast<u8>(Axis::RightStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 2);
-				ds4Mapping.Axes[static_cast<u8>(Axis::RightStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 5);
-				ds4Mapping.Axes[static_cast<u8>(Axis::LeftTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 3);
-				ds4Mapping.Axes[static_cast<u8>(Axis::RightTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 4);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 0);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 1);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 2);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 3);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 3);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 0);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 1);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 2);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 3);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 0);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 4);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 1);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 10);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 15);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 6);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 16);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 7);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 11);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 4);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 5);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 6);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 7);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::Select)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 8);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::Start)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 9);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::Home)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 12);
+				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::TouchPad)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 13);
+				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::LeftStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 0);
+				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::LeftStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 1);
+				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::RightStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 2);
+				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::RightStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 5);
+				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::LeftTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 3);
+				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::RightTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 4);
 			}
 			return resultArray;
 		}();
@@ -433,14 +433,14 @@ namespace Comfy::Input
 
 					for (size_t i = 0; i < EnumCount<Button>(); i++)
 					{
-						if (Detail::IsNativeButtonDownForKnownController(controllerData, foundMapping->Buttons[i]))
+						if (Detail::IsNativeButtonDownForKnownController(controllerData, foundMapping->StandardToNativeButtons[i]))
 							Global.ThisFrameState.ButtonsDown[i] = true;
 					}
 
 					for (size_t i = 0; i < EnumCount<Axis>(); i++)
 					{
 						const bool isTriggerAxis = (static_cast<Axis>(i) == Axis::LeftTrigger || static_cast<Axis>(i) == Axis::RightTrigger);
-						if (auto v = Detail::GetNativeAxisForKnownController(controllerData, foundMapping->Axes[i], !isTriggerAxis); glm::length(v) > glm::length(Global.ThisFrameState.Axes[i]))
+						if (auto v = Detail::GetNativeAxisForKnownController(controllerData, foundMapping->StandardToNativeAxes[i], !isTriggerAxis); glm::length(v) > glm::length(Global.ThisFrameState.Axes[i]))
 							Global.ThisFrameState.Axes[i] = v;
 					}
 
@@ -564,9 +564,9 @@ namespace Comfy::Input
 			outInfoView.ProductID = Detail::WindowGUIDToControllerID(controller.InstanceData.guidProduct);
 			outInfoView.InstanceName = controller.InstancetName;
 			outInfoView.ProductName = controller.ProductName;
-			outInfoView.ButtonCount = controller.Capabilities.dwButtons;
-			outInfoView.DPadCount = controller.Capabilities.dwPOVs;
-			outInfoView.AxesCount = controller.Capabilities.dwAxes;
+			outInfoView.ButtonCount = static_cast<i32>(controller.Capabilities.dwButtons);
+			outInfoView.DPadCount = static_cast<i32>(controller.Capabilities.dwPOVs);
+			outInfoView.AxesCount = static_cast<i32>(controller.Capabilities.dwAxes);
 		}
 		return outInfoView;
 	}

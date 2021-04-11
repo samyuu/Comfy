@@ -244,6 +244,8 @@ namespace Comfy::Input
 		LastAxis = FirstAxis + (8 * 3) - 1,
 
 		Count,
+		FirstAll = FirstButton,
+		LastAll = LastAxis,
 	};
 
 	enum class NativeAxis : u8
@@ -286,7 +288,9 @@ namespace Comfy::Input
 		Home,
 		TouchPad,
 
-		Count
+		Count,
+		First = DPadUp,
+		Last = TouchPad,
 	};
 
 	// NOTE: Standard represented as normalized float values
@@ -300,7 +304,9 @@ namespace Comfy::Input
 		LeftTrigger,
 		RightTrigger,
 
-		Count
+		Count,
+		First = LeftStickX,
+		Last = RightTrigger,
 	};
 
 	// NOTE: Vec2 center normalized wrapper around the original axes
@@ -310,7 +316,9 @@ namespace Comfy::Input
 		LeftStick,
 		RightStick,
 
-		Count
+		Count,
+		First = LeftStick,
+		Last = RightStick,
 	};
 
 	struct ControllerID
@@ -329,11 +337,21 @@ namespace Comfy::Input
 	struct StandardControllerLayoutMapping
 	{
 		ControllerID ProductID;
-		std::array<NativeButton, EnumCount<Button>()> Buttons;
-		std::array<NativeAxis, EnumCount<Axis>()> Axes;
+		std::array<NativeButton, EnumCount<Button>()> StandardToNativeButtons;
+		std::array<NativeAxis, EnumCount<Axis>()> StandardToNativeAxes;
 		// std::array<f32, EnumCount<Axis>()> AxesDeadZones;
 		std::string Name;
 	};
+
+	constexpr Button FindStandardButtonForNativeButton(const StandardControllerLayoutMapping& layoutMapping, const NativeButton nativeButton)
+	{
+		for (size_t i = static_cast<size_t>(Button::First); i <= static_cast<size_t>(Button::Last); i++)
+		{
+			if (layoutMapping.StandardToNativeButtons[i] == nativeButton)
+				return static_cast<Button>(i);
+		}
+		return Button::None;
+	}
 
 	struct ControllerInfoView
 	{
@@ -341,9 +359,9 @@ namespace Comfy::Input
 		ControllerID ProductID;
 		std::string_view InstanceName;
 		std::string_view ProductName;
-		u32 ButtonCount;
-		u32 DPadCount;
-		u32 AxesCount;
+		i32 ButtonCount;
+		i32 DPadCount;
+		i32 AxesCount;
 	};
 }
 
@@ -358,6 +376,10 @@ namespace Comfy::Input
 		Controller,
 		// TODO: Special window focus/hover behavior (?)
 		// Mouse,
+
+		Count,
+		First = Keyboard,
+		Last = Controller,
 	};
 
 	struct Binding

@@ -287,12 +287,12 @@ namespace Comfy::Input
 			EnumNamePair { "Button_LeftStickLeft", "Left Stick Left" },
 			EnumNamePair { "Button_LeftStickDown", "Left Stick Down" },
 			EnumNamePair { "Button_LeftStickRight", "Left Stick Right" },
-			EnumNamePair { "Button_LeftStickPush", "Left Stick Push" },
+			EnumNamePair { "Button_LeftStickClick", "Left Stick Click" },
 			EnumNamePair { "Button_RightStickUp", "Right Stick Up" },
 			EnumNamePair { "Button_RightStickLeft", "Right Stick Left" },
 			EnumNamePair { "Button_RightStickDown", "Right Stick Down" },
 			EnumNamePair { "Button_RightStickRight", "Right Stick Right" },
-			EnumNamePair { "Button_RightStickPush", "Right Stick Push" },
+			EnumNamePair { "Button_RightStickClick", "Right Stick Click" },
 			EnumNamePair { "Button_LeftBumper", "Left Bumper" },
 			EnumNamePair { "Button_RightBumper", "Right Bumper" },
 			EnumNamePair { "Button_LeftTrigger", "Left Trigger" },
@@ -586,14 +586,14 @@ namespace Comfy::Input
 		forEachCommaSeparated(buttonsSubString, [&](std::string_view intStr)
 		{
 			if (buttonIndex < EnumCount<Button>())
-				result.Buttons[buttonIndex++] = static_cast<NativeButton>(Util::StringParsing::ParseType<i32>(intStr));
+				result.StandardToNativeButtons[buttonIndex++] = static_cast<NativeButton>(Util::StringParsing::ParseType<i32>(intStr));
 		});
 
 		size_t axisIndex = static_cast<size_t>(Axis::None) + 1;
 		forEachCommaSeparated(axesSubString, [&](std::string_view intStr)
 		{
 			if (axisIndex < EnumCount<Axis>())
-				result.Axes[axisIndex++] = static_cast<NativeAxis>(Util::StringParsing::ParseType<i32>(intStr));
+				result.StandardToNativeAxes[axisIndex++] = static_cast<NativeAxis>(Util::StringParsing::ParseType<i32>(intStr));
 		});
 
 		return result;
@@ -627,7 +627,7 @@ namespace Comfy::Input
 
 		for (size_t i = static_cast<size_t>(Button::None) + 1; i < EnumCount<Button>(); i++)
 		{
-			appendI32Str(buffer, static_cast<i32>(layoutMapping.Buttons[i]));
+			appendI32Str(buffer, static_cast<i32>(layoutMapping.StandardToNativeButtons[i]));
 			if (i + 1 < EnumCount<Button>())
 				buffer += ',';
 		}
@@ -636,7 +636,7 @@ namespace Comfy::Input
 
 		for (size_t i = static_cast<size_t>(Axis::None) + 1; i < EnumCount<Axis>(); i++)
 		{
-			appendI32Str(buffer, static_cast<i32>(layoutMapping.Axes[i]));
+			appendI32Str(buffer, static_cast<i32>(layoutMapping.StandardToNativeAxes[i]));
 			if (i + 1 < EnumCount<Axis>())
 				buffer += ',';
 		}
