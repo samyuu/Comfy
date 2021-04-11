@@ -35,6 +35,8 @@ namespace Comfy::Studio::Editor
 		void GuiTabPlaytestBindings(ComfyStudioUserSettings& userData);
 		void GuiTabThemeDebug(ComfyStudioUserSettings& userData);
 
+		void GuiButtonPickerPopupContent(ComfyStudioUserSettings& userData, Input::StandardControllerLayoutMapping& layoutMapping);
+
 	private:
 		bool closeWindowThisFrame = false;
 		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
@@ -54,9 +56,11 @@ namespace Comfy::Studio::Editor
 		Input::MultiBinding* selectedMultiBinding = nullptr;
 
 		std::string combinedBindingShortcutBuffer;
-		
+
 		Input::Binding* awaitInputBinding = nullptr;
 		Stopwatch awaitInputStopwatch = {};
+
+		Input::NativeButton currentButtonPickerPopupNativeButton;
 
 	private:
 		struct NamedTab { const char* Name; void(ChartEditorSettingsWindow::*GuiFunction)(ComfyStudioUserSettings&); };
