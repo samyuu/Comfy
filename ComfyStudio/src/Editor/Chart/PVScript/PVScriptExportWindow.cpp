@@ -611,15 +611,15 @@ namespace Comfy::Studio::Editor
 
 			guiHeaderLabel("Output MData ID", "(Expected to be highest priority)");
 			{
+				static auto isValidIDChar = [](char c) { return !(!(c >= '0' && c <= '9') && !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')); };
+				static auto validIDCharTextCallbackFilter = [](ImGuiInputTextCallbackData* data) -> int { return !isValidIDChar(static_cast<char>(data->EventChar)); };
+
 				for (char& c : param.OutMDataID)
-				{
-					if (!(c >= '0' && c <= '9') && !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z'))
-						c = 'X';
-				}
+					c = isValidIDChar(c) ? c : '0';
 				param.OutMDataID[0] = 'M';
 				param.OutMDataID[4] = '\0';
 				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
-				Gui::InputText("##MDataID", param.OutMDataID.data(), param.OutMDataID.size(), ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_AlwaysInsertMode);
+				Gui::InputText("##MDataID", param.OutMDataID.data(), param.OutMDataID.size(), ImGuiInputTextFlags_CallbackCharFilter | ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_AlwaysInsertMode, validIDCharTextCallbackFilter);
 				Gui::PopItemWidth();
 			}
 			Gui::Separator();
