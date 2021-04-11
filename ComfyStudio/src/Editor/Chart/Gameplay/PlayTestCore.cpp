@@ -8,7 +8,7 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		constexpr std::array<const char*, EnumCount<PlayTestSlidePositionType>()> PlayTestSlidePositionTypeIDStrings = { " ", "<", ">", };
+		constexpr std::array<const char*, EnumCount<PlayTestSlidePositionType>()> PlayTestSlidePositionTypeIDStrings = { " ", "L", "R", };
 
 		struct PlayTestTarget
 		{
