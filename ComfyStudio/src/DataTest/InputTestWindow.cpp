@@ -102,7 +102,7 @@ namespace Comfy::Studio::DataTest
 			{
 				Gui::Text("%s - Product: %s Instance: %s", controllerView.ProductName.data(), ControllerIDToString(controllerView.ProductID).data(), ControllerIDToString(controllerView.InstanceID).data());
 				Gui::BeginChild("ControllersButtonsChild", vec2(0.0f, 60.0f));
-				for (u8 i = static_cast<u8>(NativeButton::FirstButton); i <= static_cast<u8>(NativeButton::LastButton); i++)
+				for (i32 i = static_cast<i32>(NativeButton::FirstButton); i <= static_cast<i32>(NativeButton::LastButton); i++)
 				{
 					if (IsNativeButtonDown(controllerView.InstanceID, static_cast<NativeButton>(i)))
 						Gui::BulletText("Button %d (Abs: %d)", i, i);
@@ -110,30 +110,29 @@ namespace Comfy::Studio::DataTest
 				Gui::EndChild();
 
 				Gui::BeginChild("ControllersButtonsDPadChild", vec2(0.0f, 60.0f));
-				for (u8 i = static_cast<u8>(NativeButton::FirstDPad); i <= static_cast<u8>(NativeButton::LastDPad); i++)
+				for (i32 i = static_cast<i32>(NativeButton::FirstDPad); i <= static_cast<i32>(NativeButton::LastDPad); i++)
 				{
 					if (IsNativeButtonDown(controllerView.InstanceID, static_cast<NativeButton>(i)))
-						Gui::BulletText("DPad %d (Abs: %d)", i - static_cast<u8>(NativeButton::FirstDPad), i);
+						Gui::BulletText("DPad %d (Abs: %d)", i - static_cast<i32>(NativeButton::FirstDPad), i);
 				}
 				Gui::EndChild();
 
 				Gui::BeginChild("ControllersButtonsAxesChild", vec2(0.0f, 60.0f));
-				for (u8 i = static_cast<u8>(NativeButton::FirstAxis); i <= static_cast<u8>(NativeButton::LastAxis);)
+				for (i32 i = static_cast<i32>(NativeButton::FirstAxis); i <= static_cast<i32>(NativeButton::LastAxis);)
 				{
 					const auto negative = static_cast<NativeButton>(i++);
 					const auto positive = static_cast<NativeButton>(i++);
-					const auto trigger = static_cast<NativeButton>(i++);
 
 					if (IsNativeButtonDown(controllerView.InstanceID, negative))
-						Gui::BulletText("Neg Axis %d (Abs: %d)", static_cast<u8>(negative) - static_cast<u8>(NativeButton::FirstAxis), static_cast<u8>(negative));
+						Gui::BulletText("Neg Axis %d (Abs: %d)", static_cast<i32>(negative) - static_cast<i32>(NativeButton::FirstAxis), static_cast<i32>(negative));
 
 					if (IsNativeButtonDown(controllerView.InstanceID, positive))
-						Gui::BulletText("Pos Axis %d (Abs: %d)", static_cast<u8>(positive) - static_cast<u8>(NativeButton::FirstAxis), static_cast<u8>(positive));
+						Gui::BulletText("Pos Axis %d (Abs: %d)", static_cast<i32>(positive) - static_cast<i32>(NativeButton::FirstAxis), static_cast<i32>(positive));
 				}
 				Gui::EndChild();
 
 				Gui::BeginChild("ControllersAxesChild", vec2(0.0f, 0.0f));
-				for (u8 i = static_cast<u8>(NativeAxis::First); i <= static_cast<u8>(NativeAxis::Last); i++)
+				for (i32 i = static_cast<i32>(NativeAxis::First); i <= static_cast<i32>(NativeAxis::Last); i++)
 				{
 					const f32 axisValue = GetNativeAxis(controllerView.InstanceID, static_cast<NativeAxis>(i));
 
