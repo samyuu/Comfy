@@ -1,5 +1,6 @@
 #include "ComfyStudioSettings.h"
 #include "IO/JSON.h"
+#include "Core/Logger.h"
 
 namespace Comfy::Studio
 {
@@ -58,6 +59,11 @@ namespace Comfy::Studio
 
 		const json& rootJson = loadedJson.value();
 		const auto fileVersion = TryGetJsonSettingsFileVersionFromRoot(rootJson).value_or(SemanticVersion {});
+		if (fileVersion.Major > CurrentVersion.Major)
+		{
+			Logger::LogErrorLine(__FUNCTION__"(): Unsupported AppSettings version detected: \"%s\". Current version: \"%s\"", fileVersion.ToString().c_str(), CurrentVersion.ToString().c_str());
+			return false;
+		}
 
 		if (const json* windowStateJson = JsonFind(rootJson, AppIDs::LastSessionWindowState))
 		{
@@ -484,6 +490,11 @@ namespace Comfy::Studio
 
 		const json& rootJson = loadedJson.value();
 		const auto fileVersion = TryGetJsonSettingsFileVersionFromRoot(rootJson).value_or(SemanticVersion {});
+		if (fileVersion.Major > CurrentVersion.Major)
+		{
+			Logger::LogErrorLine(__FUNCTION__"(): Unsupported UserSettings version detected: \"%s\". Current version: \"%s\"", fileVersion.ToString().c_str(), CurrentVersion.ToString().c_str());
+			return false;
+		}
 
 		// NOTE: Restore default so that unspecified objects still start off with reasonable values, thereby improving forward compatibility in case the json is from an older version.
 		//		 To compensate all parser code needs to clear out all vectors to avoid duplicate entries and only assign to trivial types if the corresponding json entry was found
