@@ -356,6 +356,81 @@ namespace Comfy::Studio::Editor
 			else
 				return TargetPropertyType_PositionX;
 		}
+
+		constexpr PlayTestSlidePositionType ExpectedPhyisicalBindingLocationToPlayTestSlidePosition(const Input::Binding& binding)
+		{
+			using namespace Input;
+			if (binding.Type == BindingType::Keyboard)
+			{
+				// NOTE: Somewhat assuming US keyboard layout although most of the special OEM keys tend to not differ too much in their approximate sector position
+				//		 and even if, getting these slide positions wrong isn't a major problem
+				const auto phsyicalLeftSideKeys =
+				{
+					KeyCode_None, KeyCode_MouseLeft, KeyCode_MouseMiddle, KeyCode_MouseX1, KeyCode_MouseX2,
+					KeyCode_Tab, KeyCode_Shift, KeyCode_Ctrl, KeyCode_Alt, KeyCode_CapsLock,
+					KeyCode_Escape, KeyCode_Space, KeyCode_1, KeyCode_2, KeyCode_3,
+					KeyCode_4, KeyCode_5, KeyCode_6, KeyCode_A, KeyCode_B,
+					KeyCode_C, KeyCode_D, KeyCode_E, KeyCode_F, KeyCode_G,
+					KeyCode_H, KeyCode_Q, KeyCode_R, KeyCode_S, KeyCode_T,
+					KeyCode_V, KeyCode_W, KeyCode_X, KeyCode_Y, KeyCode_Z,
+					KeyCode_LeftWin, KeyCode_F1, KeyCode_F2, KeyCode_F3, KeyCode_F4,
+					KeyCode_F5, KeyCode_LeftShift, KeyCode_LeftCtrl, KeyCode_LeftAlt,
+				};
+
+				for (const KeyCode leftSideKey : phsyicalLeftSideKeys)
+				{
+					if (binding.Keyboard.Key == leftSideKey)
+						return PlayTestSlidePositionType::Left;
+				}
+				return PlayTestSlidePositionType::Right;
+			}
+			else if (binding.Type == BindingType::Controller)
+			{
+				switch (binding.Controller.Button)
+				{
+				case Button::DPadUp:
+				case Button::DPadLeft:
+				case Button::DPadDown:
+				case Button::DPadRight:
+				case Button::LeftStickUp:
+				case Button::LeftStickLeft:
+				case Button::LeftStickDown:
+				case Button::LeftStickRight:
+				case Button::LeftStickClick:
+				case Button::LeftBumper:
+				case Button::LeftTrigger:
+				case Button::Select:
+				case Button::Home:
+				case Button::TouchPad:
+					return PlayTestSlidePositionType::Left;
+
+				case Button::FaceUp:
+				case Button::FaceLeft:
+				case Button::FaceDown:
+				case Button::FaceRight:
+				case Button::RightStickUp:
+				case Button::RightStickLeft:
+				case Button::RightStickDown:
+				case Button::RightStickRight:
+				case Button::RightStickClick:
+				case Button::RightBumper:
+				case Button::RightTrigger:
+				case Button::Start:
+					return PlayTestSlidePositionType::Right;
+				}
+			}
+
+			return PlayTestSlidePositionType::Left;
+		}
+
+		constexpr PlayTestSlidePositionType AutomaticallyDeterminePlayTestSlidePosition(ButtonTypeFlags buttonTypes, Input::Binding& binding)
+		{
+			// NOTE: For simplicity sake determine slide position using expected physical key/button layout
+			if (buttonTypes & ButtonTypeFlags_SlideAll)
+				return ExpectedPhyisicalBindingLocationToPlayTestSlidePosition(binding);
+			else
+				return PlayTestSlidePositionType::None;
+		}
 	}
 
 	void ChartEditorSettingsWindow::Gui()
@@ -1204,7 +1279,112 @@ namespace Comfy::Studio::Editor
 	{
 		if (Gui::CollapsingHeader("Playtest Bindings", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			// TODO: ...
+			size_t bindingIndexToRemove = std::numeric_limits<size_t>::max();
+
+			Gui::SetCursorPosX(Gui::GetCursorPosX() + GuiSettingsInnerSubChildMargin);
+			Gui::BeginChild("BindingsListChild", vec2(GuiSettingsSubChildItemWidth, Gui::GetContentRegionAvail().y), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			for (size_t bindingIndex = 0; bindingIndex < userData.Input.PlaytestBindings.size(); bindingIndex++)
+			{
+				auto& binding = userData.Input.PlaytestBindings[bindingIndex];
+				Gui::PushID(&binding);
+
+				const f32 availWidthTotal = Gui::GetContentRegionAvailWidth();
+				const f32 itemInnerSpacingX = Gui::GetStyle().ItemInnerSpacing.x;
+
+				if (GuiSettingsInteractiveAwaitKeyPressInputBindingButton(binding.InputSource, vec2((availWidthTotal - itemInnerSpacingX - itemInnerSpacingX) / 3.0f, 0.0f), awaitInputBinding, awaitInputStopwatch))
+				{
+					if (binding.InputSource.Type == Input::BindingType::Keyboard)
+						binding.InputSource.Keyboard.Modifiers = Input::KeyModifiers_None;
+					binding.SlidePosition = AutomaticallyDeterminePlayTestSlidePosition(binding.ButtonTypes, binding.InputSource);
+					pendingChanges = true;
+				}
+
+				Gui::SameLine(0.0f, itemInnerSpacingX);
+				Gui::PushItemWidth((availWidthTotal - itemInnerSpacingX - itemInnerSpacingX) / 2.0f);
+
+				static constexpr std::array<const char*, EnumCount<ButtonType>()> buttonNames = { "Triangle", "Square", "Cross", "Circle", "Slide Left", "Slide Right", };
+
+				char comboPreview[64]; comboPreview[0] = '\0';
+				if (binding.ButtonTypes != ButtonTypeFlags_None)
+				{
+					for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
+					{
+						if (binding.ButtonTypes & ButtonTypeToButtonTypeFlags(static_cast<ButtonType>(i)))
+						{
+							strcat_s(comboPreview, buttonNames[i]);
+							strcat_s(comboPreview, "+");
+						}
+					}
+
+					const size_t length = strlen(comboPreview);
+					if (comboPreview[length - 1] == '+')
+						comboPreview[length - 1] = '\0';
+
+					if (binding.ButtonTypes & ButtonTypeFlags_SlideAll)
+						strcat_s(comboPreview, (binding.SlidePosition == PlayTestSlidePositionType::None) ? " (X)" : (binding.SlidePosition == PlayTestSlidePositionType::Left) ? " (L)" : " (R)");
+				}
+				else
+				{
+					strcpy_s(comboPreview, "(None)");
+				}
+
+				if (Gui::BeginCombo("##BindingButtonTypesCombo", comboPreview, ImGuiComboFlags_None))
+				{
+					for (size_t i = 0; i < EnumCount<ButtonType>(); i++)
+					{
+						const auto buttonType = static_cast<ButtonType>(i);
+						const auto buttonTypeFlags = ButtonTypeToButtonTypeFlags(buttonType);
+						const bool flagIsSet = (binding.ButtonTypes & buttonTypeFlags);
+
+						if (buttonType == ButtonType::SlideL)
+							Gui::Separator();
+
+						if (Gui::MenuItemWithFlags(buttonNames[i], nullptr, flagIsSet, true, ImGuiSelectableFlags_DontClosePopups))
+						{
+							if (!flagIsSet)
+								binding.ButtonTypes |= buttonTypeFlags;
+							else
+								binding.ButtonTypes &= ~buttonTypeFlags;
+
+							// NOTE: Secret shortcut for quickly selecting single buttons only
+							if (Gui::GetIO().KeyShift)
+								binding.ButtonTypes = buttonTypeFlags;
+
+							// NOTE: Only allow selecting either a single slide or any number of non slide buttons
+							if (IsSlideButtonType(buttonType))
+								binding.ButtonTypes = flagIsSet ? binding.ButtonTypes : buttonTypeFlags;
+							else
+								binding.ButtonTypes &= ButtonTypeFlags_NormalAll;
+
+							binding.SlidePosition = AutomaticallyDeterminePlayTestSlidePosition(binding.ButtonTypes, binding.InputSource);
+							pendingChanges = true;
+						}
+					}
+
+					Gui::EndCombo();
+				}
+				Gui::PopItemWidth();
+
+				Gui::SameLine(0.0f, itemInnerSpacingX);
+				if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					bindingIndexToRemove = bindingIndex;
+
+				Gui::PopID();
+				Gui::Separator();
+			}
+
+			if (Gui::Button("Add", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			{
+				userData.Input.PlaytestBindings.emplace_back();
+				pendingChanges = true;
+			}
+			Gui::EndChild();
+
+			if (InBounds(bindingIndexToRemove, userData.Input.PlaytestBindings))
+			{
+				userData.Input.PlaytestBindings.erase(userData.Input.PlaytestBindings.begin() + bindingIndexToRemove);
+				pendingChanges = true;
+			}
 		}
 	}
 
