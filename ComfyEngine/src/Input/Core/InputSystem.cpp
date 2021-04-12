@@ -53,7 +53,7 @@ namespace Comfy::Input
 				{
 					f32 NormalizedAbsolute;
 					f32 NormalizedAroundCenter;
-					bool NegativePositiveTriggerAreHeld[2];
+					bool NegativePositiveAreHeld[2];
 				} Axes[8];
 			} Simplified;
 		} ThisFrameState, LastFrameState;
@@ -137,24 +137,24 @@ namespace Comfy::Input
 		{
 			if (nativeButton >= NativeButton::FirstButton && nativeButton <= NativeButton::LastButton)
 			{
-				const auto reativeIndex = static_cast<std::underlying_type_t<NativeButton>>(nativeButton) - static_cast<std::underlying_type_t<NativeButton>>(NativeButton::FirstButton);
-				return controllerData.ThisFrameState.Simplified.Buttons[static_cast<std::underlying_type_t<NativeButton>>(reativeIndex)];
+				const i32 reativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstButton);
+				return controllerData.ThisFrameState.Simplified.Buttons[static_cast<i32>(reativeIndex)];
 			}
 			else if (nativeButton >= NativeButton::FirstDPad && nativeButton <= NativeButton::LastDPad)
 			{
-				const auto reativeIndex = static_cast<std::underlying_type_t<NativeButton>>(nativeButton) - static_cast<std::underlying_type_t<NativeButton>>(NativeButton::FirstDPad);
-				const auto dpadIndex = (reativeIndex / 4);
-				const auto directionIndex = (reativeIndex % 4);
+				const i32 reativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstDPad);
+				const i32 dpadIndex = (reativeIndex / static_cast<i32>(NativeButton::PerDPadSubElements));
+				const i32 directionIndex = (reativeIndex % static_cast<i32>(NativeButton::PerDPadSubElements));
 
 				return controllerData.ThisFrameState.Simplified.DPads[dpadIndex].TopLeftDownRightAreHeld[directionIndex];
 			}
 			else if (nativeButton >= NativeButton::FirstAxis && nativeButton <= NativeButton::LastAxis)
 			{
-				const auto reativeIndex = static_cast<std::underlying_type_t<NativeButton>>(nativeButton) - static_cast<std::underlying_type_t<NativeButton>>(NativeButton::FirstAxis);
-				const auto axisIndex = (reativeIndex / 3);
-				const auto directionIndex = (reativeIndex % 3);
+				const i32 reativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstAxis);
+				const i32 axisIndex = (reativeIndex / static_cast<i32>(NativeButton::PerAxisSubElements));
+				const i32 directionIndex = (reativeIndex % static_cast<i32>(NativeButton::PerAxisSubElements));
 
-				return controllerData.ThisFrameState.Simplified.Axes[axisIndex].NegativePositiveTriggerAreHeld[directionIndex];
+				return controllerData.ThisFrameState.Simplified.Axes[axisIndex].NegativePositiveAreHeld[directionIndex];
 			}
 
 			return false;
@@ -228,40 +228,42 @@ namespace Comfy::Input
 			for (size_t i = 0; i < KnownDualShock4ProductGUIDs.size(); i++)
 			{
 				auto& ds4Mapping = resultArray[i];
+				auto assignNativeButton = [&ds4Mapping](Button button, NativeButton nativeButton) { ds4Mapping.StandardToNativeButtons[static_cast<i32>(button)] = nativeButton; };
+				auto assignNativeAxis = [&ds4Mapping](Axis axis, NativeAxis nativeAxis) { ds4Mapping.StandardToNativeAxes[static_cast<i32>(axis)] = nativeAxis; };
 				ds4Mapping.Name = KnownDualShock4ProductGUIDs[i].Name;
 				ds4Mapping.ProductID = Detail::WindowGUIDToControllerID(KnownDualShock4ProductGUIDs[i].ProductID);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 0);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 1);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 2);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::DPadRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstDPad) + 3);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 3);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 0);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 1);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::FaceRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 2);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 3);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 0);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 4);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 1);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 10);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickUp)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 15);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickLeft)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 6);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickDown)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 16);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickRight)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstAxis) + 7);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightStickClick)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 11);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 4);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightBumper)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 5);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::LeftTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 6);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::RightTrigger)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 7);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::Select)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 8);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::Start)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 9);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::Home)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 12);
-				ds4Mapping.StandardToNativeButtons[static_cast<u8>(Button::TouchPad)] = static_cast<NativeButton>(static_cast<u8>(NativeButton::FirstButton) + 13);
-				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::LeftStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 0);
-				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::LeftStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 1);
-				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::RightStickX)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 2);
-				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::RightStickY)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 5);
-				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::LeftTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 3);
-				ds4Mapping.StandardToNativeAxes[static_cast<u8>(Axis::RightTrigger)] = static_cast<NativeAxis>(static_cast<u8>(NativeAxis::First) + 4);
+				assignNativeButton(Button::DPadUp, NativeButton::DPad_01_Up);
+				assignNativeButton(Button::DPadLeft, NativeButton::DPad_01_Left);
+				assignNativeButton(Button::DPadDown, NativeButton::DPad_01_Down);
+				assignNativeButton(Button::DPadRight, NativeButton::DPad_01_Right);
+				assignNativeButton(Button::FaceUp, NativeButton::Button_04);
+				assignNativeButton(Button::FaceLeft, NativeButton::Button_01);
+				assignNativeButton(Button::FaceDown, NativeButton::Button_02);
+				assignNativeButton(Button::FaceRight, NativeButton::Button_03);
+				assignNativeButton(Button::LeftStickUp, NativeButton::Axis_02_Positive);
+				assignNativeButton(Button::LeftStickLeft, NativeButton::Axis_01_Positive);
+				assignNativeButton(Button::LeftStickDown, NativeButton::Axis_02_Negative);
+				assignNativeButton(Button::LeftStickRight, NativeButton::Axis_01_Negative);
+				assignNativeButton(Button::LeftStickClick, NativeButton::Button_11);
+				assignNativeButton(Button::RightStickUp, NativeButton::Axis_06_Positive);
+				assignNativeButton(Button::RightStickLeft, NativeButton::Axis_03_Positive);
+				assignNativeButton(Button::RightStickDown, NativeButton::Axis_06_Negative);
+				assignNativeButton(Button::RightStickRight, NativeButton::Axis_03_Negative);
+				assignNativeButton(Button::RightStickClick, NativeButton::Button_12);
+				assignNativeButton(Button::LeftBumper, NativeButton::Button_05);
+				assignNativeButton(Button::RightBumper, NativeButton::Button_06);
+				assignNativeButton(Button::LeftTrigger, NativeButton::Button_07);
+				assignNativeButton(Button::RightTrigger, NativeButton::Button_08);
+				assignNativeButton(Button::Select, NativeButton::Button_09);
+				assignNativeButton(Button::Start, NativeButton::Button_10);
+				assignNativeButton(Button::Home, NativeButton::Button_13);
+				assignNativeButton(Button::TouchPad, NativeButton::Button_14);
+				assignNativeAxis(Axis::LeftStickX, NativeAxis::Axis_01);
+				assignNativeAxis(Axis::LeftStickY, NativeAxis::Axis_02);
+				assignNativeAxis(Axis::RightStickX, NativeAxis::Axis_03);
+				assignNativeAxis(Axis::RightStickY, NativeAxis::Axis_06);
+				assignNativeAxis(Axis::LeftTrigger, NativeAxis::Axis_04);
+				assignNativeAxis(Axis::RightTrigger, NativeAxis::Axis_05);
 			}
 			return resultArray;
 		}();
@@ -381,9 +383,8 @@ namespace Comfy::Input
 					auto& simplifiedAxes = controllerData.ThisFrameState.Simplified.Axes[i];
 					simplifiedAxes.NormalizedAbsolute = static_cast<f32>(nativeAxes[i]) / std::numeric_limits<u16>::max();
 					simplifiedAxes.NormalizedAroundCenter = static_cast<f32>(nativeAxes[i]) / std::numeric_limits<u16>::max() * 2.0f - 1.0f;
-					simplifiedAxes.NegativePositiveTriggerAreHeld[0] = (glm::abs(simplifiedAxes.NormalizedAroundCenter) > heldThreshold && simplifiedAxes.NormalizedAroundCenter < 0.0f);
-					simplifiedAxes.NegativePositiveTriggerAreHeld[1] = (glm::abs(simplifiedAxes.NormalizedAroundCenter) > heldThreshold && simplifiedAxes.NormalizedAroundCenter > 0.0f);
-					simplifiedAxes.NegativePositiveTriggerAreHeld[3] = (simplifiedAxes.NormalizedAbsolute > heldThreshold);
+					simplifiedAxes.NegativePositiveAreHeld[0] = (glm::abs(simplifiedAxes.NormalizedAroundCenter) > heldThreshold && simplifiedAxes.NormalizedAroundCenter < 0.0f);
+					simplifiedAxes.NegativePositiveAreHeld[1] = (glm::abs(simplifiedAxes.NormalizedAroundCenter) > heldThreshold && simplifiedAxes.NormalizedAroundCenter > 0.0f);
 				}
 			}
 		}
