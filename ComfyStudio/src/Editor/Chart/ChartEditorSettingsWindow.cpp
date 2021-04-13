@@ -1063,7 +1063,7 @@ namespace Comfy::Studio::Editor
 
 				Gui::SameLine();
 				Gui::AlignTextToFramePadding();
-				Gui::Text("(%.*s)", static_cast<i32>(selectedMultiBindingName.size()), selectedMultiBindingName.data());
+				Gui::Text("%.*s:", static_cast<i32>(selectedMultiBindingName.size()), selectedMultiBindingName.data());
 
 				if (selectedMultiBinding != nullptr)
 				{
@@ -1098,7 +1098,7 @@ namespace Comfy::Studio::Editor
 				{
 					Gui::SameLine();
 					Gui::AlignTextToFramePadding();
-					Gui::TextDisabled("(None)");
+					Gui::TextDisabled("No Binding assigned to this action");
 					Gui::Separator();
 				}
 
@@ -1114,12 +1114,14 @@ namespace Comfy::Studio::Editor
 					pendingChanges |= GuiSettingsInteractiveAwaitKeyPressInputBindingButton(binding, vec2(Gui::GetContentRegionAvailWidth() * primaryColumWidthFactor, buttonHeight), awaitInputBinding, awaitInputStopwatch);
 					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
 
+#if 0 // TODO: Enable again once implemented...
 					const f32 upDownButtonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 3.0f) / 4.0f;
 					if (Gui::Button("Up", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveUp = i;
 					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
 
 					if (Gui::Button("Down", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveDown = i;
 					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
+#endif
 
 					if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight)))
 						bindingIndexToRemove = i;
@@ -1142,11 +1144,13 @@ namespace Comfy::Studio::Editor
 				}
 				else if (bindingIndexToMoveUp < selectedMultiBinding->BindingCount)
 				{
-					// TODO: Move up logic
+					// TODO: Implement move up logic...
+					// pendingChanges = true;
 				}
 				else if (bindingIndexToMoveDown < selectedMultiBinding->BindingCount)
 				{
-					// TODO: Move down logic
+					// TODO: Implement move down logic...
+					// pendingChanges = true;
 				}
 
 				Gui::PopStyleVar(1);
