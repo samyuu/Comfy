@@ -543,7 +543,7 @@ namespace Comfy::Studio::Editor
 	PVScriptExportWindow::PVScriptExportWindow()
 	{
 		param.OutFormat = PVScriptExportFormat::Arcade;
-		param.OutMDataID = { "MXCY" };
+		param.OutMDataID = { "MYEP" };
 		param.OutPVID = 911;
 		param.PVScriptBackgroundTint = vec4(0.0f, 0.0f, 0.0f, 0.35f);
 		param.MergeWithExistingMData = true;
@@ -619,7 +619,13 @@ namespace Comfy::Studio::Editor
 				param.OutMDataID[0] = 'M';
 				param.OutMDataID[4] = '\0';
 				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
-				Gui::InputText("##MDataID", param.OutMDataID.data(), param.OutMDataID.size(), ImGuiInputTextFlags_CallbackCharFilter | ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_AlwaysInsertMode, validIDCharTextCallbackFilter);
+				Gui::InputText("##MDataID", param.OutMDataID.data(), param.OutMDataID.size(),
+					ImGuiInputTextFlags_CharsUppercase |
+					ImGuiInputTextFlags_CharsNoBlank |
+					ImGuiInputTextFlags_AutoSelectAll |
+					ImGuiInputTextFlags_CallbackCharFilter |
+					ImGuiInputTextFlags_AlwaysInsertMode,
+					validIDCharTextCallbackFilter);
 				Gui::PopItemWidth();
 			}
 			Gui::Separator();
