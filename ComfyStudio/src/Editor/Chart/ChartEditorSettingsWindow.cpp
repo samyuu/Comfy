@@ -1347,9 +1347,8 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditorSettingsWindow::GuiControllerLayoutTabItemInnerContent(ComfyStudioUserSettings& userData, const Input::ControllerInfoView& controllerInfo, Input::StandardControllerLayoutMapping& correspondingLayoutMapping, const bool nativeButtonsDown[])
 	{
-		// TODO: ~~Auto assign NativeAxis based on axis button bindings..?~~ thought that doesn't really work for triggers
+		// TODO: Configure analog axes... ~~auto assign NativeAxis based on axis button bindings..?~~ thought that doesn't really work for triggers
 		// TODO: Eventually implement setup wizzard step by step prompting to press a specified button
-		// TODO: Try to improve ugly columns spacing / padding
 
 		using namespace Input;
 		const auto& style = Gui::GetStyle();
@@ -1358,111 +1357,124 @@ namespace Comfy::Studio::Editor
 		char labelBuffer[128];
 		NativeButton userClickedNativeButton = NativeButton::Count;
 
-		auto assignClickableButton = [&](const char* label, NativeButton nativeButton, f32 width)
+		auto assignClickableButton = [&](const char* label, NativeButton nativeButton, Button assignedStandardButton, f32 width)
 		{
 			assert(nativeButton < NativeButton::Count);
 			const bool isNativeButtonDown = nativeButtonsDown[static_cast<i32>(nativeButton)];
 
+			Gui::PushID(static_cast<i32>(nativeButton));
+
 			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(isNativeButtonDown ? ImGuiCol_Text : ImGuiCol_TextDisabled));
-			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(isNativeButtonDown ? ImGuiCol_ButtonActive : ImGuiCol_Button));
+			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(
+				assignedStandardButton != Button::None ? ImGuiCol_ButtonActive :
+				isNativeButtonDown ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
+
 			if (Gui::Button(label, vec2(Gui::GetContentRegionAvailWidth(), buttonHeight)))
 				userClickedNativeButton = nativeButton;
+
 			Gui::PopStyleColor(2);
+
+			Gui::PopID();
 		};
 
+		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, style.ItemSpacing.y));
 		const i32 clampedButtonCount = std::clamp(controllerInfo.ButtonCount, 0, static_cast<i32>(NativeButton::ButtonCount));
 		const i32 clampedDPadCount = std::clamp(controllerInfo.DPadCount, 0, static_cast<i32>(NativeButton::DPadCount));
 		const i32 clampedAxisCount = std::clamp(controllerInfo.AxisCount, 0, static_cast<i32>(NativeButton::AxisCount));
-
-		if (clampedDPadCount > 0)
 		{
-			for (i32 dpadIndex = 0; dpadIndex < clampedDPadCount; dpadIndex++)
+			if (clampedDPadCount > 0)
 			{
-				const NativeButton nativeButtonUp = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 0);
-				const NativeButton nativeButtonLeft = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 1);
-				const NativeButton nativeButtonDown = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 2);
-				const NativeButton nativeButtonRight = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 3);
-
-				Gui::PushID(dpadIndex);
-				Gui::BeginChild("NativeButtonDPadChild", vec2(0.0f, 3.0f * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
-				Gui::BeginColumns(nullptr, 3, ImGuiColumnsFlags_NoResize);
+				for (i32 dpadIndex = 0; dpadIndex < clampedDPadCount; dpadIndex++)
 				{
-					auto dpadDirectionButton = [&](const char* /*directionLabel*/, NativeButton nativeButton)
-					{
-						sprintf_s(labelBuffer, "[%s]", GetButtonName(FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton)));
-						assignClickableButton(labelBuffer, nativeButton, Gui::GetContentRegionAvailWidth());
-					};
+					const NativeButton nativeButtonUp = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 0);
+					const NativeButton nativeButtonLeft = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 1);
+					const NativeButton nativeButtonDown = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 2);
+					const NativeButton nativeButtonRight = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 3);
 
-					// ... Up-Left
-					Gui::NextColumn();
-					dpadDirectionButton("Up", nativeButtonUp);
-					Gui::NextColumn();
-					// ... Up-Right
-					Gui::NextColumn();
-					dpadDirectionButton("Left", nativeButtonLeft);
-					Gui::NextColumn();
+					Gui::PushID(dpadIndex);
+					Gui::BeginChild("NativeButtonDPadChild", vec2(0.0f, 3.0f * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
+					Gui::BeginColumns(nullptr, 3, ImGuiColumnsFlags_NoBorder);
 					{
-						Gui::PushStyleColor(ImGuiCol_Button, 0x00000000);
-						sprintf_s(labelBuffer, "DPad %d", dpadIndex + 1);
-						Gui::ButtonEx(labelBuffer, vec2(Gui::GetContentRegionAvailWidth(), 0.0f), ImGuiButtonFlags_Disabled);
-						Gui::PopStyleColor(1);
+						auto dpadDirectionButton = [&](const char* /*directionLabel*/, NativeButton nativeButton)
+						{
+							const Button assignedStandardButton = FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton);
+							sprintf_s(labelBuffer, "[%s]", GetButtonName(assignedStandardButton));
+							assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvailWidth());
+						};
+
+						// ... Up-Left
+						Gui::NextColumn();
+						dpadDirectionButton("Up", nativeButtonUp);
+						Gui::NextColumn();
+						// ... Up-Right
+						Gui::NextColumn();
+						dpadDirectionButton("Left", nativeButtonLeft);
+						Gui::NextColumn();
+						{
+							Gui::PushStyleColor(ImGuiCol_Button, 0x00000000);
+							sprintf_s(labelBuffer, "DPad %d", dpadIndex + 1);
+							Gui::ButtonEx(labelBuffer, vec2(Gui::GetContentRegionAvailWidth(), 0.0f), ImGuiButtonFlags_Disabled);
+							Gui::PopStyleColor(1);
+						}
+						Gui::NextColumn();
+						dpadDirectionButton("Right", nativeButtonRight);
+						Gui::NextColumn();
+						// ... Down-Left
+						Gui::NextColumn();
+						dpadDirectionButton("Down", nativeButtonDown);
+						Gui::NextColumn();
+						// ... Down-Right
+						Gui::NextColumn();
 					}
-					Gui::NextColumn();
-					dpadDirectionButton("Right", nativeButtonRight);
-					Gui::NextColumn();
-					// ... Down-Left
-					Gui::NextColumn();
-					dpadDirectionButton("Down", nativeButtonDown);
-					Gui::NextColumn();
-					// ... Down-Right
+					Gui::EndColumns();
+					Gui::EndChild();
+					Gui::PopID();
+				}
+			}
+
+			if (clampedButtonCount > 0)
+			{
+				Gui::BeginChild("NativeButtonButtonsChild", vec2(0.0f, (clampedButtonCount / 2) * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
+				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoBorder);
+				for (i32 buttonIndex = 0; buttonIndex < clampedButtonCount; buttonIndex++)
+				{
+					const NativeButton nativeButton = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstButton) + buttonIndex);
+					const Button assignedStandardButton = FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton);
+
+					sprintf_s(labelBuffer, "Button %d  [%s]", buttonIndex + 1, GetButtonName(assignedStandardButton));
+					assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvailWidth());
+
 					Gui::NextColumn();
 				}
 				Gui::EndColumns();
 				Gui::EndChild();
-				Gui::PopID();
 			}
-		}
 
-		if (clampedButtonCount > 0)
-		{
-			Gui::BeginChild("NativeButtonButtonsChild", vec2(0.0f, (clampedButtonCount / 2) * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
-			Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
-			for (i32 buttonIndex = 0; buttonIndex < clampedButtonCount; buttonIndex++)
+			if (clampedAxisCount > 0)
 			{
-				const NativeButton nativeButton = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstButton) + buttonIndex);
-
-				sprintf_s(labelBuffer, "Button %d  [%s]", buttonIndex + 1, GetButtonName(FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton)));
-				assignClickableButton(labelBuffer, nativeButton, Gui::GetContentRegionAvailWidth());
-
-				Gui::NextColumn();
-			}
-			Gui::EndColumns();
-			Gui::EndChild();
-		}
-
-		// TODO: Configure analog axes
-		if (clampedAxisCount > 0)
-		{
-			Gui::BeginChild("NativeButtonAxesChild", vec2(0.0f, clampedAxisCount * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
-			Gui::BeginColumns(nullptr, static_cast<i32>(NativeButton::PerAxisSubElements), ImGuiColumnsFlags_NoResize);
-			for (i32 relativeAxes = 0; relativeAxes < clampedAxisCount; relativeAxes++)
-			{
-				const NativeButton nativeButtonNegative = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstAxis) + (relativeAxes * static_cast<i32>(NativeButton::PerAxisSubElements)) + 0);
-				const NativeButton nativeButtonPositive = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstAxis) + (relativeAxes * static_cast<i32>(NativeButton::PerAxisSubElements)) + 1);
-
-				auto triggerButton = [&](const char* label, NativeButton nativeButton)
+				Gui::BeginChild("NativeButtonAxesChild", vec2(0.0f, clampedAxisCount * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
+				Gui::BeginColumns(nullptr, static_cast<i32>(NativeButton::PerAxisSubElements), ImGuiColumnsFlags_NoBorder);
+				for (i32 relativeAxes = 0; relativeAxes < clampedAxisCount; relativeAxes++)
 				{
-					sprintf_s(labelBuffer, "Axis %d %s  [%s]", relativeAxes + 1, label, GetButtonName(FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton)));
-					assignClickableButton(labelBuffer, nativeButton, Gui::GetContentRegionAvailWidth());
-					Gui::NextColumn();
-				};
+					const NativeButton nativeButtonNegative = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstAxis) + (relativeAxes * static_cast<i32>(NativeButton::PerAxisSubElements)) + 0);
+					const NativeButton nativeButtonPositive = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstAxis) + (relativeAxes * static_cast<i32>(NativeButton::PerAxisSubElements)) + 1);
 
-				triggerButton("-", nativeButtonNegative);
-				triggerButton("+", nativeButtonPositive);
+					auto triggerButton = [&](const char* label, NativeButton nativeButton)
+					{
+						const Button assignedStandardButton = FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton);
+						sprintf_s(labelBuffer, "Axis %d %s  [%s]", relativeAxes + 1, label, GetButtonName(assignedStandardButton));
+						assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvailWidth());
+						Gui::NextColumn();
+					};
+
+					triggerButton("-", nativeButtonNegative);
+					triggerButton("+", nativeButtonPositive);
+				}
+				Gui::EndColumns();
+				Gui::EndChild();
 			}
-			Gui::EndColumns();
-			Gui::EndChild();
 		}
+		Gui::PopStyleVar();
 
 		char buttonPickerPopupID[128];
 		sprintf_s(buttonPickerPopupID, "Assign Native Button %d###ButtonPickerPopup", static_cast<i32>(currentButtonPickerPopupNativeButton));
@@ -1502,18 +1514,25 @@ namespace Comfy::Studio::Editor
 		constexpr vec2 buttonSize = vec2(100.0f, 26.0f);
 		constexpr vec2 buttonSizeTouchPad = vec2(260.0f, 72.0f);
 
-		const Button selecedPopupStandardButton = FindStandardButtonForNativeButton(layoutMapping, currentButtonPickerPopupNativeButton);
-
+		const Button assignedPopupStandardButton = FindStandardButtonForNativeButton(layoutMapping, currentButtonPickerPopupNativeButton);
 		auto standardControllerButton = [&](Button standardButton, vec2 position, vec2 size)
 		{
 			Gui::SetCursorPos(position);
+			Gui::PushID(static_cast<i32>(standardButton));
+
+			const bool isAlreadyBound = (layoutMapping.StandardToNativeButtons[static_cast<i32>(standardButton)] != NativeButton::None);
+			if (isAlreadyBound) Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+
 			if (Gui::Button(GetButtonName(standardButton), size))
 			{
-				layoutMapping.StandardToNativeButtons[static_cast<i32>(selecedPopupStandardButton)] = NativeButton::None;
+				layoutMapping.StandardToNativeButtons[static_cast<i32>(assignedPopupStandardButton)] = NativeButton::None;
 				layoutMapping.StandardToNativeButtons[static_cast<i32>(standardButton)] = currentButtonPickerPopupNativeButton;
 				pendingChanges = true;
 				Gui::CloseCurrentPopup();
 			}
+
+			if (isAlreadyBound) Gui::PopStyleColor(1);
+			Gui::PopID();
 		};
 
 		auto standardControllerDirectionalButtons = [&](const std::array<Button, 5>& upLeftDownRightClick, vec2 position, vec2 perButtonSize)
@@ -1551,9 +1570,9 @@ namespace Comfy::Studio::Editor
 			standardControllerDirectionalButtons(rightStickUpLeftDownRight, vec2(windowSize.x - (spacing + (buttonSize.x + spacing) * 3.0f), 260.0f), buttonSize);
 
 			Gui::SetCursorPos(vec2(Gui::GetWindowWidth() * 0.25f, (Gui::GetWindowHeight() - buttonSize.y) - (Gui::GetStyle().WindowPadding.y + margin)));
-			if (Gui::Button("None", vec2(Gui::GetWindowWidth() * 0.5f, buttonSize.y)))
+			if (Gui::Button("(None)", vec2(Gui::GetWindowWidth() * 0.5f, buttonSize.y)))
 			{
-				layoutMapping.StandardToNativeButtons[static_cast<i32>(selecedPopupStandardButton)] = NativeButton::None;
+				layoutMapping.StandardToNativeButtons[static_cast<i32>(assignedPopupStandardButton)] = NativeButton::None;
 				pendingChanges = true;
 				Gui::CloseCurrentPopup();
 			}
