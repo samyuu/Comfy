@@ -308,9 +308,18 @@ namespace Comfy::Input
 		LastAxis = Axis_08_Negative,
 		FirstAll = FirstButton,
 		LastAll = LastAxis,
+
 		PerButtonSubElements = 1,
+		ButtonCount = ((LastButton - FirstButton) / PerButtonSubElements) + 1,
+		ButtonElementCount = (ButtonCount * PerButtonSubElements),
+
 		PerDPadSubElements = 4,
+		DPadCount = ((LastDPad - FirstDPad) / PerDPadSubElements) + 1,
+		DPadElementCount = (DPadCount * PerDPadSubElements),
+
 		PerAxisSubElements = 2,
+		AxisCount = ((LastAxis - FirstAxis) / PerAxisSubElements) + 1,
+		AxisElementCount = (AxisCount * PerAxisSubElements),
 	};
 
 	enum class NativeAxis : u8
@@ -434,7 +443,7 @@ namespace Comfy::Input
 		std::string_view ProductName;
 		i32 ButtonCount;
 		i32 DPadCount;
-		i32 AxesCount;
+		i32 AxisCount;
 	};
 }
 

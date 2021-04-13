@@ -99,8 +99,8 @@ namespace Comfy::Input
 		TimeSpan UpdateFrameStopwatchElapsed;
 	};
 
-	static_assert((static_cast<size_t>(NativeButton::LastButton) - static_cast<size_t>(NativeButton::FirstButton) + 1) == ARRAYSIZE(decltype(DirectInputControllerData::PolledDeviceState::NativeJoy)::rgbButtons));
-	static_assert((static_cast<size_t>(NativeAxis::Last) - static_cast<size_t>(NativeAxis::First) + 1) == ARRAYSIZE(DirectInputControllerData::PolledDeviceState::SimplifiedState::Axes));
+	static_assert(static_cast<size_t>(NativeButton::ButtonCount) == ARRAYSIZE(decltype(DirectInputControllerData::PolledDeviceState::NativeJoy)::rgbButtons));
+	static_assert(static_cast<size_t>(NativeButton::AxisCount) == ARRAYSIZE(DirectInputControllerData::PolledDeviceState::SimplifiedState::Axes));
 	static_assert(ARRAYSIZE(DirectInputControllerData::PolledDeviceState::SimplifiedState::Buttons) == ARRAYSIZE(decltype(DirectInputControllerData::PolledDeviceState::NativeJoy)::rgbButtons));
 	static_assert(ARRAYSIZE(DirectInputControllerData::PolledDeviceState::SimplifiedState::DPads) == ARRAYSIZE(decltype(DirectInputControllerData::PolledDeviceState::NativeJoy)::rgdwPOV));
 
@@ -567,7 +567,7 @@ namespace Comfy::Input
 			outInfoView.ProductName = controller.ProductName;
 			outInfoView.ButtonCount = static_cast<i32>(controller.Capabilities.dwButtons);
 			outInfoView.DPadCount = static_cast<i32>(controller.Capabilities.dwPOVs);
-			outInfoView.AxesCount = static_cast<i32>(controller.Capabilities.dwAxes);
+			outInfoView.AxisCount = static_cast<i32>(controller.Capabilities.dwAxes);
 		}
 		return outInfoView;
 	}
