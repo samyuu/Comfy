@@ -224,6 +224,7 @@ namespace Comfy::Studio::Editor
 
 		bool GuiSettingsInteractiveAwaitKeyPressInputBindingButton(Input::Binding& inOutBinding, vec2 buttonSize, Input::Binding*& inOutAwaitInputBinding, Stopwatch& inOutAwaitInputStopwatch)
 		{
+			using namespace Input;
 			constexpr auto timeoutThreshold = TimeSpan::FromSeconds(4.0);
 			constexpr auto mouseClickThreshold = TimeSpan::FromMilliseconds(200.0);
 			constexpr f32 blinkFrequency = static_cast<f32>(timeoutThreshold.TotalSeconds() * 1.2);
@@ -231,13 +232,13 @@ namespace Comfy::Studio::Editor
 			constexpr f32 blinkMin = 0.25f, blinkMax = 1.00f;
 			auto getSinBlinkOpacity = [&](TimeSpan elapsed) { return std::clamp(ConvertRange(-1.0f, +1.0f, blinkLow, blinkHigh, glm::sin(static_cast<f32>(elapsed.TotalSeconds() * blinkFrequency) + 1.0f)), blinkMin, blinkMax); };
 
-			auto requestAsignmentForNewBinding = [&](Input::Binding* bindingToRequestAsignmentFor)
+			auto requestAsignmentForNewBinding = [&](Binding* bindingToRequestAsignmentFor)
 			{
 				inOutAwaitInputBinding = bindingToRequestAsignmentFor;
 				inOutAwaitInputStopwatch.Restart();
 			};
 
-			auto finishBindingAsignment = [&](std::optional<Input::Binding> newBindingToAsign)
+			auto finishBindingAsignment = [&](std::optional<Binding> newBindingToAsign)
 			{
 				inOutAwaitInputBinding = nullptr;
 				inOutAwaitInputStopwatch.Stop();
@@ -245,21 +246,21 @@ namespace Comfy::Studio::Editor
 					inOutBinding = newBindingToAsign.value();
 			};
 
-			const Input::Binding inBindingCopy = inOutBinding;
-			Input::FormatBuffer buffer = Input::ToString(inOutBinding);
+			const Binding inBindingCopy = inOutBinding;
+			FormatBuffer buffer = ToString(inOutBinding);
 
 			if (!inOutBinding.IsEmpty())
 			{
-				if (inOutBinding.Type == Input::BindingType::Keyboard)
+				if (inOutBinding.Type == BindingType::Keyboard)
 				{
-					if (inOutBinding.Keyboard.Key >= Input::KeyCode_MouseFirst && inOutBinding.Keyboard.Key <= Input::KeyCode_MouseLast)
+					if (inOutBinding.Keyboard.Key >= KeyCode_MouseFirst && inOutBinding.Keyboard.Key <= KeyCode_MouseLast)
 						strcat_s(buffer.data(), buffer.size(), "  (Mouse)");
-					else if (inOutBinding.Keyboard.Key >= Input::KeyCode_KeyboardFirst && inOutBinding.Keyboard.Key <= Input::KeyCode_KeyboardLast)
+					else if (inOutBinding.Keyboard.Key >= KeyCode_KeyboardFirst && inOutBinding.Keyboard.Key <= KeyCode_KeyboardLast)
 						strcat_s(buffer.data(), buffer.size(), "  (Keyboard)");
 				}
-				else if (inOutBinding.Type == Input::BindingType::Controller)
+				else if (inOutBinding.Type == BindingType::Controller)
 				{
-					if (inOutBinding.Controller.Button >= Input::Button::First && inOutBinding.Controller.Button <= Input::Button::Last)
+					if (inOutBinding.Controller.Button >= Button::First && inOutBinding.Controller.Button <= Button::Last)
 						strcat_s(buffer.data(), buffer.size(), "  (Controller)");
 				}
 			}
@@ -302,34 +303,34 @@ namespace Comfy::Studio::Editor
 
 				Gui::SetActiveID(Gui::GetID(&inOutBinding), Gui::GetCurrentWindow());
 
-				for (Input::KeyCode keyCode = Input::KeyCode_KeyboardFirst; keyCode <= Input::KeyCode_KeyboardLast; keyCode++)
+				for (KeyCode keyCode = KeyCode_KeyboardFirst; keyCode <= KeyCode_KeyboardLast; keyCode++)
 				{
-					if (Input::IsKeyReleased(keyCode))
+					if (IsKeyReleased(keyCode))
 					{
-						Input::KeyModifiers heldModifiers = Input::KeyModifiers_None;
-						Input::ForEachKeyCodeInKeyModifiers(Input::KeyModifiers_All, [&](Input::KeyCode modifierKey)
+						KeyModifiers heldModifiers = KeyModifiers_None;
+						ForEachKeyCodeInKeyModifiers(KeyModifiers_All, [&](KeyCode modifierKey)
 						{
-							if (Input::IsKeyDown(modifierKey))
-								heldModifiers |= Input::KeyCodeToKeyModifiers(modifierKey);
+							if (IsKeyDown(modifierKey))
+								heldModifiers |= KeyCodeToKeyModifiers(modifierKey);
 						});
 
-						finishBindingAsignment(Input::Binding(keyCode, heldModifiers));
+						finishBindingAsignment(Binding(keyCode, heldModifiers));
 					}
 				}
 
 				// NOTE: Assume for now that binding the left / right mouse button is never desired
 				//		 otherwise there will have to be a different system for asigning those such as through a context menu
-				for (Input::KeyCode mouseKeyCode : { Input::KeyCode_MouseMiddle, Input::KeyCode_MouseX1, Input::KeyCode_MouseX2 })
+				for (KeyCode mouseKeyCode : { KeyCode_MouseMiddle, KeyCode_MouseX1, KeyCode_MouseX2 })
 				{
-					if (Input::IsKeyReleased(mouseKeyCode))
-						finishBindingAsignment(Input::Binding(mouseKeyCode));
+					if (IsKeyReleased(mouseKeyCode))
+						finishBindingAsignment(Binding(mouseKeyCode));
 				}
 
-				for (size_t i = 0; i <= EnumCount<Input::Button>(); i++)
+				for (size_t i = 0; i <= EnumCount<Button>(); i++)
 				{
-					const auto button = static_cast<Input::Button>(i);
-					if (Input::IsButtonReleased(button))
-						finishBindingAsignment(Input::Binding(button));
+					const auto button = static_cast<Button>(i);
+					if (IsButtonReleased(button))
+						finishBindingAsignment(Binding(button));
 				}
 			}
 
@@ -367,14 +368,13 @@ namespace Comfy::Studio::Editor
 				const auto phsyicalLeftSideKeys =
 				{
 					KeyCode_None, KeyCode_MouseLeft, KeyCode_MouseMiddle, KeyCode_MouseX1, KeyCode_MouseX2,
-					KeyCode_Tab, KeyCode_Shift, KeyCode_Ctrl, KeyCode_Alt, KeyCode_CapsLock,
-					KeyCode_Escape, KeyCode_Space, KeyCode_1, KeyCode_2, KeyCode_3,
-					KeyCode_4, KeyCode_5, KeyCode_6, KeyCode_A, KeyCode_B,
-					KeyCode_C, KeyCode_D, KeyCode_E, KeyCode_F, KeyCode_G,
-					KeyCode_H, KeyCode_Q, KeyCode_R, KeyCode_S, KeyCode_T,
+					KeyCode_Tab, KeyCode_Shift, KeyCode_Ctrl, KeyCode_Alt, KeyCode_CapsLock, KeyCode_Escape, KeyCode_Space,
+					KeyCode_1, KeyCode_2, KeyCode_3, KeyCode_4, KeyCode_5, KeyCode_6,
+					KeyCode_A, KeyCode_B, KeyCode_C, KeyCode_D, KeyCode_E, KeyCode_F,
+					KeyCode_G, KeyCode_H, KeyCode_Q, KeyCode_R, KeyCode_S, KeyCode_T,
 					KeyCode_V, KeyCode_W, KeyCode_X, KeyCode_Y, KeyCode_Z,
-					KeyCode_LeftWin, KeyCode_F1, KeyCode_F2, KeyCode_F3, KeyCode_F4,
-					KeyCode_F5, KeyCode_LeftShift, KeyCode_LeftCtrl, KeyCode_LeftAlt,
+					KeyCode_F1, KeyCode_F2, KeyCode_F3, KeyCode_F4, KeyCode_F5,
+					KeyCode_LeftWin, KeyCode_LeftShift, KeyCode_LeftCtrl, KeyCode_LeftAlt, KeyCode_OEMTilde,
 				};
 
 				for (const KeyCode leftSideKey : phsyicalLeftSideKeys)
@@ -481,14 +481,14 @@ namespace Comfy::Studio::Editor
 		{
 			if (Gui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !thisFrameAnyItemActive && !lastFrameAnyItemActive)
 			{
-				if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_YesOrOk, false))
+				if (IsAnyPressed(GlobalUserData.Input.App_Dialog_YesOrOk, false))
 					RequestWindowCloseAndKeepChanges();
-				else if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false))
+				else if (IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false))
 					RequestWindowCloseAndRevertChanges();
 
-				if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_SelectNextTab, true))
+				if (IsAnyPressed(GlobalUserData.Input.App_Dialog_SelectNextTab, true))
 					SelectNextTab(+1);
-				if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_SelectPreviousTab, true))
+				if (IsAnyPressed(GlobalUserData.Input.App_Dialog_SelectPreviousTab, true))
 					SelectNextTab(-1);
 			}
 
@@ -873,8 +873,7 @@ namespace Comfy::Studio::Editor
 			Gui::BeginChild("OutterLayoutsChild", vec2(GuiSettingsSubChildItemWidth, 0.0f), true, ImGuiWindowFlags_None);
 			Gui::PopStyleColor(1);
 
-			const size_t connectedControllerCount = Input::GlobalSystemGetConnectedControllerCount();
-			if (connectedControllerCount < 1)
+			if (Input::GlobalSystemGetConnectedControllerCount() < 1)
 			{
 				Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 				Gui::PushStyleColor(ImGuiCol_Button, Gui::GetColorU32(ImGuiCol_Button, 0.25f));
@@ -883,126 +882,7 @@ namespace Comfy::Studio::Editor
 			}
 			else
 			{
-				if (Gui::BeginTabBar("ControllerLayoutTabBar", /*ImGuiTabBarFlags_TabListPopupButton |*/ ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll))
-				{
-					for (size_t controllerIndex = 0; controllerIndex < connectedControllerCount; controllerIndex++)
-					{
-						const auto controllerInfo = Input::GlobalSystemGetConnectedControllerInfoAt(controllerIndex);
-						auto* correspondingLayoutMapping = FindIfOrNull(userData.Input.ControllerLayoutMappings, [&](auto& m) { return m.ProductID.GUID == controllerInfo.ProductID.GUID; });
-
-						std::array<bool, EnumCount<Input::NativeButton>()> nativeButtonsDown;
-						bool anyNonAxisNativeButtonDown = false;
-						for (i32 i = 0; i < static_cast<i32>(nativeButtonsDown.size()); i++)
-						{
-							nativeButtonsDown[i] = Input::IsNativeButtonDown(controllerInfo.InstanceID, static_cast<Input::NativeButton>(i));
-
-							if (nativeButtonsDown[i] && !(i >= static_cast<i32>(Input::NativeButton::FirstAxis) && i <= static_cast<i32>(Input::NativeButton::LastAxis)))
-								anyNonAxisNativeButtonDown = true;
-						}
-
-						Gui::PushID(static_cast<i32>(controllerIndex));
-						Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(anyNonAxisNativeButtonDown ? ImGuiCol_Text : ImGuiCol_TextDisabled));
-						const bool beginTabItem = Gui::BeginTabItem(controllerInfo.InstanceName.data());
-						Gui::PopStyleColor();
-						if (beginTabItem)
-						{
-							Gui::BeginChild("InnerLayoutChild", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_None);
-							if (correspondingLayoutMapping != nullptr)
-							{
-								Input::NativeButton userClickedNativeButton = Input::NativeButton::Count;
-
-								// TODO: Manual column placement to avoid ugly border spacing
-								Gui::BeginColumns(nullptr, 2, /*ImGuiColumnsFlags_NoBorder |*/ ImGuiColumnsFlags_NoResize);
-								for (i32 i = static_cast<i32>(Input::NativeButton::FirstAll); i <= static_cast<i32>(Input::NativeButton::LastAll); i++)
-								{
-									// TODO: Separate the button sub types into groups and position dpad buttons in direction formation
-									const Input::NativeButton nativeButton = static_cast<Input::NativeButton>(i);
-									const bool isRegularButton = (nativeButton >= Input::NativeButton::FirstButton && nativeButton <= Input::NativeButton::LastButton);
-									const bool isDPadButton = (nativeButton >= Input::NativeButton::FirstDPad && nativeButton <= Input::NativeButton::LastDPad);
-									const bool isAxisButton = (nativeButton >= Input::NativeButton::FirstAxis && nativeButton <= Input::NativeButton::LastAxis);
-									const char* buttonSubTypeName = "Invalid";
-									i32 subTypeButtonIndex = 0;
-
-									if (isRegularButton)
-									{
-										buttonSubTypeName = "Button";
-										if (subTypeButtonIndex = (i - static_cast<i32>(Input::NativeButton::FirstButton)); subTypeButtonIndex >= controllerInfo.ButtonCount)
-											continue;
-									}
-									else if (isDPadButton)
-									{
-
-										buttonSubTypeName = "DPad";
-										if (subTypeButtonIndex = (i - static_cast<i32>(Input::NativeButton::FirstDPad)); subTypeButtonIndex >= controllerInfo.DPadCount * 4)
-											continue;
-									}
-									else if (isAxisButton)
-									{
-										buttonSubTypeName = "Axis";
-										if (subTypeButtonIndex = (i - static_cast<i32>(Input::NativeButton::FirstAxis)); subTypeButtonIndex >= controllerInfo.AxesCount * 3)
-											continue;
-									}
-
-									const char* boundButtonName = Input::GetButtonName(Input::FindStandardButtonForNativeButton(*correspondingLayoutMapping, nativeButton));
-
-									char buffer[128];
-									sprintf_s(buffer, "%s %d: [%s]", buttonSubTypeName, subTypeButtonIndex + 1, boundButtonName);
-									Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(nativeButtonsDown[i] ? ImGuiCol_Text : ImGuiCol_TextDisabled));
-									Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(nativeButtonsDown[i] ? ImGuiCol_ButtonActive : ImGuiCol_Button));
-									if (Gui::ButtonEx(buffer, vec2(Gui::GetContentRegionAvailWidth(), 0.0f), ImGuiButtonFlags_None /*ImGuiButtonFlags_Disabled*/))
-										userClickedNativeButton = nativeButton;
-									Gui::PopStyleColor(2);
-
-									Gui::NextColumn();
-								}
-								Gui::EndColumns();
-
-								char buttonPickerPopupID[128];
-								sprintf_s(buttonPickerPopupID, "Assign Native Button %d###ButtonPickerPopup", static_cast<i32>(currentButtonPickerPopupNativeButton));
-
-								if (userClickedNativeButton < Input::NativeButton::Count)
-								{
-									currentButtonPickerPopupNativeButton = userClickedNativeButton;
-									Gui::OpenPopup(buttonPickerPopupID);
-								}
-
-								const auto* viewport = Gui::GetMainViewport();
-								Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
-
-								bool isPopupOpen = true;
-								if (Gui::WideBeginPopupModal(buttonPickerPopupID, &isPopupOpen, ImGuiWindowFlags_AlwaysAutoResize))
-								{
-									// HACK: Prevent this binding from closing both this and the outter popup
-									thisFrameAnyItemActive = true;
-									if (Input::IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false))
-										Gui::CloseCurrentPopup();
-
-									GuiButtonPickerPopupContent(userData, *correspondingLayoutMapping);
-									Gui::EndPopup();
-								}
-							}
-							else
-							{
-								Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_Text, 0.85f));
-								Gui::PushStyleColor(ImGuiCol_Button, Gui::GetColorU32(ImGuiCol_Button, 0.25f));
-								Gui::PushStyleColor(ImGuiCol_ButtonHovered, Gui::GetColorU32(ImGuiCol_ButtonHovered, 0.25f));
-								Gui::PushStyleColor(ImGuiCol_ButtonActive, Gui::GetColorU32(ImGuiCol_ButtonActive, 0.25f));
-								if (Gui::ButtonEx("Define Layout for this Device Type", Gui::GetContentRegionAvail(), ImGuiButtonFlags_None))
-								{
-									auto& newMapping = userData.Input.ControllerLayoutMappings.emplace_back();
-									newMapping.ProductID = controllerInfo.ProductID;
-									newMapping.Name = controllerInfo.ProductName;
-									pendingChanges = true;
-								}
-								Gui::PopStyleColor(4);
-							}
-							Gui::EndChild();
-							Gui::EndTabItem();
-						}
-						Gui::PopID();
-					}
-				}
-				Gui::EndTabBar();
+				GuiControllerLayoutTabBarAndContent(userData);
 			}
 
 			Gui::EndChild();
@@ -1137,7 +1017,7 @@ namespace Comfy::Studio::Editor
 							if (namedBinding.MultiBinding->Bindings[i].IsEmpty())
 								combinedBindingShortcutBuffer += "None";
 							else
-								combinedBindingShortcutBuffer += Input::ToString(namedBinding.MultiBinding->Bindings[i]).data();
+								combinedBindingShortcutBuffer += ToString(namedBinding.MultiBinding->Bindings[i]).data();
 
 							if (i + 1 < namedBinding.MultiBinding->BindingCount)
 								combinedBindingShortcutBuffer += ", ";
@@ -1277,6 +1157,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditorSettingsWindow::GuiTabPlaytestBindings(ComfyStudioUserSettings& userData)
 	{
+		using namespace Input;
 		if (Gui::CollapsingHeader("Playtest Bindings", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			size_t bindingIndexToRemove = std::numeric_limits<size_t>::max();
@@ -1291,13 +1172,21 @@ namespace Comfy::Studio::Editor
 				const f32 availWidthTotal = Gui::GetContentRegionAvailWidth();
 				const f32 itemInnerSpacingX = Gui::GetStyle().ItemInnerSpacing.x;
 
+				constexpr u32 conflictTextColor = 0xFF2424E3;
+				const bool bindingConflicts = (FindIfOrNull(userData.Input.PlaytestBindings, [&](auto& b) { return (&b != &binding) && (b.InputSource == binding.InputSource); }) != nullptr);
+				const bool bindingIsDownAnyNotBeingEdited = (awaitInputBinding == nullptr) && IsDown(binding.InputSource);
+
+				if (bindingConflicts) Gui::PushStyleColor(ImGuiCol_Text, conflictTextColor);
+				if (bindingIsDownAnyNotBeingEdited) Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(ImGuiCol_ButtonActive));
 				if (GuiSettingsInteractiveAwaitKeyPressInputBindingButton(binding.InputSource, vec2((availWidthTotal - itemInnerSpacingX - itemInnerSpacingX) / 3.0f, 0.0f), awaitInputBinding, awaitInputStopwatch))
 				{
-					if (binding.InputSource.Type == Input::BindingType::Keyboard)
-						binding.InputSource.Keyboard.Modifiers = Input::KeyModifiers_None;
+					if (binding.InputSource.Type == BindingType::Keyboard)
+						binding.InputSource.Keyboard.Modifiers = KeyModifiers_None;
 					binding.SlidePosition = AutomaticallyDeterminePlayTestSlidePosition(binding.ButtonTypes, binding.InputSource);
 					pendingChanges = true;
 				}
+				if (bindingIsDownAnyNotBeingEdited) Gui::PopStyleColor();
+				if (bindingConflicts) Gui::PopStyleColor();
 
 				Gui::SameLine(0.0f, itemInnerSpacingX);
 				Gui::PushItemWidth((availWidthTotal - itemInnerSpacingX - itemInnerSpacingX) / 2.0f);
@@ -1396,9 +1285,213 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void ChartEditorSettingsWindow::GuiControllerLayoutTabBarAndContent(ComfyStudioUserSettings& userData)
+	{
+		using Input::NativeButton;
+		using Input::Button;
+
+		if (Gui::BeginTabBar("ControllerLayoutTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll))
+		{
+			const size_t connectedControllerCount = Input::GlobalSystemGetConnectedControllerCount();
+			for (size_t controllerIndex = 0; controllerIndex < connectedControllerCount; controllerIndex++)
+			{
+				const auto controllerInfo = Input::GlobalSystemGetConnectedControllerInfoAt(controllerIndex);
+				auto* correspondingLayoutMapping = FindIfOrNull(userData.Input.ControllerLayoutMappings, [&](auto& m) { return m.ProductID.GUID == controllerInfo.ProductID.GUID; });
+
+				std::array<bool, EnumCount<NativeButton>()> nativeButtonsDown;
+				bool anyNonAxisNativeButtonDown = false;
+				for (i32 i = 0; i < static_cast<i32>(nativeButtonsDown.size()); i++)
+				{
+					nativeButtonsDown[i] = IsNativeButtonDown(controllerInfo.InstanceID, static_cast<NativeButton>(i));
+
+					if (nativeButtonsDown[i] && !(i >= static_cast<i32>(NativeButton::FirstAxis) && i <= static_cast<i32>(NativeButton::LastAxis)))
+						anyNonAxisNativeButtonDown = true;
+				}
+
+				Gui::PushID(static_cast<i32>(controllerIndex));
+				Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(anyNonAxisNativeButtonDown ? ImGuiCol_Text : ImGuiCol_TextDisabled));
+				const bool beginTabItem = Gui::BeginTabItem(controllerInfo.InstanceName.data());
+				Gui::PopStyleColor();
+				if (beginTabItem)
+				{
+					if (correspondingLayoutMapping != nullptr)
+					{
+						Gui::BeginChild("InnerLayoutChild", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_NoBackground);
+						GuiControllerLayoutTabItemInnerContent(userData, controllerInfo, *correspondingLayoutMapping, nativeButtonsDown.data());
+						Gui::EndChild();
+					}
+					else
+					{
+						Gui::BeginChild("InnerLayoutChild", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_None);
+						Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_Text, 0.85f));
+						Gui::PushStyleColor(ImGuiCol_Button, Gui::GetColorU32(ImGuiCol_Button, 0.25f));
+						Gui::PushStyleColor(ImGuiCol_ButtonHovered, Gui::GetColorU32(ImGuiCol_ButtonHovered, 0.25f));
+						Gui::PushStyleColor(ImGuiCol_ButtonActive, Gui::GetColorU32(ImGuiCol_ButtonActive, 0.25f));
+						if (Gui::ButtonEx("Click to Define a Layout for this Device Type...", Gui::GetContentRegionAvail(), ImGuiButtonFlags_None))
+						{
+							auto& newMapping = userData.Input.ControllerLayoutMappings.emplace_back();
+							newMapping.ProductID = controllerInfo.ProductID;
+							newMapping.Name = controllerInfo.ProductName;
+							pendingChanges = true;
+						}
+						Gui::PopStyleColor(4);
+						Gui::EndChild();
+					}
+					Gui::EndTabItem();
+				}
+				Gui::PopID();
+			}
+		}
+		Gui::EndTabBar();
+	}
+
+	void ChartEditorSettingsWindow::GuiControllerLayoutTabItemInnerContent(ComfyStudioUserSettings& userData, const Input::ControllerInfoView& controllerInfo, Input::StandardControllerLayoutMapping& correspondingLayoutMapping, const bool nativeButtonsDown[])
+	{
+		// TODO: ~~Auto assign NativeAxis based on axis button bindings..?~~ thought that doesn't really work for triggers
+		// TODO: Eventually implement setup wizzard step by step prompting to press a specified button
+		// TODO: Try to improve ugly columns spacing / padding
+
+		using namespace Input;
+		const auto& style = Gui::GetStyle();
+		const f32 buttonHeight = 24.0f;
+
+		char labelBuffer[128];
+		NativeButton userClickedNativeButton = NativeButton::Count;
+
+		auto assignClickableButton = [&](const char* label, NativeButton nativeButton, f32 width)
+		{
+			assert(nativeButton < NativeButton::Count);
+			const bool isNativeButtonDown = nativeButtonsDown[static_cast<i32>(nativeButton)];
+
+			Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(isNativeButtonDown ? ImGuiCol_Text : ImGuiCol_TextDisabled));
+			Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(isNativeButtonDown ? ImGuiCol_ButtonActive : ImGuiCol_Button));
+			if (Gui::Button(label, vec2(Gui::GetContentRegionAvailWidth(), buttonHeight)))
+				userClickedNativeButton = nativeButton;
+			Gui::PopStyleColor(2);
+		};
+
+		const i32 clampedButtonCount = std::clamp(controllerInfo.ButtonCount, 0, static_cast<i32>(NativeButton::ButtonCount));
+		const i32 clampedDPadCount = std::clamp(controllerInfo.DPadCount, 0, static_cast<i32>(NativeButton::DPadCount));
+		const i32 clampedAxisCount = std::clamp(controllerInfo.AxisCount, 0, static_cast<i32>(NativeButton::AxisCount));
+
+		if (clampedDPadCount > 0)
+		{
+			for (i32 dpadIndex = 0; dpadIndex < clampedDPadCount; dpadIndex++)
+			{
+				const NativeButton nativeButtonUp = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 0);
+				const NativeButton nativeButtonLeft = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 1);
+				const NativeButton nativeButtonDown = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 2);
+				const NativeButton nativeButtonRight = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstDPad) + (dpadIndex * static_cast<i32>(NativeButton::PerDPadSubElements)) + 3);
+
+				Gui::PushID(dpadIndex);
+				Gui::BeginChild("NativeButtonDPadChild", vec2(0.0f, 3.0f * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
+				Gui::BeginColumns(nullptr, 3, ImGuiColumnsFlags_NoResize);
+				{
+					auto dpadDirectionButton = [&](const char* /*directionLabel*/, NativeButton nativeButton)
+					{
+						sprintf_s(labelBuffer, "[%s]", GetButtonName(FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton)));
+						assignClickableButton(labelBuffer, nativeButton, Gui::GetContentRegionAvailWidth());
+					};
+
+					// ... Up-Left
+					Gui::NextColumn();
+					dpadDirectionButton("Up", nativeButtonUp);
+					Gui::NextColumn();
+					// ... Up-Right
+					Gui::NextColumn();
+					dpadDirectionButton("Left", nativeButtonLeft);
+					Gui::NextColumn();
+					{
+						Gui::PushStyleColor(ImGuiCol_Button, 0x00000000);
+						sprintf_s(labelBuffer, "DPad %d", dpadIndex + 1);
+						Gui::ButtonEx(labelBuffer, vec2(Gui::GetContentRegionAvailWidth(), 0.0f), ImGuiButtonFlags_Disabled);
+						Gui::PopStyleColor(1);
+					}
+					Gui::NextColumn();
+					dpadDirectionButton("Right", nativeButtonRight);
+					Gui::NextColumn();
+					// ... Down-Left
+					Gui::NextColumn();
+					dpadDirectionButton("Down", nativeButtonDown);
+					Gui::NextColumn();
+					// ... Down-Right
+					Gui::NextColumn();
+				}
+				Gui::EndColumns();
+				Gui::EndChild();
+				Gui::PopID();
+			}
+		}
+
+		if (clampedButtonCount > 0)
+		{
+			Gui::BeginChild("NativeButtonButtonsChild", vec2(0.0f, (clampedButtonCount / 2) * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
+			Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+			for (i32 buttonIndex = 0; buttonIndex < clampedButtonCount; buttonIndex++)
+			{
+				const NativeButton nativeButton = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstButton) + buttonIndex);
+
+				sprintf_s(labelBuffer, "Button %d  [%s]", buttonIndex + 1, GetButtonName(FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton)));
+				assignClickableButton(labelBuffer, nativeButton, Gui::GetContentRegionAvailWidth());
+
+				Gui::NextColumn();
+			}
+			Gui::EndColumns();
+			Gui::EndChild();
+		}
+
+		// TODO: Configure analog axes
+		if (clampedAxisCount > 0)
+		{
+			Gui::BeginChild("NativeButtonAxesChild", vec2(0.0f, clampedAxisCount * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
+			Gui::BeginColumns(nullptr, static_cast<i32>(NativeButton::PerAxisSubElements), ImGuiColumnsFlags_NoResize);
+			for (i32 relativeAxes = 0; relativeAxes < clampedAxisCount; relativeAxes++)
+			{
+				const NativeButton nativeButtonNegative = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstAxis) + (relativeAxes * static_cast<i32>(NativeButton::PerAxisSubElements)) + 0);
+				const NativeButton nativeButtonPositive = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstAxis) + (relativeAxes * static_cast<i32>(NativeButton::PerAxisSubElements)) + 1);
+
+				auto triggerButton = [&](const char* label, NativeButton nativeButton)
+				{
+					sprintf_s(labelBuffer, "Axis %d %s  [%s]", relativeAxes + 1, label, GetButtonName(FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton)));
+					assignClickableButton(labelBuffer, nativeButton, Gui::GetContentRegionAvailWidth());
+					Gui::NextColumn();
+				};
+
+				triggerButton("-", nativeButtonNegative);
+				triggerButton("+", nativeButtonPositive);
+			}
+			Gui::EndColumns();
+			Gui::EndChild();
+		}
+
+		char buttonPickerPopupID[128];
+		sprintf_s(buttonPickerPopupID, "Assign Native Button %d###ButtonPickerPopup", static_cast<i32>(currentButtonPickerPopupNativeButton));
+
+		if (userClickedNativeButton < NativeButton::Count)
+		{
+			currentButtonPickerPopupNativeButton = userClickedNativeButton;
+			Gui::OpenPopup(buttonPickerPopupID);
+		}
+
+		const auto* viewport = Gui::GetMainViewport();
+		Gui::SetNextWindowPos(viewport->Pos + (viewport->Size / 2.0f), ImGuiCond_Appearing, vec2(0.5f));
+
+		bool isPopupOpen = true;
+		if (Gui::WideBeginPopupModal(buttonPickerPopupID, &isPopupOpen, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			// HACK: Prevent this binding from closing both this and the outter popup
+			thisFrameAnyItemActive = true;
+			if (IsAnyPressed(GlobalUserData.Input.App_Dialog_Cancel, false))
+				Gui::CloseCurrentPopup();
+
+			GuiButtonPickerPopupContent(userData, correspondingLayoutMapping);
+			Gui::EndPopup();
+		}
+	}
+
 	void ChartEditorSettingsWindow::GuiButtonPickerPopupContent(ComfyStudioUserSettings& userData, Input::StandardControllerLayoutMapping& layoutMapping)
 	{
-		using Input::Button;
+		using namespace Input;
 		static constexpr std::array<Button, 5> dPadUpLeftDownRight = { Button::DPadUp, Button::DPadLeft, Button::DPadDown, Button::DPadRight, Button::None };
 		static constexpr std::array<Button, 5> faceUpLeftDownRight = { Button::FaceUp, Button::FaceLeft, Button::FaceDown, Button::FaceRight, Button::None };
 		static constexpr std::array<Button, 5> leftStickUpLeftDownRight = { Button::LeftStickUp, Button::LeftStickLeft, Button::LeftStickDown, Button::LeftStickRight, Button::LeftStickClick };
@@ -1406,17 +1499,17 @@ namespace Comfy::Studio::Editor
 
 		constexpr f32 margin = 8.0f;
 		constexpr f32 spacing = 4.0f;
-		constexpr vec2 buttonSize = vec2(100.0f, 24.0f);
+		constexpr vec2 buttonSize = vec2(100.0f, 26.0f);
 		constexpr vec2 buttonSizeTouchPad = vec2(260.0f, 72.0f);
 
-		const Button selecedPopupStandardButton = Input::FindStandardButtonForNativeButton(layoutMapping, currentButtonPickerPopupNativeButton);
+		const Button selecedPopupStandardButton = FindStandardButtonForNativeButton(layoutMapping, currentButtonPickerPopupNativeButton);
 
 		auto standardControllerButton = [&](Button standardButton, vec2 position, vec2 size)
 		{
 			Gui::SetCursorPos(position);
-			if (Gui::Button(Input::GetButtonName(standardButton), size))
+			if (Gui::Button(GetButtonName(standardButton), size))
 			{
-				layoutMapping.StandardToNativeButtons[static_cast<i32>(selecedPopupStandardButton)] = Input::NativeButton::None;
+				layoutMapping.StandardToNativeButtons[static_cast<i32>(selecedPopupStandardButton)] = NativeButton::None;
 				layoutMapping.StandardToNativeButtons[static_cast<i32>(standardButton)] = currentButtonPickerPopupNativeButton;
 				pendingChanges = true;
 				Gui::CloseCurrentPopup();
@@ -1444,23 +1537,23 @@ namespace Comfy::Studio::Editor
 			const vec2 windowCenter = (windowSize * 0.5f);
 
 			// TODO: Clean up, resign, analog axis asignment and add hints for which buttons are already bound
-			standardControllerButton(Button::LeftTrigger, vec2(margin, margin), buttonSize);
-			standardControllerButton(Button::LeftBumper, vec2(margin + (buttonSize.x * 0.35f) + spacing, margin + buttonSize.y + spacing), buttonSize);
-			standardControllerButton(Button::RightTrigger, vec2(windowSize.x - margin - buttonSize.x, margin), buttonSize);
-			standardControllerButton(Button::RightBumper, vec2(windowSize.x - margin - buttonSize.x - ((buttonSize.x * 0.35f) + spacing), margin + buttonSize.y + spacing), buttonSize);
+			standardControllerButton(Button::LeftTrigger, vec2(margin, margin + spacing), buttonSize);
+			standardControllerButton(Button::LeftBumper, vec2(margin + (buttonSize.x * 0.35f) + spacing, margin + buttonSize.y + spacing + spacing), buttonSize);
+			standardControllerButton(Button::RightTrigger, vec2(windowSize.x - margin - buttonSize.x, margin + spacing), buttonSize);
+			standardControllerButton(Button::RightBumper, vec2(windowSize.x - margin - buttonSize.x - ((buttonSize.x * 0.35f) + spacing), margin + buttonSize.y + spacing + spacing), buttonSize);
 			standardControllerButton(Button::TouchPad, vec2(windowCenter.x - (buttonSizeTouchPad.x / 2.0f), margin), buttonSizeTouchPad);
-			standardControllerButton(Button::Home, vec2(windowCenter.x - (buttonSize.x / 2.0f), margin + buttonSizeTouchPad.y + spacing + (buttonSize.y * 0.5f) + spacing), buttonSize);
-			standardControllerButton(Button::Select, vec2(windowCenter.x - (buttonSize.x / 2.0f) - (buttonSize.x + spacing), margin + buttonSizeTouchPad.y + spacing), buttonSize);
-			standardControllerButton(Button::Start, vec2(windowCenter.x - (buttonSize.x / 2.0f) + (buttonSize.x + spacing), margin + buttonSizeTouchPad.y + spacing), buttonSize);
+			standardControllerButton(Button::Home, vec2(windowCenter.x - (buttonSize.x / 2.0f), margin + buttonSizeTouchPad.y + spacing + (buttonSize.y * 0.5f) + spacing + spacing), buttonSize);
+			standardControllerButton(Button::Select, vec2(windowCenter.x - (buttonSize.x / 2.0f) - (buttonSize.x + spacing), margin + buttonSizeTouchPad.y + spacing + spacing), buttonSize);
+			standardControllerButton(Button::Start, vec2(windowCenter.x - (buttonSize.x / 2.0f) + (buttonSize.x + spacing), margin + buttonSizeTouchPad.y + spacing + spacing), buttonSize);
 			standardControllerDirectionalButtons(dPadUpLeftDownRight, vec2(margin, 140.0f), buttonSize);
 			standardControllerDirectionalButtons(faceUpLeftDownRight, vec2(windowSize.x - (spacing + (buttonSize.x + spacing) * 3.0f), 146.0f), buttonSize);
 			standardControllerDirectionalButtons(leftStickUpLeftDownRight, vec2(margin, 260.0f), buttonSize);
 			standardControllerDirectionalButtons(rightStickUpLeftDownRight, vec2(windowSize.x - (spacing + (buttonSize.x + spacing) * 3.0f), 260.0f), buttonSize);
 
-			Gui::SetCursorPos(vec2(Gui::GetWindowWidth() * 0.25f, (Gui::GetWindowHeight() - Gui::GetFrameHeight()) - (Gui::GetStyle().WindowPadding.y + margin)));
-			if (Gui::Button("None", vec2(Gui::GetWindowWidth() * 0.5f, Gui::GetFrameHeight())))
+			Gui::SetCursorPos(vec2(Gui::GetWindowWidth() * 0.25f, (Gui::GetWindowHeight() - buttonSize.y) - (Gui::GetStyle().WindowPadding.y + margin)));
+			if (Gui::Button("None", vec2(Gui::GetWindowWidth() * 0.5f, buttonSize.y)))
 			{
-				layoutMapping.StandardToNativeButtons[static_cast<i32>(selecedPopupStandardButton)] = Input::NativeButton::None;
+				layoutMapping.StandardToNativeButtons[static_cast<i32>(selecedPopupStandardButton)] = NativeButton::None;
 				pendingChanges = true;
 				Gui::CloseCurrentPopup();
 			}

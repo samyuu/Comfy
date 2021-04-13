@@ -35,6 +35,8 @@ namespace Comfy::Studio::Editor
 		void GuiTabPlaytestBindings(ComfyStudioUserSettings& userData);
 		void GuiTabThemeDebug(ComfyStudioUserSettings& userData);
 
+		void GuiControllerLayoutTabBarAndContent(ComfyStudioUserSettings& userData);
+		void GuiControllerLayoutTabItemInnerContent(ComfyStudioUserSettings& userData, const Input::ControllerInfoView& controllerInfo, Input::StandardControllerLayoutMapping& correspondingLayoutMapping, const bool nativeButtonsDown[]);
 		void GuiButtonPickerPopupContent(ComfyStudioUserSettings& userData, Input::StandardControllerLayoutMapping& layoutMapping);
 
 	private:
