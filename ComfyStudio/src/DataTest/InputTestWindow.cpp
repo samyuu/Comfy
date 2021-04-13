@@ -41,9 +41,9 @@ namespace Comfy::Studio::DataTest
 
 		if (Gui::CollapsingHeader("Keyboard"/*, ImGuiTreeNodeFlags_DefaultOpen*/))
 		{
-			for (Input::KeyCode key = Input::KeyCode_KeyboardFirst; key < Input::KeyCode_KeyboardLast; key++)
+			for (Input::KeyCode key = Input::KeyCode_KeyboardFirst; key <= Input::KeyCode_KeyboardLast; key++)
 			{
-				if (Input::IsDown(key))
+				if (Input::IsKeyDown(key))
 				{
 					if (const char* keyName = Input::GetKeyCodeName(key); keyName != nullptr)
 						Gui::BulletText(keyName);
@@ -60,7 +60,7 @@ namespace Comfy::Studio::DataTest
 			for (size_t buttonIndex = 0; buttonIndex < EnumCount<Input::Button>(); buttonIndex++)
 			{
 				const auto button = static_cast<Input::Button>(buttonIndex);
-				if (Input::IsDown(button))
+				if (Input::IsButtonDown(button))
 				{
 					if (const char* buttonName = Input::GetButtonName(button); buttonName != nullptr)
 						Gui::BulletText(buttonName);

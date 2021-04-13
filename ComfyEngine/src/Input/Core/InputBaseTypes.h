@@ -143,19 +143,19 @@ namespace Comfy::Input
 		KeyCode_LaunchMediaSelect = 0xB5,
 		KeyCode_LaunchApp1 = 0xB6,
 		KeyCode_LaunchApp2 = 0xB7,
-		KeyCode_OEM1 = 0xBA,
+		KeyCode_OEMSemicolon = 0xBA,
 		KeyCode_OEMPlus = 0xBB,
 		KeyCode_OEMComma = 0xBC,
 		KeyCode_OEMMinus = 0xBD,
 		KeyCode_OEMPeriod = 0xBE,
-		KeyCode_OEM2 = 0xBF,
-		KeyCode_OEM3 = 0xC0,
-		KeyCode_OEM4 = 0xDB,
-		KeyCode_OEM5 = 0xDC,
-		KeyCode_OEM6 = 0xDD,
-		KeyCode_OEM7 = 0xDE,
+		KeyCode_OEMQuestion = 0xBF,
+		KeyCode_OEMTilde = 0xC0,
+		KeyCode_OEMOpenBrackets = 0xDB,
+		KeyCode_OEMPipe = 0xDC,
+		KeyCode_OEMCloseBrackets = 0xDD,
+		KeyCode_OEMQuotes = 0xDE,
 		KeyCode_OEM8 = 0xDF,
-		KeyCode_OEM102 = 0xE2,
+		KeyCode_OEMBackslash = 0xE2,
 		KeyCode_IMEProcessKey = 0xE5,
 		KeyCode_Packet = 0xE7,
 		KeyCode_Attn = 0xF6,
@@ -475,11 +475,11 @@ namespace Comfy::Input
 			: Type(BindingType::None), Keyboard()
 		{
 		}
-		constexpr Binding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None)
+		explicit constexpr Binding(KeyCode key, KeyModifiers modifiers = KeyModifiers_None)
 			: Type(BindingType::Keyboard), Keyboard({ key, modifiers })
 		{
 		}
-		constexpr Binding(Button button)
+		explicit constexpr Binding(Button button)
 			: Type(BindingType::Controller), Controller({ button })
 		{
 		}
@@ -508,8 +508,8 @@ namespace Comfy::Input
 		u8 BindingCount = 0;
 
 		constexpr MultiBinding() {}
-		constexpr MultiBinding(Binding primary) : Bindings({ primary }), BindingCount(1) {}
-		constexpr MultiBinding(Binding primary, Binding secondary) : Bindings({ primary, secondary }), BindingCount(2) {}
+		explicit constexpr MultiBinding(Binding primary) : Bindings({ primary }), BindingCount(1) {}
+		explicit constexpr MultiBinding(Binding primary, Binding secondary) : Bindings({ primary, secondary }), BindingCount(2) {}
 
 		constexpr auto begin() const { return Bindings.begin(); }
 		constexpr auto end() const { return Bindings.begin() + BindingCount; }

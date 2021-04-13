@@ -11,6 +11,8 @@ namespace Comfy::Input
 		{
 			const char* EnumName;
 			const char* DisplayName;
+			const char* DisplayNameAlt;
+			const char* DisplayNameAltAlt;
 		};
 
 		constexpr std::array<EnumNamePair, KeyCode_Count> KeyCodeNameLookup =
@@ -32,7 +34,7 @@ namespace Comfy::Input
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { "KeyCode_Shift", "Shift" },
-			EnumNamePair { "KeyCode_Ctrl", "Ctrl" },
+			EnumNamePair { "KeyCode_Ctrl", "Ctrl", "Control" },
 			EnumNamePair { "KeyCode_Alt", "Alt" },
 			EnumNamePair { "KeyCode_Pause", "Pause" },
 			EnumNamePair { "KeyCode_CapsLock", "Caps Lock" },
@@ -42,7 +44,7 @@ namespace Comfy::Input
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
-			EnumNamePair { "KeyCode_Escape", "Escape" },
+			EnumNamePair { "KeyCode_Escape", "Esc", "Escape" },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
@@ -111,16 +113,16 @@ namespace Comfy::Input
 			EnumNamePair { "KeyCode_Apps", "Apps" },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { "KeyCode_Sleep", "Sleep" },
-			EnumNamePair { "KeyCode_Numpad0", "Numpad 0" },
-			EnumNamePair { "KeyCode_Numpad1", "Numpad 1" },
-			EnumNamePair { "KeyCode_Numpad2", "Numpad 2" },
-			EnumNamePair { "KeyCode_Numpad3", "Numpad 3" },
-			EnumNamePair { "KeyCode_Numpad4", "Numpad 4" },
-			EnumNamePair { "KeyCode_Numpad5", "Numpad 5" },
-			EnumNamePair { "KeyCode_Numpad6", "Numpad 6" },
-			EnumNamePair { "KeyCode_Numpad7", "Numpad 7" },
-			EnumNamePair { "KeyCode_Numpad8", "Numpad 8" },
-			EnumNamePair { "KeyCode_Numpad9", "Numpad 9" },
+			EnumNamePair { "KeyCode_Numpad0", "Numpad 0", "Num 0" },
+			EnumNamePair { "KeyCode_Numpad1", "Numpad 1", "Num 1" },
+			EnumNamePair { "KeyCode_Numpad2", "Numpad 2", "Num 2" },
+			EnumNamePair { "KeyCode_Numpad3", "Numpad 3", "Num 3" },
+			EnumNamePair { "KeyCode_Numpad4", "Numpad 4", "Num 4" },
+			EnumNamePair { "KeyCode_Numpad5", "Numpad 5", "Num 5" },
+			EnumNamePair { "KeyCode_Numpad6", "Numpad 6", "Num 6" },
+			EnumNamePair { "KeyCode_Numpad7", "Numpad 7", "Num 7" },
+			EnumNamePair { "KeyCode_Numpad8", "Numpad 8", "Num 8" },
+			EnumNamePair { "KeyCode_Numpad9", "Numpad 9", "Num 9" },
 			EnumNamePair { "KeyCode_Multiply", "Multiply" },
 			EnumNamePair { "KeyCode_Add", "Add" },
 			EnumNamePair { "KeyCode_Separator", "Separator" },
@@ -182,32 +184,32 @@ namespace Comfy::Input
 			EnumNamePair { "KeyCode_LeftAlt", "Left Alt" },
 			EnumNamePair { "KeyCode_RightAlt", "Right Alt" },
 			EnumNamePair { "KeyCode_BrowserBack", "Browser Back" },
-			EnumNamePair { "KeyCode_BrowserForward",	"Browser Forward" },
-			EnumNamePair { "KeyCode_BrowserRefresh",	"Browser Refresh" },
+			EnumNamePair { "KeyCode_BrowserForward", "Browser Forward" },
+			EnumNamePair { "KeyCode_BrowserRefresh", "Browser Refresh" },
 			EnumNamePair { "KeyCode_BrowserStop", "Browser Stop" },
-			EnumNamePair { "KeyCode_BrowserSearch",	"Browser Search" },
-			EnumNamePair { "KeyCode_BrowserFavorites",	"Browser Favorite" },
+			EnumNamePair { "KeyCode_BrowserSearch", "Browser Search" },
+			EnumNamePair { "KeyCode_BrowserFavorites", "Browser Favorite" },
 			EnumNamePair { "KeyCode_BrowserHome", "Browser Home" },
 			EnumNamePair { "KeyCode_VolumeMute", "Volume Mute" },
 			EnumNamePair { "KeyCode_VolumeDown", "Volume Down" },
 			EnumNamePair { "KeyCode_VolumeUp", "Volume Up" },
-			EnumNamePair { "KeyCode_MediaNextTrack",	"Media Next Track" },
-			EnumNamePair { "KeyCode_MediaPrevTrack",	"Media Prev Track" },
+			EnumNamePair { "KeyCode_MediaNextTrack", "Media Next Track" },
+			EnumNamePair { "KeyCode_MediaPrevTrack", "Media Prev Track" },
 			EnumNamePair { "KeyCode_MediaStop", "Media Stop" },
-			EnumNamePair { "KeyCode_MediaPlayPause",	"Media Play Pause" },
+			EnumNamePair { "KeyCode_MediaPlayPause", "Media Play Pause" },
 			EnumNamePair { "KeyCode_LaunchMail", "Launch Mail" },
 			EnumNamePair { "KeyCode_LaunchMediaSelect", "Launch Media Select" },
 			EnumNamePair { "KeyCode_LaunchApp1", "Launch App 1" },
 			EnumNamePair { "KeyCode_LaunchApp2", "Launch App 2" },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
-			EnumNamePair { "KeyCode_OEM1", "OEM 1" },
-			EnumNamePair { "KeyCode_OEMPlus", "+" },
-			EnumNamePair { "KeyCode_OEMComma", "," },
-			EnumNamePair { "KeyCode_OEMMinus", "-" },
-			EnumNamePair { "KeyCode_OEMPeriod", "." },
-			EnumNamePair { "KeyCode_OEM2", "OEM 2" },
-			EnumNamePair { "KeyCode_OEM3", "OEM 3" },
+			EnumNamePair { "KeyCode_OEMSemicolon", ":", "Semicolon" },
+			EnumNamePair { "KeyCode_OEMPlus", "+", "Plus" },
+			EnumNamePair { "KeyCode_OEMComma", ",", "Comma" },
+			EnumNamePair { "KeyCode_OEMMinus", "-", "Minus" },
+			EnumNamePair { "KeyCode_OEMPeriod", ".", "Period" },
+			EnumNamePair { "KeyCode_OEMQuestion", "?", "Question" },
+			EnumNamePair { "KeyCode_OEMTilde", "~", "Tilde" },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
@@ -234,17 +236,17 @@ namespace Comfy::Input
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
-			EnumNamePair { "KeyCode_OEM4", "OEM 4" },
-			EnumNamePair { "KeyCode_OEM5", "OEM 5" },
-			EnumNamePair { "KeyCode_OEM6", "OEM 6" },
-			EnumNamePair { "KeyCode_OEM7", "OEM 7" },
+			EnumNamePair { "KeyCode_OEMOpenBrackets", "{", "Open Brackets" },
+			EnumNamePair { "KeyCode_OEMPipe", "|", "Pipe" },
+			EnumNamePair { "KeyCode_OEMCloseBrackets", "}", "Close Brackets" },
+			EnumNamePair { "KeyCode_OEMQuotes", "\"", "Quotes" },
 			EnumNamePair { "KeyCode_OEM8", "OEM 8" },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
-			EnumNamePair { "KeyCode_OEM102", "OEM 102" },
+			EnumNamePair { "KeyCode_OEMBackslash", "\\", "Backslash" },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { nullptr, nullptr },
-			EnumNamePair { "KeyCode_IMEProcessKey",	"IME Process Key" },
+			EnumNamePair { "KeyCode_IMEProcessKey", "IME Process Key" },
 			EnumNamePair { nullptr, nullptr },
 			EnumNamePair { "KeyCode_Packet", "Packet" },
 			EnumNamePair { nullptr, nullptr },
@@ -274,33 +276,33 @@ namespace Comfy::Input
 
 		constexpr std::array<EnumNamePair, EnumCount<Button>()> ButtonNameLookup =
 		{
-			EnumNamePair { "Button_None", "None" },
+			EnumNamePair { "Button_None", "None", "Null" },
 			EnumNamePair { "Button_DPadUp", "DPad Up" },
 			EnumNamePair { "Button_DPadLeft", "DPad Left" },
 			EnumNamePair { "Button_DPadDown", "DPad Down" },
 			EnumNamePair { "Button_DPadRight", "DPad Right" },
-			EnumNamePair { "Button_FaceUp", "Face Up" },
-			EnumNamePair { "Button_FaceLeft", "Face Left" },
-			EnumNamePair { "Button_FaceDown", "Face Down" },
-			EnumNamePair { "Button_FaceRight", "Face Right" },
-			EnumNamePair { "Button_LeftStickUp", "Left Stick Up" },
-			EnumNamePair { "Button_LeftStickLeft", "Left Stick Left" },
-			EnumNamePair { "Button_LeftStickDown", "Left Stick Down" },
-			EnumNamePair { "Button_LeftStickRight", "Left Stick Right" },
-			EnumNamePair { "Button_LeftStickClick", "Left Stick Click" },
-			EnumNamePair { "Button_RightStickUp", "Right Stick Up" },
-			EnumNamePair { "Button_RightStickLeft", "Right Stick Left" },
-			EnumNamePair { "Button_RightStickDown", "Right Stick Down" },
-			EnumNamePair { "Button_RightStickRight", "Right Stick Right" },
-			EnumNamePair { "Button_RightStickClick", "Right Stick Click" },
-			EnumNamePair { "Button_LeftBumper", "Left Bumper" },
-			EnumNamePair { "Button_RightBumper", "Right Bumper" },
-			EnumNamePair { "Button_LeftTrigger", "Left Trigger" },
-			EnumNamePair { "Button_RightTrigger", "Right Trigger" },
-			EnumNamePair { "Button_Select", "Select" },
-			EnumNamePair { "Button_Start", "Start" },
-			EnumNamePair { "Button_Home", "Home" },
-			EnumNamePair { "Button_TouchPad", "Touch Pad" },
+			EnumNamePair { "Button_FaceUp", "Face Up", "Triangle" },
+			EnumNamePair { "Button_FaceLeft", "Face Left", "Square" },
+			EnumNamePair { "Button_FaceDown", "Face Down", "Cross" },
+			EnumNamePair { "Button_FaceRight", "Face Right", "Circle" },
+			EnumNamePair { "Button_LeftStickUp", "L-Stick Up", "Left Stick Up" },
+			EnumNamePair { "Button_LeftStickLeft", "L-Stick Left", "Left Stick Left" },
+			EnumNamePair { "Button_LeftStickDown", "L-Stick Down", "Left Stick Down" },
+			EnumNamePair { "Button_LeftStickRight", "L-Stick Right", "Left Stick Right" },
+			EnumNamePair { "Button_LeftStickClick", "L-Stick Click", "Left Stick Click", "L3" },
+			EnumNamePair { "Button_RightStickUp", "R-Stick Up", "Right Stick Up" },
+			EnumNamePair { "Button_RightStickLeft", "R-Stick Left", "Right Stick Left" },
+			EnumNamePair { "Button_RightStickDown", "R-Stick Down", "Right Stick Down" },
+			EnumNamePair { "Button_RightStickRight", "R-Stick Right", "Right Stick Right" },
+			EnumNamePair { "Button_RightStickClick", "R-Stick Click", "Right Stick Click", "R3" },
+			EnumNamePair { "Button_LeftBumper", "L-Bumper", "Left Bumper", "L1" },
+			EnumNamePair { "Button_RightBumper", "R-Bumper", "Right Bumper", "R1" },
+			EnumNamePair { "Button_LeftTrigger", "L-Trigger", "Left Trigger", "L2" },
+			EnumNamePair { "Button_RightTrigger", "R-Trigger", "Right Trigger", "R2" },
+			EnumNamePair { "Button_Select", "Select", "Share" },
+			EnumNamePair { "Button_Start", "Start", "Options" },
+			EnumNamePair { "Button_Home", "Home", "PS", "Guide" },
+			EnumNamePair { "Button_TouchPad", "Touch Pad", "TouchPad", "Touch Click" },
 		};
 
 		constexpr std::string_view BindingStorageStringKeyboardPrefix = "Keyboard";
@@ -331,6 +333,10 @@ namespace Comfy::Input
 		for (size_t i = 0; i < KeyCodeNameLookup.size(); i++)
 		{
 			if (KeyCodeNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(keyCodeName, KeyCodeNameLookup[i].DisplayName))
+				return static_cast<KeyCode>(i);
+			if (KeyCodeNameLookup[i].DisplayNameAlt != nullptr && Util::MatchesInsensitive(keyCodeName, KeyCodeNameLookup[i].DisplayNameAlt))
+				return static_cast<KeyCode>(i);
+			if (KeyCodeNameLookup[i].DisplayNameAltAlt != nullptr && Util::MatchesInsensitive(keyCodeName, KeyCodeNameLookup[i].DisplayNameAltAlt))
 				return static_cast<KeyCode>(i);
 		}
 
@@ -365,6 +371,10 @@ namespace Comfy::Input
 		for (size_t i = 0; i < ButtonNameLookup.size(); i++)
 		{
 			if (ButtonNameLookup[i].DisplayName != nullptr && Util::MatchesInsensitive(buttonName, ButtonNameLookup[i].DisplayName))
+				return static_cast<Button>(i);
+			if (ButtonNameLookup[i].DisplayNameAlt != nullptr && Util::MatchesInsensitive(buttonName, ButtonNameLookup[i].DisplayNameAlt))
+				return static_cast<Button>(i);
+			if (ButtonNameLookup[i].DisplayNameAltAlt != nullptr && Util::MatchesInsensitive(buttonName, ButtonNameLookup[i].DisplayNameAltAlt))
 				return static_cast<Button>(i);
 		}
 
@@ -795,19 +805,19 @@ namespace Comfy::Input
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LaunchMediaSelect);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LaunchApp1);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_LaunchApp2);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM1);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMSemicolon);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMPlus);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMComma);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMMinus);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMPeriod);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM2);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM3);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM4);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM5);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM6);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM7);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMQuestion);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMTilde);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMOpenBrackets);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMPipe);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMCloseBrackets);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMQuotes);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM8);
-	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEM102);
+	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_OEMBackslash);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_IMEProcessKey);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Packet);
 	DEBUG_CHECK_KEYCODE_ENUM_STRING(KeyCode_Attn);
