@@ -1246,8 +1246,7 @@ namespace Comfy::Studio::Editor
 						for (size_t i = 0; i < nextPairToHit->TargetCount; i++)
 							inputPairTypeFlags |= ButtonTypeToButtonTypeFlags(nextPairToHit->Targets[i].Type);
 
-						// TODO: Hitting a subsection should also be valid
-						if (inputPairTypeFlags != binding.ButtonTypes)
+						if ((inputPairTypeFlags & binding.ButtonTypes) != binding.ButtonTypes)
 						{
 							inputTypeMatchesAny = false;
 							matchingType = false;
@@ -1449,7 +1448,26 @@ namespace Comfy::Studio::Editor
 			}
 			else if (typeIsAlreadyBeingHeld)
 			{
-				ProcessHoldStateCancelNow();
+				// BUG: Something about this still isn't right... for example:
+				//		PREREQUISITE: 
+				//		- Single Triangle(Hold) followed by Triangle(Hold)+Square(Hold)
+				//
+				//		USER_INPUT: 
+				//		- Hit and hold first Triangle, then hit and release only second Triangle
+				//		RESULT: 
+				//		- Hold combo not canceled
+				//		EXPECTED:
+				//		- Hold combo immediately canceled
+				//
+				//		USER_INPUT: 
+				//		- Hit and hold first Triangle, then hit and release only second Square
+				//		RESULT:
+				//		- Hold combo canceled once Square released despite Square not being part of the active (displayed) hold combo
+				//		EXPECTED:
+				//		- Hold combo not affected at all, until rest of sync pair has been hit by the user (or any target hit that is part of the active hold combo)
+
+				if (AllInSyncPairHaveBeenHitByPlayer(syncPair))
+					ProcessHoldStateCancelNow();
 			}
 		}
 
