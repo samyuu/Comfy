@@ -775,15 +775,13 @@ namespace Comfy::Studio::Editor
 					const auto valueToMove = inOutVector[selectedItemIndex];
 					if (moveItemUp && selectedItemIndex > 0)
 					{
-						inOutVector.erase(inOutVector.begin() + selectedItemIndex);
-						inOutVector.emplace(inOutVector.begin() + selectedItemIndex - 1, valueToMove);
+						std::swap(inOutVector[selectedItemIndex], inOutVector[selectedItemIndex - 1]);
 						selectedItemIndex--;
 						pendingChanges = true;
 					}
 					else if (moveItemDown && (selectedItemIndex + 1) < static_cast<i32>(inOutVector.size()))
 					{
-						inOutVector.erase(inOutVector.begin() + selectedItemIndex);
-						inOutVector.emplace(inOutVector.begin() + selectedItemIndex + 1, valueToMove);
+						std::swap(inOutVector[selectedItemIndex], inOutVector[selectedItemIndex + 1]);
 						selectedItemIndex++;
 						pendingChanges = true;
 					}
@@ -1130,14 +1128,17 @@ namespace Comfy::Studio::Editor
 					pendingChanges |= GuiSettingsInteractiveAwaitKeyPressInputBindingButton(binding, vec2(Gui::GetContentRegionAvailWidth() * primaryColumWidthFactor, buttonHeight), awaitInputBinding, awaitInputStopwatch);
 					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
 
-#if 0 // TODO: Enable again once implemented...
-					const f32 upDownButtonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 3.0f) / 4.0f;
-					if (Gui::Button("Up", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveUp = i;
-					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
+					const bool hasSingleBinding = (selectedMultiBinding->BindingCount <= 1);
+					Gui::PushItemDisabledAndTextColorIf(hasSingleBinding);
+					{
+						const f32 upDownButtonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 3.0f) / 4.0f;
+						if (Gui::Button("Up", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveUp = i;
+						Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
 
-					if (Gui::Button("Down", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveDown = i;
-					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
-#endif
+						if (Gui::Button("Down", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveDown = i;
+						Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
+					}
+					Gui::PopItemDisabledAndTextColorIf(hasSingleBinding);
 
 					if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight)))
 						bindingIndexToRemove = i;
@@ -1158,15 +1159,15 @@ namespace Comfy::Studio::Editor
 					selectedMultiBinding->BindingCount--;
 					pendingChanges = true;
 				}
-				else if (bindingIndexToMoveUp < selectedMultiBinding->BindingCount)
+				else if (bindingIndexToMoveUp < selectedMultiBinding->BindingCount && bindingIndexToMoveUp > 0)
 				{
-					// TODO: Implement move up logic...
-					// pendingChanges = true;
+					std::swap(selectedMultiBinding->Bindings[bindingIndexToMoveUp], selectedMultiBinding->Bindings[bindingIndexToMoveUp - 1]);
+					pendingChanges = true;
 				}
-				else if (bindingIndexToMoveDown < selectedMultiBinding->BindingCount)
+				else if (bindingIndexToMoveDown + 1 < selectedMultiBinding->BindingCount)
 				{
-					// TODO: Implement move down logic...
-					// pendingChanges = true;
+					std::swap(selectedMultiBinding->Bindings[bindingIndexToMoveDown], selectedMultiBinding->Bindings[bindingIndexToMoveDown + 1]);
+					pendingChanges = true;
 				}
 
 				Gui::PopStyleVar(1);
