@@ -31,6 +31,16 @@ namespace Comfy::Studio
 		const std::string LastSessionWindowState_SwapInterval = "swap_interval";
 		const std::string LastSessionWindowState_ActiveEditorComponent = "active_editor_component";
 
+		const std::string LastPVScriptExportOptions = "last_pv_script_export_options";
+		const std::string LastPVScriptExportOptions_ExportFormatIndex = "export_format";
+		const std::string LastPVScriptExportOptions_PVID = "pv_id";
+		const std::string LastPVScriptExportOptions_RootDirectory = "root_directory";
+		const std::string LastPVScriptExportOptions_MDataID = "mdata_id";
+		const std::string LastPVScriptExportOptions_BackgroundDim = "background_dim";
+		const std::string LastPVScriptExportOptions_MergeWithExistingMData = "merge_with_existing_mdata";
+		const std::string LastPVScriptExportOptions_CreateSprSelPV = "create_spr_sel_pv";
+		const std::string LastPVScriptExportOptions_AddDummyMovieReference = "add_dummy_movie_reference";
+
 		const std::string RecentFiles = "recent_files";
 		const std::string RecentFiles_ChartFiles = "chart_files";
 	}
@@ -76,6 +86,18 @@ namespace Comfy::Studio
 			LastSessionWindowState.ActiveEditorComponent = JsonTryGetStr(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_ActiveEditorComponent));
 		}
 
+		if (const json* exportOptionsJson = JsonFind(rootJson, AppIDs::LastPVScriptExportOptions))
+		{
+			LastPVScriptExportOptions.ExportFormatIndex = JsonTryGetI32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_ExportFormatIndex));
+			LastPVScriptExportOptions.PVID = JsonTryGetI32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_PVID));
+			LastPVScriptExportOptions.RootDirectory = JsonTryGetStr(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_RootDirectory));
+			LastPVScriptExportOptions.MDataID = JsonTryGetStr(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MDataID));
+			LastPVScriptExportOptions.BackgroundDim = JsonTryGetF32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_BackgroundDim));
+			LastPVScriptExportOptions.MergeWithExistingMData = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MergeWithExistingMData));
+			LastPVScriptExportOptions.CreateSprSelPV = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_CreateSprSelPV));
+			LastPVScriptExportOptions.AddDummyMovieReference = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_AddDummyMovieReference));
+		}
+
 		if (const json* recentFilesJson = JsonFind(rootJson, AppIDs::RecentFiles))
 		{
 			if (const json* chartFilesJson = JsonFind(*recentFilesJson, AppIDs::RecentFiles_ChartFiles))
@@ -104,6 +126,16 @@ namespace Comfy::Studio
 		JsonTrySetBool(windowStateJson[AppIDs::LastSessionWindowState_IsMaximized], LastSessionWindowState.IsMaximized);
 		JsonTrySetI32(windowStateJson[AppIDs::LastSessionWindowState_SwapInterval], LastSessionWindowState.SwapInterval);
 		JsonTrySetStr(windowStateJson[AppIDs::LastSessionWindowState_ActiveEditorComponent], LastSessionWindowState.ActiveEditorComponent);
+
+		json& exportOptionsJson = rootJson[AppIDs::LastPVScriptExportOptions];
+		JsonTrySetI32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_ExportFormatIndex], LastPVScriptExportOptions.ExportFormatIndex);
+		JsonTrySetI32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_PVID], LastPVScriptExportOptions.PVID);
+		JsonTrySetStr(exportOptionsJson[AppIDs::LastPVScriptExportOptions_RootDirectory], LastPVScriptExportOptions.RootDirectory);
+		JsonTrySetStr(exportOptionsJson[AppIDs::LastPVScriptExportOptions_MDataID], LastPVScriptExportOptions.MDataID);
+		JsonTrySetF32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_BackgroundDim], LastPVScriptExportOptions.BackgroundDim);
+		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_MergeWithExistingMData], LastPVScriptExportOptions.MergeWithExistingMData);
+		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_CreateSprSelPV], LastPVScriptExportOptions.CreateSprSelPV);
+		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_AddDummyMovieReference], LastPVScriptExportOptions.AddDummyMovieReference);
 
 		json& recentFilesJson = rootJson[AppIDs::RecentFiles];
 		json& chartFilesJson = recentFilesJson[AppIDs::RecentFiles_ChartFiles];

@@ -745,15 +745,53 @@ namespace Comfy::Studio::Editor
 		InternalOnClose();
 	}
 
-	// TODO: Load GlobalAppData state
 	void PVScriptExportWindow::InternalOnOpen()
 	{
-		printf(__FUNCTION__"()\n");
+		const auto& in = GlobalAppData.LastPVScriptExportOptions;
+		auto& out = param;
+
+		if (in.ExportFormatIndex.has_value())
+			out.OutFormat = static_cast<PVScriptExportFormat>(in.ExportFormatIndex.value());
+
+		if (in.PVID.has_value())
+			out.OutPVID = in.PVID.value();
+
+		if (in.RootDirectory.has_value())
+			out.RootDirectory = in.RootDirectory.value();
+
+		if (in.MDataID.has_value() && in.MDataID->size() >= (out.OutMDataID.size() - 1))
+		{
+			for (size_t i = 0; i < 4; i++)
+				out.OutMDataID[i] = in.MDataID->at(i);
+			out.OutMDataID[4] = '\0';
+		}
+
+		if (in.BackgroundDim.has_value())
+			out.PVScriptBackgroundTint = vec4(0.0f, 0.0f, 0.0f, in.BackgroundDim.value());
+
+		if (in.MergeWithExistingMData.has_value())
+			out.MergeWithExistingMData = in.MergeWithExistingMData.value();
+
+		if (in.CreateSprSelPV.has_value())
+			out.CreateSprSelPV = in.CreateSprSelPV.value();
+
+		if (in.AddDummyMovieReference.has_value())
+			out.AddDummyMovieReference = in.AddDummyMovieReference.value();
 	}
 
-	// TODO: Save GlobalAppData state
+	// BUG: This isn't being called when closing the whole application while the export window is still open
 	void PVScriptExportWindow::InternalOnClose()
 	{
-		printf(__FUNCTION__"()\n");
+		const auto& in = param;
+		auto& out = GlobalAppData.LastPVScriptExportOptions;
+
+		out.ExportFormatIndex = static_cast<i32>(in.OutFormat);
+		out.PVID = in.OutPVID;
+		out.RootDirectory = in.RootDirectory;
+		out.MDataID = std::string_view(in.OutMDataID.data(), in.OutMDataID.size() - 1);
+		out.BackgroundDim = in.PVScriptBackgroundTint.a;
+		out.MergeWithExistingMData = in.MergeWithExistingMData;
+		out.CreateSprSelPV = in.CreateSprSelPV;
+		out.AddDummyMovieReference = in.AddDummyMovieReference;
 	}
 }
