@@ -262,6 +262,7 @@ namespace Comfy::Studio::DataTest
 
 			for (size_t i = 0; i < voicePropertyNames.size(); i++)
 			{
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted(Gui::StringViewStart(voicePropertyNames[i]), Gui::StringViewEnd(voicePropertyNames[i]));
 				Gui::NextColumn();
 			}
@@ -276,6 +277,10 @@ namespace Comfy::Studio::DataTest
 					Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 
 				const auto name = voice.GetName();
+
+				Gui::Selectable("##DummyVoiceSelectable", false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_Disabled);
+				Gui::SameLine();
+
 				Gui::TextUnformatted(Gui::StringViewStart(name), Gui::StringViewEnd(name));
 				Gui::NextColumn();
 
@@ -337,6 +342,7 @@ namespace Comfy::Studio::DataTest
 
 			for (size_t i = 0; i < sourcePropertyNames.size(); i++)
 			{
+				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted(Gui::StringViewStart(sourcePropertyNames[i]), Gui::StringViewEnd(sourcePropertyNames[i]));
 				Gui::NextColumn();
 			}
