@@ -8,6 +8,39 @@
 
 namespace Comfy::Studio::Editor
 {
+	namespace
+	{
+		struct BarDivisionMultiBindingPair
+		{
+			i32 BarDivision;
+			const Input::MultiBinding* MultiBinding;
+		};
+
+		constexpr std::array<BarDivisionMultiBindingPair, 10> PresetBarGridDivisions =
+		{
+			BarDivisionMultiBindingPair { 4, &GlobalUserData.Input.TargetTimeline_SetGridDivision_4 },
+			BarDivisionMultiBindingPair { 8, &GlobalUserData.Input.TargetTimeline_SetGridDivision_8 },
+			BarDivisionMultiBindingPair { 12, &GlobalUserData.Input.TargetTimeline_SetGridDivision_12 },
+			BarDivisionMultiBindingPair { 16, &GlobalUserData.Input.TargetTimeline_SetGridDivision_16 },
+			BarDivisionMultiBindingPair { 24, &GlobalUserData.Input.TargetTimeline_SetGridDivision_24 },
+			BarDivisionMultiBindingPair { 32, &GlobalUserData.Input.TargetTimeline_SetGridDivision_32 },
+			BarDivisionMultiBindingPair { 48, &GlobalUserData.Input.TargetTimeline_SetGridDivision_48 },
+			BarDivisionMultiBindingPair { 64, &GlobalUserData.Input.TargetTimeline_SetGridDivision_64 },
+			BarDivisionMultiBindingPair { 96, &GlobalUserData.Input.TargetTimeline_SetGridDivision_96 },
+			BarDivisionMultiBindingPair { 192, &GlobalUserData.Input.TargetTimeline_SetGridDivision_192 },
+		};
+
+		constexpr std::array<BarDivisionMultiBindingPair, 6> PresetBarChainSlideDivisions =
+		{
+			BarDivisionMultiBindingPair { 12, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_12 },
+			BarDivisionMultiBindingPair { 16, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_16 },
+			BarDivisionMultiBindingPair { 24, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_24 },
+			BarDivisionMultiBindingPair { 32, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_32 },
+			BarDivisionMultiBindingPair { 48, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_48 },
+			BarDivisionMultiBindingPair { 64, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_64 },
+		};
+	}
+
 	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager, ButtonSoundController& buttonSoundController)
 		: chartEditor(parent), undoManager(undoManager), buttonSoundController(buttonSoundController)
 	{
@@ -940,6 +973,18 @@ namespace Comfy::Studio::Editor
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_IncreaseGridPrecision, true))
 			SelectNextPresetGridDivision(+1);
 
+		for (const auto& presetDivision : PresetBarGridDivisions)
+		{
+			if (Input::IsAnyPressed(*presetDivision.MultiBinding, false))
+				activeBarGridDivision = presetDivision.BarDivision;
+		}
+
+		for (const auto& presetDivision : PresetBarChainSlideDivisions)
+		{
+			if (Input::IsAnyPressed(*presetDivision.MultiBinding, false))
+				activeBarChainSlideDivision = presetDivision.BarDivision;
+		}
+
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_StartEndRangeSelection, false))
 		{
 			if (!rangeSelection.IsActive || rangeSelection.HasEnd)
@@ -1294,14 +1339,14 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::BeginMenu("Grid Division"))
 			{
-				for (const auto barDivision : presetBarGridDivisions)
+				for (const auto& presetDivision : PresetBarGridDivisions)
 				{
 					char nameBuffer[32];
-					sprintf_s(nameBuffer, "Set 1 / %d", barDivision);
+					sprintf_s(nameBuffer, "Set 1 / %d", presetDivision.BarDivision);
 
-					bool alreadySelected = (activeBarGridDivision == barDivision);;
-					if (Gui::MenuItem(nameBuffer, nullptr, &alreadySelected, !alreadySelected))
-						activeBarGridDivision = barDivision;
+					bool alreadySelected = (activeBarGridDivision == presetDivision.BarDivision);;
+					if (Gui::MenuItem(nameBuffer, Input::ToString(*presetDivision.MultiBinding).data(), &alreadySelected, !alreadySelected))
+						activeBarGridDivision = presetDivision.BarDivision;
 				}
 
 				Gui::EndMenu();
@@ -1309,14 +1354,14 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::BeginMenu("Chain Slide Division"))
 			{
-				for (const auto barDivision : presetBarChainSlideDivisions)
+				for (const auto& presetDivision : PresetBarChainSlideDivisions)
 				{
 					char nameBuffer[32];
-					sprintf_s(nameBuffer, "Set 1 / %d", barDivision);
+					sprintf_s(nameBuffer, "Set 1 / %d", presetDivision.BarDivision);
 
-					bool alreadySelected = (activeBarChainSlideDivision == barDivision);;
-					if (Gui::MenuItem(nameBuffer, nullptr, &alreadySelected, !alreadySelected))
-						activeBarChainSlideDivision = barDivision;
+					bool alreadySelected = (activeBarChainSlideDivision == presetDivision.BarDivision);;
+					if (Gui::MenuItem(nameBuffer, Input::ToString(*presetDivision.MultiBinding).data(), &alreadySelected, !alreadySelected))
+						activeBarChainSlideDivision = presetDivision.BarDivision;
 				}
 
 				Gui::EndMenu();
@@ -2002,9 +2047,9 @@ namespace Comfy::Studio::Editor
 
 	i32 TargetTimeline::FindGridDivisionPresetIndex() const
 	{
-		for (i32 i = 0; i < static_cast<i32>(presetBarGridDivisions.size()); i++)
+		for (i32 i = 0; i < static_cast<i32>(PresetBarGridDivisions.size()); i++)
 		{
-			if (presetBarGridDivisions[i] == activeBarGridDivision)
+			if (PresetBarGridDivisions[i].BarDivision == activeBarGridDivision)
 				return i;
 		}
 
@@ -2014,9 +2059,9 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::SelectNextPresetGridDivision(i32 direction)
 	{
 		const auto index = FindGridDivisionPresetIndex();
-		const auto nextIndex = std::clamp(index + direction, 0, static_cast<i32>(presetBarGridDivisions.size()) - 1);
+		const auto nextIndex = std::clamp(index + direction, 0, static_cast<i32>(PresetBarGridDivisions.size()) - 1);
 
-		activeBarGridDivision = presetBarGridDivisions[nextIndex];
+		activeBarGridDivision = PresetBarGridDivisions[nextIndex].BarDivision;
 	}
 
 	void TargetTimeline::SelectNextPlaybackSpeedLevel(i32 direction)

@@ -217,9 +217,6 @@ namespace Comfy::Studio::Editor
 		Stopwatch waveformUpdateStopwatch = Stopwatch::StartNew();
 
 	private:
-		static constexpr std::array<i32, 10> presetBarGridDivisions = { 4, 8, 12, 16, 24, 32, 48, 64, 96, 192 };
-		static constexpr std::array<i32, 6> presetBarChainSlideDivisions = { 12, 16, 24, 32, 48, 64 };
-
 		i32 activeBarGridDivision = 16;
 		i32 activeBarChainSlideDivision = 32;
 

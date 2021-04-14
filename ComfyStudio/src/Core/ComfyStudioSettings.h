@@ -54,7 +54,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 13, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 14, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -128,6 +128,22 @@ namespace Comfy::Studio
 			Input::MultiBinding TargetTimeline_MoveCursorRight;
 			Input::MultiBinding TargetTimeline_IncreaseGridPrecision;
 			Input::MultiBinding TargetTimeline_DecreaseGridPrecision;
+			Input::MultiBinding TargetTimeline_SetGridDivision_4;
+			Input::MultiBinding TargetTimeline_SetGridDivision_8;
+			Input::MultiBinding TargetTimeline_SetGridDivision_12;
+			Input::MultiBinding TargetTimeline_SetGridDivision_16;
+			Input::MultiBinding TargetTimeline_SetGridDivision_24;
+			Input::MultiBinding TargetTimeline_SetGridDivision_32;
+			Input::MultiBinding TargetTimeline_SetGridDivision_48;
+			Input::MultiBinding TargetTimeline_SetGridDivision_64;
+			Input::MultiBinding TargetTimeline_SetGridDivision_96;
+			Input::MultiBinding TargetTimeline_SetGridDivision_192;
+			Input::MultiBinding TargetTimeline_SetChainSlideGridDivision_12;
+			Input::MultiBinding TargetTimeline_SetChainSlideGridDivision_16;
+			Input::MultiBinding TargetTimeline_SetChainSlideGridDivision_24;
+			Input::MultiBinding TargetTimeline_SetChainSlideGridDivision_32;
+			Input::MultiBinding TargetTimeline_SetChainSlideGridDivision_48;
+			Input::MultiBinding TargetTimeline_SetChainSlideGridDivision_64;
 			Input::MultiBinding TargetTimeline_StartEndRangeSelection;
 			Input::MultiBinding TargetTimeline_DeleteSelection;
 			Input::MultiBinding TargetTimeline_IncreasePlaybackSpeed;
