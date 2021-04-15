@@ -137,22 +137,22 @@ namespace Comfy::Input
 		{
 			if (nativeButton >= NativeButton::FirstButton && nativeButton <= NativeButton::LastButton)
 			{
-				const i32 reativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstButton);
-				return controllerData.ThisFrameState.Simplified.Buttons[static_cast<i32>(reativeIndex)];
+				const i32 relativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstButton);
+				return controllerData.ThisFrameState.Simplified.Buttons[static_cast<i32>(relativeIndex)];
 			}
 			else if (nativeButton >= NativeButton::FirstDPad && nativeButton <= NativeButton::LastDPad)
 			{
-				const i32 reativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstDPad);
-				const i32 dpadIndex = (reativeIndex / static_cast<i32>(NativeButton::PerDPadSubElements));
-				const i32 directionIndex = (reativeIndex % static_cast<i32>(NativeButton::PerDPadSubElements));
+				const i32 relativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstDPad);
+				const i32 dpadIndex = (relativeIndex / static_cast<i32>(NativeButton::PerDPadSubElements));
+				const i32 directionIndex = (relativeIndex % static_cast<i32>(NativeButton::PerDPadSubElements));
 
 				return controllerData.ThisFrameState.Simplified.DPads[dpadIndex].TopLeftDownRightAreHeld[directionIndex];
 			}
 			else if (nativeButton >= NativeButton::FirstAxis && nativeButton <= NativeButton::LastAxis)
 			{
-				const i32 reativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstAxis);
-				const i32 axisIndex = (reativeIndex / static_cast<i32>(NativeButton::PerAxisSubElements));
-				const i32 directionIndex = (reativeIndex % static_cast<i32>(NativeButton::PerAxisSubElements));
+				const i32 relativeIndex = static_cast<i32>(nativeButton) - static_cast<i32>(NativeButton::FirstAxis);
+				const i32 axisIndex = (relativeIndex / static_cast<i32>(NativeButton::PerAxisSubElements));
+				const i32 directionIndex = (relativeIndex % static_cast<i32>(NativeButton::PerAxisSubElements));
 
 				return controllerData.ThisFrameState.Simplified.Axes[axisIndex].NegativePositiveAreHeld[directionIndex];
 			}
@@ -164,8 +164,8 @@ namespace Comfy::Input
 		{
 			if (nativeAxis >= NativeAxis::First && nativeAxis <= NativeAxis::Last)
 			{
-				const auto reativeIndex = static_cast<std::underlying_type_t<NativeAxis>>(nativeAxis) - static_cast<std::underlying_type_t<NativeAxis>>(NativeAxis::First);
-				const auto& axis = controllerData.ThisFrameState.Simplified.Axes[reativeIndex];
+				const auto relativeIndex = static_cast<std::underlying_type_t<NativeAxis>>(nativeAxis) - static_cast<std::underlying_type_t<NativeAxis>>(NativeAxis::First);
+				const auto& axis = controllerData.ThisFrameState.Simplified.Axes[relativeIndex];
 				return normalizedCenter ? axis.NormalizedAroundCenter : axis.NormalizedAbsolute;
 			}
 
@@ -240,15 +240,15 @@ namespace Comfy::Input
 				assignNativeButton(Button::FaceLeft, NativeButton::Button_01);
 				assignNativeButton(Button::FaceDown, NativeButton::Button_02);
 				assignNativeButton(Button::FaceRight, NativeButton::Button_03);
-				assignNativeButton(Button::LeftStickUp, NativeButton::Axis_02_Positive);
-				assignNativeButton(Button::LeftStickLeft, NativeButton::Axis_01_Positive);
-				assignNativeButton(Button::LeftStickDown, NativeButton::Axis_02_Negative);
-				assignNativeButton(Button::LeftStickRight, NativeButton::Axis_01_Negative);
+				assignNativeButton(Button::LeftStickUp, NativeButton::Axis_02_Negative);
+				assignNativeButton(Button::LeftStickLeft, NativeButton::Axis_01_Negative);
+				assignNativeButton(Button::LeftStickDown, NativeButton::Axis_02_Positive);
+				assignNativeButton(Button::LeftStickRight, NativeButton::Axis_01_Positive);
 				assignNativeButton(Button::LeftStickClick, NativeButton::Button_11);
-				assignNativeButton(Button::RightStickUp, NativeButton::Axis_06_Positive);
-				assignNativeButton(Button::RightStickLeft, NativeButton::Axis_03_Positive);
-				assignNativeButton(Button::RightStickDown, NativeButton::Axis_06_Negative);
-				assignNativeButton(Button::RightStickRight, NativeButton::Axis_03_Negative);
+				assignNativeButton(Button::RightStickUp, NativeButton::Axis_06_Negative);
+				assignNativeButton(Button::RightStickLeft, NativeButton::Axis_03_Negative);
+				assignNativeButton(Button::RightStickDown, NativeButton::Axis_06_Positive);
+				assignNativeButton(Button::RightStickRight, NativeButton::Axis_03_Positive);
 				assignNativeButton(Button::RightStickClick, NativeButton::Button_12);
 				assignNativeButton(Button::LeftBumper, NativeButton::Button_05);
 				assignNativeButton(Button::RightBumper, NativeButton::Button_06);
@@ -738,6 +738,7 @@ namespace Comfy::Input
 		return Global.ThisFrameState.Sticks[static_cast<u8>(stick)];
 	}
 
+	// BUG: Regular bindings with modifier keys as primary keys aren't triggered correctly
 	bool IsDown(const Binding& binding, ModifierBehavior behavior)
 	{
 		if (binding.Type == BindingType::Keyboard)
