@@ -18,5 +18,14 @@ namespace Comfy::Studio::DataTest
 		void Gui() override;
 
 	private:
+		void KeyboardTabTabItemGui();
+		void CombinedControllerTabItemGui();
+		void ConnectedControllersTabItemGui();
+
+	private:
+		bool showHeldDownKeysOnly = false;
+		bool showMouseButtonKeys = false;
+		bool showHeldDownButtonsOnly = false;
+		bool showHeldDownNativeButtonsOnly = false;
 	};
 }
