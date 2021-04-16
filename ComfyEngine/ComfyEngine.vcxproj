@@ -55,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\xiph\libogg\include;$(SolutionDir)Dependencies\xiph\libvorbis\include;$(SolutionDir)Dependencies\xiph\libvorbisenc\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -102,7 +102,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)Dependencies\DirectXTex\include;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\nlohmann_json\include;$(SolutionDir)Dependencies\dr_libs\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\xiph\libogg\include;$(SolutionDir)Dependencies\xiph\libvorbis\include;$(SolutionDir)Dependencies\xiph\libvorbisenc\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -146,6 +146,18 @@
     <ProjectReference Include="..\ComfyLib\ComfyLib.vcxproj">
       <Project>{48bdf554-973b-4b4c-8da6-bbab03216cba}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Dependencies\xiph\libogg\libogg.vcxproj">
+      <Project>{a3e42197-d88a-4324-846a-3f73832cf099}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Dependencies\xiph\libvorbisenc\libvorbisenc.vcxproj">
+      <Project>{dbedf9cc-73e6-41de-905a-48b2d8b0435d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Dependencies\xiph\libvorbisfile\libvorbisfile.vcxproj">
+      <Project>{80517dc0-72e5-4c7e-b0d4-08d94e242eab}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Dependencies\xiph\libvorbis\libvorbis.vcxproj">
+      <Project>{03afdb81-1811-45d4-b308-b6786d643f9b}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Audio\Audio.h" />
@@ -158,6 +170,7 @@
     <ClInclude Include="src\Audio\Decoder\DecoderFactory.h" />
     <ClInclude Include="src\Audio\Decoder\Detail\Decoders.h" />
     <ClInclude Include="src\Audio\Decoder\IDecoder.h" />
+    <ClInclude Include="src\Audio\Encoder\EncoderUtil.h" />
     <ClInclude Include="src\Audio\Misc\SfxArchive.h" />
     <ClInclude Include="src\Audio\Misc\TextureCachedWaveform.h" />
     <ClInclude Include="src\Audio\SampleProvider\ISampleProvider.h" />
@@ -254,6 +267,7 @@
     <ClCompile Include="src\Audio\Decoder\Detail\Mp3Decoder.cpp" />
     <ClCompile Include="src\Audio\Decoder\Detail\VorbisDecoder.cpp" />
     <ClCompile Include="src\Audio\Decoder\Detail\WavDecoder.cpp" />
+    <ClCompile Include="src\Audio\Encoder\EncoderUtil.cpp" />
     <ClCompile Include="src\Audio\Misc\SfxArchive.cpp" />
     <ClCompile Include="src\Audio\Misc\TextureCachedWaveform.cpp" />
     <ClCompile Include="src\Audio\SampleProvider\MemorySampleProvider.cpp" />

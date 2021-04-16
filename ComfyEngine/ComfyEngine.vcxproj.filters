@@ -300,6 +300,9 @@
     <ClInclude Include="src\Input\Core\InputBaseTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Audio\Encoder\EncoderUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -480,6 +483,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Input\Core\InputBaseTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Audio\Encoder\EncoderUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
