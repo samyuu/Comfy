@@ -1,4 +1,5 @@
 #include "EncoderUtil.h"
+#include "Audio/Core/AudioEngine.h"
 #include <vorbis/codec.h>
 #include <vorbis/vorbisenc.h>
 #include <time.h>
@@ -107,8 +108,6 @@ namespace Comfy::Audio
 			}
 			else
 			{
-				auto i16ToF32 = [](i16 v) -> f32 { return static_cast<f32>(v) / static_cast<f32>(std::numeric_limits<i16>::max()); };
-
 				// NOTE: Data to encode. Expose the buffer to submit data
 				input.ReadRawSamples(framesToProcess, interleavedReadSampleBuffer.get());
 				totalFramesReadSoFar += framesToProcess;
@@ -119,21 +118,21 @@ namespace Comfy::Audio
 				if (input.ChannelCount == 1)
 				{
 					for (i64 frame = 0; frame < framesToProcess; frame++)
-						perChannelBuffer[0][frame] = i16ToF32(interleavedReadSampleBuffer[frame]);
+						perChannelBuffer[0][frame] = ConvertSampleI16ToF32(interleavedReadSampleBuffer[frame]);
 				}
 				else if (input.ChannelCount == 2)
 				{
 					for (i64 frame = 0; frame < framesToProcess; frame++)
-						perChannelBuffer[0][frame] = i16ToF32(interleavedReadSampleBuffer[(frame * 2) + 0]);
+						perChannelBuffer[0][frame] = ConvertSampleI16ToF32(interleavedReadSampleBuffer[(frame * 2) + 0]);
 					for (i64 frame = 0; frame < framesToProcess; frame++)
-						perChannelBuffer[1][frame] = i16ToF32(interleavedReadSampleBuffer[(frame * 2) + 1]);
+						perChannelBuffer[1][frame] = ConvertSampleI16ToF32(interleavedReadSampleBuffer[(frame * 2) + 1]);
 				}
 				else
 				{
 					for (u32 channel = 0; channel < input.ChannelCount; channel++)
 					{
 						for (i64 frame = 0; frame < framesToProcess; frame++)
-							perChannelBuffer[channel][frame] = i16ToF32(interleavedReadSampleBuffer[(frame * input.ChannelCount) + channel]);
+							perChannelBuffer[channel][frame] = ConvertSampleI16ToF32(interleavedReadSampleBuffer[(frame * input.ChannelCount) + channel]);
 					}
 				}
 

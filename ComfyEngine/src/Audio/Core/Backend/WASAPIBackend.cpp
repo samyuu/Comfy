@@ -1,4 +1,5 @@
 #include "WASAPIBackend.h"
+#include "Audio/Core/AudioEngine.h"
 #include "Core/Logger.h"
 #include <atomic>
 
@@ -279,9 +280,6 @@ namespace Comfy::Audio
 
 			renderCallback(outputBuffer, frameCount, channelCount);
 
-			auto i16ToF32 = [](i16 v) -> f32 { return static_cast<f32>(v) * static_cast<f32>(INT16_MAX); };
-			auto f32ToI16 = [](f32 v) -> i16 { return static_cast<i16>(v / static_cast<f32>(INT16_MAX)); };
-
 			if (applySharedSessionVolume && streamParam.Mode == StreamShareMode::Exclusive)
 			{
 				float sharedSessionVolume = 1.0f;
@@ -290,7 +288,7 @@ namespace Comfy::Audio
 				if (!FAILED(error) && sharedSessionVolume >= 0.0f && sharedSessionVolume < 1.0f)
 				{
 					for (u32 i = 0; i < (frameCount * streamParam.ChannelCount); i++)
-						outputBuffer[i] = f32ToI16(i16ToF32(outputBuffer[i]) * sharedSessionVolume);
+						outputBuffer[i] = ConvertSampleF32ToI16(ConvertSampleI16ToF32(outputBuffer[i]) * sharedSessionVolume);
 				}
 			}
 		}

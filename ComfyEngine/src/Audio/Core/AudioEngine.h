@@ -13,6 +13,9 @@ namespace Comfy::Audio
 	// NOTE: Source: ISampleProvider
 	// NOTE: Voice: Instance of a source
 
+	constexpr f32 ConvertSampleI16ToF32(i16 v) { return static_cast<f32>(v) / static_cast<f32>(std::numeric_limits<i16>::max()); }
+	constexpr i16 ConvertSampleF32ToI16(f32 v) { return static_cast<i16>(v * static_cast<f32>(std::numeric_limits<i16>::max())); }
+
 	inline f32 ClampLinearVolume(f32 linear) { return glm::clamp(linear, 0.0f, 1.0f); }
 	inline f32 DecibelToLinearVolume(f32 decibel) { return ::powf(10.0f, 0.05f * decibel); }
 	inline f32 LinearVolumeToDecibel(f32 linear) { return 20.0f * ::log10f(linear); }

@@ -171,7 +171,7 @@ namespace Comfy::Studio::DataTest
 								std::array<f32, lastPlayedSamples[0].size()> normalizedSamples;
 
 								for (size_t sample = 0; sample < normalizedSamples.size(); sample++)
-									normalizedSamples[sample] = static_cast<f32>(lastPlayedSamples[channel][sample]) / static_cast<f32>(std::numeric_limits<i16>::max());
+									normalizedSamples[sample] = Audio::ConvertSampleI16ToF32(lastPlayedSamples[channel][sample]);
 
 								char plotName[32];
 								sprintf_s(plotName, "Channel [%zu]", channel);
