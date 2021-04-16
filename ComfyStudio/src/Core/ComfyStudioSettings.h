@@ -16,7 +16,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup and saved on exit
 	struct ComfyStudioAppSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 2, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 3, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioAppSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioAppSettingsFilePath) const;
@@ -43,6 +43,7 @@ namespace Comfy::Studio
 			std::optional<bool> MergeWithExistingMData;
 			std::optional<bool> CreateSprSelPV;
 			std::optional<bool> AddDummyMovieReference;
+			std::optional<f32> VorbisVBRQuality;
 		} LastPVScriptExportOptions;
 
 		struct

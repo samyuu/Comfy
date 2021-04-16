@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "ImGui/Gui.h"
+#include "ImGui/Widgets/LoadingTextAnimation.h"
 #include "Editor/Chart/Chart.h"
 #include "Editor/Common/SoundEffectManager.h"
 #include "Script/PVScript.h"
@@ -9,7 +10,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	enum class PVScriptExportFormat : u8
+	enum class PVExportFormat : u8
 	{
 		Arcade,
 		Orbis,
@@ -17,27 +18,28 @@ namespace Comfy::Studio::Editor
 		Count
 	};
 
-	constexpr std::array<const char*, EnumCount<PVScriptExportFormat>()> PVScriptExportFormatNames =
+	constexpr std::array<const char*, EnumCount<PVExportFormat>()> PVExportFormatNames =
 	{
 		"Arcade",
 		"PS4 (Unsupported)",
 		"Switch (Unsupported)",
 	};
 
-	constexpr bool IsPVScriptExportFormatSupported(PVScriptExportFormat format)
+	constexpr bool IsPVExportFormatSupported(PVExportFormat format)
 	{
-		return (format == PVScriptExportFormat::Arcade);
+		return (format == PVExportFormat::Arcade);
 	};
 
-	struct PVScriptExportWindowInputData
+	struct PVExportWindowInputData
 	{
 		const Chart* Chart;
 		const SoundEffectManager* SoundEffectManager;
+		std::shared_ptr<Audio::ISampleProvider> SongSampleProvider;
 	};
 
-	struct PVScriptMDataExportParam
+	struct PVMDataExportParam
 	{
-		PVScriptExportFormat OutFormat;
+		PVExportFormat OutFormat;
 		i32 OutPVID;
 		std::string RootDirectory;
 		std::array<char, 5> OutMDataID;
@@ -46,6 +48,7 @@ namespace Comfy::Studio::Editor
 		bool MergeWithExistingMData;
 		bool CreateSprSelPV;
 		bool AddDummyMovieReference;
+		f32 VorbisVBRQuality;
 
 		std::string MDataRootDirectory;
 
@@ -63,16 +66,40 @@ namespace Comfy::Studio::Editor
 		std::string OutMDataPVDB;
 		std::string OutMDataSprDB;
 		std::string OutSprSelPVFArc;
+
+		std::shared_ptr<Audio::ISampleProvider> SongSampleProvider;
 	};
+
+	struct PVExportAtomicProgress
+	{
+		std::atomic<f32> Audio;
+		std::atomic<f32> Sprites;
+		std::atomic<f32> Script;
+		std::atomic<f32> MDataInfo;
+		std::atomic<f32> PVDB;
+		std::atomic<f32> PVList;
+
+		PVExportAtomicProgress() = default;
+		~PVExportAtomicProgress() = default;
+
+		inline void Reset()
+		{
+			// HACK: Is this well defined behavior?
+			this->~PVExportAtomicProgress();
+			new (this) PVExportAtomicProgress();
+		}
+	};
+
+	using PVExportTasks = std::vector<std::future<void>>;
 
 	class PVScriptExportWindow : NonCopyable
 	{
 	public:
 		PVScriptExportWindow();
-		~PVScriptExportWindow() = default;
+		~PVScriptExportWindow();
 
 	public:
-		void Gui(const PVScriptExportWindowInputData& inData);
+		void Gui(const PVExportWindowInputData& inData);
 		bool GetAndClearCloseRequestThisFrame();
 
 		void OnWindowOpen();
@@ -81,7 +108,7 @@ namespace Comfy::Studio::Editor
 		void ConvertAndSaveSimpleScriptSync(std::string_view outputScriptPath, const Chart& chart) const;
 
 	private:
-		void StartExport(const PVScriptExportWindowInputData& inData);
+		void StartAsyncExport(PVExportWindowInputData inData);
 		void RequestExit();
 
 		void InternalOnOpen();
@@ -91,6 +118,13 @@ namespace Comfy::Studio::Editor
 		bool closeWindowThisFrame = false;
 		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
 
-		PVScriptMDataExportParam param = {};
+		bool isCurrentlyAsyncExporting = false;
+
+		PVMDataExportParam param = {};
+		PVExportTasks tasks = {};
+		PVExportAtomicProgress progress = {};
+		PVExportWindowInputData asyncAccessedWindowInputData = {};
+
+		Gui::BinaryLoadingTextAnimation loadingAnimation = {};
 	};
 }

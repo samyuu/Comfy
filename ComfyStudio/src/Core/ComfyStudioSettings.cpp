@@ -40,6 +40,7 @@ namespace Comfy::Studio
 		const std::string LastPVScriptExportOptions_MergeWithExistingMData = "merge_with_existing_mdata";
 		const std::string LastPVScriptExportOptions_CreateSprSelPV = "create_spr_sel_pv";
 		const std::string LastPVScriptExportOptions_AddDummyMovieReference = "add_dummy_movie_reference";
+		const std::string LastPVScriptExportOptions_VorbisVBRQuality = "vorbis_vbr_quality";
 
 		const std::string RecentFiles = "recent_files";
 		const std::string RecentFiles_ChartFiles = "chart_files";
@@ -96,6 +97,7 @@ namespace Comfy::Studio
 			LastPVScriptExportOptions.MergeWithExistingMData = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MergeWithExistingMData));
 			LastPVScriptExportOptions.CreateSprSelPV = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_CreateSprSelPV));
 			LastPVScriptExportOptions.AddDummyMovieReference = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_AddDummyMovieReference));
+			LastPVScriptExportOptions.VorbisVBRQuality = JsonTryGetF32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_VorbisVBRQuality));
 		}
 
 		if (const json* recentFilesJson = JsonFind(rootJson, AppIDs::RecentFiles))
@@ -136,6 +138,7 @@ namespace Comfy::Studio
 		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_MergeWithExistingMData], LastPVScriptExportOptions.MergeWithExistingMData);
 		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_CreateSprSelPV], LastPVScriptExportOptions.CreateSprSelPV);
 		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_AddDummyMovieReference], LastPVScriptExportOptions.AddDummyMovieReference);
+		JsonTrySetF32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_VorbisVBRQuality], LastPVScriptExportOptions.VorbisVBRQuality);
 
 		json& recentFilesJson = rootJson[AppIDs::RecentFiles];
 		json& chartFilesJson = recentFilesJson[AppIDs::RecentFiles_ChartFiles];
