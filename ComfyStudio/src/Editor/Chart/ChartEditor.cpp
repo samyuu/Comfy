@@ -897,9 +897,10 @@ namespace Comfy::Studio::Editor
 		bool isOpen = true;
 		if (Gui::WideBeginPopupModal(pvScriptExportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			PVScriptExportWindowInputData data;
+			PVExportWindowInputData data = {};
 			data.Chart = chart.get();
 			data.SoundEffectManager = &soundEffectManager;
+			data.SongSampleProvider = Audio::AudioEngine::GetInstance().GetSharedSource(GetSongSource());
 			pvScriptExportPopup.Window.Gui(data);
 
 			if (pvScriptExportPopup.Window.GetAndClearCloseRequestThisFrame())
