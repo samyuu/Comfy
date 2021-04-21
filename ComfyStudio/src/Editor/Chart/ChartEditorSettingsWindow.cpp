@@ -1249,7 +1249,7 @@ namespace Comfy::Studio::Editor
 						if (buttonType == ButtonType::SlideL)
 							Gui::Separator();
 
-						if (Gui::MenuItemWithFlags(buttonNames[i], nullptr, flagIsSet, true, ImGuiSelectableFlags_DontClosePopups))
+						if (Gui::MenuItemDontClosePopup(buttonNames[i], nullptr, flagIsSet, true))
 						{
 							if (!flagIsSet)
 								binding.ButtonTypes |= buttonTypeFlags;

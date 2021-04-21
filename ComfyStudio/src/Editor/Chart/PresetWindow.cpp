@@ -172,8 +172,7 @@ namespace Comfy::Studio::Editor
 			auto checkbox = [](const char* label, bool& inOutBool, u32 checkboxIndex, const char* description = nullptr)
 			{
 				const auto* binding = IndexOrNull(checkboxIndex, checkboxBindings);
-				if (Gui::MenuItemWithFlags(label, (binding != nullptr) ? Input::ToString(*binding).data() : nullptr, inOutBool, true, ImGuiSelectableFlags_DontClosePopups))
-					inOutBool ^= true;
+				Gui::MenuItemDontClosePopup(label, (binding != nullptr) ? Input::ToString(*binding).data() : nullptr, &inOutBool);
 
 				if (binding != nullptr && Gui::IsWindowFocused() && Input::IsPressed(*binding, false))
 					inOutBool ^= true;

@@ -220,11 +220,11 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 			bool autoplayEnabled = (playTestWindow == nullptr) ? false : playTestWindow->GetAutoplayEnabled();
-			if (Gui::MenuItem("Autoplay Enabled", nullptr, &autoplayEnabled))
+			if (Gui::MenuItemDontClosePopup("Autoplay Enabled", nullptr, &autoplayEnabled))
 				GetOrCreatePlayTestWindow().SetAutoplayEnabled(autoplayEnabled);
 
 			if constexpr (debugPopupPlaytestWindowEnabled)
-				Gui::MenuItem("Popout Playtest Window (Debug)", nullptr, &debugPopupPlaytestWindowOpen);
+				Gui::MenuItemDontClosePopup("Popout Playtest Window (Debug)", nullptr, &debugPopupPlaytestWindowOpen);
 
 			Gui::EndMenu();
 		}

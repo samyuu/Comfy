@@ -603,48 +603,22 @@ namespace ImGui
 		return Combo(label, current_item, items_getter, data, items_count, popup_max_height_in_items);
 	}
 
-	bool MenuItemWithFlags(const char* label, const char* shortcut, bool selected, bool enabled, ImGuiSelectableFlags flags)
+	bool MenuItemDontClosePopup(const char* label, const char* shortcut, bool selected, bool enabled)
 	{
-		ImGuiWindow* window = GetCurrentWindow();
-		if (window->SkipItems)
-			return false;
+		PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+		const bool result = MenuItem(label, shortcut, selected, enabled);
+		PopItemFlag();
+		return result;
+	}
 
-		ImGuiContext& g = *GImGui;
-		ImGuiStyle& style = g.Style;
-		ImVec2 pos = window->DC.CursorPos;
-		ImVec2 label_size = CalcTextSize(label, NULL, true);
-
-		flags |= ImGuiSelectableFlags_PressedOnRelease | (enabled ? 0 : ImGuiSelectableFlags_Disabled);
-		bool pressed;
-		if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
-		{
-			// Mimic the exact layout spacing of BeginMenu() to allow MenuItem() inside a menu bar, which is a little misleading but may be useful
-			// Note that in this situation we render neither the shortcut neither the selected tick mark
-			float w = label_size.x;
-			window->DC.CursorPos.x += (float)(int)(style.ItemSpacing.x * 0.5f);
-			PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * 2.0f);
-			pressed = Selectable(label, false, flags, ImVec2(w, 0.0f));
-			PopStyleVar();
-			window->DC.CursorPos.x += (float)(int)(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
-		}
-		else
-		{
-			ImVec2 shortcut_size = shortcut ? CalcTextSize(shortcut, NULL) : ImVec2(0.0f, 0.0f);
-			float w = window->MenuColumns.DeclColumns(label_size.x, shortcut_size.x, (float)(int)(g.FontSize * 1.20f)); // Feedback for next frame
-			float extra_w = ImMax(0.0f, GetContentRegionAvail().x - w);
-			pressed = Selectable(label, false, flags | ImGuiSelectableFlags_DrawFillAvailWidth, ImVec2(w, 0.0f));
-			if (shortcut_size.x > 0.0f)
-			{
-				PushStyleColor(ImGuiCol_Text, g.Style.Colors[ImGuiCol_TextDisabled]);
-				RenderText(pos + ImVec2(window->MenuColumns.Pos[1] + extra_w, 0.0f), shortcut, NULL, false);
-				PopStyleColor();
-			}
-			if (selected)
-				RenderCheckMark(pos + ImVec2(window->MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled), g.FontSize  * 0.866f);
-		}
-
-		IMGUI_TEST_ENGINE_ITEM_INFO(window->DC.LastItemId, label, window->DC.ItemFlags | ImGuiItemStatusFlags_Checkable | (selected ? ImGuiItemStatusFlags_Checked : 0));
-		return pressed;
+	bool MenuItemDontClosePopup(const char* label, const char* shortcut, bool* selected, bool enabled)
+	{
+		// BUG: If the menu item is used to control the open state of a window and the window is opened on the next frame 
+		//		then the popup is closed anyway (due to the focus loss..?)
+		PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+		const bool result = MenuItem(label, shortcut, selected, enabled);
+		PopItemFlag();
+		return result;
 	}
 
 	void SetWideItemTooltip(const char* fmt, ...)
