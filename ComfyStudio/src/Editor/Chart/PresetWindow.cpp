@@ -154,7 +154,7 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::EndChild();
 
-		if (Gui::IsMouseReleased(1) && (hovered.AnyHoveredThisFrame && Gui::WasHoveredWindowHoveredOnMouseClicked(1)) && Gui::IsMouseSteady())
+		if (Gui::IsMouseReleased(1) && (hovered.Sync.AnyChildWindow && Gui::WasHoveredWindowHoveredOnMouseClicked(1)) && Gui::IsMouseSteady())
 			Gui::OpenPopupEx(presetSettingsContextMenuID);
 
 		if (Gui::BeginPopupEx(presetSettingsContextMenuID, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking)))
@@ -221,10 +221,7 @@ namespace Comfy::Studio::Editor
 		const auto& style = Gui::GetStyle();
 		const bool anyTargetSelected = std::any_of(chart.Targets.begin(), chart.Targets.end(), [](auto& t) { return (t.IsSelected); });
 
-		const f32 addChildHeight = 0.0f; // (StaticSyncButtonHeight + PresetButtonSpacing.y + style.WindowPadding.y);
-		const f32 childHeight = std::max(addChildHeight + (style.WindowPadding.y * 2.0f), Gui::GetContentRegionAvail().y) - addChildHeight - (style.WindowPadding.y * 2.0f);
-
-		Gui::BeginChild("SequencePresetsChild", vec2(0.0f, childHeight), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+		Gui::BeginChild("SequencePresetsChild", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		{
 			hovered.Sequence.ChildWindow = Gui::IsWindowHovered();
 
