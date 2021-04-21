@@ -289,8 +289,7 @@ namespace ImGui
 						D3D11::D3D.Context->IASetVertexBuffers(0, 1, &VertexBuffer, &VertexBufferStride, &VertexBufferOffset); if (VertexBuffer) VertexBuffer->Release();
 						D3D11::D3D.Context->IASetInputLayout(InputLayout); if (InputLayout) InputLayout->Release();
 					}
-
-				} stateBackup;
+				} stateBackup = {};
 
 				// NOTE: Setup orthographic projection matrix
 				{
@@ -329,7 +328,7 @@ namespace ImGui
 
 					const ImTextureID InvalidTextureID = ImTextureID(nullptr);
 					ImTextureID TextureID = InvalidTextureID;
-				} cache;
+				} cache = {};
 
 				int vertexOffset = 0, indexOffset = 0;
 				for (int commandListIndex = 0; commandListIndex < drawData->CmdListsCount; commandListIndex++)
