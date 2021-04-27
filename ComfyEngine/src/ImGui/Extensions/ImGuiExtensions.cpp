@@ -2,6 +2,7 @@
 #include "Graphics/TexSet.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include "Time/Stopwatch.h"
+#include "IO/Path.h"
 
 using namespace Comfy::Graphics;
 
@@ -228,6 +229,24 @@ namespace ImGui
 			}
 			return 0;
 		}
+
+
+		int ValidPathCharTextCallbackFilter(ImGuiInputTextCallbackData* data)
+		{
+			if (data->EventFlag == ImGuiInputTextFlags_CallbackCharFilter)
+			{
+				auto isInvalidPathChar = [](char charToCheck)
+				{
+					return std::any_of(Comfy::IO::Path::InvalidPathCharacters.begin(), Comfy::IO::Path::InvalidPathCharacters.end(),
+						[charToCheck](char invalidChar) { return (charToCheck == invalidChar); });
+				};
+
+				if (data->EventChar <= std::numeric_limits<u8>::max() && isInvalidPathChar(static_cast<char>(data->EventChar)))
+					return 1;
+			}
+
+			return 0;
+		}
 	}
 
 	bool InputText(const char* label, std::string* str, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
@@ -263,6 +282,19 @@ namespace ImGui
 		cb_user_data.Str = str;
 		cb_user_data.ChainCallback = callback;
 		cb_user_data.ChainCallbackUserData = user_data;
+		return InputTextWithHint(label, hint, (char*)str->c_str(), str->capacity() + 1, flags, InputTextStdStringCallback, &cb_user_data);
+	}
+
+	bool PathInputTextWithHint(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags)
+	{
+		IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+		flags |= ImGuiInputTextFlags_CallbackResize;
+		flags |= ImGuiInputTextFlags_CallbackCharFilter;
+
+		InputTextStdStringCallbackUserData cb_user_data;
+		cb_user_data.Str = str;
+		cb_user_data.ChainCallback = ValidPathCharTextCallbackFilter;
+		cb_user_data.ChainCallbackUserData = nullptr;
 		return InputTextWithHint(label, hint, (char*)str->c_str(), str->capacity() + 1, flags, InputTextStdStringCallback, &cb_user_data);
 	}
 
