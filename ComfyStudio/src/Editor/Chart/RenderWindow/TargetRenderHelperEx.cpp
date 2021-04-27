@@ -40,6 +40,9 @@ namespace Comfy::Studio::Editor
 			for (const auto& data : trails)
 				renderHelper.DrawButtonTrail(renderer, data);
 
+			for (const auto& data : syncLines)
+				renderHelper.DrawButtonPairSyncLines(renderer, data);
+
 			for (const auto& data : buttons)
 				if (data.Shadow != TargetRenderHelper::ButtonShadowType::None) { renderHelper.DrawButtonShadow(renderer, data); }
 		}
@@ -84,9 +87,6 @@ namespace Comfy::Studio::Editor
 
 		if (!(flags & TargetRenderHelperExFlushFlags_NoButtons))
 		{
-			for (const auto& data : syncLines)
-				renderHelper.DrawButtonPairSyncLines(renderer, data);
-
 			for (const auto& data : buttons)
 				renderHelper.DrawButton(renderer, data);
 		}
