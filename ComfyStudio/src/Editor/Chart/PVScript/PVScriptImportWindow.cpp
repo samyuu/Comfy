@@ -198,12 +198,12 @@ namespace Comfy::Studio::Editor
 			Gui::PushItemDisabledAndTextColor();
 			{
 				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
-				Gui::InputTextWithHint("##ScriptPath", "Script Path", &inScript.ScriptPath, ImGuiInputTextFlags_ReadOnly);
+				Gui::PathInputTextWithHint("##ScriptPath", "Script Path", &inScript.ScriptPath, ImGuiInputTextFlags_ReadOnly);
 				Gui::PopItemWidth();
 				Gui::Separator();
 
 				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
-				Gui::InputTextWithHint("##SongPath", "Song Path", &inScript.SongPath, ImGuiInputTextFlags_ReadOnly);
+				Gui::PathInputTextWithHint("##SongPath", "Song Path", &inScript.SongPath, ImGuiInputTextFlags_ReadOnly);
 				Gui::PopItemWidth();
 				Gui::Separator();
 			}

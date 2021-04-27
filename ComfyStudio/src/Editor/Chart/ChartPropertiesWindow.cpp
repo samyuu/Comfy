@@ -162,10 +162,10 @@ namespace Comfy::Studio::Editor
 
 				if (isLoading)
 				{
-					char readOnlyBuffer[1] = { '\0' };
-					Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", readOnlyBuffer, sizeof(readOnlyBuffer), ImGuiInputTextFlags_ReadOnly);
+					static const std::string readonlyPath;
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readonlyPath), ImGuiInputTextFlags_ReadOnly);
 				}
-				else if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, helpText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue))
+				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, helpText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
 					inOutPath = IO::Path::TryMakeRelative(inOutPath, basePath);
 					asyncImage.TryLoad(inOutPath, basePath);
@@ -234,10 +234,10 @@ namespace Comfy::Studio::Editor
 
 				if (songIsLoading)
 				{
-					char readOnlyBuffer[1] = { '\0' };
-					Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", readOnlyBuffer, sizeof(readOnlyBuffer), ImGuiInputTextFlags_ReadOnly);
+					static const std::string readonlyPath;
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readonlyPath), ImGuiInputTextFlags_ReadOnly);
 				}
-				else if (Gui::InputTextWithHint(GuiProperty::Detail::DummyLabel, "song.ogg", &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
+				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "song.ogg", &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
 					chartEditor.LoadSongAsync(chart.SongFileName);
 					changesMade = true;

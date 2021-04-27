@@ -590,7 +590,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::PushID(&inOutPath);
 			Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvailWidth() - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
-			changesMade |= Gui::InputTextWithHint("##PathTextInput", hintText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly);
+			changesMade |= Gui::PathInputTextWithHint("##PathTextInput", hintText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly);
 			Gui::PopItemWidth();
 
 			Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(style.FramePadding.y));
