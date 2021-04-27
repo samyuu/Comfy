@@ -162,8 +162,8 @@ namespace Comfy::Studio::Editor
 
 				if (isLoading)
 				{
-					static const std::string readonlyPath;
-					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readonlyPath), ImGuiInputTextFlags_ReadOnly);
+					static const std::string readOnlyPath;
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readOnlyPath), ImGuiInputTextFlags_ReadOnly);
 				}
 				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, helpText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
@@ -225,7 +225,7 @@ namespace Comfy::Studio::Editor
 			changesMade |= GuiProperty::PropertyLabelValueFunc("Song File Name", [&]
 			{
 				const auto& style = Gui::GetStyle();
-				const auto buttonSize = Gui::GetFrameHeight();
+				const f32 buttonSize = Gui::GetFrameHeight();
 
 				const bool songIsLoading = chartEditor.IsSongAsyncLoading();
 				Gui::PushItemDisabledAndTextColorIf(songIsLoading);
@@ -234,8 +234,8 @@ namespace Comfy::Studio::Editor
 
 				if (songIsLoading)
 				{
-					static const std::string readonlyPath;
-					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readonlyPath), ImGuiInputTextFlags_ReadOnly);
+					static const std::string readOnlyPath;
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readOnlyPath), ImGuiInputTextFlags_ReadOnly);
 				}
 				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "song.ogg", &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
@@ -302,23 +302,19 @@ namespace Comfy::Studio::Editor
 					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
 					Gui::PushItemWidth((Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f);
 
-					auto timeDrag = [](const char* label, TimeSpan& inOutTime, TimeSpan min, TimeSpan max)
+					auto timeWidget = [](const char* label, TimeSpan& inOutTime, TimeSpan min, TimeSpan max)
 					{
-						f64 timeSec = inOutTime.TotalSeconds();
-						const f64 timeSecMin = min.TotalSeconds();
-						const f64 timeSecMax = max.TotalSeconds();
-
-						if (Gui::DragScalar(label, ImGuiDataType_Double, &timeSec, 0.25f, &timeSecMin, &timeSecMax, inOutTime.FormatTime().data()))
-							inOutTime = TimeSpan::FromSeconds(timeSec);
+						if (Gui::InputFormattedTimeSpan(label, &inOutTime, {}, ImGuiInputTextFlags_AutoSelectAll))
+							inOutTime = std::clamp(inOutTime, min, max);
 					};
 
 					auto songDuration = chartEditor.GetSongVoice().GetDuration();
 					if (songDuration <= TimeSpan::Zero())
 						songDuration = chart.DurationOrDefault();
 
-					timeDrag("##PreviewStart", chart.Properties.SongPreview.StartTime, TimeSpan::Zero(), songDuration);
+					timeWidget("##PreviewStart", chart.Properties.SongPreview.StartTime, TimeSpan::Zero(), songDuration);
 					Gui::SameLine();
-					timeDrag("##PreviewDuration", chart.Properties.SongPreview.Duration, TimeSpan::Zero(), songDuration);
+					timeWidget("##PreviewDuration", chart.Properties.SongPreview.Duration, TimeSpan::Zero(), songDuration);
 
 					Gui::PopItemWidth();
 					Gui::PopStyleVar();
@@ -330,7 +326,7 @@ namespace Comfy::Studio::Editor
 				{
 					const auto& style = Gui::GetStyle();
 					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-					const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+					const f32 buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
 
 					auto setTimeButton = [&](const char* label, i32 index)
 					{
