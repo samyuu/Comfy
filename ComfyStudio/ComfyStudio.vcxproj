@@ -313,9 +313,7 @@
     <ClInclude Include="src\Editor\PV\SceneRenderWindow.h" />
     <ClInclude Include="src\Editor\PV\StageTest.h" />
     <ClInclude Include="src\Editor\Timeline\FrameTimeline.h" />
-    <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineBase.h" />
-    <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineFrame.h" />
     <ClInclude Include="src\Editor\Timeline\TimelineScrollbar.h" />
     <ClInclude Include="src\Core\ComfyStudioSettings.h" />

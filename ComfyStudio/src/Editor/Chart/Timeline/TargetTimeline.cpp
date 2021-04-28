@@ -290,7 +290,7 @@ namespace Comfy::Studio::Editor
 		constexpr vec4 transparent = vec4(0.0f);
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
-			const f32 timelineEndPosition = GetTimelinePosition(workingChart->DurationOrDefault()) - timelineContentRegion.GetWidth() + 1.0f;
+			const f32 timelineEndPosition = GetTimelinePosition(workingChart->DurationOrDefault()) - regions.Content.GetWidth() + 1.0f;
 			const bool isPlayback = GetIsPlayback();
 
 			const bool isCursorAtStart = (cursorTime <= TimeSpan::Zero());
@@ -366,11 +366,11 @@ namespace Comfy::Studio::Editor
 
 		for (size_t row = 0; row < EnumCount<ButtonType>(); row++)
 		{
-			const auto y = row * rowHeight;
-			const auto start = vec2(0.0f, y) + infoColumnRegion.GetTL();
-			const auto end = vec2(infoColumnWidth, y + rowHeight) + infoColumnRegion.GetTL();
+			const f32 y = row * rowHeight;
+			const vec2 start = vec2(0.0f, y) + regions.InfoColumnContent.GetTL();
+			const vec2 end = vec2(infoColumnWidth, y + rowHeight) + regions.InfoColumnContent.GetTL();
 
-			const auto center = vec2(start + end) / 2.0f;
+			const vec2 center = vec2(start + end) / 2.0f;
 			iconCenters[row] = center;
 
 			targetYPositions[row] = center.y;
@@ -386,13 +386,13 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnDrawTimlineRows()
 	{
-		const auto timelineTL = timelineContentRegion.GetTL();
-		const auto timelineWidth = vec2(timelineContentRegion.GetWidth(), 0.0f);
+		const vec2 timelineTL = regions.Content.GetTL();
+		const vec2 timelineWidth = vec2(regions.Content.GetWidth(), 0.0f);
 
 		for (size_t row = 0; row < EnumCount<ButtonType>(); row++)
 		{
-			const auto start = timelineTL + vec2(0.0f, row * rowHeight);
-			const auto end = start + timelineWidth;
+			const vec2 start = timelineTL + vec2(0.0f, row * rowHeight);
+			const vec2 end = start + timelineWidth;
 
 			baseDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
 		}
@@ -433,8 +433,8 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.35f));
-			const vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
+			const vec2 start = regions.Content.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.35f));
+			const vec2 end = regions.Content.GetBL() + vec2(screenX, 0.0f);
 			baseDrawList->AddLine(start, end, (tick % BeatTick::TicksPerBeat == 0) ? beatColor : (divisions % 2 == 0 ? gridColor : gridAltColor));
 		}
 
@@ -455,8 +455,8 @@ namespace Comfy::Studio::Editor
 				return true;
 
 			char buffer[32];
-			const vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.85f));
-			const vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0.0f);
+			const vec2 start = regions.Content.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.85f));
+			const vec2 end = regions.Content.GetBL() + vec2(screenX, 0.0f);
 			baseDrawList->AddLine(start, end, barColor);
 			baseDrawList->AddText(nullptr, 14.0f, start + vec2(3.0f, -4.0f), barTextColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
 			baseDrawList->AddText(nullptr, 13.0f, start + vec2(3.0f, -4.0f + 9.0f), barTimeColor, workingChart->TimelineMap.GetTimeAt(barTick).FormatTime().data());
@@ -536,13 +536,13 @@ namespace Comfy::Studio::Editor
 		const u32 outOfBoundsDimColor = GetColor(EditorColor_OutOfBoundsDim);
 		const f32 scrollX = GetScrollX();
 
-		const vec2 preStart = timelineContentRegion.GetTL();
-		const vec2 preEnd = timelineContentRegion.GetBL() + vec2(glm::round(GetTimelinePosition(BeatTick::FromBars(1)) - scrollX), 0.0f);
+		const vec2 preStart = regions.Content.GetTL();
+		const vec2 preEnd = regions.Content.GetBL() + vec2(glm::round(GetTimelinePosition(BeatTick::FromBars(1)) - scrollX), 0.0f);
 		if (preEnd.x - preStart.x > 0.0f)
 			baseDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
 
-		const vec2 postStart = timelineContentRegion.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->DurationOrDefault()) - scrollX), 0.0f);
-		const vec2 postEnd = timelineContentRegion.GetBR();
+		const vec2 postStart = regions.Content.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->DurationOrDefault()) - scrollX), 0.0f);
+		const vec2 postEnd = regions.Content.GetBR();
 		if (postEnd.x - postStart.x > 0.0f)
 			baseDrawList->AddRectFilled(postStart, postEnd, outOfBoundsDimColor);
 	}
@@ -554,7 +554,7 @@ namespace Comfy::Studio::Editor
 
 		if (waveformUpdatePending && waveformUpdateStopwatch.GetElapsed() >= waveformUpdateInterval)
 		{
-			const auto timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
+			const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
 			songWaveform.SetScale(timePerPixel);
 
 			waveformUpdateStopwatch.Restart();
@@ -580,50 +580,50 @@ namespace Comfy::Studio::Editor
 		if (waveformUpdatePending)
 			return;
 
-		const auto timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
-		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
+		const f32 timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
+		const f32 scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
 
 		songTextureCachedWaveform.Draw(baseDrawList,
-			timelineContentRegion.GetTL(),
-			timelineContentRegion.GetTL() + vec2(timelineContentRegion.GetWidth(), timelineHeight),
+			regions.Content.GetTL(),
+			regions.Content.GetTL() + vec2(regions.Content.GetWidth(), timelineHeight),
 			scrollXStartOffset);
 	}
 
 	void TargetTimeline::DrawWaveformIndividualVertexLines()
 	{
-		const auto scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
+		const f32 scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
 
-		const auto leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(BeatTick(0)));
-		const auto rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(timelineContentRegion.GetWidth());
-		const auto waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
+		const i64 leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(BeatTick(0)));
+		const i64 rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(regions.Content.GetWidth());
+		const i64 waveformPixelCount = static_cast<i64>(songWaveform.GetPixelCount());
 
-		const auto timelineX = timelineContentRegion.GetTL().x;
-		const auto timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
-		const auto timelineCenterY = timelineContentRegion.GetTL().y + (timelineHeight * 0.5f);
+		const f32 timelineX = regions.Content.GetTL().x;
+		const f32 timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
+		const f32 timelineCenterY = regions.Content.GetTL().y + (timelineHeight * 0.5f);
 
-		const auto waveformColor = GetColor(EditorColor_Waveform);
+		const u32 waveformColor = GetColor(EditorColor_Waveform);
 
 		// NOTE: To try and mitigate "flashes" while resizing the timeline, optimally this should be equal to the average PCM of the last visible area
-		const auto amplitudeDuringUpdate = (0.025f * timelineHeight);
+		const f32 amplitudeDuringUpdate = (0.025f * timelineHeight);
 
 		for (i64 screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
-			const auto timelinePixel = std::min(static_cast<i64>(glm::round(screenPixel + scrollXStartOffset)), static_cast<i64>(waveformPixelCount - 1));
+			const i64 timelinePixel = std::min(static_cast<i64>(glm::round(screenPixel + scrollXStartOffset)), static_cast<i64>(waveformPixelCount - 1));
 			if (timelinePixel < 0)
 				continue;
 
 			constexpr u32 channelsToVisualize = 2;
-			for (auto channel = 0; channel < channelsToVisualize; channel++)
+			for (u32 channel = 0; channel < channelsToVisualize; channel++)
 			{
-				const auto amplitude = waveformUpdatePending ? amplitudeDuringUpdate : (songWaveform.GetNormalizedPCMForPixel(timelinePixel, channel) * timelineHeight);
+				const f32 amplitude = waveformUpdatePending ? amplitudeDuringUpdate : (songWaveform.GetNormalizedPCMForPixel(timelinePixel, channel) * timelineHeight);
 				if (amplitude < 1.0f)
 					continue;
 
-				const auto x = screenPixel + timelineX;
-				const auto halfAmplitude = amplitude * 0.5f;
+				const f32 x = screenPixel + timelineX;
+				const f32 halfAmplitude = amplitude * 0.5f;
 
-				const auto start = vec2(x, timelineCenterY - halfAmplitude);
-				const auto end = vec2(x, timelineCenterY + halfAmplitude);
+				const vec2 start = vec2(x, timelineCenterY - halfAmplitude);
+				const vec2 end = vec2(x, timelineCenterY + halfAmplitude);
 
 				baseDrawList->AddLine(start, end, waveformColor);
 			}
@@ -641,8 +641,8 @@ namespace Comfy::Studio::Editor
 		{
 			const auto& tempoChange = tempoMap.GetTempoChangeAt(i);
 
-			const auto timelineX = GetTimelinePosition(tempoChange.Tick);
-			const auto screenX = glm::round(timelineX - GetScrollX());
+			const f32 timelineX = GetTimelinePosition(tempoChange.Tick);
+			const f32 screenX = glm::round(timelineX - GetScrollX());
 			const auto visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
@@ -659,8 +659,8 @@ namespace Comfy::Studio::Editor
 				tempoChange.Tempo.BeatsPerMinute,
 				tempoChange.Signature.Numerator, tempoChange.Signature.Denominator);
 
-			const auto buttonPosition = tempoMapRegion.GetTL() + vec2(screenX + 1.0f, 0.0f);
-			const auto buttonSize = vec2(Gui::CalcTextSize(tempoBuffer).x, tempoMapHeight);
+			const vec2 buttonPosition = regions.TempoMap.GetTL() + vec2(screenX + 1.0f, 0.0f);
+			const vec2 buttonSize = vec2(Gui::CalcTextSize(tempoBuffer).x, tempoMapHeight);
 
 			Gui::SetCursorScreenPos(buttonPosition);
 
@@ -684,12 +684,12 @@ namespace Comfy::Studio::Editor
 				}
 			}
 
-			const auto tempoColor = GetColor(EditorColor_TempoChange);
+			const u32 tempoColor = GetColor(EditorColor_TempoChange);
 			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoColor);
 
 			// NOTE: Just like with the bar / beat division culling this is far from perfect 
 			//		 but at least crudely prevents any unreadable overlapping text until zoomed in close enough
-			if (const auto lastDrawnDistance = (timelineX - lastDrawnTimelineX); lastDrawnDistance >= 0.0f)
+			if (const f32 lastDrawnDistance = (timelineX - lastDrawnTimelineX); lastDrawnDistance >= 0.0f)
 				baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, (buttonPosition + tempoMapFontOffset), tempoColor, tempoBuffer);
 			lastDrawnTimelineX = timelineX + buttonSize.x;
 		}
@@ -714,7 +714,7 @@ namespace Comfy::Studio::Editor
 					return false;
 				});
 
-				auto bpm = tempoChange.Tempo.BeatsPerMinute;
+				f32 bpm = tempoChange.Tempo.BeatsPerMinute;
 				if (GuiProperty::Input("Tempo##TempoChange", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
 
@@ -726,7 +726,7 @@ namespace Comfy::Studio::Editor
 				{
 					const auto& style = Gui::GetStyle();
 					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-					const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+					const f32 buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
 
 					if (Gui::Button("x0.5", vec2(buttonWidth, 0.0f)))
 						undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm * 0.5f, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
@@ -771,7 +771,7 @@ namespace Comfy::Studio::Editor
 		for (const auto& target : workingChart->Targets)
 		{
 			const auto buttonTime = TickToTime(target.Tick);
-			const auto screenX = glm::round(GetTimelinePosition(buttonTime) - GetScrollX());
+			const f32 screenX = glm::round(GetTimelinePosition(buttonTime) - GetScrollX());
 
 			const auto visiblity = GetTimelineVisibility(screenX);
 			if (visiblity == TimelineVisibility::Left)
@@ -779,9 +779,9 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const auto buttonIndex = static_cast<size_t>(target.Type);
-			const auto center = vec2(screenX + timelineContentRegion.GetTL().x, targetYPositions[buttonIndex]);
-			const auto scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
+			const size_t buttonIndex = static_cast<size_t>(target.Type);
+			const vec2 center = vec2(screenX + regions.Content.GetTL().x, targetYPositions[buttonIndex]);
+			const f32 scale = GetTimelineTargetScaleFactor(target, buttonTime) * iconScale;
 
 			const bool tooEarly = (target.Tick < BeatTick::FromBars(1));
 			const bool isSelected = target.IsSelected;
@@ -800,8 +800,8 @@ namespace Comfy::Studio::Editor
 			const f32 iconHitboxHalfSize = (iconHitboxSize / 2.0f);
 			for (const auto& center : tempSelectedTargetPositionBuffer)
 			{
-				const auto tl = (center - iconHitboxHalfSize);
-				const auto br = (center + iconHitboxHalfSize);
+				const vec2 tl = (center - iconHitboxHalfSize);
+				const vec2 br = (center + iconHitboxHalfSize);
 
 				windowDrawList->AddRectFilled(tl, br, GetColor(EditorColor_TimelineSelection));
 				windowDrawList->AddRect(tl, br, GetColor(EditorColor_TimelineSelectionBorder));
@@ -819,7 +819,7 @@ namespace Comfy::Studio::Editor
 
 			if (timeUntilButton <= TimeSpan::Zero() && timeUntilButton >= -buttonAnimationDuration)
 			{
-				const auto delta = static_cast<f32>(timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds());
+				const f32 delta = static_cast<f32>(timeUntilButton.TotalSeconds() / -buttonAnimationDuration.TotalSeconds());
 				return ImLerp(buttonAnimationScaleStart, buttonAnimationScaleEnd, delta);
 			}
 		}
@@ -831,7 +831,7 @@ namespace Comfy::Studio::Editor
 				buttonAnimation.ElapsedTime >= buttonAnimationStartTime &&
 				buttonAnimation.ElapsedTime <= buttonAnimationDuration)
 			{
-				const auto delta = static_cast<f32>(buttonAnimation.ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds());
+				const f32 delta = static_cast<f32>(buttonAnimation.ElapsedTime.TotalSeconds() / buttonAnimationDuration.TotalSeconds());
 				return ImLerp(buttonAnimationScaleStart, buttonAnimationScaleEnd, delta);
 			}
 		}
@@ -843,10 +843,10 @@ namespace Comfy::Studio::Editor
 	{
 		if (GetIsPlayback())
 		{
-			const auto prePlaybackX = glm::round(GetTimelinePosition(chartEditor.GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
+			const f32 prePlaybackX = glm::round(GetTimelinePosition(chartEditor.GetPlaybackTimeOnPlaybackStart()) - GetScrollX());
 
-			const auto start = timelineHeaderRegion.GetTL() + vec2(prePlaybackX, 0.0f);
-			const auto end = timelineContentRegion.GetBL() + vec2(prePlaybackX, 0.0f);
+			const vec2 start = regions.ContentHeader.GetTL() + vec2(prePlaybackX, 0.0f);
+			const vec2 end = regions.Content.GetBL() + vec2(prePlaybackX, 0.0f);
 
 			baseDrawList->AddLine(start, end, GetColor(EditorColor_CursorInner));
 		}
@@ -860,11 +860,11 @@ namespace Comfy::Studio::Editor
 		if (!rangeSelection.IsActive)
 			return;
 
-		const auto startScreenX = glm::round(GetTimelinePosition(rangeSelection.StartTick) - GetScrollX()) + (!rangeSelection.HasEnd ? -1.0f : 0.0f);
-		const auto endScreenX = glm::round(GetTimelinePosition(rangeSelection.EndTick) - GetScrollX()) + (!rangeSelection.HasEnd ? +2.0f : 1.0f);
+		const f32 startScreenX = glm::round(GetTimelinePosition(rangeSelection.StartTick) - GetScrollX()) + (!rangeSelection.HasEnd ? -1.0f : 0.0f);
+		const f32 endScreenX = glm::round(GetTimelinePosition(rangeSelection.EndTick) - GetScrollX()) + (!rangeSelection.HasEnd ? +2.0f : 1.0f);
 
-		const auto start = vec2(timelineContentRegion.GetTL().x + startScreenX, timelineContentRegion.GetTL().y);
-		const auto end = vec2(timelineContentRegion.GetTL().x + endScreenX, timelineContentRegion.GetBR().y);
+		const vec2 start = vec2(regions.Content.GetTL().x + startScreenX, regions.Content.GetTL().y);
+		const vec2 end = vec2(regions.Content.GetTL().x + endScreenX, regions.Content.GetBR().y);
 
 		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection, 0.3f));
 		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
@@ -875,14 +875,14 @@ namespace Comfy::Studio::Editor
 		if (!boxSelection.IsActive || !boxSelection.IsSufficientlyLarge)
 			return;
 
-		const auto startScreenX = glm::round(GetTimelinePosition(boxSelection.StartTick) - GetScrollX());
-		const auto endScreenX = glm::round(GetTimelinePosition(boxSelection.EndTick) - GetScrollX());
+		const f32 startScreenX = glm::round(GetTimelinePosition(boxSelection.StartTick) - GetScrollX());
+		const f32 endScreenX = glm::round(GetTimelinePosition(boxSelection.EndTick) - GetScrollX());
 
-		const auto minY = timelineContentRegion.GetTL().y;
-		const auto maxY = timelineContentRegion.GetBR().y;
+		const f32 minY = regions.Content.GetTL().y;
+		const f32 maxY = regions.Content.GetBR().y;
 
-		const auto start = vec2(timelineContentRegion.GetTL().x + startScreenX, glm::clamp(boxSelection.StartMouse.y, minY, maxY));
-		const auto end = vec2(timelineContentRegion.GetTL().x + endScreenX, glm::clamp(boxSelection.EndMouse.y, minY, maxY));
+		const vec2 start = vec2(regions.Content.GetTL().x + startScreenX, glm::clamp(boxSelection.StartMouse.y, minY, maxY));
+		const vec2 end = vec2(regions.Content.GetTL().x + endScreenX, glm::clamp(boxSelection.EndMouse.y, minY, maxY));
 
 		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection));
 		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
@@ -893,8 +893,8 @@ namespace Comfy::Studio::Editor
 			constexpr f32 circleRadius = 6.0f;
 			constexpr f32 symbolSize = 2.0f;
 
-			const auto symbolPos = start;
-			const auto symbolColor = Gui::GetColorU32(ImGuiCol_Text);
+			const vec2 symbolPos = start;
+			const u32 symbolColor = Gui::GetColorU32(ImGuiCol_Text);
 
 			baseDrawList->AddCircleFilled(symbolPos, circleRadius, Gui::GetColorU32(ImGuiCol_ChildBg));
 			baseDrawList->AddCircle(symbolPos, circleRadius, GetColor(EditorColor_TimelineSelectionBorder));
@@ -1065,7 +1065,7 @@ namespace Comfy::Studio::Editor
 	{
 		if (!selectionDrag.IsDragging)
 		{
-			if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !timelineContentRegion.Contains(Gui::GetMousePos()))
+			if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !regions.Content.Contains(Gui::GetMousePos()))
 				return;
 		}
 		else if (Gui::IsMouseReleased(0))
@@ -1083,7 +1083,7 @@ namespace Comfy::Studio::Editor
 				if (!target.IsSelected)
 					continue;
 
-				const auto center = vec2(GetTimelinePosition(target.Tick) - GetScrollX() + timelineContentRegion.GetTL().x, targetYPositions[static_cast<size_t>(target.Type)]);
+				const vec2 center = vec2(GetTimelinePosition(target.Tick) - GetScrollX() + regions.Content.GetTL().x, targetYPositions[static_cast<size_t>(target.Type)]);
 				const auto hitbox = ImRect(center - iconHitboxHalfSize, center + iconHitboxHalfSize);
 
 				if (!hitbox.Contains(Gui::GetMousePos()))
@@ -1128,13 +1128,13 @@ namespace Comfy::Studio::Editor
 
 			if (selectionDrag.ChangeType)
 			{
-				const auto heightPerType = (rowHeight - 2.0f);
-				const auto typeIncrementDirection = std::clamp(static_cast<i32>(selectionDrag.VerticalDistanceMovedSoFar / heightPerType), -1, +1);
+				const f32 heightPerType = (rowHeight - 2.0f);
+				const i32 typeIncrementDirection = std::clamp(static_cast<i32>(selectionDrag.VerticalDistanceMovedSoFar / heightPerType), -1, +1);
 				selectionDrag.VerticalDistanceMovedSoFar -= (typeIncrementDirection * heightPerType);
 
 				if (typeIncrementDirection != 0)
 				{
-					const auto selectedTargetCount = CountSelectedTargets();
+					const size_t selectedTargetCount = CountSelectedTargets();
 
 					std::vector<ChangeTargetListTypes::Data> targetTypeData;
 					targetTypeData.reserve(selectedTargetCount);
@@ -1188,6 +1188,10 @@ namespace Comfy::Studio::Editor
 
 	bool TargetTimeline::CheckIsAnySyncPairPartiallySelected() const
 	{
+#if COMFY_DEBUG && 0 // TODO: Allow seperating sync pair targets, thanks to the new ID system
+		return false;
+#endif
+
 		for (size_t i = 0; i < workingChart->Targets.size(); i++)
 		{
 			const auto& target = workingChart->Targets[i];
@@ -1207,6 +1211,10 @@ namespace Comfy::Studio::Editor
 
 	bool TargetTimeline::CheckIsSelectionNotBlocked(BeatTick increment) const
 	{
+#if COMFY_DEBUG && 0 // TODO: ...
+		return true;
+#endif
+
 		if (increment > BeatTick::Zero())
 		{
 			for (i32 i = 0; i < static_cast<i32>(workingChart->Targets.size()); i++)
@@ -1247,7 +1255,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputCursorClick()
 	{
-		if (!Gui::IsWindowHovered() || !timelineContentRegion.Contains(Gui::GetMousePos()))
+		if (!Gui::IsWindowHovered() || !regions.Content.Contains(Gui::GetMousePos()))
 			return;
 
 		if (Gui::IsMouseClicked(0) && !Gui::GetIO().KeyShift)
@@ -1267,7 +1275,7 @@ namespace Comfy::Studio::Editor
 		if (isCursorScrubbing)
 			Gui::SetActiveID(Gui::GetID(&isCursorScrubbing), Gui::GetCurrentWindow());
 
-		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineHeaderRegion.Contains(Gui::GetMousePos()))
+		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && regions.ContentHeader.Contains(Gui::GetMousePos()))
 		{
 			if (Gui::IsMouseClicked(0))
 				isCursorScrubbing = true;
@@ -1327,7 +1335,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr const char* contextMenuID = "TargetTimelineContextMenu";
 
-		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
+		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && regions.Content.Contains(Gui::GetMousePos()))
 		{
 			if (!Gui::IsAnyItemHovered())
 				Gui::OpenPopup(contextMenuID);
@@ -1335,7 +1343,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::BeginPopup(contextMenuID, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
 		{
-			const auto selectionCount = CountSelectedTargets();
+			const size_t selectionCount = CountSelectedTargets();
 
 			if (Gui::BeginMenu("Grid Division"))
 			{
@@ -1478,7 +1486,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr i32 boxSelectionButton = 1;
 
-		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && timelineContentRegion.Contains(Gui::GetMousePos()))
+		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && regions.Content.Contains(Gui::GetMousePos()))
 		{
 			if (Gui::IsMouseClicked(boxSelectionButton))
 			{
@@ -1564,7 +1572,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::ToggleSelectedTargetsHolds(Undo::UndoManager& undoManager, Chart& chart)
 	{
-		const auto selectedTargetCount = CountSelectedTargets();
+		const size_t selectedTargetCount = CountSelectedTargets();
 		if (selectedTargetCount < 1)
 			return;
 
@@ -1704,7 +1712,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::ClipboardCutSelection(Undo::UndoManager& undoManager, Chart& chart)
 	{
-		const auto selectionCount = CountSelectedTargets();
+		const size_t selectionCount = CountSelectedTargets();
 		if (selectionCount < 1)
 			return;
 
@@ -1718,7 +1726,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::ClipboardCopySelection(Undo::UndoManager& undoManager, Chart& chart)
 	{
-		const auto selectionCount = CountSelectedTargets();
+		const size_t selectionCount = CountSelectedTargets();
 		if (selectionCount < 1)
 			return;
 
@@ -1767,7 +1775,7 @@ namespace Comfy::Studio::Editor
 		const bool placeChain = IsSlideButtonType(type);
 
 		const auto divisionTick = placeChain ? ChainSlideDivisionTick() : GridDivisionTick();
-		const auto targetCount = ((endTick - startTick).Ticks() / divisionTick.Ticks()) + 1;
+		const i32 targetCount = ((endTick - startTick).Ticks() / divisionTick.Ticks()) + 1;
 
 		std::vector<TimelineTarget> targets;
 		targets.reserve(targetCount);
@@ -1835,14 +1843,14 @@ namespace Comfy::Studio::Editor
 			undoManager.Execute<AddTarget>(chart, TimelineTarget(tick, type));
 		}
 
-		const auto buttonIndex = static_cast<size_t>(type);
+		const size_t buttonIndex = static_cast<size_t>(type);
 		buttonAnimations[buttonIndex].Tick = tick;
 		buttonAnimations[buttonIndex].ElapsedTime = TimeSpan::Zero();
 	}
 
 	void TargetTimeline::RemoveAllSelectedTargets(Undo::UndoManager& undoManager, Chart& chart, std::optional<size_t> preCalculatedSelectionCount)
 	{
-		const auto selectionCount = [&] { return (preCalculatedSelectionCount.has_value()) ? preCalculatedSelectionCount.value() : CountSelectedTargets(); }();
+		const size_t selectionCount = [&] { return (preCalculatedSelectionCount.has_value()) ? preCalculatedSelectionCount.value() : CountSelectedTargets(); }();
 		if (selectionCount < 1)
 			return;
 
@@ -2058,8 +2066,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::SelectNextPresetGridDivision(i32 direction)
 	{
-		const auto index = FindGridDivisionPresetIndex();
-		const auto nextIndex = std::clamp(index + direction, 0, static_cast<i32>(PresetBarGridDivisions.size()) - 1);
+		const i32 index = FindGridDivisionPresetIndex();
+		const i32 nextIndex = std::clamp(index + direction, 0, static_cast<i32>(PresetBarGridDivisions.size()) - 1);
 
 		activeBarGridDivision = PresetBarGridDivisions[nextIndex].BarDivision;
 	}
@@ -2085,7 +2093,7 @@ namespace Comfy::Studio::Editor
 		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
 		const auto clampedCursorTick = std::max(newCursorTick, BeatTick::Zero());
 
-		const auto preCursorX = GetCursorTimelinePosition();
+		const f32 preCursorX = GetCursorTimelinePosition();
 
 		SetCursorTick(clampedCursorTick);
 		PlayCursorButtonSoundsAndAnimation(clampedCursorTick);

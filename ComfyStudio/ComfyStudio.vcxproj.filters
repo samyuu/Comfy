@@ -281,13 +281,7 @@
     <ClInclude Include="src\Editor\Timeline\FrameTimeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Timeline\ITimelinePlaybackControllable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Timeline\TimelineBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Timeline\TimelineBaseRegions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\Timeline\TimelineFrame.h">

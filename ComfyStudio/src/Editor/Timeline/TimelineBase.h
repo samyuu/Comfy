@@ -2,28 +2,49 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Time/TimeSpan.h"
-#include "TimelineBaseRegions.h"
-#include "ITimelinePlaybackControllable.h"
 #include "TimelineScrollbar.h"
 #include "ImGui/Gui.h"
 #include <optional>
 
 namespace Comfy::Studio::Editor
 {
-	enum class TimelineVisibility
+	enum class TimelineVisibility : u8
 	{
 		Visible,
 		Left,
-		Right
+		Right,
+		Count
 	};
 
-	class TimelineBase : public TimelineBaseRegions, public ITimelinePlaybackControllable
+	// NOTE: Screenspace regions
+	struct TimelineBaseRegions
+	{
+		// NOTE: The entire timeline without the parent imgui window padding, including scrollbars
+		ImRect Base;
+		// NOTE: The upper part of the left column
+		ImRect InfoColumnHeader;
+		// NOTE: The lower part of the left column
+		ImRect InfoColumnContent;
+		// NOTE: The entire timeline without the left column, excluding scrollbars
+		ImRect ContentBase;
+		// NOTE: The upper most part of the content base
+		ImRect TempoMap;
+		// NOTE: The upper middle part of the content base
+		ImRect ContentHeader;
+		// NOTE: The lower most part of the content base
+		ImRect Content;
+	};
+
+	// TODO: Remove useless controllable interface and make TimelineBaseRegions a member field instead of inheriting..?
+	class TimelineBase : public NonCopyable
 	{
 	public:
 		TimelineBase() = default;
 		virtual ~TimelineBase() = default;
 
 	public:
+		virtual bool GetIsPlayback() const = 0;
+
 		virtual f32 GetTimelinePosition(TimeSpan time) const;
 		virtual TimeSpan GetTimelineTime(f32 position) const;
 
@@ -44,6 +65,8 @@ namespace Comfy::Studio::Editor
 		inline f32 GetMaxScrollY() const { return maxScroll.y; }
 		inline f32 GetScrollY() const { return scroll.y; }
 
+		inline const TimelineBaseRegions GetRegions() const { return regions; }
+
 	public:
 		void SetZoomCenteredAroundCursor(f32 newZoom);
 		void SetZoomCenteredAroundTime(f32 newZoom, TimeSpan timeToCenter);
@@ -58,6 +81,8 @@ namespace Comfy::Studio::Editor
 
 	protected:
 		TimeSpan cursorTime = {};
+
+		TimelineBaseRegions regions = {};
 
 		struct /* TimelineImGuiData */
 		{
@@ -124,6 +149,10 @@ namespace Comfy::Studio::Editor
 		void DrawTimelineZoomSlider();
 
 	protected:
+		virtual void PausePlayback() = 0;
+		virtual void ResumePlayback() = 0;
+		virtual void StopPlayback() = 0;
+
 		virtual void OnDrawTimelineHeaderWidgets() = 0;
 		virtual void OnDrawTimelineInfoColumnHeader();
 		virtual void OnDrawTimelineInfoColumn();
@@ -148,7 +177,7 @@ namespace Comfy::Studio::Editor
 		virtual void OnDrawTimelineContents() = 0;
 
 		void UpdateTimelineSize();
-		virtual void UpdateTimelineRegions() override;
+		virtual void UpdateTimelineRegions();
 
 		virtual void UpdateInputTimelineScroll();
 		virtual void UpdateInputPlaybackToggle();
@@ -165,7 +194,7 @@ namespace Comfy::Studio::Editor
 		vec2 scroll = vec2(0.0f, 0.0f);
 		vec2 maxScroll = vec2(0.0f, 0.0f);
 
-		// TODO: 
+		// TODO: Implement via SmoothDamp (?)
 		// vec2 scrollSmoothness;
 		// vec2 scrollTarget = scroll;
 

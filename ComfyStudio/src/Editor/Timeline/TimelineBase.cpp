@@ -18,7 +18,7 @@ namespace Comfy::Studio::Editor
 
 	f32 TimelineBase::ScreenToTimelinePosition(f32 screenPosition) const
 	{
-		return screenPosition - timelineContentRegion.Min.x + GetScrollX();
+		return screenPosition - regions.Content.Min.x + GetScrollX();
 	}
 
 	f32 TimelineBase::GetCursorTimelinePosition() const
@@ -47,7 +47,7 @@ namespace Comfy::Studio::Editor
 
 	TimelineVisibility TimelineBase::GetTimelineVisibilityForScreenSpace(f32 screenX) const
 	{
-		const f32 timelineX = screenX - timelineContentRegion.Min.x;
+		const f32 timelineX = screenX - regions.Content.Min.x;
 
 		const f32 visibleMin = -timelineVisibleThreshold;
 		const f32 visibleMax = baseWindow->Size.x + timelineVisibleThreshold;
@@ -72,12 +72,12 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Ensure smooth cursor scrolling
 		if (autoScrollCursorEnabled)
-			cursorScreenX = timelineContentRegion.GetWidth() - (timelineContentRegion.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
+			cursorScreenX = regions.Content.GetWidth() - (regions.Content.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
 
 		cursorScreenX = glm::round(cursorScreenX);
 
-		const vec2 start = timelineHeaderRegion.GetTL() + vec2(cursorScreenX, 0.0f);
-		const vec2 end = timelineContentRegion.GetBL() + vec2(cursorScreenX, 0.0f);
+		const vec2 start = regions.ContentHeader.GetTL() + vec2(cursorScreenX, 0.0f);
+		const vec2 end = regions.Content.GetBL() + vec2(cursorScreenX, 0.0f);
 
 		baseDrawList->AddLine(start + vec2(0.0f, cursorHeadHeight - 1.0f), end, outterColor);
 
@@ -95,8 +95,8 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::SetZoomCenteredAroundCursor(f32 newZoom)
 	{
 		const auto cursorTime = GetCursorTime();
-		const auto minVisibleTime = GetTimelineTime(ScreenToTimelinePosition(timelineContentRegion.GetTL().x));
-		const auto maxVisibleTime = GetTimelineTime(ScreenToTimelinePosition(timelineContentRegion.GetTR().x));
+		const auto minVisibleTime = GetTimelineTime(ScreenToTimelinePosition(regions.Content.GetTL().x));
+		const auto maxVisibleTime = GetTimelineTime(ScreenToTimelinePosition(regions.Content.GetTR().x));
 
 		// NOTE: Because centered zooming around an off-screen target can be very disorientating as all points on the timeline appear to be moving
 		const auto visibleClampedCursorTime = std::clamp(cursorTime, minVisibleTime, maxVisibleTime);
@@ -116,21 +116,21 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::CenterCursor(std::optional<f32> widthFactor)
 	{
-		const f32 center = GetCursorTimelinePosition() - (timelineContentRegion.GetWidth() * widthFactor.value_or(autoScrollCursorOffsetPercentage));
+		const f32 center = GetCursorTimelinePosition() - (regions.Content.GetWidth() * widthFactor.value_or(autoScrollCursorOffsetPercentage));
 		SetScrollX(center);
 	}
 
 	bool TimelineBase::IsCursorOnScreen() const
 	{
 		const f32 cursorPosition = GetCursorTimelinePosition() - GetScrollX();
-		return cursorPosition >= 0.0f && cursorPosition <= timelineContentRegion.GetWidth();
+		return cursorPosition >= 0.0f && cursorPosition <= regions.Content.GetWidth();
 	}
 
 	void TimelineBase::UpdateInfoColumnInput()
 	{
 		const auto& io = Gui::GetIO();
 
-		if (Gui::IsWindowHovered() && infoColumnRegion.Contains(io.MousePos) && io.MouseWheel != 0.0f)
+		if (Gui::IsWindowHovered() && regions.InfoColumnContent.Contains(io.MousePos) && io.MouseWheel != 0.0f)
 			OnInfoColumnScroll();
 
 		// NOTE: Always clamp in case the window has been resized
@@ -143,31 +143,31 @@ namespace Comfy::Studio::Editor
 
 		const auto timelinePosition = Gui::GetCursorScreenPos();
 		const auto timelineSize = Gui::GetWindowSize() - Gui::GetCursorPos() - style.WindowPadding;
-		timelineRegion = ImRect(timelinePosition, timelinePosition + timelineSize);
+		regions.Base = ImRect(timelinePosition, timelinePosition + timelineSize);
 
-		const auto headerPosition = timelineRegion.GetTL();
+		const auto headerPosition = regions.Base.GetTL();
 		const auto headerSize = vec2(infoColumnWidth, timelineHeaderHeight + tempoMapHeight);
-		infoColumnHeaderRegion = ImRect(headerPosition, headerPosition + headerSize);
+		regions.InfoColumnHeader = ImRect(headerPosition, headerPosition + headerSize);
 
-		const auto infoPosition = infoColumnHeaderRegion.GetBL();
-		const auto infoSize = vec2(infoColumnWidth, timelineRegion.GetHeight() - infoColumnHeaderRegion.GetHeight() - timelineScrollbarSize.y);
-		infoColumnRegion = ImRect(infoPosition, infoPosition + infoSize);
+		const auto infoPosition = regions.InfoColumnHeader.GetBL();
+		const auto infoSize = vec2(infoColumnWidth, regions.Base.GetHeight() - regions.InfoColumnHeader.GetHeight() - timelineScrollbarSize.y);
+		regions.InfoColumnContent = ImRect(infoPosition, infoPosition + infoSize);
 
-		const auto timelineBasePosition = infoColumnHeaderRegion.GetTR();
-		const auto timelineBaseSize = vec2(timelineRegion.GetWidth() - infoColumnRegion.GetWidth() - timelineScrollbarSize.x, timelineRegion.GetHeight() - timelineScrollbarSize.y);
-		timelineBaseRegion = ImRect(timelineBasePosition, timelineBasePosition + timelineBaseSize);
+		const auto timelineBasePosition = regions.InfoColumnHeader.GetTR();
+		const auto timelineBaseSize = vec2(regions.Base.GetWidth() - regions.InfoColumnContent.GetWidth() - timelineScrollbarSize.x, regions.Base.GetHeight() - timelineScrollbarSize.y);
+		regions.ContentBase = ImRect(timelineBasePosition, timelineBasePosition + timelineBaseSize);
 
-		const auto tempoMapPosition = timelineBaseRegion.GetTL();
-		const auto tempoMapSize = vec2(timelineBaseRegion.GetWidth(), tempoMapHeight);
-		tempoMapRegion = ImRect(tempoMapPosition, tempoMapPosition + tempoMapSize);
+		const auto tempoMapPosition = regions.ContentBase.GetTL();
+		const auto tempoMapSize = vec2(regions.ContentBase.GetWidth(), tempoMapHeight);
+		regions.TempoMap = ImRect(tempoMapPosition, tempoMapPosition + tempoMapSize);
 
-		const auto timelineHeaderPosition = tempoMapRegion.GetBL();
-		const auto timelineHeaderSize = vec2(timelineBaseRegion.GetWidth(), timelineHeaderHeight);
-		timelineHeaderRegion = ImRect(timelineHeaderPosition, timelineHeaderPosition + timelineHeaderSize);
+		const auto timelineHeaderPosition = regions.TempoMap.GetBL();
+		const auto timelineHeaderSize = vec2(regions.ContentBase.GetWidth(), timelineHeaderHeight);
+		regions.ContentHeader = ImRect(timelineHeaderPosition, timelineHeaderPosition + timelineHeaderSize);
 
-		const auto timelineTargetPosition = timelineHeaderRegion.GetBL();
-		const auto timelineTargetSize = vec2(timelineBaseRegion.GetWidth(), timelineBaseRegion.GetHeight() - timelineHeaderSize.y - tempoMapSize.y);
-		timelineContentRegion = ImRect(timelineTargetPosition, timelineTargetPosition + timelineTargetSize);
+		const auto timelineTargetPosition = regions.ContentHeader.GetBL();
+		const auto timelineTargetSize = vec2(regions.ContentBase.GetWidth(), regions.ContentBase.GetHeight() - timelineHeaderSize.y - tempoMapSize.y);
+		regions.Content = ImRect(timelineTargetPosition, timelineTargetPosition + timelineTargetSize);
 	}
 
 	void TimelineBase::UpdateInputTimelineScroll()
@@ -238,9 +238,9 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::UpdateCursorAutoScroll()
 	{
 		const auto cursorPos = (GetCursorTimelinePosition());
-		const auto endPos = (ScreenToTimelinePosition(timelineContentRegion.GetBR().x));
+		const auto endPos = (ScreenToTimelinePosition(regions.Content.GetBR().x));
 
-		const auto autoScrollOffset = (timelineContentRegion.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
+		const auto autoScrollOffset = (regions.Content.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
 		if (cursorPos >= endPos - autoScrollOffset)
 		{
 			const auto increment = (cursorPos - endPos + autoScrollOffset);
@@ -301,23 +301,24 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::DrawTimelineGui()
 	{
 #if 0 // DEBUG:
-		Gui::DEBUG_NOSAVE_WINDOW("timeline base regions", [this]()
+		if (Gui::Begin(__FUNCTION__" DEBUG REGIONS", nullptr, ImGuiWindowFlags_NoSavedSettings))
 		{
-			auto drawRegionIfHighlighted = [](const char* name, const ImRect& region)
+			auto drawRegionIfHighlighted = [](const char* name, const ImRect& region, ImDrawList* drawList = Gui::GetForegroundDrawList())
 			{
 				Gui::Selectable(name);
 				if (Gui::IsItemHovered())
-					Gui::GetForegroundDrawList()->AddRectFilled(region.Min, region.Max, 0x60196690);
+					drawList->AddRectFilled(region.Min, region.Max, 0x60196690);
 			};
 
-			drawRegionIfHighlighted("timelineRegion", timelineRegion);
-			drawRegionIfHighlighted("infoColumnHeaderRegion", infoColumnHeaderRegion);
-			drawRegionIfHighlighted("infoColumnRegion", infoColumnRegion);
-			drawRegionIfHighlighted("timelineBaseRegion", timelineBaseRegion);
-			drawRegionIfHighlighted("tempoMapRegion", tempoMapRegion);
-			drawRegionIfHighlighted("timelineHeaderRegion", timelineHeaderRegion);
-			drawRegionIfHighlighted("timelineContentRegion", timelineContentRegion);
-		}, ImGuiWindowFlags_None);
+			drawRegionIfHighlighted("regions.Base", regions.Base);
+			drawRegionIfHighlighted("regions.InfoColumnHeader", regions.InfoColumnHeader);
+			drawRegionIfHighlighted("regions.InfoColumnContent", regions.InfoColumnContent);
+			drawRegionIfHighlighted("regions.ContentBase", regions.ContentBase);
+			drawRegionIfHighlighted("regions.TempoMap", regions.TempoMap);
+			drawRegionIfHighlighted("regions.ContentHeader", regions.ContentHeader);
+			drawRegionIfHighlighted("regions.Content", regions.Content);
+		}
+		Gui::End();
 #endif
 
 		Gui::BeginGroup();
@@ -336,7 +337,7 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::EndChild();
 
-		Gui::SetCursorScreenPos(infoColumnHeaderRegion.GetTR());
+		Gui::SetCursorScreenPos(regions.InfoColumnHeader.GetTR());
 		Gui::BeginChild("##BaseChild::TimelineBase", vec2(-timelineScrollbarSize.x, 0.0f), false, ImGuiWindowFlags_NoScrollbar);
 		{
 			baseWindow = Gui::GetCurrentWindow();
@@ -355,18 +356,18 @@ namespace Comfy::Studio::Editor
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size - vec2(0.0f, timelineScrollbarSize.y),
 				Gui::GetColorU32(ImGuiCol_ScrollbarBg));
 
-			const vec2 positionOffset = vec2(0.0f, infoColumnHeaderRegion.GetHeight());
+			const vec2 positionOffset = vec2(0.0f, regions.InfoColumnHeader.GetHeight());
 			const vec2 sizeOffset = vec2(0.0f, -timelineScrollbarSize.y);
 
-			const ImRect scrollbarRegion = ImRect(timelineContentRegion.GetTR(), timelineContentRegion.GetBR() + vec2(timelineScrollbarSize.x, 0.0f));
+			const ImRect scrollbarRegion = ImRect(regions.Content.GetTR(), regions.Content.GetBR() + vec2(timelineScrollbarSize.x, 0.0f));
 
 			// BUG: Incorrect available scroll amount (?)
-			if (auto scroll = GetScrollY(); verticalScrollbar.Gui(scroll, timelineContentRegion.GetHeight(), GetMaxScrollY(), scrollbarRegion))
+			if (auto scroll = GetScrollY(); verticalScrollbar.Gui(scroll, regions.Content.GetHeight(), GetMaxScrollY(), scrollbarRegion))
 				SetScrollY(scroll);
 		}
 		Gui::EndChild();
 
-		Gui::SetCursorScreenPos(infoColumnRegion.GetBL());
+		Gui::SetCursorScreenPos(regions.InfoColumnContent.GetBL());
 		Gui::BeginChild("HorizontalScrollChild::TimelineBase", vec2(-timelineScrollbarSize.x, timelineScrollbarSize.y), false, ImGuiWindowFlags_NoScrollbar);
 		{
 			Gui::GetWindowDrawList()->AddRectFilled(
@@ -382,7 +383,7 @@ namespace Comfy::Studio::Editor
 				GImGui->CurrentWindow->Pos + positionOffset,
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size);
 
-			if (auto scroll = GetScrollX(); horizontalScrollbar.Gui(scroll, timelineContentRegion.GetWidth(), GetMaxScrollX() + 1.0f, scrollbarRegion))
+			if (auto scroll = GetScrollX(); horizontalScrollbar.Gui(scroll, regions.Content.GetWidth(), GetMaxScrollX() + 1.0f, scrollbarRegion))
 				SetScrollX(scroll);
 		}
 		Gui::EndChild();
@@ -410,7 +411,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: To give the content region a bit more contrast
 		const ImU32 dimColor = Gui::GetColorU32(ImGuiCol_PopupBg, 0.15f);
-		Gui::GetWindowDrawList()->AddRectFilled(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), dimColor);
+		Gui::GetWindowDrawList()->AddRectFilled(regions.Content.GetTL(), regions.Content.GetBR(), dimColor);
 
 		OnDrawTimlineTempoMap();
 		OnDrawTimlineRows();
@@ -459,7 +460,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Offset to hide the bottom border line
 		constexpr vec2 yOffset = vec2(0.0f, 1.0f);
-		drawList->AddRect(infoColumnHeaderRegion.GetTL(), infoColumnHeaderRegion.GetBR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
+		drawList->AddRect(regions.InfoColumnHeader.GetTL(), regions.InfoColumnHeader.GetBR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
 	}
 
 	void TimelineBase::OnDrawTimelineInfoColumn()
@@ -468,7 +469,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Offset to hide the bottom border line
 		constexpr vec2 yOffset = vec2(0.0f, 1.0f);
-		drawList->AddRect(infoColumnRegion.GetTL(), infoColumnRegion.GetBR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
+		drawList->AddRect(regions.InfoColumnContent.GetTL(), regions.InfoColumnContent.GetBR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
 	}
 
 	void TimelineBase::OnDrawTimlineTempoMap()
@@ -476,6 +477,6 @@ namespace Comfy::Studio::Editor
 		const ImU32 bottomColor = Gui::GetColorU32(ImGuiCol_MenuBarBg, 0.85f);
 		const ImU32 topColor = Gui::GetColorU32(ImGuiCol_MenuBarBg);
 
-		baseDrawList->AddRectFilledMultiColor(tempoMapRegion.GetTL(), tempoMapRegion.GetBR(), bottomColor, bottomColor, topColor, topColor);
+		baseDrawList->AddRectFilledMultiColor(regions.TempoMap.GetTL(), regions.TempoMap.GetBR(), bottomColor, bottomColor, topColor, topColor);
 	}
 }

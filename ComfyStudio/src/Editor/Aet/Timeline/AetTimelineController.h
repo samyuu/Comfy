@@ -9,8 +9,8 @@ namespace Comfy::Studio::Editor
 	struct MouseSelectionData
 	{
 		// NOTE: Index of selected row, so selection always snaps to rows
-		int RowStartIndex = -1, RowInitialStartIndex;
-		int RowEndIndex = -1;
+		i32 RowStartIndex = -1, RowInitialStartIndex;
+		i32 RowEndIndex = -1;
 
 		// NOTE: Mouse start/end X in timeline frames to allow for scrolling
 		TimelineFrame StartX, EndX;
@@ -23,7 +23,7 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		AetTimelineController(AetTimeline* timeline);
-		~AetTimelineController();
+		~AetTimelineController() = default;
 
 	public:
 		// TODO: Pass in list of keyframes, check collision (?)

@@ -12,12 +12,12 @@ namespace Comfy::Studio::Editor
 	AetTimeline::AetTimeline()
 	{
 		// NOTE: Around 240.0f seems to be the standard for many programs
-		constexpr float fixedInfoColumnWidth = 240.0f;
+		constexpr f32 fixedInfoColumnWidth = 240.0f;
 		infoColumnWidth = fixedInfoColumnWidth;
 
 		infoColumnScrollStep = rowItemHeight * 3.0f;
 
-		constexpr float defaultZoomLevel = 5.0f;
+		constexpr f32 defaultZoomLevel = 5.0f;
 		zoomLevel = defaultZoomLevel;
 	}
 
@@ -29,7 +29,7 @@ namespace Comfy::Studio::Editor
 	{
 		selectedAetItem = value;
 
-		constexpr float defaultFrameRate = 60.0f;
+		constexpr f32 defaultFrameRate = 60.0f;
 		const Scene* parentAet = value.GetItemParentScene();
 
 		frameRate = (parentAet != nullptr) ? parentAet->FrameRate : defaultFrameRate;
@@ -40,26 +40,26 @@ namespace Comfy::Studio::Editor
 		return isPlayback;
 	}
 
-	float AetTimeline::GetTimelineSize() const
+	f32 AetTimeline::GetTimelineSize() const
 	{
 		return GetTimelinePosition(loopEndFrame) + timelineContentMarginWidth;
 	}
 
-	float AetTimeline::GetTimelineHeight() const
+	f32 AetTimeline::GetTimelineHeight() const
 	{
 		const Composition* workingComp = GetWorkingComposition();
 		if (workingComp == nullptr)
 			return 0.0f;
 
-		int rowCount = static_cast<int>(workingComp->GetLayers().size());
+		i32 rowCount = static_cast<i32>(workingComp->GetLayers().size());
 		for (const auto& layer : workingComp->GetLayers())
 		{
 			if (layer->GuiData.TimelineNodeOpen)
 				rowCount += Transform2DField_Count;
 		}
 
-		constexpr float borderSize = 1.0f;
-		const float horizontalSize = rowCount * rowItemHeight - infoColumnRegion.GetHeight() + borderSize;
+		constexpr f32 borderSize = 1.0f;
+		const f32 horizontalSize = rowCount * rowItemHeight - regions.InfoColumnContent.GetHeight() + borderSize;
 
 		return (horizontalSize < 0.0f) ? 0.0f : horizontalSize;
 	}
@@ -71,8 +71,8 @@ namespace Comfy::Studio::Editor
 
 	void AetTimeline::DrawTimelineContent()
 	{
-		Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
-		keyFrameRenderer.DrawContent(this, GetWorkingComposition());
+		Gui::PushClipRect(regions.Content.GetTL(), regions.Content.GetBR(), true);
+		keyFrameRenderer.DrawContent(*this, GetWorkingComposition());
 		Gui::PopClipRect();
 	}
 
@@ -98,7 +98,7 @@ namespace Comfy::Studio::Editor
 			const bool isLastFrame = (cursorTime >= GetTimelineTime(loopEndFrame));
 			const bool isPlayback = GetIsPlayback();
 
-			constexpr float borderSize = 1.0f;
+			constexpr f32 borderSize = 1.0f;
 			Gui::SetCursorPosX(Gui::GetCursorPosX() + borderSize);
 
 			// NOTE: First frame button
@@ -198,12 +198,12 @@ namespace Comfy::Studio::Editor
 		// NOTE: Settings popup
 		if (Gui::WideBeginPopup(settingsPopupName))
 		{
-			constexpr float percentageFactor = 100.0f;
+			constexpr f32 percentageFactor = 100.0f;
 
 			// TODO: Come up with a neat comfy layout
 			Gui::Text("TODO:");
 
-			float playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
+			f32 playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
 			if (Gui::SliderFloat("Playback Speed", &playbackSpeedPercentage, (playbackSpeedMin * percentageFactor), (playbackSpeedMax * percentageFactor), "%.2f %%"))
 				playbackSpeedFactor = playbackSpeedPercentage * (1.0f / percentageFactor);
 
@@ -223,7 +223,7 @@ namespace Comfy::Studio::Editor
 		const Composition* workingComp = GetWorkingComposition();
 		const Layer* selectedLayer = (selectedAetItem.Type() == AetItemType::Layer) ? selectedAetItem.Ptrs.Layer : nullptr;
 
-		Gui::PushClipRect(infoColumnRegion.GetTL(), infoColumnRegion.GetBR(), true);
+		Gui::PushClipRect(regions.InfoColumnContent.GetTL(), regions.InfoColumnContent.GetBR(), true);
 		DrawTimelineInfoColumnComposition(workingComp, selectedLayer);
 		Gui::PopClipRect();
 	}
@@ -244,29 +244,29 @@ namespace Comfy::Studio::Editor
 		//		 the "tree nodes" on on info column should be clickable (draggable to reorder in the future)
 		//		 and reflect the selected layer state
 
-		auto drawRowSeparator = [this](int index)
+		auto drawRowSeparator = [this](i32 index)
 		{
 			const vec2 yOffset = vec2(0.0f, index * rowItemHeight - GetScrollY());
-			Gui::GetWindowDrawList()->AddLine(infoColumnRegion.GetTL() + yOffset, infoColumnRegion.GetTR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
+			Gui::GetWindowDrawList()->AddLine(regions.InfoColumnContent.GetTL() + yOffset, regions.InfoColumnContent.GetTR() + yOffset, Gui::GetColorU32(ImGuiCol_Border));
 		};
 
-		auto drawRowText = [this](int index, const char* text, float xTextOffset = 0.0f)
+		auto drawRowText = [this](i32 index, const char* text, f32 xTextOffset = 0.0f)
 		{
-			constexpr float startPadding = 4.0f;
-			constexpr float textPadding = 1.0f;
+			constexpr f32 startPadding = 4.0f;
+			constexpr f32 textPadding = 1.0f;
 
-			const vec2 position = vec2(startPadding + xTextOffset, index * rowItemHeight - GetScrollY() + textPadding) + infoColumnRegion.GetTL();
+			const vec2 position = vec2(startPadding + xTextOffset, index * rowItemHeight - GetScrollY() + textPadding) + regions.InfoColumnContent.GetTL();
 
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), text);
 		};
 
 		// TODO: Theses should probably be member functions
-		auto drawLayer = [&](int rowIndex, const std::shared_ptr<Layer>& layer)
+		auto drawLayer = [&](i32 rowIndex, const std::shared_ptr<Layer>& layer)
 		{
 			// TODO: Adjust spacing and implement tree node expansion arrow
-			constexpr float typeIconDistance = 20.0f;
+			constexpr f32 typeIconDistance = 20.0f;
 
-			vec2 position = vec2(GImGui->Style.FramePadding.x, rowIndex * rowItemHeight - GetScrollY() + 1.0f) + infoColumnRegion.GetTL();
+			vec2 position = vec2(GImGui->Style.FramePadding.x, rowIndex * rowItemHeight - GetScrollY() + 1.0f) + regions.InfoColumnContent.GetTL();
 
 			if (layer.get() == selectedLayer)
 			{
@@ -286,18 +286,18 @@ namespace Comfy::Studio::Editor
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), layer->GetName().c_str());
 		};
 
-		auto drawLayerTransformProperties = [&](int& rowIndex, const std::shared_ptr<Layer>& layer)
+		auto drawLayerTransformProperties = [&](i32& rowIndex, const std::shared_ptr<Layer>& layer)
 		{
 			for (Transform2DField i = 0; i < Transform2DField_Count; i++)
 			{
 				const auto[type, name] = timelinePropertyTypeNames[i];
 
 				// NOTE: Results in a 5 pixel spacing
-				constexpr float nameTypeDistance = 58.0f;
-				constexpr float nameTypeSeparatorSpacing = 8.0f;
-				constexpr float textOffset = 39.0f - 20.0f;
+				constexpr f32 nameTypeDistance = 58.0f;
+				constexpr f32 nameTypeSeparatorSpacing = 8.0f;
+				constexpr f32 textOffset = 39.0f - 20.0f;
 
-				float x = textOffset;
+				f32 x = textOffset;
 				drawRowText(rowIndex, type, x);
 
 				x += nameTypeDistance;
@@ -310,7 +310,7 @@ namespace Comfy::Studio::Editor
 			}
 		};
 
-		int rowIndex = 0;
+		i32 rowIndex = 0;
 		for (const auto& layer : workingComp->GetLayers())
 		{
 			drawLayer(rowIndex, layer);
@@ -338,14 +338,14 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	int AetTimeline::GetTimelineRowCount() const
+	i32 AetTimeline::GetTimelineRowCount() const
 	{
 		const Composition* workingComp = GetWorkingComposition();
 
 		if (workingComp == nullptr)
 			return 1;
 
-		int rowCount = static_cast<int>(workingComp->GetLayers().size());
+		i32 rowCount = static_cast<i32>(workingComp->GetLayers().size());
 		{
 			for (const auto& layer : workingComp->GetLayers())
 			{
@@ -362,16 +362,16 @@ namespace Comfy::Studio::Editor
 			return;
 
 		const ImU32 rowColor = GetColor(EditorColor_TimelineRowSeparator);
-		const float scrollY = GetScrollY();
+		const f32 scrollY = GetScrollY();
 
-		Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
+		Gui::PushClipRect(regions.Content.GetTL(), regions.Content.GetBR(), true);
 
-		const int rowCount = GetTimelineRowCount();
-		for (int i = 0; i <= rowCount; i++)
+		const i32 rowCount = GetTimelineRowCount();
+		for (i32 i = 0; i <= rowCount; i++)
 		{
-			const float y = i * rowItemHeight - scrollY;
-			const vec2 start = timelineContentRegion.GetTL() + vec2(0.0f, y);
-			const vec2 end = start + vec2(timelineContentRegion.GetWidth(), 0.0f);
+			const f32 y = i * rowItemHeight - scrollY;
+			const vec2 start = regions.Content.GetTL() + vec2(0.0f, y);
+			const vec2 end = start + vec2(regions.Content.GetWidth(), 0.0f);
 
 			baseDrawList->AddLine(start, end, rowColor);
 		}
@@ -390,15 +390,15 @@ namespace Comfy::Studio::Editor
 
 	void AetTimeline::OnDrawTimelineScrollBarRegion()
 	{
-		constexpr float timeDragTextOffset = 10.0f;
-		constexpr float timeDragTextWidth = 60.0f + 26.0f;
+		constexpr f32 timeDragTextOffset = 10.0f;
+		constexpr f32 timeDragTextWidth = 60.0f + 26.0f;
 		Gui::SetCursorPosX(Gui::GetCursorPosX() + timeDragTextOffset);
 
 		Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(Gui::GetStyle().FramePadding.x, 0.0f));
 
 		// NOTE: Time drag text
 		{
-			float cursorFrame = GetCursorFrame().Frames();
+			f32 cursorFrame = GetCursorFrame().Frames();
 			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTime.FormatTime().data(), &cursorFrame, 1.0f, 0.0f, 0.0f, timeDragTextWidth))
 			{
 				cursorTime = GetTimelineTime(std::clamp(TimelineFrame(cursorFrame), loopStartFrame, loopEndFrame));
@@ -414,7 +414,7 @@ namespace Comfy::Studio::Editor
 			{
 				Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(currentTimelineMode == mode ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
 				{
-					constexpr float modeButtonWidth = 72.0f;
+					constexpr f32 modeButtonWidth = 72.0f;
 					if (Gui::Button(label, vec2(modeButtonWidth, timelineScrollbarSize.y)))
 						currentTimelineMode = mode;
 				}
@@ -456,7 +456,7 @@ namespace Comfy::Studio::Editor
 			else if (itemType == AetItemType::Video)
 			{
 				loopStartFrame = 0.0f;
-				loopEndFrame = glm::max(0.0f, static_cast<float>(selectedAetItem.Ptrs.Video->Sources.size()) - 1.0f);
+				loopEndFrame = glm::max(0.0f, static_cast<f32>(selectedAetItem.Ptrs.Video->Sources.size()) - 1.0f);
 			}
 			else if (const Composition* workingComp = GetWorkingComposition(); itemType == AetItemType::Composition || itemType == AetItemType::Layer && workingComp != nullptr)
 			{
@@ -573,16 +573,16 @@ namespace Comfy::Studio::Editor
 
 		if (horizontalSelection || verticalSelection)
 		{
-			const float offset = timelineContentRegion.Min.x - GetScrollX();
+			const f32 offset = regions.Content.Min.x - GetScrollX();
 
-			const float direction = selectionData.StartX < selectionData.EndX ? +1.0f : -1.0f;
-			const float padding = 5.0f * direction;
+			const f32 direction = selectionData.StartX < selectionData.EndX ? +1.0f : -1.0f;
+			const f32 padding = 5.0f * direction;
 
 			ImRect selectionRegion = ImRect(
 				vec2(glm::round(offset + GetTimelinePosition(selectionData.StartX) - padding), GetRowScreenY(selectionData.RowStartIndex)),
 				vec2(glm::round(offset + GetTimelinePosition(selectionData.EndX) + padding), GetRowScreenY(selectionData.RowEndIndex)));
 
-			Gui::PushClipRect(timelineContentRegion.GetTL(), timelineContentRegion.GetBR(), true);
+			Gui::PushClipRect(regions.Content.GetTL(), regions.Content.GetBR(), true);
 			ImDrawList* windowDrawList = Gui::GetWindowDrawList();
 			windowDrawList->AddRectFilled(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelection));
 			windowDrawList->AddRect(selectionRegion.Min, selectionRegion.Max, GetColor(EditorColor_TimelineSelectionBorder));
@@ -603,13 +603,13 @@ namespace Comfy::Studio::Editor
 		cursorTime = GetTimelineTime(TimelineFrame(roundedCursorFrames));
 	}
 
-	float AetTimeline::GetRowScreenY(int index) const
+	f32 AetTimeline::GetRowScreenY(i32 index) const
 	{
-		return (timelineContentRegion.Min.y + static_cast<float>(index * rowItemHeight)) - GetScrollY();
+		return (regions.Content.Min.y + static_cast<f32>(index * rowItemHeight)) - GetScrollY();
 	}
 
-	int AetTimeline::GetRowIndexFromScreenY(float screenY) const
+	i32 AetTimeline::GetRowIndexFromScreenY(f32 screenY) const
 	{
-		return glm::max(0, static_cast<int>(glm::floor((screenY - timelineContentRegion.Min.y + GetScrollY()) / rowItemHeight)));
+		return glm::max(0, static_cast<i32>(glm::floor((screenY - regions.Content.Min.y + GetScrollY()) / rowItemHeight)));
 	}
 }

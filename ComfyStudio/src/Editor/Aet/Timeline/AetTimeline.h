@@ -35,13 +35,13 @@ namespace Comfy::Studio::Editor
 
 	public:
 		// NOTE: Screen position of row index
-		float GetRowScreenY(int index) const;
+		f32 GetRowScreenY(i32 index) const;
 
 		// NOTE: Row index at input height
-		int GetRowIndexFromScreenY(float screenY) const;
+		i32 GetRowIndexFromScreenY(f32 screenY) const;
 
 		// NOTE: Height per item
-		inline float GetRowItemHeight() const { return rowItemHeight; }
+		inline f32 GetRowItemHeight() const { return rowItemHeight; }
 
 	private:
 		enum class TimelineMode
@@ -55,22 +55,22 @@ namespace Comfy::Studio::Editor
 		// TODO: Should be replaced with a pointer like with the other components
 		AetItemTypePtr selectedAetItem = {};
 
-		const float rowItemHeight = 18.0f;
+		const f32 rowItemHeight = 18.0f;
 		bool isPlayback = false;
 		bool loopPlayback = true;
 
 		// NOTE: Speed at factor at which the playback time is incremented without editing any layer object state
-		float playbackSpeedFactor = 1.0f;
-		static constexpr float playbackSpeedMin = 0.01f;
-		static constexpr float playbackSpeedMax = 4.00f;
+		f32 playbackSpeedFactor = 1.0f;
+		static constexpr f32 playbackSpeedMin = 0.01f;
+		static constexpr f32 playbackSpeedMax = 4.00f;
 
 	private:
 		KeyFrameRenderer keyFrameRenderer = {};
 		AetTimelineController timelineController = { this };
 
 	private:
-		float GetTimelineSize() const override;
-		float GetTimelineHeight() const override;
+		f32 GetTimelineSize() const override;
+		f32 GetTimelineHeight() const override;
 
 		void DrawTimelineContentNone();
 		void DrawTimelineContent();
@@ -82,7 +82,7 @@ namespace Comfy::Studio::Editor
 		void DrawTimelineInfoColumnComposition(const Graphics::Aet::Composition* workingComp, const Graphics::Aet::Layer* selectedLayer) const;
 
 		const Graphics::Aet::Composition* GetWorkingComposition() const;
-		int GetTimelineRowCount() const;
+		i32 GetTimelineRowCount() const;
 
 		void OnDrawTimlineRows() override;
 		void OnDrawTimlineDivisors() override;

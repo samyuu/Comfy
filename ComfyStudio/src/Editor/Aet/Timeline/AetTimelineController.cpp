@@ -18,10 +18,6 @@ namespace Comfy::Studio::Editor
 	{
 	}
 	
-	AetTimelineController::~AetTimelineController()
-	{
-	}
-
 	void AetTimelineController::UpdateInput()
 	{
 		updateCursorTime = false;
@@ -33,7 +29,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsMouseClicked(0))
 		{
 			// NOTE: Allow cursor scrubbing
-			if (timeline->GetTimelineHeaderRegion().Contains(mousePos))
+			if (timeline->GetRegions().ContentHeader.Contains(mousePos))
 			{
 				isCursorScrubbing = true;
 			}
@@ -53,7 +49,7 @@ namespace Comfy::Studio::Editor
 				*/
 			}
 			// NOTE: Check for selection start
-			else if (timeline->GetTimelineContentRegion().Contains(mousePos))
+			else if (timeline->GetRegions().Content.Contains(mousePos))
 			{
 				selectionData.RowInitialStartIndex = selectionData.RowStartIndex = timeline->GetRowIndexFromScreenY(mousePos.y);
 				selectionData.StartX = timeline->GetTimelineFrameAtMouseX();

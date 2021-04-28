@@ -13,14 +13,14 @@ namespace Comfy::Studio::Editor
 		TimelineFrame FloorToGrid(TimelineFrame frame) const;
 		TimelineFrame RoundToGrid(TimelineFrame frame) const;
 
-		float GetTimelinePosition(TimeSpan time) const override;
-		float GetTimelinePosition(TimelineFrame frame) const;
+		f32 GetTimelinePosition(TimeSpan time) const override;
+		f32 GetTimelinePosition(TimelineFrame frame) const;
 
 		TimelineFrame GetTimelineFrame(TimeSpan time) const;
-		TimelineFrame GetTimelineFrame(float position) const;
+		TimelineFrame GetTimelineFrame(f32 position) const;
 
 		TimeSpan GetTimelineTime(TimelineFrame frame) const;
-		TimeSpan GetTimelineTime(float position) const override;
+		TimeSpan GetTimelineTime(f32 position) const override;
 
 		TimelineFrame GetTimelineFrameAtMouseX() const;
 
@@ -32,12 +32,11 @@ namespace Comfy::Studio::Editor
 		void DrawTimelineCursor() override;
 
 	protected:
-		const float timelineContentMarginWidth = 40.0f;
+		const f32 timelineContentMarginWidth = 40.0f;
 
 		TimelineFrame loopStartFrame = 0.0f;
 		TimelineFrame loopEndFrame = 60.0f;
-		float frameRate = 60.0f;
-		float gridDivision = 1.0f;
-
+		f32 frameRate = 60.0f;
+		f32 gridDivision = 1.0f;
 	};
 }

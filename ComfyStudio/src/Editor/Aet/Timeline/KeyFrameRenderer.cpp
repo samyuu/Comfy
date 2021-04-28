@@ -45,14 +45,14 @@ namespace Comfy::Studio::Editor
 		CreateKeyFrameTexture();
 	}
 
-	void KeyFrameRenderer::DrawContent(const AetTimeline* timeline, const Aet::Composition* workingComp)
+	void KeyFrameRenderer::DrawContent(const AetTimeline& timeline, const Aet::Composition* workingComp)
 	{
 		assert(workingComp != nullptr);
 
 		ImDrawList* drawList = Gui::GetWindowDrawList();
-		const frame_t cursorFrame = timeline->GetCursorFrame().Frames();
+		const frame_t cursorFrame = timeline.GetCursorFrame().Frames();
 
-		int currentRow = 0;
+		i32 currentRow = 0;
 		for (auto& layer : workingComp->GetLayers())
 		{
 			const vec2 startPosition = GetCenteredTimelineRowScreenPosition(timeline, layer->StartFrame, currentRow);
@@ -78,7 +78,7 @@ namespace Comfy::Studio::Editor
 				for (const auto& keyFrame : property.Keys)
 				{
 					const vec2 keyFramePosition = GetCenteredTimelineRowScreenPosition(timeline, keyFrame.Frame, currentRow);
-					const TimelineVisibility visiblity = timeline->GetTimelineVisibilityForScreenSpace(keyFramePosition.x);
+					const TimelineVisibility visiblity = timeline.GetTimelineVisibilityForScreenSpace(keyFramePosition.x);
 
 					if (visiblity == TimelineVisibility::Visible)
 					{
@@ -91,18 +91,18 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	vec2 KeyFrameRenderer::GetCenteredTimelineRowScreenPosition(const AetTimeline* timeline, frame_t frame, int row)
+	vec2 KeyFrameRenderer::GetCenteredTimelineRowScreenPosition(const AetTimeline& timeline, frame_t frame, i32 row)
 	{
-		constexpr float pixelPerfectOffset = 0.5f;
+		constexpr f32 pixelPerfectOffset = 0.5f;
 
-		const float rowHeight = timeline->GetRowItemHeight();
-		const float halfRowHeight = rowHeight / 2.0f;
+		const f32 rowHeight = timeline.GetRowItemHeight();
+		const f32 halfRowHeight = rowHeight / 2.0f;
 
-		const float xWorldSpace = glm::round(timeline->GetTimelinePosition(TimelineFrame(frame)));
-		const float yWorldSpace = (rowHeight * row) + halfRowHeight + pixelPerfectOffset;
+		const f32 xWorldSpace = glm::round(timeline.GetTimelinePosition(TimelineFrame(frame)));
+		const f32 yWorldSpace = (rowHeight * row) + halfRowHeight + pixelPerfectOffset;
 
-		const vec2 scrollOffset = vec2(timeline->GetScrollX(), timeline->GetScrollY());
-		const vec2 timelineTL = glm::round(vec2(timeline->GetTimelineContentRegion().GetTL() - scrollOffset));
+		const vec2 scrollOffset = vec2(timeline.GetScrollX(), timeline.GetScrollY());
+		const vec2 timelineTL = glm::round(vec2(timeline.GetRegions().Content.GetTL() - scrollOffset));
 
 		return vec2(timelineTL.x + xWorldSpace, timelineTL.y + yWorldSpace);
 	}
@@ -127,7 +127,7 @@ namespace Comfy::Studio::Editor
 		vec2 bottomRight = end + vec2(0.0f, keyFrameSize - 1.0f);
 
 		// TODO: Rethink this (?)
-		float alpha = active ? 0.7f : 1.0f;
+		const f32 alpha = active ? 0.7f : 1.0f;
 		ImU32 fillColor = GetColor(EditorColor_KeyFrameConnection, alpha);
 		ImU32 fillColorAlt = GetColor(EditorColor_KeyFrameConnectionAlt, alpha);
 		ImU32 borderColor = GetColor(EditorColor_KeyFrameBorder);
@@ -173,7 +173,7 @@ namespace Comfy::Studio::Editor
 		Gui::AddSprite(drawList, keyFrameTexture.get(), topLeft, sourceRegion, color);
 	}
 
-	void KeyFrameRenderer::DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, KeyFrameType type, float opacity) const
+	void KeyFrameRenderer::DrawSingleKeyFrame(ImDrawList* drawList, const vec2& position, KeyFrameType type, f32 opacity) const
 	{
 		const ImU32 fillColor = GetColor(EditorColor_KeyFrame, opacity);
 		const ImU32 fillColorHalf = GetColor(EditorColor_KeyFrameBorder, 0.5f * opacity);
@@ -222,7 +222,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	float KeyFrameRenderer::GetKeyFrameOpacity(const Aet::KeyFrame& keyFrame, bool opactiyKeyFrames)
+	f32 KeyFrameRenderer::GetKeyFrameOpacity(const Aet::KeyFrame& keyFrame, bool opactiyKeyFrames)
 	{
 		return opactiyKeyFrames ? keyFrame.Value : 1.0f;
 	}

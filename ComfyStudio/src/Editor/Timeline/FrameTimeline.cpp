@@ -23,23 +23,23 @@ namespace Comfy::Studio::Editor
 		return glm::round(frame.Frames());
 	}
 
-	float FrameTimeline::GetTimelinePosition(TimeSpan time) const
+	f32 FrameTimeline::GetTimelinePosition(TimeSpan time) const
 	{
 		time -= GetTimelineTime(loopStartFrame);
 		return TimelineBase::GetTimelinePosition(time) + timelineContentMarginWidth;
 	}
 
-	float FrameTimeline::GetTimelinePosition(TimelineFrame frame) const
+	f32 FrameTimeline::GetTimelinePosition(TimelineFrame frame) const
 	{
 		return GetTimelinePosition(GetTimelineTime(frame));
 	}
 
 	TimelineFrame FrameTimeline::GetTimelineFrame(TimeSpan time) const
 	{
-		return TimelineFrame(static_cast<float>(time.TotalSeconds() / (1.0 / frameRate)));
+		return TimelineFrame(static_cast<f32>(time.TotalSeconds() / (1.0 / frameRate)));
 	}
 
-	TimelineFrame FrameTimeline::GetTimelineFrame(float position) const
+	TimelineFrame FrameTimeline::GetTimelineFrame(f32 position) const
 	{
 		return GetTimelineFrame(GetTimelineTime(position));
 	}
@@ -49,7 +49,7 @@ namespace Comfy::Studio::Editor
 		return TimeSpan::FromSeconds((1.0 / frameRate) * frame.Frames());
 	}
 
-	TimeSpan FrameTimeline::GetTimelineTime(float position) const
+	TimeSpan FrameTimeline::GetTimelineTime(f32 position) const
 	{
 		position += TimelineBase::GetTimelinePosition(GetTimelineTime(loopStartFrame));
 		return TimelineBase::GetTimelineTime(position - timelineContentMarginWidth);
@@ -57,24 +57,24 @@ namespace Comfy::Studio::Editor
 
 	TimelineFrame FrameTimeline::GetTimelineFrameAtMouseX() const
 	{
-		float mouseX = glm::max(infoColumnRegion.Max.x, Gui::GetMousePos().x);
+		const f32 mouseX = glm::max(regions.InfoColumnContent.Max.x, Gui::GetMousePos().x);
 		return RoundToGrid(GetTimelineFrame(ScreenToTimelinePosition(mouseX)));
 	}
 
 	void FrameTimeline::OnDrawTimlineDivisors()
 	{
-		constexpr int framesPerBar = 10;
+		constexpr i32 framesPerBar = 10;
 
-		const int startFrame = static_cast<int>(loopStartFrame.Frames());
-		const int endFrame = static_cast<int>(loopEndFrame.Frames());
-		const int frameStep = static_cast<int>(gridDivision);
+		const i32 startFrame = static_cast<i32>(loopStartFrame.Frames());
+		const i32 endFrame = static_cast<i32>(loopEndFrame.Frames());
+		const i32 frameStep = static_cast<i32>(gridDivision);
 
-		int divisions = 0;
-		for (int frame = startFrame; frame <= endFrame; frame += frameStep)
+		i32 divisions = 0;
+		for (i32 frame = startFrame; frame <= endFrame; frame += frameStep)
 		{
 			const bool isBar = (frame == startFrame) || (frame == endFrame) || (frame % framesPerBar == 0);
 
-			const float screenX = glm::round(GetTimelinePosition(TimelineFrame(static_cast<float>(frame))) - GetScrollX());
+			const f32 screenX = glm::round(GetTimelinePosition(TimelineFrame(static_cast<f32>(frame))) - GetScrollX());
 			TimelineVisibility visiblity = GetTimelineVisibility(screenX);
 
 			if (visiblity == TimelineVisibility::Left)
@@ -82,9 +82,9 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const float startYOffset = timelineHeaderHeight * (isBar ? 0.85f : 0.35f);
-			vec2 start = timelineContentRegion.GetTL() + vec2(screenX, -startYOffset);
-			vec2 end = timelineContentRegion.GetBL() + vec2(screenX, 0);
+			const f32 startYOffset = timelineHeaderHeight * (isBar ? 0.85f : 0.35f);
+			vec2 start = regions.Content.GetTL() + vec2(screenX, -startYOffset);
+			vec2 end = regions.Content.GetBL() + vec2(screenX, 0);
 
 			const ImU32 color = GetColor(isBar ? EditorColor_Bar : (divisions++ % 2 == 0 ? EditorColor_Grid : EditorColor_GridAlt));
 			baseDrawList->AddLine(start, end, color);
