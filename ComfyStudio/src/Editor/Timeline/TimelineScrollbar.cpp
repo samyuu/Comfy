@@ -9,7 +9,7 @@ namespace Comfy::Studio::Editor
 		assert(axis == ImGuiAxis_X || axis == ImGuiAxis_Y);
 	}
 
-	bool TimelineScrollbar::Gui(float& inOutScroll, float availableScroll, float maxScroll, ImRect scrollbarRegion)
+	bool TimelineScrollbar::Gui(f32& inOutScroll, f32 availableScroll, f32 maxScroll, ImRect scrollbarRegion)
 	{
 		if (scrollbarRegion.GetWidth() <= 0.0f || scrollbarRegion.GetHeight() <= 0.0f)
 			return false;
@@ -28,27 +28,27 @@ namespace Comfy::Studio::Editor
 		window->DrawList->AddRectFilled(scrollbarRegion.Min, scrollbarRegion.Max, Gui::GetColorU32(ImGuiCol_ScrollbarBg), window->WindowRounding, cornderFlags);
 
 		scrollbarRegion.Expand(ImVec2(
-			-ImClamp(static_cast<float>(static_cast<int>((scrollbarRegion.Max.x - scrollbarRegion.Min.x - 2.0f)) * 0.5f), 0.0f, 3.0f),
-			-ImClamp(static_cast<float>(static_cast<int>((scrollbarRegion.Max.y - scrollbarRegion.Min.y - 2.0f)) * 0.5f), 0.0f, 3.0f))
+			-ImClamp(static_cast<f32>(static_cast<i32>((scrollbarRegion.Max.x - scrollbarRegion.Min.x - 2.0f)) * 0.5f), 0.0f, 3.0f),
+			-ImClamp(static_cast<f32>(static_cast<i32>((scrollbarRegion.Max.y - scrollbarRegion.Min.y - 2.0f)) * 0.5f), 0.0f, 3.0f))
 		);
 
-		const float axisScrollbarSize = scrollbarRegion.GetSize()[axis];
-		const float axisWinSize = ImMax(ImMax(maxScroll, availableScroll), 1.0f);
-		const float grabHeightpixels = ImClamp(axisScrollbarSize * (availableScroll / axisWinSize), style.GrabMinSize, axisScrollbarSize);
-		const float grabHeightNorm = grabHeightpixels / axisScrollbarSize;
+		const f32 axisScrollbarSize = scrollbarRegion.GetSize()[axis];
+		const f32 axisWinSize = ImMax(ImMax(maxScroll, availableScroll), 1.0f);
+		const f32 grabHeightpixels = ImClamp(axisScrollbarSize * (availableScroll / axisWinSize), style.GrabMinSize, axisScrollbarSize);
+		const f32 grabHeightNorm = grabHeightpixels / axisScrollbarSize;
 
 		Gui::ButtonBehavior(scrollbarRegion, id, &hovered, &held, ImGuiButtonFlags_NoNavFocus);
 
-		const float scrollMax = ImMax(1.0f, maxScroll - availableScroll);
-		float scrollRatio = ImSaturate(inOutScroll / scrollMax);
-		float axisGrabNorm = scrollRatio * (axisScrollbarSize - grabHeightpixels) / axisScrollbarSize;
+		const f32 scrollMax = ImMax(1.0f, maxScroll - availableScroll);
+		f32 scrollRatio = ImSaturate(inOutScroll / scrollMax);
+		f32 axisGrabNorm = scrollRatio * (axisScrollbarSize - grabHeightpixels) / axisScrollbarSize;
 
 		if (held && grabHeightNorm < 1.0f)
 		{
-			const float scrollbarAxisPos = scrollbarRegion.Min[axis];
-			const float mouseAxisPos = GImGui->IO.MousePos[axis];
+			const f32 scrollbarAxisPos = scrollbarRegion.Min[axis];
+			const f32 mouseAxisPos = GImGui->IO.MousePos[axis];
 
-			const float axisClickedNorm = ImSaturate((mouseAxisPos - scrollbarAxisPos) / axisScrollbarSize);
+			const f32 axisClickedNorm = ImSaturate((mouseAxisPos - scrollbarAxisPos) / axisScrollbarSize);
 			Gui::SetHoveredID(id);
 
 			bool seekAbsolute = false;
@@ -65,8 +65,8 @@ namespace Comfy::Studio::Editor
 				}
 			}
 
-			const float scroll_v_norm = ImSaturate((axisClickedNorm - clickDeltaToGrabCenter - grabHeightNorm * 0.5f) / (1.0f - grabHeightNorm));
-			inOutScroll = static_cast<float>(static_cast<int>(0.5f + scroll_v_norm * scrollMax));
+			const f32 scroll_v_norm = ImSaturate((axisClickedNorm - clickDeltaToGrabCenter - grabHeightNorm * 0.5f) / (1.0f - grabHeightNorm));
+			inOutScroll = static_cast<f32>(static_cast<i32>(0.5f + scroll_v_norm * scrollMax));
 
 			scrollRatio = ImSaturate(inOutScroll / scrollMax);
 			axisGrabNorm = scrollRatio * (axisScrollbarSize - grabHeightpixels) / axisScrollbarSize;

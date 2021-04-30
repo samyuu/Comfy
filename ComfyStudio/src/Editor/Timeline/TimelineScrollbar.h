@@ -7,16 +7,16 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		TimelineScrollbar(ImGuiAxis axis, vec2 timelineScrollbarSize);
-		TimelineScrollbar() = default;
+		~TimelineScrollbar() = default;
 
 	public:
-		bool Gui(float& inOutScroll, float availableScroll, float maxScroll, ImRect scrollbarRegion);
+		bool Gui(f32& inOutScroll, f32 availableScroll, f32 maxScroll, ImRect scrollbarRegion);
 
 	private:
 		ImGuiAxis axis;
 		vec2 timelineScrollbarSize;
 
-		float clickDeltaToGrabCenter = 0.0f;
+		f32 clickDeltaToGrabCenter = 0.0f;
 		bool held = false, hovered = false;
 	};
 }

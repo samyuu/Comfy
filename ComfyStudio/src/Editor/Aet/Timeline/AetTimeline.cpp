@@ -94,6 +94,9 @@ namespace Comfy::Studio::Editor
 		constexpr vec4 transparent = vec4(0.0f);
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
+			const f32 timelineStartPosition = GetTimelinePosition(loopStartFrame - 1.0f);
+			const f32 timelineEndPosition = GetTimelinePosition(loopEndFrame + 1.0f) - regions.Content.GetWidth() + 1.0f;
+
 			const bool isFirstFrame = (cursorTime <= GetTimelineTime(loopStartFrame));
 			const bool isLastFrame = (cursorTime >= GetTimelineTime(loopEndFrame));
 			const bool isPlayback = GetIsPlayback();
@@ -108,7 +111,7 @@ namespace Comfy::Studio::Editor
 				{
 					cursorTime = GetTimelineTime(loopStartFrame);
 					RoundCursorTimeToNearestFrame();
-					scrollDelta = -GetTimelineSize();
+					SetScrollTargetX(timelineStartPosition);
 				}
 				Gui::PopItemDisabledAndTextColorIf(isFirstFrame || isPlayback);
 				Gui::SetWideItemTooltip("Go to first frame");
@@ -144,7 +147,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::Button(ICON_FA_STOP))
 				{
 					StopPlayback();
-					scrollDelta = -GetTimelineSize();
+					SetScrollTargetX(timelineStartPosition);
 				}
 				Gui::PopItemDisabledAndTextColorIf(!isPlayback && isFirstFrame);
 				Gui::SetWideItemTooltip("Stop playback");
@@ -171,7 +174,7 @@ namespace Comfy::Studio::Editor
 				{
 					cursorTime = GetTimelineTime(loopEndFrame - 1.0f);
 					RoundCursorTimeToNearestFrame();
-					scrollDelta = +GetTimelineSize();
+					SetScrollTargetX(timelineEndPosition);
 				}
 				Gui::PopItemDisabledAndTextColorIf(isLastFrame || isPlayback);
 				Gui::SetWideItemTooltip("Go to last frame");
@@ -373,7 +376,7 @@ namespace Comfy::Studio::Editor
 			const vec2 start = regions.Content.GetTL() + vec2(0.0f, y);
 			const vec2 end = start + vec2(regions.Content.GetWidth(), 0.0f);
 
-			baseDrawList->AddLine(start, end, rowColor);
+			baseWindowDrawList->AddLine(start, end, rowColor);
 		}
 
 		Gui::PopClipRect();
@@ -415,7 +418,7 @@ namespace Comfy::Studio::Editor
 				Gui::PushStyleColor(ImGuiCol_Button, Gui::GetStyleColorVec4(currentTimelineMode == mode ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
 				{
 					constexpr f32 modeButtonWidth = 72.0f;
-					if (Gui::Button(label, vec2(modeButtonWidth, timelineScrollbarSize.y)))
+					if (Gui::Button(label, vec2(modeButtonWidth, scrollbarSize.y)))
 						currentTimelineMode = mode;
 				}
 				Gui::PopStyleColor(1);
@@ -491,7 +494,7 @@ namespace Comfy::Studio::Editor
 			if (loopPlayback)
 			{
 				cursorTime = startTime;
-				SetScrollX(0.0f);
+				SetScrollTargetX(0.0f);
 			}
 			else
 			{

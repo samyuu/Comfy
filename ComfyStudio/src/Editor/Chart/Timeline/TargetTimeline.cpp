@@ -44,8 +44,8 @@ namespace Comfy::Studio::Editor
 	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager, ButtonSoundController& buttonSoundController)
 		: chartEditor(parent), undoManager(undoManager), buttonSoundController(buttonSoundController)
 	{
-		scrollSpeed = 2.5f;
-		scrollSpeedFast = 5.5f;
+		mouseScrollSpeed = 2.5f;
+		mouseScrollSpeedFast = 5.5f;
 		autoScrollCursorOffsetPercentage = 0.35f;
 		infoColumnWidth = 180.0f;
 	}
@@ -62,13 +62,13 @@ namespace Comfy::Studio::Editor
 
 	BeatTick TargetTimeline::FloorTickToGrid(BeatTick tick) const
 	{
-		const auto gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
+		const f64 gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
 		return BeatTick::FromTicks(static_cast<i32>(glm::floor(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
 	}
 
 	BeatTick TargetTimeline::RoundTickToGrid(BeatTick tick) const
 	{
-		const auto gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
+		const f64 gridTicks = static_cast<f64>(GridDivisionTick().Ticks());
 		return BeatTick::FromTicks(static_cast<i32>(glm::round(static_cast<f64>(tick.Ticks()) / gridTicks) * gridTicks));
 	}
 
@@ -121,13 +121,13 @@ namespace Comfy::Studio::Editor
 
 	f32 TargetTimeline::GetButtonEdgeFadeOpacity(f32 screenX) const
 	{
-		constexpr auto fadeSpan = 35.0f;
+		constexpr f32 fadeSpan = 35.0f;
 
 #if 0 // NOTE: Left side fade
 		if (screenX < 0.0f)
 			return 0.0f;
 
-		const auto lowerThreshold = fadeSpan;
+		const f32 lowerThreshold = fadeSpan;
 		if (screenX < lowerThreshold)
 			return ImLerp(0.0f, 1.0f, screenX / lowerThreshold);
 #endif
@@ -136,7 +136,7 @@ namespace Comfy::Studio::Editor
 		if (screenX > baseWindow->Size.x)
 			return 0.0f;
 
-		const auto upperThreshold = baseWindow->Size.x - fadeSpan;
+		const f32 upperThreshold = baseWindow->Size.x - fadeSpan;
 		if (screenX > upperThreshold)
 			return ImLerp(0.0f, 1.0f, 1.0f - ((screenX - upperThreshold) / (baseWindow->Size.x - upperThreshold)));
 #endif
@@ -290,14 +290,16 @@ namespace Comfy::Studio::Editor
 		constexpr vec4 transparent = vec4(0.0f);
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
+			auto approxmiatelySame = [](f32 a, f32 b, f32 threshold) -> bool { return glm::abs(a - b) < threshold; };
+
 			const f32 timelineEndPosition = GetTimelinePosition(workingChart->DurationOrDefault()) - regions.Content.GetWidth() + 1.0f;
 			const bool isPlayback = GetIsPlayback();
 
 			const bool isCursorAtStart = (cursorTime <= TimeSpan::Zero());
-			const bool isAtStartOfTimeline = (isCursorAtStart && GetScrollX() == 0.0f);
+			const bool isAtStartOfTimeline = (isCursorAtStart && approxmiatelySame(GetScrollTargetX(), 0.0f, 0.01f));
 
 			const bool isCursorAtEnd = (cursorTime >= workingChart->DurationOrDefault());
-			const bool isAtEndOfTimeline = (isCursorAtEnd && GetScrollX() == timelineEndPosition);
+			const bool isAtEndOfTimeline = (isCursorAtEnd && approxmiatelySame(GetScrollTargetX(), timelineEndPosition, 0.01f));
 
 			constexpr f32 borderSize = 1.0f;
 			Gui::SetCursorPosX(Gui::GetCursorPosX() + borderSize);
@@ -306,7 +308,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::Button(ICON_FA_FAST_BACKWARD))
 			{
 				SetCursorTime(TimeSpan::Zero());
-				SetScrollX(0.0f);
+				SetScrollTargetX(0.0f);
 			}
 			Gui::PopItemDisabledAndTextColorIf(isAtStartOfTimeline);
 			Gui::SetWideItemTooltip("Go to Start of Timeline");
@@ -348,7 +350,7 @@ namespace Comfy::Studio::Editor
 			if (Gui::Button(ICON_FA_FAST_FORWARD))
 			{
 				SetCursorTime(workingChart->DurationOrDefault());
-				SetScrollX(timelineEndPosition);
+				SetScrollTargetX(timelineEndPosition);
 			}
 			Gui::PopItemDisabledAndTextColorIf(isAtEndOfTimeline);
 			Gui::SetWideItemTooltip("Go to End of Timeline");
@@ -361,7 +363,7 @@ namespace Comfy::Studio::Editor
 	{
 		TimelineBase::OnDrawTimelineInfoColumn();
 
-		auto drawList = Gui::GetWindowDrawList();
+		auto* drawList = Gui::GetWindowDrawList();
 		std::array<vec2, EnumCount<ButtonType>()> iconCenters;
 
 		for (size_t row = 0; row < EnumCount<ButtonType>(); row++)
@@ -394,7 +396,7 @@ namespace Comfy::Studio::Editor
 			const vec2 start = timelineTL + vec2(0.0f, row * rowHeight);
 			const vec2 end = start + timelineWidth;
 
-			baseDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
+			baseWindowDrawList->AddLine(start, end, GetColor(EditorColor_TimelineRowSeparator));
 		}
 	}
 
@@ -421,7 +423,7 @@ namespace Comfy::Studio::Editor
 		for (i32 tick = 0, divisions = 0; tick < songDurationTicks; tick += gridTickStep, divisions++)
 		{
 			const f32 timelineX = GetTimelinePosition(BeatTick(tick));
-			if (const auto lastDrawnDistance = (timelineX - lastBeatTimelineX); lastDrawnDistance < beatSpacingThreshold)
+			if (const f32 lastDrawnDistance = (timelineX - lastBeatTimelineX); lastDrawnDistance < beatSpacingThreshold)
 				continue;
 			lastBeatTimelineX = timelineX;
 
@@ -435,7 +437,7 @@ namespace Comfy::Studio::Editor
 
 			const vec2 start = regions.Content.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.35f));
 			const vec2 end = regions.Content.GetBL() + vec2(screenX, 0.0f);
-			baseDrawList->AddLine(start, end, (tick % BeatTick::TicksPerBeat == 0) ? beatColor : (divisions % 2 == 0 ? gridColor : gridAltColor));
+			baseWindowDrawList->AddLine(start, end, (tick % BeatTick::TicksPerBeat == 0) ? beatColor : (divisions % 2 == 0 ? gridColor : gridAltColor));
 		}
 
 		f32 lastBarTimelineX = -barSpacingThreshold;
@@ -457,9 +459,9 @@ namespace Comfy::Studio::Editor
 			char buffer[32];
 			const vec2 start = regions.Content.GetTL() + vec2(screenX, -(timelineHeaderHeight * 0.85f));
 			const vec2 end = regions.Content.GetBL() + vec2(screenX, 0.0f);
-			baseDrawList->AddLine(start, end, barColor);
-			baseDrawList->AddText(nullptr, 14.0f, start + vec2(3.0f, -4.0f), barTextColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
-			baseDrawList->AddText(nullptr, 13.0f, start + vec2(3.0f, -4.0f + 9.0f), barTimeColor, workingChart->TimelineMap.GetTimeAt(barTick).FormatTime().data());
+			baseWindowDrawList->AddLine(start, end, barColor);
+			baseWindowDrawList->AddText(nullptr, 14.0f, start + vec2(3.0f, -4.0f), barTextColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
+			baseWindowDrawList->AddText(nullptr, 13.0f, start + vec2(3.0f, -4.0f + 9.0f), barTimeColor, workingChart->TimelineMap.GetTimeAt(barTick).FormatTime().data());
 			return false;
 		});
 	}
@@ -499,12 +501,12 @@ namespace Comfy::Studio::Editor
 
 				if (!ignoreInput && newTimeTickSnapped != GetCursorTime())
 				{
-					const auto preCursorX = GetCursorTimelinePosition();
+					const f32 preCursorX = GetCursorTimelinePosition();
 
 					SetCursorTime(newTimeTickSnapped);
 					PlayCursorButtonSoundsAndAnimation(GetCursorTick());
 
-					SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+					SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
 				}
 			}
 			Gui::PopStyleColor(1);
@@ -523,7 +525,7 @@ namespace Comfy::Studio::Editor
 			sprintf_s(buttonNameBuffer, "Grid: 1 / %d", activeBarGridDivision);
 
 			Gui::SameLine(0.0f, 0.0f);
-			if (Gui::ButtonEx(buttonNameBuffer, vec2(gridDivisionButtonWidth, timelineScrollbarSize.y), ImGuiButtonFlags_PressedOnClick))
+			if (Gui::ButtonEx(buttonNameBuffer, vec2(gridDivisionButtonWidth, scrollbarSize.y), ImGuiButtonFlags_PressedOnClick))
 				SelectNextPresetGridDivision(+1);
 			else if (Gui::IsItemClicked(1))
 				SelectNextPresetGridDivision(-1);
@@ -539,17 +541,17 @@ namespace Comfy::Studio::Editor
 		const vec2 preStart = regions.Content.GetTL();
 		const vec2 preEnd = regions.Content.GetBL() + vec2(glm::round(GetTimelinePosition(BeatTick::FromBars(1)) - scrollX), 0.0f);
 		if (preEnd.x - preStart.x > 0.0f)
-			baseDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
+			baseWindowDrawList->AddRectFilled(preStart, preEnd, outOfBoundsDimColor);
 
 		const vec2 postStart = regions.Content.GetTL() + vec2(glm::round(GetTimelinePosition(workingChart->DurationOrDefault()) - scrollX), 0.0f);
 		const vec2 postEnd = regions.Content.GetBR();
 		if (postEnd.x - postStart.x > 0.0f)
-			baseDrawList->AddRectFilled(postStart, postEnd, outOfBoundsDimColor);
+			baseWindowDrawList->AddRectFilled(postStart, postEnd, outOfBoundsDimColor);
 	}
 
 	void TargetTimeline::DrawCheckUpdateWaveform()
 	{
-		if (zoomLevelChanged)
+		if (zoomLevelChangedThisFrame)
 			waveformUpdatePending = true;
 
 		if (waveformUpdatePending && waveformUpdateStopwatch.GetElapsed() >= waveformUpdateInterval)
@@ -583,7 +585,7 @@ namespace Comfy::Studio::Editor
 		const f32 timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
 		const f32 scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
 
-		songTextureCachedWaveform.Draw(baseDrawList,
+		songTextureCachedWaveform.Draw(baseWindowDrawList,
 			regions.Content.GetTL(),
 			regions.Content.GetTL() + vec2(regions.Content.GetWidth(), timelineHeight),
 			scrollXStartOffset);
@@ -625,7 +627,7 @@ namespace Comfy::Studio::Editor
 				const vec2 start = vec2(x, timelineCenterY - halfAmplitude);
 				const vec2 end = vec2(x, timelineCenterY + halfAmplitude);
 
-				baseDrawList->AddLine(start, end, waveformColor);
+				baseWindowDrawList->AddLine(start, end, waveformColor);
 			}
 		}
 	}
@@ -634,7 +636,7 @@ namespace Comfy::Studio::Editor
 	{
 		const auto& tempoMap = workingChart->TempoMap;
 
-		constexpr auto tempoChangePopupName = "##TempoChangePopup";
+		constexpr const char* tempoChangePopupName = "##TempoChangePopup";
 		f32 lastDrawnTimelineX = 0.0f;
 
 		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
@@ -672,7 +674,7 @@ namespace Comfy::Studio::Editor
 			{
 				Gui::WideSetTooltip("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
 
-				baseDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
+				baseWindowDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
 
 				if (Gui::IsMouseClicked(0))
 					SetCursorTick(tempoChange.Tick);
@@ -685,12 +687,12 @@ namespace Comfy::Studio::Editor
 			}
 
 			const u32 tempoColor = GetColor(EditorColor_TempoChange);
-			baseDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoColor);
+			baseWindowDrawList->AddLine(buttonPosition + vec2(-1.0f, -1.0f), buttonPosition + vec2(-1.0f, buttonSize.y - 1.0f), tempoColor);
 
 			// NOTE: Just like with the bar / beat division culling this is far from perfect 
 			//		 but at least crudely prevents any unreadable overlapping text until zoomed in close enough
 			if (const f32 lastDrawnDistance = (timelineX - lastDrawnTimelineX); lastDrawnDistance >= 0.0f)
-				baseDrawList->AddText(Gui::GetFont(), tempoMapFontSize, (buttonPosition + tempoMapFontOffset), tempoColor, tempoBuffer);
+				baseWindowDrawList->AddText(Gui::GetFont(), tempoMapFontSize, (buttonPosition + tempoMapFontOffset), tempoColor, tempoBuffer);
 			lastDrawnTimelineX = timelineX + buttonSize.x;
 		}
 
@@ -766,7 +768,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawTimelineTargets()
 	{
-		auto windowDrawList = Gui::GetWindowDrawList();
+		auto* windowDrawList = Gui::GetWindowDrawList();
 
 		for (const auto& target : workingChart->Targets)
 		{
@@ -798,7 +800,7 @@ namespace Comfy::Studio::Editor
 		if (!tempSelectedTargetPositionBuffer.empty())
 		{
 			const f32 iconHitboxHalfSize = (iconHitboxSize / 2.0f);
-			for (const auto& center : tempSelectedTargetPositionBuffer)
+			for (const vec2& center : tempSelectedTargetPositionBuffer)
 			{
 				const vec2 tl = (center - iconHitboxHalfSize);
 				const vec2 br = (center + iconHitboxHalfSize);
@@ -848,7 +850,7 @@ namespace Comfy::Studio::Editor
 			const vec2 start = regions.ContentHeader.GetTL() + vec2(prePlaybackX, 0.0f);
 			const vec2 end = regions.Content.GetBL() + vec2(prePlaybackX, 0.0f);
 
-			baseDrawList->AddLine(start, end, GetColor(EditorColor_CursorInner));
+			baseWindowDrawList->AddLine(start, end, GetColor(EditorColor_CursorInner));
 		}
 
 		// TODO: Different cursor colors based on grid division (?)
@@ -866,8 +868,8 @@ namespace Comfy::Studio::Editor
 		const vec2 start = vec2(regions.Content.GetTL().x + startScreenX, regions.Content.GetTL().y);
 		const vec2 end = vec2(regions.Content.GetTL().x + endScreenX, regions.Content.GetBR().y);
 
-		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection, 0.3f));
-		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
+		baseWindowDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection, 0.3f));
+		baseWindowDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
 	}
 
 	void TargetTimeline::DrawBoxSelection()
@@ -884,8 +886,8 @@ namespace Comfy::Studio::Editor
 		const vec2 start = vec2(regions.Content.GetTL().x + startScreenX, glm::clamp(boxSelection.StartMouse.y, minY, maxY));
 		const vec2 end = vec2(regions.Content.GetTL().x + endScreenX, glm::clamp(boxSelection.EndMouse.y, minY, maxY));
 
-		baseDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection));
-		baseDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
+		baseWindowDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection));
+		baseWindowDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
 
 		// TODO: Move into common selection logic source file (?)
 		if (boxSelection.Action != BoxSelectionData::ActionType::Clean)
@@ -896,14 +898,14 @@ namespace Comfy::Studio::Editor
 			const vec2 symbolPos = start;
 			const u32 symbolColor = Gui::GetColorU32(ImGuiCol_Text);
 
-			baseDrawList->AddCircleFilled(symbolPos, circleRadius, Gui::GetColorU32(ImGuiCol_ChildBg));
-			baseDrawList->AddCircle(symbolPos, circleRadius, GetColor(EditorColor_TimelineSelectionBorder));
+			baseWindowDrawList->AddCircleFilled(symbolPos, circleRadius, Gui::GetColorU32(ImGuiCol_ChildBg));
+			baseWindowDrawList->AddCircle(symbolPos, circleRadius, GetColor(EditorColor_TimelineSelectionBorder));
 
 			if (boxSelection.Action == BoxSelectionData::ActionType::Add || boxSelection.Action == BoxSelectionData::ActionType::Remove)
-				baseDrawList->AddLine(symbolPos - vec2(symbolSize, 0.0f), start + vec2(symbolSize + 1.0f, 0.0f), symbolColor, 1.0f);
+				baseWindowDrawList->AddLine(symbolPos - vec2(symbolSize, 0.0f), start + vec2(symbolSize + 1.0f, 0.0f), symbolColor, 1.0f);
 
 			if (boxSelection.Action == BoxSelectionData::ActionType::Add)
-				baseDrawList->AddLine(symbolPos - vec2(0.0f, symbolSize), start + vec2(0.0f, symbolSize + 1.0f), symbolColor, 1.0f);
+				baseWindowDrawList->AddLine(symbolPos - vec2(0.0f, symbolSize), start + vec2(0.0f, symbolSize + 1.0f), symbolColor, 1.0f);
 		}
 	}
 
@@ -2044,7 +2046,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::ResetScrollAndZoom()
 	{
-		SetScrollX(0.0f);
+		SetScrollTargetX(0.0f);
 		zoomLevel = 2.0f;
 	}
 
@@ -2099,7 +2101,7 @@ namespace Comfy::Studio::Editor
 		PlayCursorButtonSoundsAndAnimation(clampedCursorTick);
 
 		// NOTE: Keep same relative cursor screen position though might only wanna scroll if the cursor is about to go off-screen (?)
-		SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+		SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
 	}
 
 	void TargetTimeline::AdvanceCursorToNextTarget(i32 direction)
@@ -2154,7 +2156,7 @@ namespace Comfy::Studio::Editor
 
 		if (const bool seekThroughSong = GetIsPlayback(); seekThroughSong)
 		{
-			const auto preCursorX = GetCursorTimelinePosition();
+			const f32 preCursorX = GetCursorTimelinePosition();
 
 			// NOTE: Pause and resume to reset the on-playback start-time
 			chartEditor.PausePlayback();
@@ -2164,17 +2166,17 @@ namespace Comfy::Studio::Editor
 			chartEditor.ResumePlayback();
 
 			// NOTE: Keep the cursor at the same relative screen position to prevent potential disorientation
-			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+			SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
 		}
 		else if (const bool seekingScroll = false; seekingScroll)
 		{
 			// DEBUG: Neat idea but in practice very disorientating
-			const auto preCursorX = GetCursorTimelinePosition();
+			const f32 preCursorX = GetCursorTimelinePosition();
 			{
 				SetCursorTick(newCursorTick);
 				PlayCursorButtonSoundsAndAnimation(newCursorTick);
 			}
-			SetScrollX(GetScrollX() + (GetCursorTimelinePosition() - preCursorX));
+			SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
 		}
 		else
 		{

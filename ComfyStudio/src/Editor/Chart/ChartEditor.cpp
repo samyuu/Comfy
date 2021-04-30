@@ -171,7 +171,7 @@ namespace Comfy::Studio::Editor
 
 				if (Gui::MenuItem("Expot PV Script Chart...", nullptr, false, true))
 					OpenSaveExportSimplePVScriptChartFileDialog();
-				
+
 				Gui::EndMenu();
 			}
 
@@ -1080,7 +1080,7 @@ namespace Comfy::Studio::Editor
 		else if (exitType == PlayTestExitType::ReturnPrePlayTestTime)
 		{
 			timeline->SetCursorTime(playbackTimeOnPlaytestStart);
-			timeline->SetScrollX(timelineScrollXOnPlaytestStart);
+			timeline->SetScrollTargetX(timelineScrollXOnPlaytestStart);
 		}
 
 		if (GlobalUserData.Playtest.EnterFullscreenOnMaximizedStart && exitFullscreenOnPlaytestEnd && parentApplication.GetHost().GetIsFullscreen())

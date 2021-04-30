@@ -87,7 +87,7 @@ namespace Comfy::Studio::Editor
 			vec2 end = regions.Content.GetBL() + vec2(screenX, 0);
 
 			const ImU32 color = GetColor(isBar ? EditorColor_Bar : (divisions++ % 2 == 0 ? EditorColor_Grid : EditorColor_GridAlt));
-			baseDrawList->AddLine(start, end, color);
+			baseWindowDrawList->AddLine(start, end, color);
 
 			if (isBar)
 			{
@@ -95,7 +95,7 @@ namespace Comfy::Studio::Editor
 				sprintf_s(barStringBuffer, sizeof(barStringBuffer), "%d", frame);
 
 				start += vec2(3.0f, -1.0f);
-				baseDrawList->AddText(start, color, barStringBuffer);
+				baseWindowDrawList->AddText(start, color, barStringBuffer);
 			}
 		}
 	}
