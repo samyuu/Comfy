@@ -41,12 +41,8 @@ namespace ImGui
 		std::unique_ptr<u8[]> combinedFontFileContent = nullptr;
 		size_t textFontFileSize = 0, iconFontFileSize = 0;
 
-#ifdef IMGUI_HACKS_RECORD_MISSING_GLYPHS
 		bool buildFullTextGlyphRange = false;
 		bool fullFontRangeHasBeenRebuilt = false;
-#else
-		bool buildFullTextGlyphRange = true;
-#endif
 
 	private:
 		static constexpr bool preLoadImGuiConfig = false;

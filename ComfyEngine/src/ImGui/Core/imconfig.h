@@ -70,20 +70,27 @@
         operator glm::vec4() const { return glm::vec4(x, y, z, w); }
 /**/
 
-#include "ImGui/ComfyTextureID.h"
-
-#define IM_CUSTOM_TEXTURE_ID										\
-	using ImTextureID = Comfy::ComfyTextureID;
-
 //---- Use 32-bit vertex indices (default is 16-bit) to allow meshes with more than 64K vertices. Render function needs to support it.
 //#define ImDrawIdx unsigned int
 
-//---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
-/*
-namespace ImGui
-{
-	void MyFunction(const char* name, const MyMatrix44& v);
-}
-*/
+//---- Comfy specific ImGui patches, moved outside here to make version updates easier and cleaner
 
-#define IMGUI_HACKS_RECORD_MISSING_GLYPHS
+// HACK: Added 2019/07/30: To improve general usability from what's expected from a typical application
+#define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_CPP_UPDATE_MOUSE_MOVING_WINDOW_END_FRAME_ADDITIONAL_WINDOW_FOCUS_MOUSE_CLICK_CHECK \
+	|| g.IO.MouseClicked[2]
+
+// HACK: Added 2020/01/01: To improve type safety and store additional data. Bypassing the original ImTextureID macro check for better IDE support
+#include "ImGui/ComfyTextureID.h"
+#define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_H_CUSTOM_IMTEXTUREID_TYPEDEF \
+	using ImTextureID = ::Comfy::ComfyTextureID;
+
+// HACK: Added 2020/05/25: To avoid creating windows that are too small to move by dragging the title bar if io.ConfigViewportsNoAutoMerge is set
+#define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_CPP_BEGIN_WINDOW_JUST_CREATED_ASSIGN_SIZE_ON_FIRST_USE \
+	size_on_first_use = (g.NextWindowData.SizeCond != 0) ? g.NextWindowData.SizeVal : ImVec2(256.0f, 192.0f);
+
+// HACK: Added 2020/10/03: To be able to delay loading fonts with a full character set
+#define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_H_IMFONT_ADDITIONAL_MEMBER_FIELDS \
+	mutable bool MissingGlyphEncountered = false;
+#define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_DRAW_CPP_IMFONT_FINDGLYPH_ON_NOT_FOUND \
+	MissingGlyphEncountered = true;
+/**/

@@ -125,9 +125,8 @@ struct ImGuiWindowClass;            // Window class (rare/advanced uses: provide
 // Typedefs and Enums/Flags (declared as int for compatibility with old C++, to allow using as flags and to not pollute the top of this file)
 // Use your programming IDE "Go to definition" facility on the names of the center columns to find the actual flags/enum lists.
 
-// Added 2020/01/01 to improve type safety and store additional data, defined in imconfig.h
-#ifdef IM_CUSTOM_TEXTURE_ID
-IM_CUSTOM_TEXTURE_ID
+#ifdef IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_H_CUSTOM_IMTEXTUREID_TYPEDEF
+IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_H_CUSTOM_IMTEXTUREID_TYPEDEF
 #else
 #ifndef ImTextureID
 typedef void* ImTextureID;          // User data to identify a texture (this is whatever to you want it to be! read the FAQ about ImTextureID in imgui.cpp)
@@ -2224,12 +2223,6 @@ struct ImFont
     const ImFontGlyph*          FallbackGlyph;      // 4-8   // out // = FindGlyph(FontFallbackChar)
     ImVec2                      DisplayOffset;      // 8     // in  // = (0,0)    // Offset font rendering by xx pixels
 
-#ifdef IMGUI_HACKS_RECORD_MISSING_GLYPHS
-	mutable bool				MissingGlyphEncountered = false;
-	mutable bool				RecordMissingGlyphs = false;
-	mutable ImVector<ImWchar>   RecordedMissingGlyphs;
-#endif
-
     // Members: Cold ~32/40 bytes
     ImFontAtlas*                ContainerAtlas;     // 4-8   // out //            // What we has been loaded into
     const ImFontConfig*         ConfigData;         // 4-8   // in  //            // Pointer within ContainerAtlas->ConfigData
@@ -2239,6 +2232,8 @@ struct ImFont
     float                       Ascent, Descent;    // 4+4   // out //            // Ascent: distance from top to bottom of e.g. 'A' [0..FontSize]
     int                         MetricsTotalSurface;// 4     // out //            // Total surface in pixels to get an idea of the font rasterization/texture cost (not exact, we approximate the cost of padding between glyphs)
     bool                        DirtyLookupTables;  // 1     // out //
+
+	IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_H_IMFONT_ADDITIONAL_MEMBER_FIELDS
 
     // Methods
     IMGUI_API ImFont();

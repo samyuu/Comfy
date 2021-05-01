@@ -50,7 +50,7 @@ namespace ImGui
 
 		// NOTE: Delaying the full glyph range font creation improves startup times making the program feel more responsive, even with the minor stutter on first use.
 		//		 For debug builds the full glyph ranges takes relatively long to load and isn't really needed
-#if defined(IMGUI_HACKS_RECORD_MISSING_GLYPHS) && !defined(COMFY_DEBUG)
+#if !defined(COMFY_DEBUG)
 		if (!fullFontRangeHasBeenRebuilt && Gui::GetFont()->MissingGlyphEncountered)
 		{
 			buildFullTextGlyphRange = true;

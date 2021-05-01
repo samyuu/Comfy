@@ -2543,30 +2543,14 @@ void ImFont::AddRemapChar(ImWchar dst, ImWchar src, bool overwrite_dst)
 
 const ImFontGlyph* ImFont::FindGlyph(ImWchar c) const
 {
-    if (c >= IndexLookup.Size)
-        return FallbackGlyph;
-    const ImWchar i = IndexLookup.Data[c];
-#ifdef IMGUI_HACKS_RECORD_MISSING_GLYPHS
+	if (c >= IndexLookup.Size)
+		return FallbackGlyph;
+	const ImWchar i = IndexLookup.Data[c];
 	if (i == (ImWchar)-1)
 	{
-		auto checkExists = [](const auto& vector, const auto& value)
-		{
-			for (const auto& item : vector)
-				if (item == value)
-					return true;
-			return false;
-		};
-
-		MissingGlyphEncountered = true;
-		if (RecordMissingGlyphs && !checkExists(RecordedMissingGlyphs, c))
-			RecordedMissingGlyphs.push_back(c);
-
+		IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_DRAW_CPP_IMFONT_FINDGLYPH_ON_NOT_FOUND
 		return FallbackGlyph;
 	}
-#else
-	if (i == (ImWchar)-1)
-		return FallbackGlyph;
-#endif
     return &Glyphs.Data[i];
 }
 

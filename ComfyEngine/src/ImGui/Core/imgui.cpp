@@ -3326,7 +3326,7 @@ void ImGui::UpdateMouseMovingWindowEndFrame()
         return;
 
     // Click to focus window and start moving (after we're done with all our widgets)
-    if (g.IO.MouseClicked[0] || g.IO.MouseClicked[2])
+    if (g.IO.MouseClicked[0] IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_CPP_UPDATE_MOUSE_MOVING_WINDOW_END_FRAME_ADDITIONAL_WINDOW_FOCUS_MOUSE_CLICK_CHECK)
     {
         if (g.HoveredRootWindow != NULL)
         {
@@ -5344,11 +5344,9 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     const bool window_is_fallback = (g.CurrentWindowStack.Size == 0);
     if (window_just_created)
     {
-		// HACK: Added 2020/05/25: To avoid creating windows that are too small to move by dragging the title bar if io.ConfigViewportsNoAutoMerge is set
-		static const ImVec2 startupDefaultWindowSize = ImVec2(256.0f, 192.0f);
-
-        ImVec2 size_on_first_use = (g.NextWindowData.SizeCond != 0) ? g.NextWindowData.SizeVal : startupDefaultWindowSize; // Any condition flag will do since we are creating a new window here.
-        window = CreateNewWindow(name, size_on_first_use, flags);
+		ImVec2 size_on_first_use = (g.NextWindowData.SizeCond != 0) ? g.NextWindowData.SizeVal : ImVec2(0.0f, 0.0f); // Any condition flag will do since we are creating a new window here.
+		IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_CPP_BEGIN_WINDOW_JUST_CREATED_ASSIGN_SIZE_ON_FIRST_USE
+		window = CreateNewWindow(name, size_on_first_use, flags);
     }
 
     // Automatically disable manual moving/resizing when NoInputs is set
