@@ -488,6 +488,9 @@
     <ClCompile Include="src\Audio\Encoder\EncoderUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ImGui\Core\imgui_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Render\D3D11\Shader\Source\ImGui\ImGuiCustom_PS.hlsl" />

@@ -277,6 +277,7 @@
     <ClCompile Include="src\ImGui\Core\imgui.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_draw.cpp" />
+    <ClCompile Include="src\ImGui\Core\imgui_tables.cpp" />
     <ClCompile Include="src\ImGui\Core\imgui_widgets.cpp" />
     <ClCompile Include="src\ImGui\Extensions\CheckerboardTexture.cpp" />
     <ClCompile Include="src\ImGui\Extensions\ImGuiExtensions.cpp" />

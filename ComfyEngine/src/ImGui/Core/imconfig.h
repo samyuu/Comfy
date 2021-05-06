@@ -26,7 +26,8 @@
 //#define IMGUI_API __declspec( dllimport )
 
 //---- Don't define obsolete functions/enums names. Consider enabling from time to time after updating to avoid using soon-to-be obsolete function/names.
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+// TODO: Enable again once everything is updated correctly
+// #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
 //---- Don't implement demo windows functionality (ShowDemoWindow()/ShowStyleEditor()/ShowUserGuide() methods will be empty)
 //---- It is very strongly recommended to NOT disable the demo windows during development. Please read the comments in imgui_demo.cpp.
@@ -62,12 +63,12 @@
 #include <glm/vec4.hpp>
 
 #define IM_VEC2_CLASS_EXTRA                                                 \
-        ImVec2(const glm::vec2& f) { x = f.x; y = f.y; }                    \
-        operator glm::vec2() const { return glm::vec2(x, y); }
+		ImVec2(const glm::vec2& f) { x = f.x; y = f.y; }                    \
+		operator glm::vec2() const { return glm::vec2(x, y); }
 
 #define IM_VEC4_CLASS_EXTRA                                                 \
-        ImVec4(const glm::vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }	\
-        operator glm::vec4() const { return glm::vec4(x, y, z, w); }
+		ImVec4(const glm::vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }	\
+		operator glm::vec4() const { return glm::vec4(x, y, z, w); }
 /**/
 
 //---- Use 32-bit vertex indices (default is 16-bit) to allow meshes with more than 64K vertices. Render function needs to support it.
@@ -77,20 +78,20 @@
 
 // HACK: Added 2019/07/30: To improve general usability from what's expected from a typical application
 #define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_CPP_UPDATE_MOUSE_MOVING_WINDOW_END_FRAME_ADDITIONAL_WINDOW_FOCUS_MOUSE_CLICK_CHECK \
-	|| g.IO.MouseClicked[2]
+		|| g.IO.MouseClicked[2]
 
 // HACK: Added 2020/01/01: To improve type safety and store additional data. Bypassing the original ImTextureID macro check for better IDE support
 #include "ImGui/ComfyTextureID.h"
 #define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_H_CUSTOM_IMTEXTUREID_TYPEDEF \
-	using ImTextureID = ::Comfy::ComfyTextureID;
+		using ImTextureID = ::Comfy::ComfyTextureID;
 
 // HACK: Added 2020/05/25: To avoid creating windows that are too small to move by dragging the title bar if io.ConfigViewportsNoAutoMerge is set
-#define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_CPP_BEGIN_WINDOW_JUST_CREATED_ASSIGN_SIZE_ON_FIRST_USE \
-	size_on_first_use = (g.NextWindowData.SizeCond != 0) ? g.NextWindowData.SizeVal : ImVec2(256.0f, 192.0f);
+#define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_CPP_CREATENEWWINDOW_ASSIGN_DEFAULT_MIN_WINDOW_SIZE \
+		window->Size = window->SizeFull = ImVec2(320.0f, 240.0f);
 
 // HACK: Added 2020/10/03: To be able to delay loading fonts with a full character set
 #define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_H_IMFONT_ADDITIONAL_MEMBER_FIELDS \
-	mutable bool MissingGlyphEncountered = false;
+		mutable bool MissingGlyphEncountered = false;
 #define IMGUI_HACKS_SRC_CODE_PATCH_IMGUI_DRAW_CPP_IMFONT_FINDGLYPH_ON_NOT_FOUND \
-	MissingGlyphEncountered = true;
+		MissingGlyphEncountered = true;
 /**/
