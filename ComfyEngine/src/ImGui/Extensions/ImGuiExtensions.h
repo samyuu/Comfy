@@ -120,8 +120,6 @@ namespace ImGui
 	void WindowContextMenu(const char* str_id, const std::function<void(void)>& func);
 	void ItemContextMenu(const char* str_id, const std::function<void(void)>& func);
 
-	void ExtendedVerticalSeparator(float spacing = 8.0f);
-
 	struct ExtendedImGuiTextFilter
 	{
 		ExtendedImGuiTextFilter(const char* default_filter = "");

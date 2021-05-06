@@ -103,38 +103,15 @@ namespace ImGui
 		io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
 #endif
 
-#if 1
 		io.ConfigViewportsNoAutoMerge = true;
 		io.ConfigViewportsNoTaskBarIcon = false;
 		io.ConfigViewportsNoDecoration = false;
 		io.ConfigViewportsNoDefaultParent = false;
-		io.ConfigDockingWithShift = false;
-#else
-		io.ConfigViewportsNoDecoration = true;
-		io.ConfigDockingWithShift = false;
-#endif
 
-		io.KeyRepeatDelay = 0.250f;
+		io.KeyRepeatDelay = 0.275f;
 		io.KeyRepeatRate = 0.050f;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
-		io.ConfigDockingTabBarOnSingleWindows = true;
-
-		if (preLoadImGuiConfig)
-		{
-			LoadIniSettingsFromDisk(configFileName);
-
-			if (restoreConfigWindowSize)
-			{
-				const ImGuiID mainDockspaceID = ImHashStr(MainDockSpaceID, 0);
-				const ImGuiWindowSettings* settings = FindWindowSettings(mainDockspaceID);
-
-				if (settings != nullptr)
-				{
-					host.SetWindowPosition(vec2(settings->Pos));
-					host.SetWindowSize(vec2(settings->Size));
-				}
-			}
-		}
+		io.ConfigDockingAlwaysTabBar = true;
 
 		return true;
 	}

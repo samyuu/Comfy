@@ -42,11 +42,11 @@ namespace ImGui
 					else
 						Previous = { nullptr, previousColumns->Count, (previousColumns->Flags & ImGuiColumnsFlags_NoBorder) == 0 };
 
-					Gui::Columns(columnsCount, id, border);
+					ImGui::Columns(columnsCount, id, border);
 				}
 				~Columns()
 				{
-					Gui::Columns(Previous.Count, Previous.ID, Previous.Border);
+					ImGui::Columns(Previous.Count, Previous.ID, Previous.Border);
 				}
 				struct ColumnData
 				{
@@ -92,7 +92,7 @@ namespace ImGui
 				inline void PerItemSeparator()
 				{
 					if (PerItemSeparation)
-						Gui::Separator();
+						ImGui::Separator();
 				}
 			}
 
@@ -219,7 +219,7 @@ namespace ImGui
 						FocusWindow(window);
 					}
 
-					const bool valueChanged = Gui::DragBehavior(id, TypeLookup::DataType<T>::TypeEnum, &inOutValue, speed, min, max, "", 1.0f, ImGuiDragFlags_None);
+					const bool valueChanged = ImGui::DragBehavior(id, TypeLookup::DataType<T>::TypeEnum, &inOutValue, speed, min, max, "", ImGuiSliderFlags_None);
 					if (valueChanged)
 						MarkItemEdited(id);
 
@@ -265,7 +265,7 @@ namespace ImGui
 						const ValueType fastStep = static_cast<ValueType>(step * static_cast<ValueType>(10));
 
 						using Lookup = TypeLookup::DataType<ValueType>;
-						const bool valueChanged = Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, &step, &fastStep, (format != nullptr) ? format : Lookup::Format, Lookup::InputTextFlags);
+						const bool valueChanged = ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, &step, &fastStep, (format != nullptr) ? format : Lookup::Format, Lookup::InputTextFlags);
 
 						if (valueChanged && dragRange.has_value())
 							inOutValue = std::clamp(inOutValue, dragRange->x, dragRange->y);
@@ -301,7 +301,7 @@ namespace ImGui
 						RAII::ItemWidth width(isLastComponent ? (GetContentRegionAvailWidth() - 1.0f) : perComponentInputFloatWidth);
 
 						using Lookup = TypeLookup::DataType<ValueType>;
-						anyValueChanged |= Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags);
+						anyValueChanged |= ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags);
 
 						if (!isLastComponent)
 							SameLine(0.0f, 0.0f);
@@ -334,7 +334,7 @@ namespace ImGui
 						RAII::ItemWidth width(isLastComponent ? (GetContentRegionAvailWidth() - 1.0f) : perComponentInputFloatWidth);
 
 						using Lookup = TypeLookup::DataType<ValueType>;
-						if (Gui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags))
+						if (ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags))
 						{
 							if (valueRange.has_value())
 								inOutValue[component] = glm::clamp(inOutValue[component], valueRange->x, valueRange->y);
@@ -398,7 +398,7 @@ namespace ImGui
 				{
 					constexpr u32 step = 1, fastStep = 16;
 					RAII::ItemWidth width(-1.0f);
-					return Gui::InputScalar(Detail::DummyLabel, Detail::TypeLookup::DataType<InputType>::TypeEnum, &inOutValue, &step, &fastStep, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+					return ImGui::InputScalar(Detail::DummyLabel, Detail::TypeLookup::DataType<InputType>::TypeEnum, &inOutValue, &step, &fastStep, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
 				});
 			}
 
@@ -424,22 +424,22 @@ namespace ImGui
 
 			inline bool Input(std::string_view label, char* inOutBuffer, size_t bufferSize, ImGuiInputTextFlags flags = ImGuiInputTextFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputText(Detail::DummyLabel, inOutBuffer, bufferSize, flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::InputText(Detail::DummyLabel, inOutBuffer, bufferSize, flags); });
 			}
 
 			inline bool Input(std::string_view label, std::string& inOutValue, ImGuiInputTextFlags flags = ImGuiInputTextFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputText(Detail::DummyLabel, &inOutValue, flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::InputText(Detail::DummyLabel, &inOutValue, flags); });
 			}
 
 			inline bool InputWithHint(std::string_view label, const char* hint, std::string& inOutValue, ImGuiInputTextFlags flags = ImGuiInputTextFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputTextWithHint(Detail::DummyLabel, hint, &inOutValue, flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::InputTextWithHint(Detail::DummyLabel, hint, &inOutValue, flags); });
 			}
 
 			inline bool InputMultiline(std::string_view label, std::string& inOutValue, vec2 size = {}, ImGuiInputTextFlags flags = ImGuiInputTextFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::InputTextMultiline(Detail::DummyLabel, &inOutValue, size, flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::InputTextMultiline(Detail::DummyLabel, &inOutValue, size, flags); });
 			}
 
 			inline bool Checkbox(std::string_view label, bool& inOutValue)
@@ -450,7 +450,7 @@ namespace ImGui
 					return Detail::TextButton(label, inOutValue);
 				}, [&]
 				{
-					return Gui::Checkbox(Detail::DummyLabel, &inOutValue);
+					return ImGui::Checkbox(Detail::DummyLabel, &inOutValue);
 				});
 			}
 
@@ -482,9 +482,10 @@ namespace ImGui
 				return PropertyLabelValueFunc(label, [&]
 				{
 					bool valueChanged = false;
-
 					const char* previewValue = indexToString(inOutIndex);
-					if (InternalVariableWidthBeginCombo(Detail::DummyLabel, (previewValue == nullptr) ? "" : previewValue, flags, GetContentRegionAvailWidth()))
+					
+					SetNextItemWidth(GetContentRegionAvail().x);
+					if (ImGui::BeginCombo(Detail::DummyLabel, (previewValue == nullptr) ? "" : previewValue, flags))
 					{
 						if (outResult != nullptr)
 						{
@@ -563,29 +564,29 @@ namespace ImGui
 
 			inline bool ColorEdit(std::string_view label, vec3& inOutValue, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::ColorEdit3(Detail::DummyLabel, glm::value_ptr(inOutValue), flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::ColorEdit3(Detail::DummyLabel, glm::value_ptr(inOutValue), flags); });
 			}
 
 			inline bool ColorEdit(std::string_view label, vec4& inOutValue, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::ColorEdit4(Detail::DummyLabel, glm::value_ptr(inOutValue), flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::ColorEdit4(Detail::DummyLabel, glm::value_ptr(inOutValue), flags); });
 			}
 
 			inline bool ColorEditHDR(std::string_view label, vec3& inOutValue, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::ColorEdit3(Detail::DummyLabel, glm::value_ptr(inOutValue), ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::ColorEdit3(Detail::DummyLabel, glm::value_ptr(inOutValue), ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | flags); });
 			}
 
 			inline bool ColorEditHDR(std::string_view label, vec4& inOutValue, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
 			{
-				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return Gui::ColorEdit4(Detail::DummyLabel, glm::value_ptr(inOutValue), ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | flags); });
+				return PropertyLabelValueFunc(label, [&] { RAII::ItemWidth width(-1.0f); return ImGui::ColorEdit4(Detail::DummyLabel, glm::value_ptr(inOutValue), ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float | flags); });
 			}
 		}
 	}
 }
 
-namespace GuiProperty = Gui::PropertyEditor::Widgets;
-namespace GuiPropertyRAII = Gui::PropertyEditor::RAII;
+namespace GuiProperty = ImGui::PropertyEditor::Widgets;
+namespace GuiPropertyRAII = ImGui::PropertyEditor::RAII;
 
 #ifndef COMFY_GUI_PROPERTY_NO_MACROS
 

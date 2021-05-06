@@ -495,7 +495,7 @@ namespace Comfy::Input
 					}
 					else if (downDuration > repeatDelay)
 					{
-						const i32 repeatAmount = Gui::CalcTypematicPressedRepeatAmount(downDuration, (downDuration - elapsedTimeSec), repeatDelay, repeatRate);
+						const i32 repeatAmount = Gui::CalcTypematicRepeatAmount(downDuration, (downDuration - elapsedTimeSec), repeatDelay, repeatRate);
 						Global.ThisFrameState.ButtonsRepeat[i] = (repeatAmount > 0);
 					}
 				}

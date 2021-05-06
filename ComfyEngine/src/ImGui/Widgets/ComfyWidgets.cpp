@@ -9,7 +9,7 @@ namespace ImGui
 	{
 		RAII_ColumnsCount(int columnsCount, const char* id, bool border)
 		{
-			ImGuiColumns* previousColumns = GetCurrentWindow()->DC.CurrentColumns;
+			ImGuiOldColumns* previousColumns = GetCurrentWindow()->DC.CurrentColumns;
 
 			if (previousColumns == nullptr)
 				PreviousColumn = { 1, nullptr, false };
@@ -32,13 +32,13 @@ namespace ImGui
 
 	static void PushDisabledTextColorIfDisabled()
 	{
-		if (GetCurrentWindow()->DC.ItemFlags & ImGuiItemFlags_Disabled)
+		if (GetItemFlags() & ImGuiItemFlags_Disabled)
 			PushStyleColor(ImGuiCol_Text, GetStyleColorVec4(ImGuiCol_TextDisabled));
 	}
 
 	static void PopDisabledTextColorIfDisabled()
 	{
-		if (GetCurrentWindow()->DC.ItemFlags & ImGuiItemFlags_Disabled)
+		if (GetItemFlags() & ImGuiItemFlags_Disabled)
 			PopStyleColor();
 	}
 
@@ -56,7 +56,7 @@ namespace ImGui
 		if (width > 0.0f)
 			labelSize.x = 0.0f;
 
-		const ImRect frameBB(window->DC.CursorPos, window->DC.CursorPos + vec2(width > 0.0f ? width : GetContentRegionAvailWidth(), labelSize.y + style.FramePadding.y * 2.0f));
+		const ImRect frameBB(window->DC.CursorPos, window->DC.CursorPos + vec2(width > 0.0f ? width : GetContentRegionAvail().x, labelSize.y + style.FramePadding.y * 2.0f));
 		const ImRect totalBB(frameBB.Min, frameBB.Max + vec2(labelSize.x > 0.0f ? style.ItemInnerSpacing.x + labelSize.x : 0.0f, 0.0f));
 
 		ItemSize(totalBB, style.FramePadding.y);
@@ -72,7 +72,7 @@ namespace ImGui
 			FocusWindow(window);
 		}
 
-		const bool valueChanged = DragBehavior(id, ImGuiDataType_Float, value, speed, &min, &max, "", 1.0f, ImGuiDragFlags_None);
+		const bool valueChanged = DragBehavior(id, ImGuiDataType_Float, value, speed, &min, &max, "", ImGuiSliderFlags_None);
 		if (valueChanged)
 			MarkItemEdited(id);
 
@@ -115,7 +115,7 @@ namespace ImGui
 		NextColumn();
 
 		PushDisabledTextColorIfDisabled();
-		PushItemWidth(GetContentRegionAvailWidth());
+		PushItemWidth(GetContentRegionAvail().x);
 		bool valueChanged = InputText("##ComfyInputText", buffer, bufferSize, flags);
 		PopItemWidth();
 		NextColumn();
@@ -135,7 +135,7 @@ namespace ImGui
 		NextColumn();
 
 		PushDisabledTextColorIfDisabled();
-		PushItemWidth(GetContentRegionAvailWidth());
+		PushItemWidth(GetContentRegionAvail().x);
 		PushID(value);
 		bool valueChanged = InputInt("##ComfyInputInt", value, step, stepFast, flags);
 		PopID();
@@ -156,7 +156,7 @@ namespace ImGui
 		Text(label);
 		NextColumn();
 
-		PushItemWidth(GetContentRegionAvailWidth());
+		PushItemWidth(GetContentRegionAvail().x);
 		PushID(value);
 		bool valueChanged = InputInt2("##ComfyInputInt2", value, flags);
 		PopID();
@@ -175,7 +175,7 @@ namespace ImGui
 		Text(label);
 		NextColumn();
 
-		PushItemWidth(GetContentRegionAvailWidth());
+		PushItemWidth(GetContentRegionAvail().x);
 		PushID(value);
 
 		if (disabledText)
@@ -201,10 +201,10 @@ namespace ImGui
 		bool valueChanged = ComfyDragText(label, label, value, step, min, max);
 		NextColumn();
 
-		PushItemWidth(GetContentRegionAvailWidth());
+		PushItemWidth(GetContentRegionAvail().x);
 		PushID(value);
 
-		disabledText |= (GetCurrentWindow()->DC.ItemFlags & ImGuiItemFlags_Disabled) != 0;
+		disabledText |= (GetItemFlags() & ImGuiItemFlags_Disabled) != 0;
 		if (disabledText)
 			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
 
@@ -225,7 +225,7 @@ namespace ImGui
 		// HACK: Doesn't really work with different font sizes
 		constexpr float componentLabelWidth = 16.0f;
 
-		const float avaiableWidth = GetContentRegionAvailWidth();
+		const float avaiableWidth = GetContentRegionAvail().x;
 		const float inputFloatWidth = (avaiableWidth * 0.5f) - componentLabelWidth;
 
 		const char* componentLabels[2] = { "  X  ", "  Y  " };
@@ -267,7 +267,7 @@ namespace ImGui
 
 		NextColumn();
 
-		PushItemWidth(GetContentRegionAvailWidth());
+		PushItemWidth(GetContentRegionAvail().x);
 		PushID(value);
 
 		bool valueChanged = ComfyDragTextInputFloat2("##ComfyDragTextInputFloat2", value, step, min, max, format, flags, disabledText);
@@ -288,7 +288,7 @@ namespace ImGui
 		Text(label);
 		NextColumn();
 
-		PushItemWidth(GetContentRegionAvailWidth());
+		PushItemWidth(GetContentRegionAvail().x);
 		PushID(color);
 		bool valueChanged = ColorEdit3("##ComfyColorEdit3", color, flags);
 		PopID();
@@ -336,7 +336,8 @@ namespace ImGui
 
 		PushDisabledTextColorIfDisabled();
 		SetCursorScreenPos(comboPosition);
-		bool open = InternalVariableWidthBeginCombo(label, previewValue, flags, GetContentRegionAvailWidth());
+		SetNextItemWidth(GetContentRegionAvail().x);
+		bool open = BeginCombo(label, previewValue, flags);
 		PopDisabledTextColorIfDisabled();
 
 		return open;

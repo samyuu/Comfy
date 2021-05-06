@@ -35,12 +35,12 @@ namespace ImGui
 
 		struct DynamicConstantData
 		{
-			int DecompressRGTC;
-			int RenderCubeMap;
-			int CubeMapFace;
-			int CubeMapUnwrapNet;
-			int CubeMapMipLevel;
-			int Padding[3];
+			i32 DecompressRGTC;
+			i32 RenderCubeMap;
+			i32 CubeMapFace;
+			i32 CubeMapUnwrapNet;
+			i32 CubeMapMipLevel;
+			i32 Padding[3];
 		};
 
 		struct ComfyD3D11DeviceObjects
@@ -59,7 +59,9 @@ namespace ImGui
 			D3D11::TextureSampler FontSampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP };
 			std::unique_ptr<D3D11::Texture2D> FontTexture = nullptr;
 
-			D3D11::BlendState BlendState = { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO };
+			// D3D11::BlendState BlendState = { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO };
+			D3D11::BlendState BlendState = { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ONE, D3D11_BLEND_INV_SRC_ALPHA };
+
 			D3D11::RasterizerState RasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE, true, "ComfyD3D11::RasterizerState" };
 			D3D11::DepthStencilState DepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ALL, "ComfyD3D11::DepthStencilState" };
 
@@ -103,12 +105,9 @@ namespace ImGui
 		struct ComfyD3D11Data
 		{
 			ComPtr<IDXGIFactory> Factory = nullptr;
-
 			std::unique_ptr<ComfyD3D11DeviceObjects> DeviceObjects = nullptr;
-
-			int VertexBufferSize = 5000;
-			int IndexBufferSize = 10000;
-
+			i32 VertexBufferSize = 5000;
+			i32 IndexBufferSize = 10000;
 		} Data;
 
 		bool Initialize()
@@ -293,10 +292,10 @@ namespace ImGui
 
 				// NOTE: Setup orthographic projection matrix
 				{
-					const float left = drawData->DisplayPos.x;
-					const float right = drawData->DisplayPos.x + drawData->DisplaySize.x;
-					const float top = drawData->DisplayPos.y;
-					const float bottom = drawData->DisplayPos.y + drawData->DisplaySize.y;
+					const f32 left = drawData->DisplayPos.x;
+					const f32 right = drawData->DisplayPos.x + drawData->DisplaySize.x;
+					const f32 top = drawData->DisplayPos.y;
+					const f32 bottom = drawData->DisplayPos.y + drawData->DisplaySize.y;
 
 					Data.DeviceObjects->MatrixCB.Data.ModelViewProjection = glm::transpose(glm::ortho(left, right, bottom, top, 0.0f, 1.0f));
 					Data.DeviceObjects->MatrixCB.UploadData();
@@ -420,7 +419,7 @@ namespace ImGui
 			ViewportUserData* userData = new ViewportUserData();
 			viewport->RendererUserData = userData;
 
-			HWND windowHandle = static_cast<HWND>(viewport->PlatformHandle);
+			HWND windowHandle = static_cast<HWND>(viewport->PlatformHandleRaw ? viewport->PlatformHandleRaw : viewport->PlatformHandle);
 			assert(windowHandle != 0);
 
 			DXGI_SWAP_CHAIN_DESC swapChainDescription = {};

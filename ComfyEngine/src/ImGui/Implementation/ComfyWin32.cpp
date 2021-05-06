@@ -1,13 +1,3 @@
-// dear imgui: Platform Binding for Windows (standard windows API for 32 and 64 bits applications)
-// This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3, Vulkan..)
-
-// Implemented features:
-//  [X] Platform: Clipboard support (for Win32 this is actually part of core imgui)
-//  [X] Platform: Mouse cursor shape and visibility. Disable with 'io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange'.
-//  [X] Platform: Keyboard arrays indexed using VK_* Virtual Key Codes, e.g. ImGui::IsKeyPressed(VK_SPACE).
-//  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
-//  [X] Platform: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
-
 #include "ImGui/Core/imgui.h"
 #include "ImGui/Core/imgui_internal.h"
 #include "ImGui/Implementation/ComfyWin32.h"
@@ -18,28 +8,6 @@
 
 #include "Window/ApplicationHost.h"
 #include "Input/Input.h"
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2018-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
-//  2019-01-17: Misc: Using GetForegroundWindow()+IsChild() instead of GetActiveWindow() to be compatible with windows created in a different thread or parent.
-//  2019-01-17: Inputs: Added support for mouse buttons 4 and 5 via WM_XBUTTON* messages.
-//  2019-01-15: Inputs: Added support for XInput gamepads (if ImGuiConfigFlags_NavEnableGamepad is set by user application).
-//  2018-11-30: Misc: Setting up io.BackendPlatformName so it can be displayed in the About Window.
-//  2018-06-29: Inputs: Added support for the ImGuiMouseCursor_Hand cursor.
-//  2018-06-10: Inputs: Fixed handling of mouse wheel messages to support fine position messages (typically sent by track-pads).
-//  2018-06-08: Misc: Extracted imgui_impl_win32.cpp/.h away from the old combined DX9/DX10/DX11/DX12 examples.
-//  2018-03-20: Misc: Setup io.BackendFlags ImGuiBackendFlags_HasMouseCursors and ImGuiBackendFlags_HasSetMousePos flags + honor ImGuiConfigFlags_NoMouseCursorChange flag.
-//  2018-02-20: Inputs: Added support for mouse cursors (ImGui::GetMouseCursor() value and WM_SETCURSOR message handling).
-//  2018-02-06: Inputs: Added mapping for ImGuiKey_Space.
-//  2018-02-06: Inputs: Honoring the io.WantSetMousePos by repositioning the mouse (when using navigation and ImGuiConfigFlags_NavMoveMouse is set).
-//  2018-02-06: Misc: Removed call to ImGui::Shutdown() which is not available from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
-//  2018-01-20: Inputs: Added Horizontal Mouse Wheel support.
-//  2018-01-08: Inputs: Added mapping for ImGuiKey_Insert.
-//  2018-01-05: Inputs: Added WM_LBUTTONDBLCLK double-click handlers for window classes with the CS_DBLCLKS flag.
-//  2017-10-23: Inputs: Added WM_SYSKEYDOWN / WM_SYSKEYUP handlers so e.g. the VK_MENU key can be read.
-//  2017-10-23: Inputs: Using Win32 ::SetCapture/::GetCapture() to retrieve mouse positions outside the client area when dragging.
-//  2016-11-12: Inputs: Only call Win32 ::SetCursor(NULL) when io.MouseDrawCursor is set.
 
 // NOTE: Based on https://github.com/ocornut/imgui/pull/2696/files
 #define IMGUI_WIN32_IMPL_NO_FOCUS_MOUSE 1
@@ -81,11 +49,11 @@ namespace ImGui
 		// Our mouse update function expect PlatformHandle to be filled for the main viewport
 		g_hWnd = (HWND)hwnd;
 		ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-		main_viewport->PlatformHandle = (void*)g_hWnd;
+		main_viewport->PlatformHandle = main_viewport->PlatformHandleRaw = (void*)g_hWnd;
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 			ImGui_ImplWin32_InitPlatformInterface();
 
-		// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array that we will update during the application lifetime.
+		// Keyboard mapping. Dear ImGui will use those indices to peek into the io.KeysDown[] array that we will update during the application lifetime.
 		io.KeyMap[ImGuiKey_Tab] = VK_TAB;
 		io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
 		io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
@@ -101,6 +69,7 @@ namespace ImGui
 		io.KeyMap[ImGuiKey_Space] = VK_SPACE;
 		io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
 		io.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
+		io.KeyMap[ImGuiKey_KeyPadEnter] = VK_RETURN;
 		io.KeyMap[ImGuiKey_A] = 'A';
 		io.KeyMap[ImGuiKey_C] = 'C';
 		io.KeyMap[ImGuiKey_V] = 'V';
@@ -143,6 +112,7 @@ namespace ImGui
 			case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
 			case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
 			case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
+			case ImGuiMouseCursor_NotAllowed:   win32_cursor = IDC_NO; break;
 			}
 			::SetCursor(::LoadCursor(NULL, win32_cursor));
 		}
@@ -154,6 +124,7 @@ namespace ImGui
 	static void ImGui_ImplWin32_UpdateMousePos()
 	{
 		ImGuiIO& io = ImGui::GetIO();
+		IM_ASSERT(g_hWnd != 0);
 
 		// Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
 		// (When multi-viewports are enabled, all imgui positions are same as OS positions)
@@ -252,17 +223,17 @@ namespace ImGui
 	void ImGui_ImplWin32_NewFrame()
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
+		IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
 
 		// Setup display size (every frame to accommodate for window resizing)
-		RECT rect;
+		RECT rect = {};
 		::GetClientRect(g_hWnd, &rect);
 		io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
 		if (g_WantUpdateMonitors)
 			ImGui_ImplWin32_UpdateMonitors();
 
 		// Setup time step
-		INT64 current_time;
+		INT64 current_time = {};
 		::QueryPerformanceCounter((LARGE_INTEGER *)&current_time);
 		io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
 		g_Time = current_time;
@@ -377,7 +348,7 @@ namespace ImGui
 		case WM_CHAR:
 			// You can also use ToAscii()+GetKeyboardState() to retrieve characters.
 			if (wParam > 0 && wParam < 0x10000)
-				io.AddInputCharacter((unsigned short)wParam);
+				io.AddInputCharacterUTF16((unsigned short)wParam);
 			return 0;
 		case WM_SETCURSOR:
 			if (LOWORD(lParam) == HTCLIENT && ImGui_ImplWin32_UpdateMouseCursor())
@@ -508,12 +479,13 @@ namespace ImGui
 #define HAS_WIN32_IME   0
 #endif
 
-//--------------------------------------------------------------------------------------------------------
-// MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
-// This is an _advanced_ and _optional_ feature, allowing the back-end to create and handle multiple viewports simultaneously.
-// If you are new to dear imgui or creating a new binding for dear imgui, it is recommended that you completely ignore this section first..
-//--------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------
+	// MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
+	// This is an _advanced_ and _optional_ feature, allowing the backend to create and handle multiple viewports simultaneously.
+	// If you are new to dear imgui or creating a new binding for dear imgui, it is recommended that you completely ignore this section first..
+	//--------------------------------------------------------------------------------------------------------
 
+	// Helper structure we store in the void* RenderUserData field of each ImGuiViewport to easily retrieve our backend data.
 	struct ImGuiViewportDataWin32
 	{
 		HWND    Hwnd;
@@ -563,7 +535,7 @@ namespace ImGui
 			parent_window, NULL, ::GetModuleHandle(NULL), NULL);                    // Parent window, Menu, Instance, Param
 		data->HwndOwned = true;
 		viewport->PlatformRequestResize = false;
-		viewport->PlatformHandle = data->Hwnd;
+		viewport->PlatformHandle = viewport->PlatformHandleRaw = data->Hwnd;
 	}
 
 	static void ImGui_ImplWin32_DestroyWindow(ImGuiViewport* viewport)
@@ -607,13 +579,19 @@ namespace ImGui
 		// Only reapply the flags that have been changed from our point of view (as other flags are being modified by Windows)
 		if (data->DwStyle != new_style || data->DwExStyle != new_ex_style)
 		{
+			// (Optional) Update TopMost state if it changed _after_ creation
+			bool top_most_changed = (data->DwExStyle & WS_EX_TOPMOST) != (new_ex_style & WS_EX_TOPMOST);
+			HWND insert_after = top_most_changed ? ((viewport->Flags & ImGuiViewportFlags_TopMost) ? HWND_TOPMOST : HWND_NOTOPMOST) : 0;
+			UINT swp_flag = top_most_changed ? 0 : SWP_NOZORDER;
+
+			// Apply flags and position (since it is affected by flags)
 			data->DwStyle = new_style;
 			data->DwExStyle = new_ex_style;
 			::SetWindowLong(data->Hwnd, GWL_STYLE, data->DwStyle);
 			::SetWindowLong(data->Hwnd, GWL_EXSTYLE, data->DwExStyle);
 			RECT rect = { (LONG)viewport->Pos.x, (LONG)viewport->Pos.y, (LONG)(viewport->Pos.x + viewport->Size.x), (LONG)(viewport->Pos.y + viewport->Size.y) };
 			::AdjustWindowRectEx(&rect, data->DwStyle, FALSE, data->DwExStyle); // Client to Screen
-			::SetWindowPos(data->Hwnd, NULL, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+			::SetWindowPos(data->Hwnd, insert_after, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, swp_flag | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 			::ShowWindow(data->Hwnd, SW_SHOWNA); // This is necessary when we alter the style
 			viewport->PlatformRequestMove = viewport->PlatformRequestResize = true;
 		}
@@ -766,7 +744,7 @@ namespace ImGui
 				break;
 
 			case WM_NCHITTEST:
-				// Let mouse pass-through the window. This will allow the back-end to set io.MouseHoveredViewport properly (which is OPTIONAL).
+				// Let mouse pass-through the window. This will allow the backend to set io.MouseHoveredViewport properly (which is OPTIONAL).
 				// The ImGuiViewportFlags_NoInputs flag is set while dragging a viewport, as want to detect the window behind the one we are dragging.
 				// If you cannot easily access those viewport flags from your windowing/event code: you may manually synchronize its state e.g. in
 				// your main loop after calling UpdatePlatformWindows(). Iterate all viewports/platform windows and pass the flag to your windowing system.
@@ -847,6 +825,7 @@ namespace ImGui
 #endif
 
 		// Register main window handle (which is owned by the main application, not by us)
+		// This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
 		ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 		ImGuiViewportDataWin32* data = IM_NEW(ImGuiViewportDataWin32)();
 		data->Hwnd = g_hWnd;
@@ -859,7 +838,6 @@ namespace ImGui
 	{
 		::UnregisterClassA(ImGuiWindowClassName, ::GetModuleHandleA(NULL));
 	}
-
 
 	bool ImGui_ImplWin32_IsAnyViewportFocused()
 	{
