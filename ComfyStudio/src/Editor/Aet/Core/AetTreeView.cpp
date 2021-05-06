@@ -72,8 +72,8 @@ namespace Comfy::Studio::Editor
 
 		const float yMin = clipRectMin.y - scrollY + Gui::GetCursorPosY();
 		const float yMax = clipRectMax.y - scrollY + lineHeight;
-		const float xMin = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Min.x - window->Pos.x;
-		const float xMax = clipRectMin.x + window->Scroll.x + window->ContentsRegionRect.Max.x - window->Pos.x;
+		const float xMin = clipRectMin.x + window->Scroll.x + window->ContentRegionRect.Min.x - window->Pos.x;
+		const float xMax = clipRectMin.x + window->Scroll.x + window->ContentRegionRect.Max.x - window->Pos.x;
 
 		bool isOdd = fmod(scrolledOutLines, 2.0f) == 0.0f;
 		for (float y = yMin; y < yMax; y += lineHeight)

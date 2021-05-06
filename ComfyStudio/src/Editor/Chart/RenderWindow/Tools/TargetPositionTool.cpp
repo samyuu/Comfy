@@ -229,8 +229,8 @@ namespace Comfy::Studio::Editor
 		const u32 dimColor = ImColor(0.1f, 0.1f, 0.1f, 0.75f);
 
 		constexpr f32 guideRadius = Rules::TickToDistance(BeatTick::FromBars(1) / 16);
-		drawList.AddCircleFilled(row.Start, guideRadius, dimColor, 32);
-		drawList.AddCircle(row.Start, guideRadius, whiteColor, 32);
+		drawList.AddCircleFilled(row.Start, guideRadius, dimColor);
+		drawList.AddCircle(row.Start, guideRadius, whiteColor);
 
 		drawList.AddLine(row.Start, row.Start + (vec2(+0.0f, -1.0f) * guideRadius), dimWhiteColor, 1.0f);
 		drawList.AddLine(row.Start, row.Start + (vec2(+1.0f, +0.0f) * guideRadius), dimWhiteColor, 1.0f);
@@ -279,12 +279,12 @@ namespace Comfy::Studio::Editor
 		const vec2 arrowPosition = row.Start + (direction * (row.Backwards ? (guideRadius - arrowSettings.Size) : guideRadius));
 
 		{
-			drawList.AddCircleFilled(row.Start + shadowOffset, 2.0f, shadowColor, 9);
+			drawList.AddCircleFilled(row.Start + shadowOffset, 2.0f, shadowColor);
 			drawList.AddLine(row.Start + shadowOffset, arrowPosition + shadowOffset, shadowColor, 1.0f);
 			drawArrowHeader(drawList, arrowPosition + shadowOffset, row.Backwards ? +direction : -direction, shadowColor);
 		}
 		{
-			drawList.AddCircleFilled(row.Start, 2.0f, whiteColor, 9);
+			drawList.AddCircleFilled(row.Start, 2.0f, whiteColor);
 			drawList.AddLine(row.Start, arrowPosition, whiteColor, 1.0f);
 			drawArrowHeader(drawList, arrowPosition, row.Backwards ? +direction : -direction, whiteColor);
 		}

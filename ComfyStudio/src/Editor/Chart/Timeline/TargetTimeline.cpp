@@ -728,7 +728,7 @@ namespace Comfy::Studio::Editor
 				{
 					const auto& style = Gui::GetStyle();
 					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-					const f32 buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+					const f32 buttonWidth = (Gui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2.0f;
 
 					if (Gui::Button("x0.5", vec2(buttonWidth, 0.0f)))
 						undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm * 0.5f, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
@@ -743,7 +743,7 @@ namespace Comfy::Studio::Editor
 				GuiProperty::PropertyFuncValueFunc([&]
 				{
 					Gui::PushItemDisabledAndTextColorIf(tempoPopupIndex == 0);
-					if (Gui::Button("Remove##TempoChange", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					if (Gui::Button("Remove##TempoChange", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 					{
 						undoManager.ExecuteEndOfFrame<RemoveTempoChange>(*workingChart, tempoChange.Tick);
 						Gui::CloseCurrentPopup();
@@ -752,7 +752,7 @@ namespace Comfy::Studio::Editor
 					return false;
 				}, [&]
 				{
-					if (Gui::Button("Close##TempoChange", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					if (Gui::Button("Close##TempoChange", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 						Gui::CloseCurrentPopup();
 					return false;
 				});

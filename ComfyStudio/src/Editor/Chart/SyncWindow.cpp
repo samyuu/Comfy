@@ -20,7 +20,7 @@ namespace Comfy::Studio::Editor
 			// NOTE: Negative to visually match the drag direction with that of the waveform timeline position
 			constexpr auto offsetDragSpeed = -1.0f;
 
-			auto startOffsetMS = static_cast<f32>(chart.StartOffset.TotalMilliseconds());
+			f32 startOffsetMS = static_cast<f32>(chart.StartOffset.TotalMilliseconds());
 			if (GuiProperty::Input("Start Offset##SyncWindow", startOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
 				undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS));
 
@@ -32,7 +32,7 @@ namespace Comfy::Studio::Editor
 			{
 				const auto& style = Gui::GetStyle();
 				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-				const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - (style.ItemSpacing.x + style.ItemInnerSpacing.x * 2.0f) - 1.0f) / 4.0f;
+				const f32 buttonWidth = (Gui::GetContentRegionAvail().x - (style.ItemSpacing.x + style.ItemInnerSpacing.x * 2.0f) - 1.0f) / 4.0f;
 
 				auto beatOffsetButton = [&](const char* label, const f64 factor)
 				{
@@ -63,11 +63,11 @@ namespace Comfy::Studio::Editor
 				const auto& style = Gui::GetStyle();
 				const f32 buttonWidth = Gui::GetFrameHeight() * 2.0f;
 
-				GuiPropertyRAII::ItemWidth width(std::max(Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 2.0f - buttonWidth, 1.0f));
+				GuiPropertyRAII::ItemWidth width(std::max(Gui::GetContentRegionAvail().x - style.ItemInnerSpacing.x * 2.0f - buttonWidth, 1.0f));
 				bool result = Gui::InputFormattedTimeSpan(GuiProperty::Detail::DummyLabel, &duration, {}, ImGuiInputTextFlags_AutoSelectAll);
 
 				Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
-				if (Gui::Button("Set##Cursor", vec2(std::max(Gui::GetContentRegionAvailWidth(), buttonWidth), 0.0f))) { duration = timeline.GetCursorTime(); result = true; }
+				if (Gui::Button("Set##Cursor", vec2(std::max(Gui::GetContentRegionAvail().x, buttonWidth), 0.0f))) { duration = timeline.GetCursorTime(); result = true; }
 
 				return result;
 			}))
@@ -124,7 +124,7 @@ namespace Comfy::Studio::Editor
 			{
 				const auto& style = Gui::GetStyle();
 				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-				const auto buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+				const f32 buttonWidth = (Gui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2.0f;
 
 				if (cursorSitsOnTempoChange)
 				{

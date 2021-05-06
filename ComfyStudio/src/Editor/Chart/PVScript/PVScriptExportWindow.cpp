@@ -589,7 +589,7 @@ namespace Comfy::Studio::Editor
 			bool changesMade = false;
 
 			Gui::PushID(&inOutPath);
-			Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvailWidth() - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+			Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 			changesMade |= Gui::PathInputTextWithHint("##PathTextInput", hintText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly);
 			Gui::PopItemWidth();
 
@@ -651,7 +651,7 @@ namespace Comfy::Studio::Editor
 				auto guiSameLineRightAlignedHintText = [](std::string_view description)
 				{
 					const vec2 textSize = Gui::CalcTextSize(Gui::StringViewStart(description), Gui::StringViewEnd(description), false);
-					Gui::SameLine(Gui::GetContentRegionAvailWidth() - textSize.x);
+					Gui::SameLine(Gui::GetContentRegionAvail().x - textSize.x);
 					Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_TextDisabled));
 					Gui::TextUnformatted(Gui::StringViewStart(description), Gui::StringViewEnd(description));
 					Gui::PopStyleColor();
@@ -667,7 +667,7 @@ namespace Comfy::Studio::Editor
 
 				guiHeaderLabel("Export Target");
 				{
-					Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+					Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 					if (Gui::BeginCombo("##ExportFormat", PVExportFormatNames[static_cast<u8>(param.OutFormat)]))
 					{
 						for (size_t i = 0; i < EnumCount<PVExportFormat>(); i++)
@@ -708,7 +708,7 @@ namespace Comfy::Studio::Editor
 						c = isValidIDChar(c) ? c : '0';
 					param.OutMDataID[0] = 'M';
 					param.OutMDataID[4] = '\0';
-					Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+					Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 					Gui::InputText("##MDataID", param.OutMDataID.data(), param.OutMDataID.size(),
 						ImGuiInputTextFlags_CharsUppercase |
 						ImGuiInputTextFlags_CharsNoBlank |
@@ -722,7 +722,7 @@ namespace Comfy::Studio::Editor
 
 				guiHeaderLabel("Output PV ID", "(Expected to be unused)");
 				{
-					Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+					Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 					if (i32 step = 1, stepFast = 100; Gui::InputScalar("##PVID", ImGuiDataType_S32, &param.OutPVID, &step, &stepFast, "%03d", ImGuiInputTextFlags_None))
 						param.OutPVID = std::clamp(param.OutPVID, 1, 999);
 					Gui::PopItemWidth();
@@ -730,7 +730,7 @@ namespace Comfy::Studio::Editor
 				Gui::Separator();
 
 				guiHeaderLabel("Background Dim");
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				if (auto v = param.PVScriptBackgroundTint.a * 100.0f; Gui::SliderFloat("##BackgroundDim", &v, 0.0f, 100.0f, "%.0f%%"))
 					param.PVScriptBackgroundTint.a = v / 100.0f;
 				Gui::PopItemWidth();
@@ -744,7 +744,7 @@ namespace Comfy::Studio::Editor
 				const bool isOggFile = (inData.Chart->SongFileName.empty() || HasOggExtension(inData.Chart->SongFileName));
 				Gui::PushItemDisabledAndTextColorIf(isOggFile);
 				guiHeaderLabel("Ogg Vorbis VBR Quality");
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				if (auto v = param.VorbisVBRQuality * 10.0f; Gui::SliderFloat("##VorbisVBRQuality", &v, Audio::VorbisVBRQualityMin * 10.0f, Audio::VorbisVBRQualityMax * 10.0f, "q%.1f"))
 					param.VorbisVBRQuality = v / 10.0f;
 				Gui::PopItemWidth();
@@ -768,7 +768,7 @@ namespace Comfy::Studio::Editor
 				}
 
 				Gui::PushItemDisabledAndTextColorIf(param.RootDirectory.empty());
-				if (Gui::Button("Export MData", vec2((Gui::GetContentRegionAvailWidth() - Gui::GetStyle().ItemSpacing.x) * 0.5f, Gui::GetContentRegionAvail().y)))
+				if (Gui::Button("Export MData", vec2((Gui::GetContentRegionAvail().x - Gui::GetStyle().ItemSpacing.x) * 0.5f, Gui::GetContentRegionAvail().y)))
 				{
 					StartAsyncExport(inData);
 				}

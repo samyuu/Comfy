@@ -18,7 +18,7 @@ namespace Comfy::Studio::Editor
 		auto* window = GImGui->CurrentWindow;
 		const auto& style = GImGui->Style;
 
-		const auto id = Gui::GetScrollbarID(window, axis);
+		const auto id = Gui::GetWindowScrollbarID(window, axis);
 		Gui::KeepAliveID(id);
 
 		const auto cornderFlags = (axis == ImGuiAxis_X) ?

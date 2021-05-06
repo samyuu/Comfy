@@ -79,13 +79,13 @@ namespace Comfy::Studio::Editor
 			const bool isDefault = (angleIncrement == defaultIncrementData), isDefaultSmall = (angleIncrement == defaultIncrementDataSmall);
 
 			Gui::PushItemDisabledAndTextColorIf(isDefault);
-			if (Gui::Button("Set Default", vec2(Gui::GetContentRegionAvailWidth() * 0.5f, 0.0f))) angleIncrement = defaultIncrementData;
+			if (Gui::Button("Set Default", vec2(Gui::GetContentRegionAvail().x * 0.5f, 0.0f))) angleIncrement = defaultIncrementData;
 			Gui::PopItemDisabledAndTextColorIf(isDefault);
 
 			Gui::SameLine(0.0f, 2.0f);
 
 			Gui::PushItemDisabledAndTextColorIf(isDefaultSmall);
-			if (Gui::Button("Set Default Small", vec2(Gui::GetContentRegionAvailWidth(), 0.0f))) angleIncrement = defaultIncrementDataSmall;
+			if (Gui::Button("Set Default Small", vec2(Gui::GetContentRegionAvail().x, 0.0f))) angleIncrement = defaultIncrementDataSmall;
 			Gui::PopItemDisabledAndTextColorIf(isDefaultSmall);
 
 			Gui::EndMenu();

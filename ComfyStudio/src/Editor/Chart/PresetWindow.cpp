@@ -51,7 +51,7 @@ namespace Comfy::Studio::Editor
 		{
 			hovered.Sync.DynamincChildWindow = Gui::IsWindowHovered();
 
-			const f32 halfWidth = (Gui::GetContentRegionAvailWidth() - PresetButtonSpacing.x) / 2.0f;
+			const f32 halfWidth = (Gui::GetContentRegionAvail().x - PresetButtonSpacing.x) / 2.0f;
 			std::array<ImRect, EnumCount<DynamicSyncPreset>()> presetIconRectsToDraw;
 
 			auto dynamicSyncPresetButton = [&](DynamicSyncPreset preset)
@@ -103,7 +103,7 @@ namespace Comfy::Studio::Editor
 				Gui::PushID(&staticSyncPreset);
 				Gui::PushItemDisabledAndTextColorIf(presetDisabled);
 
-				if (Gui::ButtonEx(staticSyncPreset.Name.c_str(), vec2(Gui::GetContentRegionAvailWidth(), StaticSyncButtonHeight)))
+				if (Gui::ButtonEx(staticSyncPreset.Name.c_str(), vec2(Gui::GetContentRegionAvail().x, StaticSyncButtonHeight)))
 					ApplyStaticSyncPresetToSelectedTargets(undoManager, chart, staticSyncPreset);
 
 				Gui::PopItemDisabledAndTextColorIf(presetDisabled);
@@ -124,7 +124,7 @@ namespace Comfy::Studio::Editor
 			const bool addNewEnabled = COMFY_DEBUG_RELEASE_SWITCH(anySyncTargetSelected, false);
 			Gui::PushItemDisabledAndTextColorIf(!addNewEnabled);
 
-			if (Gui::ButtonEx("Add New...", vec2(Gui::GetContentRegionAvailWidth() - SyncSettingsButtonWidth, StaticSyncButtonHeight)))
+			if (Gui::ButtonEx("Add New...", vec2(Gui::GetContentRegionAvail().x - SyncSettingsButtonWidth, StaticSyncButtonHeight)))
 			{
 #if COMFY_DEBUG && 1 // TODO:
 				if (const auto firstSelectedTarget = FindIfOrNull(chart.Targets.GetRawView(), [&](auto& t) { return (t.IsSelected && t.Flags.IsSync); }); firstSelectedTarget != nullptr)
@@ -149,7 +149,7 @@ namespace Comfy::Studio::Editor
 			Gui::PopItemDisabledAndTextColorIf(!addNewEnabled);
 
 			Gui::SameLine(0.0f, 0.0f);
-			if (Gui::Button(ICON_FA_COG, vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			if (Gui::Button(ICON_FA_COG, vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 				Gui::OpenPopupEx(presetSettingsContextMenuID);
 		}
 		Gui::EndChild();
@@ -225,7 +225,7 @@ namespace Comfy::Studio::Editor
 		{
 			hovered.Sequence.ChildWindow = Gui::IsWindowHovered();
 
-			const f32 fullWidth = Gui::GetContentRegionAvailWidth();
+			const f32 fullWidth = Gui::GetContentRegionAvail().x;
 			const f32 halfWidth = (fullWidth - PresetButtonSpacing.x) / 2.0f;
 
 			Gui::PushItemDisabledAndTextColorIf(!anyTargetSelected);

@@ -96,7 +96,8 @@ namespace Comfy::Studio::Editor
 				if (!soundEffectManager.IsAsyncLoaded())
 				{
 					Gui::PushItemDisabledAndTextColor();
-					if (Gui::InternalVariableWidthBeginCombo("##DummyCombo", "Loading...", ImGuiComboFlags_None, Gui::GetContentRegionAvailWidth()))
+					Gui::SetNextItemWidth(Gui::GetContentRegionAvail().x);
+					if (Gui::BeginCombo("##DummyCombo", "Loading...", ImGuiComboFlags_None))
 						Gui::EndCombo();
 					Gui::PopItemDisabledAndTextColor();
 					return valueChanged;
@@ -109,7 +110,8 @@ namespace Comfy::Studio::Editor
 				const auto& sortedEntries = soundEffectManager.ViewSortedBtnSfxDB(btnSfxDBType);
 				const auto* previewEntry = FindIfOrNull(sortedEntries, [&](auto* e) { return (e->ID == inOutID); });
 
-				const bool comboBoxOpen = Gui::InternalVariableWidthBeginCombo(GuiProperty::Detail::DummyLabel, entryToCStr((previewEntry != nullptr) ? *previewEntry : nullptr), ImGuiComboFlags_HeightLarge, Gui::GetContentRegionAvailWidth());
+				Gui::SetNextItemWidth(Gui::GetContentRegionAvail().x);
+				const bool comboBoxOpen = Gui::BeginCombo(GuiProperty::Detail::DummyLabel, entryToCStr((previewEntry != nullptr) ? *previewEntry : nullptr), ImGuiComboFlags_HeightLarge);
 				if (Gui::IsItemHovered() && Gui::IsMouseClicked(1) && previewEntry != nullptr)
 					previewButtonSound(**previewEntry);
 
@@ -158,7 +160,7 @@ namespace Comfy::Studio::Editor
 				const bool isLoading = asyncImage.IsAsyncLoading();
 				Gui::PushItemDisabledAndTextColorIf(isLoading);
 
-				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvailWidth() - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
 				if (isLoading)
 				{
@@ -230,7 +232,7 @@ namespace Comfy::Studio::Editor
 				const bool songIsLoading = chartEditor.IsSongAsyncLoading();
 				Gui::PushItemDisabledAndTextColorIf(songIsLoading);
 
-				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvailWidth() - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
 				if (songIsLoading)
 				{
@@ -300,7 +302,7 @@ namespace Comfy::Studio::Editor
 					char dummyBuffer[1] = { '\0' };
 
 					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-					Gui::PushItemWidth((Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f);
+					Gui::PushItemWidth((Gui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2.0f);
 
 					auto timeWidget = [](const char* label, TimeSpan& inOutTime, TimeSpan min, TimeSpan max)
 					{
@@ -326,7 +328,7 @@ namespace Comfy::Studio::Editor
 				{
 					const auto& style = Gui::GetStyle();
 					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-					const f32 buttonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemSpacing.x) / 2.0f;
+					const f32 buttonWidth = (Gui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2.0f;
 
 					auto setTimeButton = [&](const char* label, i32 index)
 					{
@@ -359,7 +361,7 @@ namespace Comfy::Studio::Editor
 
 				GuiProperty::PropertyLabelValueFunc("Listen to Preview", [&]
 				{
-					if (Gui::Button(isBeingPreviewed ? "Stop Preview" : "Start Preview", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					if (Gui::Button(isBeingPreviewed ? "Stop Preview" : "Start Preview", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 					{
 						isBeingPreviewed ^= true;
 

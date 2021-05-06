@@ -485,7 +485,7 @@ namespace Comfy::Studio::Editor
 							inOutResolution = clampValidTextureSize(resolution);
 					}
 					Gui::Separator();
-					for (const float factor : scaleFactors)
+					for (const f32 factor : scaleFactors)
 					{
 						sprintf_s(nameBuffer, "Render Region x%.2f", factor);
 						if (Gui::MenuItem(nameBuffer))
@@ -587,10 +587,10 @@ namespace Comfy::Studio::Editor
 				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(0))
 					openRenderTargetsFlags ^= openMask;
 
-				const float aspectRatio = (static_cast<float>(subTarget.Size.y) / static_cast<float>(subTarget.Size.x));
+				const f32 aspectRatio = (static_cast<f32>(subTarget.Size.y) / static_cast<f32>(subTarget.Size.x));
 				if (openRenderTargetsFlags & openMask)
 				{
-					constexpr float desiredWidth = 512.0f;
+					constexpr f32 desiredWidth = 512.0f;
 
 					bool open = true;
 					if (Gui::Begin(subTarget.Name, &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoDocking))
@@ -601,7 +601,7 @@ namespace Comfy::Studio::Editor
 				}
 				else if (Gui::IsItemHovered())
 				{
-					constexpr float desiredWidth = 256.0f;
+					constexpr f32 desiredWidth = 256.0f;
 
 					Gui::BeginTooltip();
 					Gui::Image(subTarget.TextureID, vec2(desiredWidth, desiredWidth * aspectRatio));
@@ -751,7 +751,7 @@ namespace Comfy::Studio::Editor
 				{
 					constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
 
-					const float width = std::clamp(Gui::GetContentRegionAvailWidth(), 1.0f, cubeMapDisplaySize.x);
+					const f32 width = std::clamp(Gui::GetContentRegionAvail().x, 1.0f, cubeMapDisplaySize.x);
 					const vec2 size = vec2(width, width * (3.0f / 4.0f));
 
 					ImTextureID textureID = lightMap;
@@ -998,7 +998,7 @@ namespace Comfy::Studio::Editor
 
 		for (const auto& button : visibilityButtons)
 		{
-			if (GuiProperty::PropertyLabelValueFunc("Set Visibility", [&] { return Gui::Button(button.first, vec2(Gui::GetContentRegionAvailWidth() * 0.8f, 0.0f)); }))
+			if (GuiProperty::PropertyLabelValueFunc("Set Visibility", [&] { return Gui::Button(button.first, vec2(Gui::GetContentRegionAvail().x * 0.8f, 0.0f)); }))
 				SetStageVisibility(button.second);
 		}
 	}
@@ -1124,12 +1124,12 @@ namespace Comfy::Studio::Editor
 
 		GuiProperty::PropertyFuncValueFunc([&]
 		{
-			if (Gui::Button("Reload", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			if (Gui::Button("Reload", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 				loadCharaItems();
 			return false;
 		}, [&]
 		{
-			if (Gui::Button("Unload", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			if (Gui::Button("Unload", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 				unloadCharaItems();
 			return false;
 		});
@@ -1149,7 +1149,7 @@ namespace Comfy::Studio::Editor
 				output.ApplyParent(parentTransform);
 			}
 
-			float MorphWeight = 0.0f, PlaybackSpeed = 0.0f, Elapsed = 0.0f;
+			f32 MorphWeight = 0.0f, PlaybackSpeed = 0.0f, Elapsed = 0.0f;
 
 			std::vector<std::unique_ptr<A3D>> StageEffA3Ds, CamPVA3Ds;
 			int StageEffIndex = -1, CamPVIndex = -1;
@@ -1311,7 +1311,7 @@ namespace Comfy::Studio::Editor
 				func(*a3ds[index]);
 		};
 
-		const float availWidth = Gui::GetContentRegionAvailWidth();
+		const f32 availWidth = Gui::GetContentRegionAvail().x;
 
 		if (Gui::Button("Load STG EFF", vec2(availWidth * 0.25f, 0.0f)) && stageTestData.lastSetStage.has_value())
 			debug.StageEffA3Ds = loadStgEffA3Ds(stageTestData.lastSetStage->Type, stageTestData.lastSetStage->ID);
@@ -1627,7 +1627,7 @@ namespace Comfy::Studio::Editor
 
 		if (isScreenshotSaving)
 			Gui::PushStyleColor(ImGuiCol_Text, loadingColor);
-		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+		if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 			TakeSceneRenderTargetScreenshot(*activeViewport.RenderWindow->GetRenderTarget());
 		if (isScreenshotSaving)
 			Gui::PopStyleColor(1);
@@ -1639,22 +1639,22 @@ namespace Comfy::Studio::Editor
 
 		constexpr const char* renderPopupID = "RenderSequencePopup";
 
-		if (Gui::Button("Render Sequence...", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+		if (Gui::Button("Render Sequence...", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 			Gui::OpenPopup(renderPopupID);
 
 		if (Gui::BeginPopup(renderPopupID))
 		{
 			static struct SequenceData
 			{
-				int FramesToRender = 360 / 6;
-				float RotationXStep = 6.0f;
+				i32 FramesToRender = 360 / 6;
+				f32 RotationXStep = 6.0f;
 				std::vector<std::future<void>> Futures;
 			} data;
 
 			Gui::InputInt("Frams To Render", &data.FramesToRender);
 			Gui::InputFloat("Rotation Step", &data.RotationXStep);
 
-			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			if (Gui::Button("Render!", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 			{
 				auto& activeRenderWindow = *activeViewport.RenderWindow;
 				auto& renderTarget = *activeRenderWindow.GetRenderTarget();
@@ -1665,7 +1665,7 @@ namespace Comfy::Studio::Editor
 				for (int i = 0; i < data.FramesToRender; i += 1)
 				{
 					activeViewport.CameraController.Mode = CameraController3D::ControlMode::Orbit;
-					activeViewport.CameraController.OrbitData.TargetRotation.x = static_cast<float>(i) * data.RotationXStep;
+					activeViewport.CameraController.OrbitData.TargetRotation.x = static_cast<f32>(i) * data.RotationXStep;
 					activeViewport.CameraController.Update(activeViewport.Camera);
 
 					activeRenderWindow.RenderScene();

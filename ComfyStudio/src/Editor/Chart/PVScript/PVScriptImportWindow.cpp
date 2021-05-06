@@ -197,12 +197,12 @@ namespace Comfy::Studio::Editor
 
 			Gui::PushItemDisabledAndTextColor();
 			{
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				Gui::PathInputTextWithHint("##ScriptPath", "Script Path", &inScript.ScriptPath, ImGuiInputTextFlags_ReadOnly);
 				Gui::PopItemWidth();
 				Gui::Separator();
 
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				Gui::PathInputTextWithHint("##SongPath", "Song Path", &inScript.SongPath, ImGuiInputTextFlags_ReadOnly);
 				Gui::PopItemWidth();
 				Gui::Separator();
@@ -220,7 +220,7 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 			Gui::Separator();
 
-			Gui::BeginChild("PVScriptSourceChild", vec2(Gui::GetContentRegionAvailWidth(), 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+			Gui::BeginChild("PVScriptSourceChild", vec2(Gui::GetContentRegionAvail().x, 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 			if (inScript.LoadedScript != nullptr)
 			{
 				SyntaxHighlightedPVCommandListViewGui(inScript.LoadedScript->Commands);
@@ -229,7 +229,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::NextColumn();
 
-			Gui::BeginChild("TempoMapChild", vec2(Gui::GetContentRegionAvailWidth(), 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			Gui::BeginChild("TempoMapChild", vec2(Gui::GetContentRegionAvail().x, 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 			if (!inScript.LoadedScript->Commands.empty() && outChart.ImportedChart != nullptr)
 			{
 				for (const auto& flyingTimeCommand : inScript.DecomposedScipt.FlyingTimeCommands)
@@ -286,13 +286,13 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 			Gui::Separator();
 
-			Gui::BeginChild("SettingsChild", vec2(Gui::GetContentRegionAvailWidth(), 0.0f), true, ImGuiWindowFlags_None);
+			Gui::BeginChild("SettingsChild", vec2(Gui::GetContentRegionAvail().x, 0.0f), true, ImGuiWindowFlags_None);
 			{
 				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
 				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Target Offset");
 				Gui::NextColumn();
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				if (f64 ms = importSettings.TargetOffset.TotalMilliseconds(); Gui::InputDouble("##TargetOffset", &ms, 1.0f, 10.0f, "%.4f ms"))
 				{
 					importSettings.TargetOffset = TimeSpan::FromMilliseconds(ms);
@@ -306,7 +306,7 @@ namespace Comfy::Studio::Editor
 
 				const bool setBeatAllignedDisabled = (importSettings.TargetOffset == inScript.FirstTargetBeatAlignmentOffset);
 				Gui::PushItemDisabledAndTextColorIf(setBeatAllignedDisabled);
-				if (Gui::Button("Beat-Align First Target", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				if (Gui::Button("Beat-Align First Target", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 				{
 					importSettings.TargetOffset = inScript.FirstTargetBeatAlignmentOffset;
 					UpdateImportedChartAndStatistics();
@@ -318,7 +318,7 @@ namespace Comfy::Studio::Editor
 				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Flying Time Factor");
 				Gui::NextColumn();
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				constexpr f32 minFlyingTimeFactor = 0.1f;
 				if (importSettings.FlyingTimeFactor < minFlyingTimeFactor)
 					importSettings.FlyingTimeFactor = 1.0f;
@@ -335,7 +335,7 @@ namespace Comfy::Studio::Editor
 
 				const bool setDefaultFlyingTimeDisabled = (importSettings.FlyingTimeFactor == 1.0f);
 				Gui::PushItemDisabledAndTextColorIf(setDefaultFlyingTimeDisabled);
-				if (Gui::Button("Set Default##FlyingTimeFactor", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				if (Gui::Button("Set Default##FlyingTimeFactor", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 				{
 					importSettings.FlyingTimeFactor = 1.0f;
 					UpdateImportedChartAndStatistics();
@@ -350,7 +350,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::NextColumn();
 
-			Gui::BeginChild("StatisticsChild", vec2(Gui::GetContentRegionAvailWidth(), 0.0f), true, ImGuiWindowFlags_None);
+			Gui::BeginChild("StatisticsChild", vec2(Gui::GetContentRegionAvail().x, 0.0f), true, ImGuiWindowFlags_None);
 			{
 				{
 					Gui::TextUnformatted("Target Time Precision Loss (Visual Only)");
@@ -421,7 +421,7 @@ namespace Comfy::Studio::Editor
 					RequestExitWithoutImport();
 			}
 
-			if (Gui::Button("Import", vec2((Gui::GetContentRegionAvailWidth() - Gui::GetStyle().ItemSpacing.x) * 0.5f, Gui::GetContentRegionAvail().y)))
+			if (Gui::Button("Import", vec2((Gui::GetContentRegionAvail().x - Gui::GetStyle().ItemSpacing.x) * 0.5f, Gui::GetContentRegionAvail().y)))
 				RequestExitAndImport();
 			Gui::SameLine();
 			if (Gui::Button("Cancel", Gui::GetContentRegionAvail()))

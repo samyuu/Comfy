@@ -325,7 +325,6 @@ namespace Comfy::Studio::Editor
 		}
 		else
 		{
-			Gui::ExtendedVerticalSeparator();
 			Gui::TextUnformatted("	<none>  ");
 			Gui::SameLine();
 		}

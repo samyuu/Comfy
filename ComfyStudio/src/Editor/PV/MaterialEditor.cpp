@@ -259,7 +259,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		const vec2 cursorPos = Gui::GetCursorScreenPos();
-		renderSize = vec2(Gui::GetContentRegionAvailWidth(), targetRenderHeight);
+		renderSize = vec2(Gui::GetContentRegionAvail().x, targetRenderHeight);
 		renderTarget->Param.RenderResolution = renderSize;
 
 		Gui::BeginChild("MaterialPreviewChid", renderSize, false, ImGuiWindowFlags_NoScrollWithMouse);

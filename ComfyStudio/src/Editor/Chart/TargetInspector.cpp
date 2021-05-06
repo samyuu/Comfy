@@ -81,7 +81,7 @@ namespace ImGui::PropertyEditor::Widgets
 				RenderArrow(vec2(arrowRect.Max.x - comboButtonWidth + style.FramePadding.y, arrowRect.Min.y + style.FramePadding.y), ImGuiDir_Down);
 
 				const auto id = currentWindow->GetID(StringViewStart(label), StringViewEnd(label));
-				bool popupOpen = IsPopupOpen(id);
+				bool popupOpen = IsPopupOpen(id, ImGuiPopupFlags_None);
 
 				if (((arrowPressed || inputScalarClicked) || context.NavActivateId == id) && !popupOpen)
 				{
@@ -98,7 +98,8 @@ namespace ImGui::PropertyEditor::Widgets
 
 					if (auto* popupWindow = FindWindowByName(name); popupWindow != nullptr && popupWindow->WasActive)
 					{
-						SetNextWindowPos(FindBestWindowPosForPopupEx(inputScalarRect.GetBL(), CalcWindowExpectedSize(popupWindow), &popupWindow->AutoPosLastDirection, GetWindowAllowedExtentRect(popupWindow), inputScalarRect, ImGuiPopupPositionPolicy_ComboBox));
+						popupWindow->AutoPosLastDirection = ImGuiDir_Down; // "Below, Toward Right (default)"
+						SetNextWindowPos(FindBestWindowPosForPopupEx(inputScalarRect.GetBL(), CalcWindowNextAutoFitSize(popupWindow), &popupWindow->AutoPosLastDirection, GetWindowAllowedExtentRect(popupWindow), inputScalarRect, ImGuiPopupPositionPolicy_ComboBox));
 						SetNextWindowSize(vec2(inputScalarRect.GetWidth() + arrowRect.GetWidth(), 0.0f));
 					}
 

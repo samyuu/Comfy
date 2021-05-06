@@ -76,11 +76,11 @@ namespace Comfy::Studio::DataTest
 
 					GuiProperty::PropertyLabelValueFunc("Device Control", [&]
 					{
-						if (Gui::Button("Open Start Stream", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+						if (Gui::Button("Open Start Stream", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 							engine.OpenStartStream();
-						if (Gui::Button("Stop Close Stream", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+						if (Gui::Button("Stop Close Stream", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 							engine.StopCloseStream();
-						if (Gui::Button("Ensure Stream Running", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+						if (Gui::Button("Ensure Stream Running", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 							engine.EnsureStreamRunning();
 						return false;
 					});
@@ -156,7 +156,7 @@ namespace Comfy::Studio::DataTest
 							char overlayTextBuffer[32];
 							sprintf_s(overlayTextBuffer, "Average: %.6f ms", averageProcessTimeMS);
 
-							Gui::PlotLines("##CallbackProcessDuration", durationsMS.data(), static_cast<int>(durationsMS.size()), 0, overlayTextBuffer, FLT_MAX, FLT_MAX, vec2(Gui::GetContentRegionAvailWidth(), 32.0f));
+							Gui::PlotLines("##CallbackProcessDuration", durationsMS.data(), static_cast<int>(durationsMS.size()), 0, overlayTextBuffer, FLT_MAX, FLT_MAX, vec2(Gui::GetContentRegionAvail().x, 32.0f));
 							return false;
 						});
 
@@ -177,7 +177,7 @@ namespace Comfy::Studio::DataTest
 								sprintf_s(plotName, "Channel [%zu]", channel);
 
 								GuiPropertyRAII::ID id(static_cast<int>(channel));
-								Gui::PlotLines("##ChannelOutputPlot", normalizedSamples.data(), static_cast<int>(normalizedSamples.size()), 0, plotName, -1.0f, 1.0f, vec2(Gui::GetContentRegionAvailWidth(), 32.0f));
+								Gui::PlotLines("##ChannelOutputPlot", normalizedSamples.data(), static_cast<int>(normalizedSamples.size()), 0, plotName, -1.0f, 1.0f, vec2(Gui::GetContentRegionAvail().x, 32.0f));
 							}
 
 							Gui::PopStyleColor(2);
@@ -194,12 +194,12 @@ namespace Comfy::Studio::DataTest
 
 						if (!engine.DebugGetEnableOutputCapture())
 						{
-							if (Gui::Button("Start Recording", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+							if (Gui::Button("Start Recording", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 								engine.DebugSetEnableOutputCapture(true);
 						}
 						else
 						{
-							const auto halfAvailWidth = (Gui::GetContentRegionAvailWidth() - Gui::GetStyle().ItemInnerSpacing.x * 1.0f) / 2.0f;
+							const auto halfAvailWidth = (Gui::GetContentRegionAvail().x - Gui::GetStyle().ItemInnerSpacing.x * 1.0f) / 2.0f;
 
 							Gui::PushStyleColor(ImGuiCol_Text, greenColor);
 							if (Gui::Button("Stop and Save", vec2(halfAvailWidth, 0.0f)))
@@ -221,7 +221,7 @@ namespace Comfy::Studio::DataTest
 							Gui::PopStyleColor();
 						}
 
-						if (Gui::Button("Open Directory...", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+						if (Gui::Button("Open Directory...", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 							IO::Shell::OpenInExplorer(recordingDirectory);
 
 						return false;
@@ -229,7 +229,7 @@ namespace Comfy::Studio::DataTest
 
 					GuiProperty::PropertyLabelValueFunc("Control Panel", [&]
 					{
-						if (Gui::Button("Show Control Panel (ASIO)", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+						if (Gui::Button("Show Control Panel (ASIO)", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 							engine.DebugShowControlPanel();
 						return false;
 					});
@@ -367,7 +367,7 @@ namespace Comfy::Studio::DataTest
 				const bool selectableHovered = Gui::IsItemHovered();
 				const bool selectableRightClicked = (selectableHovered && Gui::IsMouseClicked(1));
 				const auto selectableRect = Gui::GetCurrentWindowRead()->DC.LastItemRect;
-				const auto nameColumnWidth = Gui::GetContentRegionAvailWidth();
+				const auto nameColumnWidth = Gui::GetContentRegionAvail().x;
 				Gui::SameLine();
 
 				if (selectableClicked)

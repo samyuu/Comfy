@@ -44,7 +44,7 @@ namespace Comfy::Studio::Editor
 					Gui::PushStyleColor(ImGuiCol_ButtonActive, lerpColor);
 				}
 
-				if (Gui::ButtonEx(tapButtonName, vec2(Gui::GetContentRegionAvailWidth(), buttonHeight), ImGuiButtonFlags_PressedOnClick) | tapKeyPressed)
+				if (Gui::ButtonEx(tapButtonName, vec2(Gui::GetContentRegionAvail().x, buttonHeight), ImGuiButtonFlags_PressedOnClick) | tapKeyPressed)
 				{
 					bpmCalculator.Tap();
 					if (GlobalUserData.BPMCalculator.ApplyToTempoMap && bpmCalculator.GetTapCount() > 1)
@@ -61,7 +61,7 @@ namespace Comfy::Studio::Editor
 
 				if (resetKeyDown) Gui::PushStyleColor(ImGuiCol_Button, Gui::GetColorU32(ImGuiCol_ButtonActive));
 				Gui::PushItemDisabledAndTextColorIf(tapCount == 0);
-				if (Gui::ButtonEx("Reset", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight), ImGuiButtonFlags_PressedOnClickRelease) | resetKeyPressed)
+				if (Gui::ButtonEx("Reset", vec2(Gui::GetContentRegionAvail().x, buttonHeight), ImGuiButtonFlags_PressedOnClickRelease) | resetKeyPressed)
 				{
 					bpmCalculator.Reset();
 					TryPlayTapSound(metronome, buttonSoundController);

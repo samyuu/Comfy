@@ -40,7 +40,7 @@ namespace Comfy::Studio::Editor
 		{
 			const vec2 textSize = Gui::CalcTextSize(Gui::StringViewStart(label), Gui::StringViewEnd(label), true);
 			const vec2 cursorPosition = Gui::GetCursorScreenPos();
-			Gui::SetCursorScreenPos(vec2(cursorPosition.x + (Gui::GetContentRegionAvailWidth() - textSize.x) - GuiSettingsLabelSpacing, cursorPosition.y));
+			Gui::SetCursorScreenPos(vec2(cursorPosition.x + (Gui::GetContentRegionAvail().x - textSize.x) - GuiSettingsLabelSpacing, cursorPosition.y));
 
 			Gui::AlignTextToFramePadding();
 			Gui::TextUnformatted(Gui::StringViewStart(label), Gui::StringViewEnd(label));
@@ -477,7 +477,7 @@ namespace Comfy::Studio::Editor
 		Gui::EndChild();
 		Gui::SameLine(0.0f, 4.0f);
 
-		Gui::BeginChild("TabControlChild", vec2(Gui::GetContentRegionAvailWidth() - 4.0f, windowHeight), false, ImGuiWindowFlags_None);
+		Gui::BeginChild("TabControlChild", vec2(Gui::GetContentRegionAvail().x - 4.0f, windowHeight), false, ImGuiWindowFlags_None);
 		{
 			if (Gui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !thisFrameAnyItemActive && !lastFrameAnyItemActive)
 			{
@@ -499,7 +499,7 @@ namespace Comfy::Studio::Editor
 			Gui::PushStyleColor(ImGuiCol_Border, Gui::GetStyleColorVec4(ImGuiCol_SliderGrab));
 			Gui::PushStyleColor(ImGuiCol_BorderShadow, vec4(0.0f));
 			{
-				const f32 buttonWidth = Gui::GetContentRegionAvailWidth();
+				const f32 buttonWidth = Gui::GetContentRegionAvail().x;
 				if (Gui::Button("OK", vec2(buttonWidth, 0.0f)))
 					RequestWindowCloseAndKeepChanges();
 				if (Gui::Button("Cancel", vec2(buttonWidth, 0.0f)))
@@ -708,9 +708,9 @@ namespace Comfy::Studio::Editor
 					selectedItemIndex = 0;
 
 				Gui::SetCursorPosX(Gui::GetCursorPosX() + GuiSettingsInnerMargin);
-				const vec2 dropdownListChildSize = vec2(Gui::GetContentRegionAvailWidth(), Gui::GetFrameHeight() * 5.0f);
+				const vec2 dropdownListChildSize = vec2(Gui::GetContentRegionAvail().x, Gui::GetFrameHeight() * 5.0f);
 				Gui::BeginChild("DropdownListChild", dropdownListChildSize, false, ImGuiWindowFlags_NoScrollWithMouse);
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				const bool listBoxOpen = Gui::ListBoxHeader("##DropdownValueList", vec2(Gui::GetContentRegionAvail()) - vec2(1.0f, 0.0f));
 				if (listBoxOpen)
 				{
@@ -739,16 +739,16 @@ namespace Comfy::Studio::Editor
 				Gui::EndChild();
 
 				Gui::NextColumn();
-				Gui::BeginChild("DropdownEditChild", vec2(Gui::GetContentRegionAvailWidth() - GuiSettingsInnerMargin, dropdownListChildSize.y), false, ImGuiWindowFlags_NoScrollWithMouse);
+				Gui::BeginChild("DropdownEditChild", vec2(Gui::GetContentRegionAvail().x - GuiSettingsInnerMargin, dropdownListChildSize.y), false, ImGuiWindowFlags_NoScrollWithMouse);
 
 				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(2.0f));
 				bool moveItemUp = false, moveItemDown = false, addItem = false, removeItem = false;
-				const f32 halfButtonWidth = (Gui::GetContentRegionAvailWidth() - Gui::GetStyle().ItemSpacing.x) / 2.0f;
+				const f32 halfButtonWidth = (Gui::GetContentRegionAvail().x - Gui::GetStyle().ItemSpacing.x) / 2.0f;
 				moveItemUp = Gui::Button("Move Up", vec2(halfButtonWidth, 0.0f));
 				Gui::SameLine();
 				moveItemDown = Gui::Button("Move Down", vec2(halfButtonWidth, 0.0f));
 
-				Gui::PushItemWidth(Gui::GetContentRegionAvailWidth());
+				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 				auto* selectedValue = IndexOrNull(selectedItemIndex, inOutVector);
 				Gui::PushItemDisabledAndTextColorIf(selectedValue == nullptr);
 				if constexpr (isInt)
@@ -1086,7 +1086,7 @@ namespace Comfy::Studio::Editor
 						(selectedMultiBinding->BindingCount == 0 || !selectedMultiBinding->Bindings[selectedMultiBinding->BindingCount - 1].IsEmpty()));
 
 					// HACK: Hardcoded offset to align with buttons below
-					Gui::SameLine(Gui::GetContentRegionAvailWidth() * primaryColumWidthFactor - 5.0f);
+					Gui::SameLine(Gui::GetContentRegionAvail().x * primaryColumWidthFactor - 5.0f);
 
 					Gui::PushItemDisabledAndTextColorIf(!canAddNewBinding);
 					if (Gui::Button("Add", Gui::GetContentRegionAvail()))
@@ -1125,13 +1125,13 @@ namespace Comfy::Studio::Editor
 					auto& binding = selectedMultiBinding->Bindings[i];
 					Gui::PushID(&binding);
 
-					pendingChanges |= GuiSettingsInteractiveAwaitKeyPressInputBindingButton(binding, vec2(Gui::GetContentRegionAvailWidth() * primaryColumWidthFactor, buttonHeight), awaitInputBinding, awaitInputStopwatch);
+					pendingChanges |= GuiSettingsInteractiveAwaitKeyPressInputBindingButton(binding, vec2(Gui::GetContentRegionAvail().x * primaryColumWidthFactor, buttonHeight), awaitInputBinding, awaitInputStopwatch);
 					Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
 
 					const bool hasSingleBinding = (selectedMultiBinding->BindingCount <= 1);
 					Gui::PushItemDisabledAndTextColorIf(hasSingleBinding);
 					{
-						const f32 upDownButtonWidth = (Gui::GetContentRegionAvailWidth() - style.ItemInnerSpacing.x * 3.0f) / 4.0f;
+						const f32 upDownButtonWidth = (Gui::GetContentRegionAvail().x - style.ItemInnerSpacing.x * 3.0f) / 4.0f;
 						if (Gui::Button("Up", vec2(upDownButtonWidth, buttonHeight))) bindingIndexToMoveUp = i;
 						Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
 
@@ -1140,7 +1140,7 @@ namespace Comfy::Studio::Editor
 					}
 					Gui::PopItemDisabledAndTextColorIf(hasSingleBinding);
 
-					if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvailWidth(), buttonHeight)))
+					if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvail().x, buttonHeight)))
 						bindingIndexToRemove = i;
 					Gui::NextColumn();
 
@@ -1190,7 +1190,7 @@ namespace Comfy::Studio::Editor
 				auto& binding = userData.Input.PlaytestBindings[bindingIndex];
 				Gui::PushID(&binding);
 
-				const f32 availWidthTotal = Gui::GetContentRegionAvailWidth();
+				const f32 availWidthTotal = Gui::GetContentRegionAvail().x;
 				const f32 itemInnerSpacingX = Gui::GetStyle().ItemInnerSpacing.x;
 
 				constexpr u32 conflictTextColor = 0xFF2424E3;
@@ -1276,14 +1276,14 @@ namespace Comfy::Studio::Editor
 				Gui::PopItemWidth();
 
 				Gui::SameLine(0.0f, itemInnerSpacingX);
-				if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+				if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 					bindingIndexToRemove = bindingIndex;
 
 				Gui::PopID();
 				Gui::Separator();
 			}
 
-			if (Gui::Button("Add", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+			if (Gui::Button("Add", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 			{
 				userData.Input.PlaytestBindings.emplace_back();
 				pendingChanges = true;
@@ -1390,7 +1390,7 @@ namespace Comfy::Studio::Editor
 				assignedStandardButton != Button::None ? ImGuiCol_ButtonActive :
 				isNativeButtonDown ? ImGuiCol_ButtonHovered : ImGuiCol_Button));
 
-			if (Gui::Button(label, vec2(Gui::GetContentRegionAvailWidth(), buttonHeight)))
+			if (Gui::Button(label, vec2(Gui::GetContentRegionAvail().x, buttonHeight)))
 				userClickedNativeButton = nativeButton;
 
 			Gui::PopStyleColor(2);
@@ -1420,7 +1420,7 @@ namespace Comfy::Studio::Editor
 						{
 							const Button assignedStandardButton = FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton);
 							sprintf_s(labelBuffer, "[%s]", GetButtonName(assignedStandardButton));
-							assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvailWidth());
+							assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvail().x);
 						};
 
 						// ... Up-Left
@@ -1434,7 +1434,7 @@ namespace Comfy::Studio::Editor
 						{
 							Gui::PushStyleColor(ImGuiCol_Button, 0x00000000);
 							sprintf_s(labelBuffer, "DPad %d", dpadIndex + 1);
-							Gui::ButtonEx(labelBuffer, vec2(Gui::GetContentRegionAvailWidth(), 0.0f), ImGuiButtonFlags_Disabled);
+							Gui::ButtonEx(labelBuffer, vec2(Gui::GetContentRegionAvail().x, 0.0f), ImGuiButtonFlags_Disabled);
 							Gui::PopStyleColor(1);
 						}
 						Gui::NextColumn();
@@ -1463,7 +1463,7 @@ namespace Comfy::Studio::Editor
 					const Button assignedStandardButton = FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton);
 
 					sprintf_s(labelBuffer, "Button %d  [%s]", buttonIndex + 1, GetButtonName(assignedStandardButton));
-					assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvailWidth());
+					assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvail().x);
 
 					Gui::NextColumn();
 				}
@@ -1484,7 +1484,7 @@ namespace Comfy::Studio::Editor
 					{
 						const Button assignedStandardButton = FindStandardButtonForNativeButton(correspondingLayoutMapping, nativeButton);
 						sprintf_s(labelBuffer, "Axis %d %s  [%s]", relativeAxes + 1, label, GetButtonName(assignedStandardButton));
-						assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvailWidth());
+						assignClickableButton(labelBuffer, nativeButton, assignedStandardButton, Gui::GetContentRegionAvail().x);
 						Gui::NextColumn();
 					};
 
