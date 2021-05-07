@@ -191,7 +191,7 @@ namespace Comfy::Studio::Editor
 
 		const vec2 treeNodeCursorPos = Gui::GetCursorScreenPos();
 
-		Gui::SetNextTreeNodeOpen(comp->GuiData.TreeViewNodeOpen);
+		Gui::SetNextItemOpen(comp->GuiData.TreeViewNodeOpen);
 		comp->GuiData.TreeViewNodeOpen = Gui::WideTreeNodeEx("##AetCompNode", compNodeFlags);
 
 		Gui::ItemContextMenu("AetCompContextMenu##AetTreeView", [&]()

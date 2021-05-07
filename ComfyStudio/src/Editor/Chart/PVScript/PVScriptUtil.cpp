@@ -105,7 +105,7 @@ namespace Comfy::Studio::Editor
 	{
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(1.0f));
 
-		auto clipper = ImGuiListClipper(static_cast<i32>(commands.size()));
+		ImGuiListClipper clipper; clipper.Begin(static_cast<i32>(commands.size()));
 		while (clipper.Step())
 		{
 			for (i32 i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)

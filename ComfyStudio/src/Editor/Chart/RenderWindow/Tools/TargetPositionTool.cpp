@@ -547,7 +547,7 @@ namespace Comfy::Studio::Editor
 			Gui::BeginTooltip();
 			{
 				Gui::BeginChild("ColumnChild", vec2(112.0f, 52.0f + 2.0f), false, ImGuiWindowFlags_NoBackground);
-				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_None);
+				Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_None);
 				Gui::SetColumnWidth(0, 25.0f + 2.0f);
 
 				Gui::TextUnformatted(" " ICON_FA_ARROWS_ALT); Gui::NextColumn(); Gui::Text(":  %4.f, %4.f px", grabbedTargetPosition.x, grabbedTargetPosition.y); Gui::NextColumn();

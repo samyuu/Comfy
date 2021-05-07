@@ -330,7 +330,7 @@ namespace ImGui
 	bool InputFormattedTimeSpan(const char* label, Comfy::TimeSpan* value, vec2 size, ImGuiInputTextFlags flags)
 	{
 		flags |= ImGuiInputTextFlags_NoHorizontalScroll;
-		flags |= ImGuiInputTextFlags_AlwaysInsertMode;
+		flags |= ImGuiInputTextFlags_AlwaysOverwrite;
 
 		flags |= ImGuiInputTextFlags_CallbackAlways;
 		flags |= ImGuiInputTextFlags_CallbackCharFilter;

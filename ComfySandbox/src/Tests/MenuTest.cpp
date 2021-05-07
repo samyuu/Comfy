@@ -51,7 +51,7 @@ namespace Comfy::Sandbox::Tests
 
 				if (Gui::Begin("Debug Control"))
 				{
-					if (Gui::Button("Reset State Manager", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					if (Gui::Button("Reset State Manager", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 						gameStateManager = std::make_unique<Game::GameStateManager>(context);
 
 					Gui::Separator();
@@ -59,7 +59,7 @@ namespace Comfy::Sandbox::Tests
 					Gui::Separator();
 					Gui::Checkbox("Use Fixed Time Step", &UseFixedMenuTimeStep);
 					Gui::SliderFloat("Fixed Time Step", &FixedMenuTimeStepFPS, 1.0f, 300.0f, "%.3f FPS");
-					if (Gui::Button("Step Single Frame", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					if (Gui::Button("Step Single Frame", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 						StepSingleFrame = true;
 
 					Gui::Separator();

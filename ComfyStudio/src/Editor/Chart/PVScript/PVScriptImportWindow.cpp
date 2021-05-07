@@ -209,7 +209,7 @@ namespace Comfy::Studio::Editor
 			}
 			Gui::PopItemDisabledAndTextColor();
 
-			Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+			Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 			Gui::PushStyleColor(ImGuiCol_ChildBg, Gui::GetColorU32(ImGuiCol_WindowBg));
 
 			Gui::AlignTextToFramePadding();
@@ -275,7 +275,7 @@ namespace Comfy::Studio::Editor
 
 		Gui::BeginChild("SettingsBaseChild", vec2(0.0f, 328.0f), true, ImGuiWindowFlags_None);
 		{
-			Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+			Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 			Gui::PushStyleColor(ImGuiCol_ChildBg, Gui::GetColorU32(ImGuiCol_WindowBg));
 
 			Gui::AlignTextToFramePadding();
@@ -288,7 +288,7 @@ namespace Comfy::Studio::Editor
 
 			Gui::BeginChild("SettingsChild", vec2(Gui::GetContentRegionAvail().x, 0.0f), true, ImGuiWindowFlags_None);
 			{
-				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+				Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 				Gui::AlignTextToFramePadding();
 				Gui::TextUnformatted("Target Offset");
 				Gui::NextColumn();
@@ -356,7 +356,7 @@ namespace Comfy::Studio::Editor
 					Gui::TextUnformatted("Target Time Precision Loss (Visual Only)");
 					Gui::Separator();
 
-					Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+					Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 					Gui::Text("Min, Max, Average");
 					Gui::NextColumn();
 					Gui::Text("%.2f ms, %.2f ms, %.2f ms",
@@ -371,7 +371,7 @@ namespace Comfy::Studio::Editor
 					Gui::TextUnformatted("Button Time Precision Loss");
 					Gui::Separator();
 
-					Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+					Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 					Gui::Text("Min, Max, Average");
 					Gui::NextColumn();
 					Gui::Text("%.2f ms, %.2f ms, %.2f ms",
@@ -386,7 +386,7 @@ namespace Comfy::Studio::Editor
 					Gui::TextUnformatted("Target Distribution");
 					Gui::Separator();
 
-					Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+					Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 					for (size_t i = 0; i < importStatistics.BarDivisionsToCheckCount; i++)
 					{
 						const i32 barDivision = importStatistics.BarDivisionsToCheck[i];

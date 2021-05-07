@@ -23,7 +23,7 @@ namespace Comfy::Studio::Editor
 		constexpr f32 buttonHeight = 66.0f;
 
 		Gui::BeginChild("BPMCalculatorChild", vec2(0.0f, 0.0f), true);
-		Gui::BeginColumns("BPMCalculatorColumns", 2, ImGuiColumnsFlags_NoResize);
+		Gui::BeginColumns("BPMCalculatorColumns", 2, ImGuiOldColumnFlags_NoResize);
 		{
 			{
 				const bool tapKeyPressed = (Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.BPMCalculator_Tap, false));

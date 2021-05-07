@@ -28,7 +28,7 @@ namespace Comfy::Studio::Editor
 
 		void GuiBeginSettingsColumns()
 		{
-			Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoBorder | ImGuiColumnsFlags_NoResize);
+			Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder | ImGuiOldColumnFlags_NoResize);
 		}
 
 		void GuiEndSettingsColumns()
@@ -711,7 +711,7 @@ namespace Comfy::Studio::Editor
 				const vec2 dropdownListChildSize = vec2(Gui::GetContentRegionAvail().x, Gui::GetFrameHeight() * 5.0f);
 				Gui::BeginChild("DropdownListChild", dropdownListChildSize, false, ImGuiWindowFlags_NoScrollWithMouse);
 				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
-				const bool listBoxOpen = Gui::ListBoxHeader("##DropdownValueList", vec2(Gui::GetContentRegionAvail()) - vec2(1.0f, 0.0f));
+				const bool listBoxOpen = Gui::BeginListBox("##DropdownValueList", vec2(Gui::GetContentRegionAvail()) - vec2(1.0f, 0.0f));
 				if (listBoxOpen)
 				{
 					for (i32 i = 0; i < static_cast<i32>(inOutVector.size()); i++)
@@ -733,7 +733,7 @@ namespace Comfy::Studio::Editor
 						scrollToBottomOnNextFrame = false;
 					}
 
-					Gui::ListBoxFooter();
+					Gui::EndListBox();
 				}
 				Gui::PopItemWidth();
 				Gui::EndChild();
@@ -1007,7 +1007,7 @@ namespace Comfy::Studio::Editor
 					selectedMultiBinding = namedMultiBindings[0].MultiBinding;
 
 				Gui::PushStyleColor(ImGuiCol_Separator, Gui::GetColorU32(ImGuiCol_TextDisabled, 0.25f));
-				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoBorder | ImGuiColumnsFlags_NoResize);
+				Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder | ImGuiOldColumnFlags_NoResize);
 				Gui::SetColumnWidth(0, Gui::GetWindowWidth() * primaryColumWidthFactor);
 
 				for (const auto& namedBinding : namedMultiBindings)
@@ -1414,7 +1414,7 @@ namespace Comfy::Studio::Editor
 
 					Gui::PushID(dpadIndex);
 					Gui::BeginChild("NativeButtonDPadChild", vec2(0.0f, 3.0f * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
-					Gui::BeginColumns(nullptr, 3, ImGuiColumnsFlags_NoBorder);
+					Gui::BeginColumns(nullptr, 3, ImGuiOldColumnFlags_NoBorder);
 					{
 						auto dpadDirectionButton = [&](const char* /*directionLabel*/, NativeButton nativeButton)
 						{
@@ -1456,7 +1456,7 @@ namespace Comfy::Studio::Editor
 			if (clampedButtonCount > 0)
 			{
 				Gui::BeginChild("NativeButtonButtonsChild", vec2(0.0f, (clampedButtonCount / 2) * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
-				Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoBorder);
+				Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder);
 				for (i32 buttonIndex = 0; buttonIndex < clampedButtonCount; buttonIndex++)
 				{
 					const NativeButton nativeButton = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstButton) + buttonIndex);
@@ -1474,7 +1474,7 @@ namespace Comfy::Studio::Editor
 			if (clampedAxisCount > 0)
 			{
 				Gui::BeginChild("NativeButtonAxesChild", vec2(0.0f, clampedAxisCount * (buttonHeight + style.ItemSpacing.y) + style.ChildBorderSize), true, ImGuiWindowFlags_NoScrollWithMouse);
-				Gui::BeginColumns(nullptr, static_cast<i32>(NativeButton::PerAxisSubElements), ImGuiColumnsFlags_NoBorder);
+				Gui::BeginColumns(nullptr, static_cast<i32>(NativeButton::PerAxisSubElements), ImGuiOldColumnFlags_NoBorder);
 				for (i32 relativeAxes = 0; relativeAxes < clampedAxisCount; relativeAxes++)
 				{
 					const NativeButton nativeButtonNegative = static_cast<NativeButton>(static_cast<i32>(NativeButton::FirstAxis) + (relativeAxes * static_cast<i32>(NativeButton::PerAxisSubElements)) + 0);

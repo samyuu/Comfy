@@ -335,7 +335,7 @@ namespace Comfy::Sandbox::Tests
 
 					GuiProperty::ColorEdit("Clear Color", renderWindow.RenderTarget->Param.ClearColor);
 					GuiProperty::Combo("Blend Mode", render.BlendMode, Graphics::AetBlendModeNames);
-					if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvailWidth(), 0.0f)))
+					if (Gui::Button("Take Screenshot", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
 					{
 						auto pixelData = renderWindow.RenderTarget->TakeScreenshot();
 

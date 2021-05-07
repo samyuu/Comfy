@@ -27,10 +27,10 @@ namespace Comfy::Studio::Editor
 			Gui::Columns(1);
 		}
 
-		if (Gui::ListBoxHeader("##HistoryWindow::UndoRedoListBox", Gui::GetContentRegionAvail()))
+		if (Gui::BeginListBox("##HistoryWindow::UndoRedoListBox", Gui::GetContentRegionAvail()))
 		{
 			SingleColumnListBoxGui();
-			Gui::ListBoxFooter();
+			Gui::EndListBox();
 		}
 
 		return false;
@@ -46,7 +46,7 @@ namespace Comfy::Studio::Editor
 
 		int undoClickedIndex = -1, redoClickedIndex = -1;
 
-		auto undoClipper = ImGuiListClipper(static_cast<int>(undoStack.size()));
+		ImGuiListClipper undoClipper; undoClipper.Begin(static_cast<int>(undoStack.size()));
 		while (undoClipper.Step())
 		{
 			for (int i = undoClipper.DisplayStart; i < undoClipper.DisplayEnd; i++)
@@ -58,7 +58,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-		auto redoClipper = ImGuiListClipper(static_cast<int>(redoStack.size()));
+		ImGuiListClipper redoClipper; redoClipper.Begin(static_cast<int>(redoStack.size()));
 		while (redoClipper.Step())
 		{
 			for (int i = redoClipper.DisplayStart; i < redoClipper.DisplayEnd; i++)

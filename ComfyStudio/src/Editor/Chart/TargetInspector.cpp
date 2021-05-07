@@ -78,7 +78,7 @@ namespace ImGui::PropertyEditor::Widgets
 				SameLine(0.0f, 0.0f);
 				const bool arrowPressed = Button("##ComboArrow", vec2(comboButtonWidth, 0.0f));
 				const auto arrowRect = currentWindow->DC.LastItemRect;
-				RenderArrow(vec2(arrowRect.Max.x - comboButtonWidth + style.FramePadding.y, arrowRect.Min.y + style.FramePadding.y), ImGuiDir_Down);
+				RenderArrow(currentWindow->DrawList, vec2(arrowRect.Max.x - comboButtonWidth + style.FramePadding.y, arrowRect.Min.y + style.FramePadding.y), GetColorU32(ImGuiCol_Text), ImGuiDir_Down);
 
 				const auto id = currentWindow->GetID(StringViewStart(label), StringViewEnd(label));
 				bool popupOpen = IsPopupOpen(id, ImGuiPopupFlags_None);

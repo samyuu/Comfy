@@ -254,7 +254,7 @@ namespace Comfy::Studio::DataTest
 			};
 
 			Gui::BeginChild("ActiveVoicesChild", vec2(0.0f, 0.0f), true);
-			Gui::BeginColumns("AudioVoicesColumns", static_cast<int>(voicePropertyNames.size()), ImGuiColumnsFlags_NoPreserveWidths);
+			Gui::BeginColumns("AudioVoicesColumns", static_cast<int>(voicePropertyNames.size()), ImGuiOldColumnFlags_NoPreserveWidths);
 
 			std::array<Voice, AudioEngine::MaxSimultaneousVoices> allVoices;
 			size_t voiceCount = 0;
@@ -338,7 +338,7 @@ namespace Comfy::Studio::DataTest
 			};
 
 			Gui::BeginChild("LoadedSourcesChild", vec2(0.0f, 0.0f), true);
-			Gui::BeginColumns("LoadedSourcesColumns", static_cast<int>(sourcePropertyNames.size()), ImGuiColumnsFlags_NoPreserveWidths);
+			Gui::BeginColumns("LoadedSourcesColumns", static_cast<int>(sourcePropertyNames.size()), ImGuiOldColumnFlags_NoPreserveWidths);
 
 			for (size_t i = 0; i < sourcePropertyNames.size(); i++)
 			{

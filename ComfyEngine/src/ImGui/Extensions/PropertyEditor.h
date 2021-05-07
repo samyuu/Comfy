@@ -40,7 +40,7 @@ namespace ImGui
 					if (auto previousColumns = GetCurrentWindow()->DC.CurrentColumns; previousColumns == nullptr)
 						Previous = { nullptr, 1, false };
 					else
-						Previous = { nullptr, previousColumns->Count, (previousColumns->Flags & ImGuiColumnsFlags_NoBorder) == 0 };
+						Previous = { nullptr, previousColumns->Count, (previousColumns->Flags & ImGuiOldColumnFlags_NoBorder) == 0 };
 
 					ImGui::Columns(columnsCount, id, border);
 				}
@@ -204,7 +204,7 @@ namespace ImGui
 					if (width > 0.0f)
 						labelSize.x = 0.0f;
 
-					const auto frameBB = ImRect(window->DC.CursorPos, window->DC.CursorPos + vec2(width > 0.0f ? width : GetContentRegionAvailWidth(), labelSize.y + GImGui->Style.FramePadding.y * 2.0f));
+					const auto frameBB = ImRect(window->DC.CursorPos, window->DC.CursorPos + vec2(width > 0.0f ? width : GetContentRegionAvail().x, labelSize.y + GImGui->Style.FramePadding.y * 2.0f));
 					const auto totalBB = ImRect(frameBB.Min, frameBB.Max + vec2(labelSize.x > 0.0f ? GImGui->Style.ItemInnerSpacing.x + labelSize.x : 0.0f, 0.0f));
 
 					ItemSize(totalBB, GImGui->Style.FramePadding.y);
@@ -234,7 +234,7 @@ namespace ImGui
 				inline bool TextButton(std::string_view label, bool& inOutValue)
 				{
 					auto window = GetCurrentWindow();
-					const vec2 buttonSize = CalcItemSize(vec2(GetContentRegionAvailWidth(), CalcTextSize(StringViewStart(label), StringViewEnd(label)).y), 0.0f, 0.0f);
+					const vec2 buttonSize = CalcItemSize(vec2(GetContentRegionAvail().x, CalcTextSize(StringViewStart(label), StringViewEnd(label)).y), 0.0f, 0.0f);
 
 					bool hovered, held;
 					bool pressed = ButtonBehavior(ImRect(window->DC.CursorPos, window->DC.CursorPos + buttonSize), window->GetID(&inOutValue), &hovered, &held);
@@ -280,7 +280,7 @@ namespace ImGui
 					static constexpr std::array<std::string_view, 4> componentLabels = { "  X  ", "  Y  ", "  Z  ", "  W  " };
 
 					const float componentLabelWidth = CalcTextSize(StringViewStart(componentLabels.front()), StringViewEnd(componentLabels.front())).x;
-					const float perComponentInputFloatWidth = glm::round((GetContentRegionAvailWidth() / static_cast<float>(VecType::length())) - componentLabelWidth);
+					const float perComponentInputFloatWidth = glm::round((GetContentRegionAvail().x / static_cast<float>(VecType::length())) - componentLabelWidth);
 
 					bool anyValueChanged = false;
 					for (auto component = 0; component < VecType::length(); component++)
@@ -298,7 +298,7 @@ namespace ImGui
 						SameLine(0.0f, 0.0f);
 
 						const bool isLastComponent = ((component + 1) == VecType::length());
-						RAII::ItemWidth width(isLastComponent ? (GetContentRegionAvailWidth() - 1.0f) : perComponentInputFloatWidth);
+						RAII::ItemWidth width(isLastComponent ? (GetContentRegionAvail().x - 1.0f) : perComponentInputFloatWidth);
 
 						using Lookup = TypeLookup::DataType<ValueType>;
 						anyValueChanged |= ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags);
@@ -319,7 +319,7 @@ namespace ImGui
 
 					constexpr std::string_view divisionLabel = " / ";
 					const float divisionLabelWidth = CalcTextSize(StringViewStart(divisionLabel), StringViewEnd(divisionLabel)).x;
-					const float perComponentInputFloatWidth = glm::floor(((GetContentRegionAvailWidth() - divisionLabelWidth) / static_cast<float>(VecType::length())));
+					const float perComponentInputFloatWidth = glm::floor(((GetContentRegionAvail().x - divisionLabelWidth) / static_cast<float>(VecType::length())));
 
 					bool anyValueChanged = false;
 					for (auto component = 0; component < VecType::length(); component++)
@@ -331,7 +331,7 @@ namespace ImGui
 							PushItemDisabled();
 
 						const bool isLastComponent = ((component + 1) == VecType::length());
-						RAII::ItemWidth width(isLastComponent ? (GetContentRegionAvailWidth() - 1.0f) : perComponentInputFloatWidth);
+						RAII::ItemWidth width(isLastComponent ? (GetContentRegionAvail().x - 1.0f) : perComponentInputFloatWidth);
 
 						using Lookup = TypeLookup::DataType<ValueType>;
 						if (ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags))

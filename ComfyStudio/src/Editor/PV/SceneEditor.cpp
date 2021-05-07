@@ -1458,7 +1458,7 @@ namespace Comfy::Studio::Editor
 				const auto& processData = externalProcessTest.ExternalProcess.GetProcess();
 				const auto& processSettings = externalProcessTest.ExternalProcess.GetSettings();
 
-				Gui::BeginColumns("ProcessInfoColumns", 2, ImGuiColumnsFlags_NoBorder);
+				Gui::BeginColumns("ProcessInfoColumns", 2, ImGuiOldColumnFlags_NoBorder);
 				{
 					Gui::TextUnformatted("Process Name");
 					Gui::NextColumn();
@@ -1482,7 +1482,7 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::WideTreeNodeEx(ICON_FA_CAMERA "  Camera", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				Gui::BeginColumns("CameraColumns", 2, ImGuiColumnsFlags_NoBorder);
+				Gui::BeginColumns("CameraColumns", 2, ImGuiOldColumnFlags_NoBorder);
 				{
 					if (Gui::Checkbox("Sync Read Camera", &externalProcessTest.SyncReadCamera) && externalProcessTest.SyncReadCamera)
 						activeViewport.CameraController.Mode = CameraController3D::ControlMode::None;
@@ -1498,7 +1498,7 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::WideTreeNodeEx(ICON_FA_LIGHTBULB "  Light Param", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				Gui::BeginColumns("LightParamColumns", 2, ImGuiColumnsFlags_NoBorder);
+				Gui::BeginColumns("LightParamColumns", 2, ImGuiOldColumnFlags_NoBorder);
 				{
 					Gui::Checkbox("Sync Read Light", &externalProcessTest.SyncReadLightParam);
 					Gui::NextColumn();

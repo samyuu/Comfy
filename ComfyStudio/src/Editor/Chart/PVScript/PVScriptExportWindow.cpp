@@ -714,7 +714,7 @@ namespace Comfy::Studio::Editor
 						ImGuiInputTextFlags_CharsNoBlank |
 						ImGuiInputTextFlags_AutoSelectAll |
 						ImGuiInputTextFlags_CallbackCharFilter |
-						ImGuiInputTextFlags_AlwaysInsertMode,
+						ImGuiInputTextFlags_AlwaysOverwrite,
 						validIDCharTextCallbackFilter);
 					Gui::PopItemWidth();
 				}

@@ -55,7 +55,7 @@ namespace Comfy::Studio::DataTest
 
 			// TODO: It would be nice to have a grid of buttons arranged in a standard keyboard layout instead
 			Gui::BeginChild("KeyListChild", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-			Gui::BeginColumns(nullptr, 4, ImGuiColumnsFlags_NoResize);
+			Gui::BeginColumns(nullptr, 4, ImGuiOldColumnFlags_NoResize);
 			Gui::SetColumnWidth(0, Gui::GetWindowWidth() * 0.35f);
 			{
 				Gui::AlignTextToFramePadding(); Gui::TextUnformatted("KeyCode Name"); Gui::NextColumn();
@@ -139,7 +139,7 @@ namespace Comfy::Studio::DataTest
 			Gui::Separator();
 
 			Gui::BeginChild("ButtonListChild", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-			Gui::BeginColumns(nullptr, 4, ImGuiColumnsFlags_NoResize);
+			Gui::BeginColumns(nullptr, 4, ImGuiOldColumnFlags_NoResize);
 			Gui::SetColumnWidth(0, Gui::GetWindowWidth() * 0.35f);
 			{
 				Gui::AlignTextToFramePadding(); Gui::TextUnformatted("Button Name"); Gui::NextColumn();
@@ -205,7 +205,7 @@ namespace Comfy::Studio::DataTest
 					{
 						Gui::BeginChild("InnerControllerChild", vec2(0.0f, 0.0f), true);
 
-						Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+						Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 						{
 							Gui::TextUnformatted("Instance Name"); Gui::NextColumn();
 							Gui::TextUnformatted(Gui::StringViewStart(controllerView.InstanceName), Gui::StringViewEnd(controllerView.InstanceName)); Gui::NextColumn();
@@ -251,7 +251,7 @@ namespace Comfy::Studio::DataTest
 						Gui::Separator();
 
 						Gui::BeginChild("ButtonListChild", vec2(0.0f, 0.0f), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-						Gui::BeginColumns(nullptr, 2, ImGuiColumnsFlags_NoResize);
+						Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 						Gui::SetColumnWidth(0, Gui::GetWindowWidth() * 0.5f);
 						{
 							Gui::AlignTextToFramePadding(); Gui::TextUnformatted("Native Button Name"); Gui::NextColumn();

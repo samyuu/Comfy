@@ -280,7 +280,7 @@ namespace Comfy::Studio::Editor
 				Gui::GetWindowDrawList()->AddRectFilled(selectedRegion.Min, selectedRegion.Max, GetColor(EditorColor_TreeViewActive));
 			}
 
-			Gui::RenderArrow(position + vec2(0.0f, GImGui->FontSize * 0.15f), layer->GuiData.TimelineNodeOpen ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
+			Gui::RenderArrow(Gui::GetWindowDrawList(), position + vec2(0.0f, GImGui->FontSize * 0.15f), Gui::GetColorU32(ImGuiCol_Text), layer->GuiData.TimelineNodeOpen ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
 			position.x += GImGui->FontSize + GImGui->Style.ItemSpacing.x - 5.0f;
 
 			Gui::GetWindowDrawList()->AddText(position, Gui::GetColorU32(ImGuiCol_Text), GetItemTypeIcon(layer->ItemType));

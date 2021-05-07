@@ -14,7 +14,7 @@ namespace ImGui
 			if (previousColumns == nullptr)
 				PreviousColumn = { 1, nullptr, false };
 			else
-				PreviousColumn = { previousColumns->Count, nullptr, (previousColumns->Flags & ImGuiColumnsFlags_NoBorder) == 0 };
+				PreviousColumn = { previousColumns->Count, nullptr, (previousColumns->Flags & ImGuiOldColumnFlags_NoBorder) == 0 };
 
 			Columns(columnsCount, id, border);
 		}
@@ -355,7 +355,7 @@ namespace ImGui
 			PushStyleColor(ImGuiCol_Text, GImGui->Style.Colors[ImGuiCol_TextDisabled]);
 			{
 				float pre_value = *value;
-				bool result = DragScalar(label, ImGuiDataType_Float, value, speed, &min, &max, format, 1.0f);
+				bool result = DragScalar(label, ImGuiDataType_Float, value, speed, &min, &max, format, ImGuiSliderFlags_None);
 				*value = pre_value;
 			}
 			PopStyleColor();
@@ -364,7 +364,7 @@ namespace ImGui
 		}
 		else
 		{
-			return DragScalar(label, ImGuiDataType_Float, value, speed, &min, &max, format, 1.0f);
+			return DragScalar(label, ImGuiDataType_Float, value, speed, &min, &max, format, ImGuiSliderFlags_None);
 		}
 	}
 }

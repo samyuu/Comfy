@@ -22,8 +22,8 @@ namespace Comfy::Studio::Editor
 		Gui::KeepAliveID(id);
 
 		const auto cornderFlags = (axis == ImGuiAxis_X) ?
-			(ImDrawCornerFlags_BotLeft | ImDrawCornerFlags_BotRight) :
-			(ImDrawCornerFlags_TopRight | ImDrawCornerFlags_BotRight);
+			(ImDrawFlags_RoundCornersBottomLeft | ImDrawFlags_RoundCornersBottomRight) :
+			(ImDrawFlags_RoundCornersTopRight | ImDrawFlags_RoundCornersBottomRight);
 
 		window->DrawList->AddRectFilled(scrollbarRegion.Min, scrollbarRegion.Max, Gui::GetColorU32(ImGuiCol_ScrollbarBg), window->WindowRounding, cornderFlags);
 
