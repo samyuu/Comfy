@@ -43,7 +43,7 @@ namespace Comfy::Studio::Editor
 	void HandTool::UpdateCamera(Render::Camera2D& camera, vec2 relativeMouse)
 	{
 		// NOTE: Hacky way of preventing moving the camera by two camera controllers at once
-		if (Gui::IsMouseDown(1))
+		if (Gui::IsMouseDown(ImGuiMouseButton_Right))
 			return;
 
 		cameraController.Update(camera, relativeMouse);

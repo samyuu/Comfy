@@ -253,7 +253,7 @@ namespace Comfy::Studio::Editor
 				IncrementSelectedTargetAnglesBy(undoManager, chart, (angleIncrement * io.MouseWheel * GlobalUserData.PathTool.AngleMouseScrollDirection));
 				angleScroll.LastScroll.Restart();
 			}
-			else if (Gui::IsMouseClicked(2, true))
+			else if (Gui::IsMouseClicked(ImGuiMouseButton_Middle, true))
 			{
 				// NOTE: Middle mouse surving as a way to quickly preview angles, especially useful when holding down while cycling through different targets
 				angleScroll.LastScroll.Restart();
@@ -267,15 +267,15 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::UpdateMouseAngleDragInput(Chart& chart)
 	{
-		if (angleDrag.Active && Gui::IsMouseReleased(0))
+		if (angleDrag.Active && Gui::IsMouseReleased(ImGuiMouseButton_Left))
 			undoManager.DisallowMergeForLastCommand();
 
-		if (!Gui::IsWindowFocused() || Gui::IsMouseReleased(0))
+		if (!Gui::IsWindowFocused() || Gui::IsMouseReleased(ImGuiMouseButton_Left))
 			angleDrag = {};
 
 		if (Gui::IsWindowFocused() && Gui::IsWindowHovered())
 		{
-			if (Gui::IsMouseClicked(0) && !Gui::IsAnyItemHovered())
+			if (Gui::IsMouseClicked(ImGuiMouseButton_Left) && !Gui::IsAnyItemHovered())
 			{
 				angleDrag.UseLastTarget = Gui::GetIO().KeyAlt;
 

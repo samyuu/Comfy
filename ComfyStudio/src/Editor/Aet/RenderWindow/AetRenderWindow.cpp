@@ -172,9 +172,9 @@ namespace Comfy::Studio::Editor
 		if (currentToolType != AetToolType_Hand)
 			UpdateMousePickControls();
 
-		if (Gui::IsMouseClicked(0))
+		if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 			windowHoveredOnMouseClick = Gui::IsWindowHovered();
-		else if (Gui::IsMouseReleased(0))
+		else if (Gui::IsMouseReleased(ImGuiMouseButton_Left))
 			windowHoveredOnMouseClick = false;
 
 		Gui::WindowContextMenu("AetRenderWindowContextMenu", [this, tool]()

@@ -252,7 +252,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		if (Gui::IsMouseDown(2))
+		if (Gui::IsMouseDown(ImGuiMouseButton_Middle))
 		{
 			const auto result = RayPickSceneMouse(GetRelativeMouse());
 

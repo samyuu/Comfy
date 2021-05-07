@@ -397,7 +397,7 @@ namespace Comfy::Studio::Editor
 
 			grab.HoveredTargetID = (hoveredTarget == selectedTargetsBuffer.rend()) ? TimelineTargetID::Null : (*hoveredTarget)->ID;
 
-			if (Gui::IsMouseClicked(0) && (grab.HoveredTargetID != TimelineTargetID::Null))
+			if (Gui::IsMouseClicked(ImGuiMouseButton_Left) && (grab.HoveredTargetID != TimelineTargetID::Null))
 			{
 				grab.GrabbedTargetID = grab.HoveredTargetID;
 				grab.MouseOnGrab = mousePos;
@@ -406,10 +406,10 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		if (Gui::IsMouseReleased(0))
+		if (Gui::IsMouseReleased(ImGuiMouseButton_Left))
 			grab = {};
 
-		if (Gui::IsMouseDown(0) && (grab.GrabbedTargetID != TimelineTargetID::Null))
+		if (Gui::IsMouseDown(ImGuiMouseButton_Left) && (grab.GrabbedTargetID != TimelineTargetID::Null))
 		{
 			grab.LastPos = grab.ThisPos;
 			grab.ThisPos = mousePos;
@@ -460,7 +460,7 @@ namespace Comfy::Studio::Editor
 	{
 		if (!selectedTargetsBuffer.empty() && Gui::IsWindowHovered() && Gui::IsWindowFocused())
 		{
-			if (Gui::IsMouseClicked(0))
+			if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
 				row.Start = Gui::GetMousePos();
 				row.Active = true;
@@ -469,7 +469,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		if (Gui::IsMouseReleased(0))
+		if (Gui::IsMouseReleased(ImGuiMouseButton_Left))
 			row = {};
 
 		if (row.Active)

@@ -28,7 +28,7 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::IsWindowFocused())
 			{
-				if (Gui::IsMouseDown(0))
+				if (Gui::IsMouseDown(ImGuiMouseButton_Left))
 				{
 					FirstPersonData.TargetYaw += io.MouseDelta.x * Settings.MouseSensitivity;
 					FirstPersonData.TargetPitch += io.MouseDelta.y * Settings.MouseSensitivity;
@@ -64,7 +64,7 @@ namespace Comfy::Studio::Editor
 				auto frontDirection = (camera.Interest - camera.ViewPoint);
 				frontDirection = glm::normalize(vec3(frontDirection.x, 0.0f, frontDirection.z));
 
-				if (Gui::IsMouseDown(0))
+				if (Gui::IsMouseDown(ImGuiMouseButton_Left))
 				{
 					OrbitData.TargetRotation.x += io.MouseDelta.x * Settings.MouseSensitivity;
 					OrbitData.TargetRotation.y += io.MouseDelta.y * Settings.MouseSensitivity;

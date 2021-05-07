@@ -128,7 +128,7 @@ namespace Comfy::Studio::Editor
 		bool windowFocused = Gui::IsWindowFocused();
 		bool windowHovered = Gui::IsWindowHovered();
 
-		if (windowHovered && Gui::IsMouseClicked(0))
+		if (windowHovered && Gui::IsMouseClicked(ImGuiMouseButton_Left))
 			windowFocused = true;
 
 		vec2 mousePos = io.MousePos;

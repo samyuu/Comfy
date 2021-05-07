@@ -1,5 +1,4 @@
 #include "CameraController2D.h"
-#include "ImGui/Gui.h"
 #include "Input/Input.h"
 #include <algorithm>
 
@@ -7,7 +6,7 @@ namespace Comfy::Studio::Editor
 {
 	void CameraController2D::Update(Render::Camera2D& camera, vec2 relativeMouse)
 	{
-		for (int i = 0; i < static_cast<int>(windowHoveredOnClick.size()); i++)
+		for (ImGuiMouseButton i = 0; i < ImGuiMouseButton_COUNT; i++)
 		{
 			if (Gui::IsMouseClicked(i))
 				windowHoveredOnClick[i] = Gui::IsWindowHovered();

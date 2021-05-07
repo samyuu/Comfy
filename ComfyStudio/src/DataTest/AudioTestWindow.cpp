@@ -365,7 +365,7 @@ namespace Comfy::Studio::DataTest
 
 				const bool selectableClicked = Gui::Selectable("##SourcePreview", thisSourceIsPreviewing, ImGuiSelectableFlags_SpanAllColumns);
 				const bool selectableHovered = Gui::IsItemHovered();
-				const bool selectableRightClicked = (selectableHovered && Gui::IsMouseClicked(1));
+				const bool selectableRightClicked = (selectableHovered && Gui::IsMouseClicked(ImGuiMouseButton_Right));
 				const auto selectableRect = Gui::GetCurrentWindowRead()->DC.LastItemRect;
 				const auto nameColumnWidth = Gui::GetContentRegionAvail().x;
 				Gui::SameLine();

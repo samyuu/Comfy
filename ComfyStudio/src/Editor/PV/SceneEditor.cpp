@@ -584,7 +584,7 @@ namespace Comfy::Studio::Editor
 				const u32 openMask = (1 << index);
 				Gui::Selectable(subTarget.Name);
 
-				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(0))
+				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 					openRenderTargetsFlags ^= openMask;
 
 				const f32 aspectRatio = (static_cast<f32>(subTarget.Size.y) / static_cast<f32>(subTarget.Size.x));

@@ -206,7 +206,7 @@ namespace Comfy::Studio::Editor
 	void TimelineBase::UpdateInputTimelineScroll()
 	{
 		const auto& io = Gui::GetIO();
-		constexpr i32 scrollGrabMouseButton = 2;
+		constexpr ImGuiMouseButton scrollGrabMouseButton = ImGuiMouseButton_Middle;
 
 		if (Gui::IsMouseReleased(scrollGrabMouseButton) || !Gui::IsWindowFocused())
 			isMouseScrollGrabbing = false;

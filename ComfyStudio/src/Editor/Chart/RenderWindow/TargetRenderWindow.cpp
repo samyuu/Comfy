@@ -210,7 +210,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr const char* contextMenuID = "TargetRenderWindowContextMenu";
 
-		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && !Gui::IsAnyItemHovered())
+		if (Gui::IsMouseReleased(ImGuiMouseButton_Right) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && !Gui::IsAnyItemHovered())
 			Gui::OpenPopup(contextMenuID);
 
 		if (Gui::BeginPopup(contextMenuID, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))

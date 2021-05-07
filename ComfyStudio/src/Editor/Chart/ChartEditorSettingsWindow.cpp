@@ -296,7 +296,7 @@ namespace Comfy::Studio::Editor
 			if (inOutAwaitInputBinding == &inOutBinding)
 			{
 				const bool timedOut = (inOutAwaitInputStopwatch.GetElapsed() > timeoutThreshold);
-				const bool mouseClickCancelRequest = (inOutAwaitInputStopwatch.GetElapsed() > mouseClickThreshold && !buttonHovered && (Gui::IsMouseClicked(0, false) || Gui::IsMouseClicked(1, false)));
+				const bool mouseClickCancelRequest = (inOutAwaitInputStopwatch.GetElapsed() > mouseClickThreshold && !buttonHovered && (Gui::IsMouseClicked(ImGuiMouseButton_Left, false) || Gui::IsMouseClicked(ImGuiMouseButton_Right, false)));
 
 				if (timedOut || mouseClickCancelRequest)
 					finishBindingAsignment(std::nullopt);

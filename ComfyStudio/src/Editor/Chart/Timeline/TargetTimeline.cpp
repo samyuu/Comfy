@@ -676,10 +676,10 @@ namespace Comfy::Studio::Editor
 
 				baseWindowDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
 
-				if (Gui::IsMouseClicked(0))
+				if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 					SetCursorTick(tempoChange.Tick);
 
-				if (Gui::IsMouseClicked(1))
+				if (Gui::IsMouseClicked(ImGuiMouseButton_Right))
 				{
 					Gui::OpenPopup(tempoChangePopupName);
 					tempoPopupIndex = static_cast<i32>(i);
@@ -954,7 +954,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateCursorKeyboardInput()
 	{
-		if (Gui::IsWindowHovered() && Gui::IsMouseClicked(1))
+		if (Gui::IsWindowHovered() && Gui::IsMouseClicked(ImGuiMouseButton_Right))
 			rangeSelection = {};
 
 		if (!Gui::IsWindowFocused())
@@ -1070,7 +1070,7 @@ namespace Comfy::Studio::Editor
 			if (!Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) || !regions.Content.Contains(Gui::GetMousePos()))
 				return;
 		}
-		else if (Gui::IsMouseReleased(0))
+		else if (Gui::IsMouseReleased(ImGuiMouseButton_Left))
 		{
 			selectionDrag = {};
 		}
@@ -1094,7 +1094,7 @@ namespace Comfy::Studio::Editor
 				selectionDrag.IsHovering = true;
 				selectionDrag.ChangeType = Gui::GetIO().KeyShift;
 
-				if (Gui::IsMouseClicked(0))
+				if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
 					selectionDrag.IsDragging = true;
 					selectionDrag.TickOnPress = GetCursorMouseXTick(false);
@@ -1260,7 +1260,7 @@ namespace Comfy::Studio::Editor
 		if (!Gui::IsWindowHovered() || !regions.Content.Contains(Gui::GetMousePos()))
 			return;
 
-		if (Gui::IsMouseClicked(0) && !Gui::GetIO().KeyShift)
+		if (Gui::IsMouseClicked(ImGuiMouseButton_Left) && !Gui::GetIO().KeyShift)
 		{
 			const auto newMouseTick = GetCursorMouseXTick();
 
@@ -1271,7 +1271,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputCursorScrubbing()
 	{
-		if (Gui::IsMouseReleased(0) || !Gui::IsWindowFocused())
+		if (Gui::IsMouseReleased(ImGuiMouseButton_Left) || !Gui::IsWindowFocused())
 			isCursorScrubbing = false;
 
 		if (isCursorScrubbing)
@@ -1279,7 +1279,7 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && regions.ContentHeader.Contains(Gui::GetMousePos()))
 		{
-			if (Gui::IsMouseClicked(0))
+			if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 				isCursorScrubbing = true;
 		}
 
@@ -1337,7 +1337,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr const char* contextMenuID = "TargetTimelineContextMenu";
 
-		if (Gui::IsMouseReleased(1) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && regions.Content.Contains(Gui::GetMousePos()))
+		if (Gui::IsMouseReleased(ImGuiMouseButton_Right) && Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && regions.Content.Contains(Gui::GetMousePos()))
 		{
 			if (!Gui::IsAnyItemHovered())
 				Gui::OpenPopup(contextMenuID);
@@ -1486,7 +1486,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputBoxSelection()
 	{
-		constexpr i32 boxSelectionButton = 1;
+		constexpr ImGuiMouseButton boxSelectionButton = ImGuiMouseButton_Right;
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && regions.Content.Contains(Gui::GetMousePos()))
 		{

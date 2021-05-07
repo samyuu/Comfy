@@ -533,7 +533,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		// NOTE: Mouse side button to jump to last scroll position
-		if (Gui::IsMouseClicked(3))
+		if (Gui::IsMouseClicked(ImGuiMouseButton_X1))
 		{
 			if (!scrollPositionStack.empty())
 			{

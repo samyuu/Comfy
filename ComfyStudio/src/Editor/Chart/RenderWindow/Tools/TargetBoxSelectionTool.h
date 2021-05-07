@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	class TargetBoxSelectionTool : NonCopyable
 	{
 	public:
-		static constexpr i32 SelectionButton = 1;
+		static constexpr ImGuiMouseButton SelectionButton = ImGuiMouseButton_Right;
 
 	public:
 		TargetBoxSelectionTool(TargetRenderWindow& renderWindow);

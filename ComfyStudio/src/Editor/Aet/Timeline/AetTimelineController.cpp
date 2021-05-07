@@ -22,11 +22,11 @@ namespace Comfy::Studio::Editor
 	{
 		updateCursorTime = false;
 
-		if (!Gui::IsWindowFocused() || Gui::IsMouseReleased(0))
+		if (!Gui::IsWindowFocused() || Gui::IsMouseReleased(ImGuiMouseButton_Left))
 			isCursorScrubbing = false;
 
 		vec2 mousePos = Gui::GetMousePos();
-		if (Gui::IsMouseClicked(0))
+		if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			// NOTE: Allow cursor scrubbing
 			if (timeline->GetRegions().ContentHeader.Contains(mousePos))
@@ -62,7 +62,7 @@ namespace Comfy::Studio::Editor
 		// NOTE: Scrubbing has started, don't set RowStartIndex if the mouse is initially hovering over a keyframe
 		if (!isCursorScrubbing && selectionData.RowStartIndex >= 0)
 		{
-			if (Gui::IsMouseDown(0))
+			if (Gui::IsMouseDown(ImGuiMouseButton_Left))
 			{
 				selectionData.RowEndIndex = timeline->GetRowIndexFromScreenY(mousePos.y);
 				selectionData.EndX = timeline->GetTimelineFrameAtMouseX();
@@ -79,7 +79,7 @@ namespace Comfy::Studio::Editor
 					selectionData.RowStartIndex = selectionData.RowInitialStartIndex + 1;
 				}
 			}
-			else if (Gui::IsMouseReleased(0))
+			else if (Gui::IsMouseReleased(ImGuiMouseButton_Left))
 			{
 				selectionData.Reset();
 			}

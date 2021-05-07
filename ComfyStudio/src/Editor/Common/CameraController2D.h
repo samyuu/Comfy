@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "CoreTypes.h"
 #include "Render/Render.h"
+#include "ImGui/Gui.h"
 
 namespace Comfy::Studio::Editor
 {
@@ -16,7 +17,7 @@ namespace Comfy::Studio::Editor
 		float ZoomMin = 0.1f;
 		float ZoomMax = 12.8f;
 
-		int MouseDragButton = 1;
+		ImGuiMouseButton MouseDragButton = ImGuiMouseButton_Right;
 		bool AltZoomControl = true;
 
 	private:
@@ -26,6 +27,6 @@ namespace Comfy::Studio::Editor
 	private:
 		bool updateKeyboardControls = false;
 		bool updateMouseControls = true;
-		std::array<bool, 5> windowHoveredOnClick = {};
+		std::array<bool, ImGuiMouseButton_COUNT> windowHoveredOnClick = {};
 	};
 }

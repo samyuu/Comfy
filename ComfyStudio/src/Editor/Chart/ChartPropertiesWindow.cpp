@@ -112,7 +112,7 @@ namespace Comfy::Studio::Editor
 
 				Gui::SetNextItemWidth(Gui::GetContentRegionAvail().x);
 				const bool comboBoxOpen = Gui::BeginCombo(GuiProperty::Detail::DummyLabel, entryToCStr((previewEntry != nullptr) ? *previewEntry : nullptr), ImGuiComboFlags_HeightLarge);
-				if (Gui::IsItemHovered() && Gui::IsMouseClicked(1) && previewEntry != nullptr)
+				if (Gui::IsItemHovered() && Gui::IsMouseClicked(ImGuiMouseButton_Right) && previewEntry != nullptr)
 					previewButtonSound(**previewEntry);
 
 				if (comboBoxOpen)
@@ -135,7 +135,7 @@ namespace Comfy::Studio::Editor
 							valueChanged = true;
 						}
 
-						if (Gui::IsItemHovered() && Gui::IsMouseClicked(1))
+						if (Gui::IsItemHovered() && Gui::IsMouseClicked(ImGuiMouseButton_Right))
 							previewButtonSound(*entry);
 
 						if (isSelected)

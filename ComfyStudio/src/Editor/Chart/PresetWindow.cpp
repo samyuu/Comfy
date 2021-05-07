@@ -154,7 +154,7 @@ namespace Comfy::Studio::Editor
 		}
 		Gui::EndChild();
 
-		if (Gui::IsMouseReleased(1) && (hovered.Sync.AnyChildWindow && Gui::WasHoveredWindowHoveredOnMouseClicked(1)) && Gui::IsMouseSteady())
+		if (Gui::IsMouseReleased(ImGuiMouseButton_Right) && (hovered.Sync.AnyChildWindow && Gui::WasHoveredWindowHoveredOnMouseClicked(ImGuiMouseButton_Right)) && Gui::IsMouseSteady())
 			Gui::OpenPopupEx(presetSettingsContextMenuID);
 
 		if (Gui::BeginPopupEx(presetSettingsContextMenuID, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking)))
