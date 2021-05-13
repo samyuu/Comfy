@@ -55,7 +55,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 14, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 15, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -282,6 +282,8 @@ namespace Comfy::Studio
 		{
 			bool EnterFullscreenOnMaximizedStart;
 			bool AutoHideCursor;
+			TimeSpan SongOffsetWasapiShared;
+			TimeSpan SongOffsetWasapiExclusive;
 		} Playtest;
 	};
 

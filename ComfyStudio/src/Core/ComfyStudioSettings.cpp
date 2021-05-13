@@ -436,6 +436,8 @@ namespace Comfy::Studio
 		const std::string Playtest = "playtest";
 		const std::string Playtest_EnterFullscreenOnMaximizedStart = "enter_fullscreen_on_maximized_start";
 		const std::string Playtest_AutoHideCursor = "auto_hide_cursor";
+		const std::string Playtest_SongOffsetSecWasapiShared = "song_offset_sec_wasapi_shared";
+		const std::string Playtest_SongOffsetSecWasapiExclusive = "song_offset_sec_wasapi_exclusive";
 
 		template <typename Func>
 		void ForEachMultiBindingWithID(/* const */ ComfyStudioUserSettings& userData, Func func)
@@ -780,6 +782,10 @@ namespace Comfy::Studio
 		{
 			JsonTryAssign(Playtest.EnterFullscreenOnMaximizedStart, JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_EnterFullscreenOnMaximizedStart)));
 			JsonTryAssign(Playtest.AutoHideCursor, JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_AutoHideCursor)));
+			if (auto v = JsonTryGetF64(JsonFind(*playtestJson, UserIDs::Playtest_SongOffsetSecWasapiShared)); v.has_value())
+				Playtest.SongOffsetWasapiShared = TimeSpan::FromSeconds(v.value());
+			if (auto v = JsonTryGetF64(JsonFind(*playtestJson, UserIDs::Playtest_SongOffsetSecWasapiExclusive)); v.has_value())
+				Playtest.SongOffsetWasapiExclusive = TimeSpan::FromSeconds(v.value());
 		}
 
 		return true;
@@ -955,6 +961,8 @@ namespace Comfy::Studio
 		{
 			playtestJson[UserIDs::Playtest_EnterFullscreenOnMaximizedStart] = Playtest.EnterFullscreenOnMaximizedStart;
 			playtestJson[UserIDs::Playtest_AutoHideCursor] = Playtest.AutoHideCursor;
+			playtestJson[UserIDs::Playtest_SongOffsetSecWasapiShared] = Playtest.SongOffsetWasapiShared.TotalSeconds();
+			playtestJson[UserIDs::Playtest_SongOffsetSecWasapiExclusive] = Playtest.SongOffsetWasapiExclusive.TotalSeconds();
 		}
 
 		IO::SaveJson(filePath, rootJson);
@@ -1172,5 +1180,7 @@ namespace Comfy::Studio
 
 		Playtest.EnterFullscreenOnMaximizedStart = true;
 		Playtest.AutoHideCursor = true;
+		Playtest.SongOffsetWasapiShared = TimeSpan::Zero();
+		Playtest.SongOffsetWasapiExclusive = TimeSpan::Zero();
 	}
 }

@@ -834,8 +834,18 @@ namespace Comfy::Studio::Editor
 		if (Gui::CollapsingHeader("Playtest", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
+
+			if (auto v = static_cast<f32>(userData.Playtest.SongOffsetWasapiShared.TotalMilliseconds());
+				pendingChanges |= GuiSettingsInputF32("Shared Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+				userData.Playtest.SongOffsetWasapiShared = TimeSpan::FromMilliseconds(v);
+
+			if (auto v = static_cast<f32>(userData.Playtest.SongOffsetWasapiExclusive.TotalMilliseconds());
+				pendingChanges |= GuiSettingsInputF32("Exclusive Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+				userData.Playtest.SongOffsetWasapiExclusive = TimeSpan::FromMilliseconds(v);
+
 			pendingChanges |= GuiSettingsCheckbox("Enter Fullscreen on Maximized Start", userData.Playtest.EnterFullscreenOnMaximizedStart);
 			pendingChanges |= GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
+
 			GuiEndSettingsColumns();
 		}
 	}

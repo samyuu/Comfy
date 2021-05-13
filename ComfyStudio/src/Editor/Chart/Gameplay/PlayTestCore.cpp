@@ -1473,10 +1473,17 @@ namespace Comfy::Studio::Editor
 
 		TimeSpan GetPlaybackTime() const
 		{
+			const auto currentAudioBackend = Audio::AudioEngine::GetInstance().GetAudioBackend();
+			const TimeSpan userOffset = 
+				(currentAudioBackend == Audio::AudioBackend::WASAPIShared) ? GlobalUserData.Playtest.SongOffsetWasapiShared :
+				(currentAudioBackend == Audio::AudioBackend::WASAPIExclusive) ? GlobalUserData.Playtest.SongOffsetWasapiExclusive : TimeSpan::Zero();
+
+			const TimeSpan finalOffset = (sharedContext.Chart->StartOffset - userOffset);
+
 #if 1 // NOTE: Same thing applies here as for the chart editor
-			return (sharedContext.SongVoice->GetPositionSmooth() - sharedContext.Chart->StartOffset);
+			return (sharedContext.SongVoice->GetPositionSmooth() - finalOffset);
 #else
-			return (sharedContext.SongVoice->GetPosition() - sharedContext.Chart->StartOffset);
+			return (sharedContext.SongVoice->GetPosition() - finalOffset);
 #endif
 		}
 
