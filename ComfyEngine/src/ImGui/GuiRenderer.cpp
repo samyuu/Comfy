@@ -103,15 +103,22 @@ namespace ImGui
 		io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
 #endif
 
-		io.ConfigViewportsNoAutoMerge = true;
-		io.ConfigViewportsNoTaskBarIcon = false;
-		io.ConfigViewportsNoDecoration = false;
-		io.ConfigViewportsNoDefaultParent = false;
-
 		io.KeyRepeatDelay = 0.275f;
 		io.KeyRepeatRate = 0.050f;
-		io.ConfigWindowsMoveFromTitleBarOnly = true;
+
+		io.ConfigDockingNoSplit = false;
 		io.ConfigDockingAlwaysTabBar = true;
+		io.ConfigDockingTransparentPayload = false;
+
+		// NOTE: Was originally enabled but causes window focus issues when spawning a file dialog from within a (technically separate win32 window) popup
+		io.ConfigViewportsNoAutoMerge = false;
+		// NOTE: Only makes sense for decorated windows but even then font icons result in "?" symbols everywhere
+		io.ConfigViewportsNoTaskBarIcon = true;
+		// NOTE: Needs to match the auto-merge inverse to not cause any ugly window popping
+		io.ConfigViewportsNoDecoration = !io.ConfigViewportsNoAutoMerge;
+		io.ConfigViewportsNoDefaultParent = false;
+
+		io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 		return true;
 	}
