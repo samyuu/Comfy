@@ -11,8 +11,11 @@ namespace ImGui
 		style->WindowBorderSize = 0.0f;
 		style->FramePadding = ImVec2(6.0f, 3.0f);
 		style->FrameBorderSize = 0.0f;
-		style->ItemSpacing = ImVec2(6.0f, 2.0f);
+		// TODO: The introduction of CellPadding broke all Columns padding as they now use a larger ItemSpacing on the right window edge (?)
+		//		 To fix this all of the old Columns/PropertyEditor code needs to be rewriten to use Tables instead which would then make correct use of CellPading..?
+		style->ItemSpacing = ImVec2(4.0f, 2.0f); // ImVec2(6.0f, 2.0f);
 		style->ItemInnerSpacing = ImVec2(2.0f, 4.0f);
+		style->CellPadding = ImVec2(4.0f, 2.0f);
 		style->ScrollbarSize = 14.0f;
 		style->IndentSpacing = 14.0f;
 		style->GrabMinSize = 12.0f;
@@ -68,6 +71,11 @@ namespace ImGui
 		colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.27f, 0.37f, 0.13f, 1.00f);
 		colors[ImGuiCol_PlotHistogram] = ImVec4(0.34f, 0.47f, 0.17f, 1.00f);
 		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.41f, 0.56f, 0.20f, 0.99f);
+		colors[ImGuiCol_TableHeaderBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_TableBorderStrong] = ImVec4(0.13f, 0.13f, 0.13f, 0.78f);
+		colors[ImGuiCol_TableBorderLight] = ImVec4(0.13f, 0.13f, 0.13f, 0.78f);
+		colors[ImGuiCol_TableRowBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+		colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.03f);
 		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.27f);
 		colors[ImGuiCol_DragDropTarget] = ImVec4(0.59f, 0.59f, 0.59f, 0.98f);
 		colors[ImGuiCol_NavHighlight] = ImVec4(0.83f, 0.83f, 0.83f, 1.00f);
