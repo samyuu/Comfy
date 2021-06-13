@@ -1,5 +1,6 @@
 #include "ComfyStudioSettings.h"
 #include "IO/JSON.h"
+#include "IO/File.h"
 #include "Core/Logger.h"
 
 namespace Comfy::Studio
@@ -7,68 +8,81 @@ namespace Comfy::Studio
 	using namespace Editor;
 
 	// NOTE: Underscore denote object boundaries, all IDs should follow the snake_case naming convention
-	//		 and are global std::string objects to avoid reconstructing them inside inner loops
 	namespace IDs
 	{
-		const std::string FileVersion = ".file_version";
+		constexpr std::string_view FileVersion = ".file_version";
 
-		const std::string TargetProperties_PositionX = "position_x";
-		const std::string TargetProperties_PositionY = "position_y";
-		const std::string TargetProperties_Angle = "angle";
-		const std::string TargetProperties_Frequency = "frequency";
-		const std::string TargetProperties_Amplitude = "amplitude";
-		const std::string TargetProperties_Distance = "distance";
+		constexpr std::string_view TargetProperties_PositionX = "position_x";
+		constexpr std::string_view TargetProperties_PositionY = "position_y";
+		constexpr std::string_view TargetProperties_Angle = "angle";
+		constexpr std::string_view TargetProperties_Frequency = "frequency";
+		constexpr std::string_view TargetProperties_Amplitude = "amplitude";
+		constexpr std::string_view TargetProperties_Distance = "distance";
 	}
 
 	namespace AppIDs
 	{
-		const std::string LastSessionWindowState = "last_session_window_state";
-		const std::string LastSessionWindowState_RestoreRegion = "restore_region";
-		const std::string LastSessionWindowState_Position = "position";
-		const std::string LastSessionWindowState_Size = "size";
-		const std::string LastSessionWindowState_IsFullscreen = "is_fullscreen";
-		const std::string LastSessionWindowState_IsMaximized = "is_maximized";
-		const std::string LastSessionWindowState_SwapInterval = "swap_interval";
-		const std::string LastSessionWindowState_ActiveEditorComponent = "active_editor_component";
+		constexpr std::string_view LastSessionWindowState = "last_session_window_state";
+		constexpr std::string_view LastSessionWindowState_RestoreRegionX = "restore_region_x";
+		constexpr std::string_view LastSessionWindowState_RestoreRegionY = "restore_region_y";
+		constexpr std::string_view LastSessionWindowState_RestoreRegionW = "restore_region_w";
+		constexpr std::string_view LastSessionWindowState_RestoreRegionH = "restore_region_h";
+		constexpr std::string_view LastSessionWindowState_PositionX = "position_x";
+		constexpr std::string_view LastSessionWindowState_PositionY = "position_y";
+		constexpr std::string_view LastSessionWindowState_SizeX = "size_x";
+		constexpr std::string_view LastSessionWindowState_SizeY = "size_y";
+		constexpr std::string_view LastSessionWindowState_IsFullscreen = "is_fullscreen";
+		constexpr std::string_view LastSessionWindowState_IsMaximized = "is_maximized";
+		constexpr std::string_view LastSessionWindowState_SwapInterval = "swap_interval";
+		constexpr std::string_view LastSessionWindowState_ActiveEditorComponent = "active_editor_component";
 
-		const std::string LastPVScriptExportOptions = "last_pv_script_export_options";
-		const std::string LastPVScriptExportOptions_ExportFormatIndex = "export_format";
-		const std::string LastPVScriptExportOptions_PVID = "pv_id";
-		const std::string LastPVScriptExportOptions_RootDirectory = "root_directory";
-		const std::string LastPVScriptExportOptions_MDataID = "mdata_id";
-		const std::string LastPVScriptExportOptions_BackgroundDim = "background_dim";
-		const std::string LastPVScriptExportOptions_MergeWithExistingMData = "merge_with_existing_mdata";
-		const std::string LastPVScriptExportOptions_CreateSprSelPV = "create_spr_sel_pv";
-		const std::string LastPVScriptExportOptions_AddDummyMovieReference = "add_dummy_movie_reference";
-		const std::string LastPVScriptExportOptions_VorbisVBRQuality = "vorbis_vbr_quality";
+		constexpr std::string_view LastPVScriptExportOptions = "last_pv_script_export_options";
+		constexpr std::string_view LastPVScriptExportOptions_ExportFormatIndex = "export_format";
+		constexpr std::string_view LastPVScriptExportOptions_PVID = "pv_id";
+		constexpr std::string_view LastPVScriptExportOptions_RootDirectory = "root_directory";
+		constexpr std::string_view LastPVScriptExportOptions_MDataID = "mdata_id";
+		constexpr std::string_view LastPVScriptExportOptions_BackgroundDim = "background_dim";
+		constexpr std::string_view LastPVScriptExportOptions_MergeWithExistingMData = "merge_with_existing_mdata";
+		constexpr std::string_view LastPVScriptExportOptions_CreateSprSelPV = "create_spr_sel_pv";
+		constexpr std::string_view LastPVScriptExportOptions_AddDummyMovieReference = "add_dummy_movie_reference";
+		constexpr std::string_view LastPVScriptExportOptions_VorbisVBRQuality = "vorbis_vbr_quality";
 
-		const std::string RecentFiles = "recent_files";
-		const std::string RecentFiles_ChartFiles = "chart_files";
+		constexpr std::string_view RecentFiles = "recent_files";
+		constexpr std::string_view RecentFiles_ChartFiles = "chart_files";
 	}
 
 	namespace
 	{
-		std::optional<SemanticVersion> TryGetJsonSettingsFileVersionFromRoot(const json& rootJson)
+		std::optional<SemanticVersion> TryGetJsonSettingsFileVersionFromRoot(const Json::Document& rootJson)
 		{
-			if (auto v = JsonTryGetStr(JsonFind(rootJson, IDs::FileVersion)); v.has_value())
-				return SemanticVersion::FromString(v.value());
+			if (auto v = Json::TryGetStrView(Json::Find(rootJson, IDs::FileVersion)); v.has_value())
+				return SemanticVersion::FromString(std::string(v.value()));
 			else
 				return std::nullopt;
-		}
-
-		void SetJsonSettingsFileVersionForRoot(json& rootJson, const SemanticVersion& currentVersion)
-		{
-			rootJson[IDs::FileVersion] = currentVersion.ToString();
 		}
 	}
 
 	bool ComfyStudioAppSettings::LoadFromFile(std::string_view filePath)
 	{
-		const std::optional<json> loadedJson = IO::LoadJson(filePath);
-		if (!loadedJson.has_value())
+		std::string insituFileContent = IO::File::ReadAllText(filePath);
+		if (insituFileContent.empty())
 			return false;
 
-		const json& rootJson = loadedJson.value();
+		using namespace Json;
+		Document rootJson;
+		rootJson.ParseInsitu(insituFileContent.data());
+
+		if (rootJson.HasParseError())
+		{
+			// TODO: Proper error handling
+			const auto parseError = rootJson.GetParseError();
+			assert(false);
+			return false;
+		}
+
+		if (!rootJson.IsObject())
+			return false;
+
 		const auto fileVersion = TryGetJsonSettingsFileVersionFromRoot(rootJson).value_or(SemanticVersion {});
 		if (fileVersion.Major > CurrentVersion.Major)
 		{
@@ -76,39 +90,56 @@ namespace Comfy::Studio
 			return false;
 		}
 
-		if (const json* windowStateJson = JsonFind(rootJson, AppIDs::LastSessionWindowState))
+		if (const Value* windowStateJson = Find(rootJson, AppIDs::LastSessionWindowState))
 		{
-			LastSessionWindowState.RestoreRegion = JsonTryGetIVec4(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_RestoreRegion));
-			LastSessionWindowState.Position = JsonTryGetIVec2(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_Position));
-			LastSessionWindowState.Size = JsonTryGetIVec2(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_Size));
-			LastSessionWindowState.IsFullscreen = JsonTryGetBool(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_IsFullscreen));
-			LastSessionWindowState.IsMaximized = JsonTryGetBool(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_IsMaximized));
-			LastSessionWindowState.SwapInterval = JsonTryGetI32(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_SwapInterval));
-			LastSessionWindowState.ActiveEditorComponent = JsonTryGetStr(JsonFind(*windowStateJson, AppIDs::LastSessionWindowState_ActiveEditorComponent));
+			const auto restoreRegionX = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_RestoreRegionX));
+			const auto restoreRegionY = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_RestoreRegionY));
+			const auto restoreRegionW = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_RestoreRegionW));
+			const auto restoreRegionH = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_RestoreRegionH));
+			if (restoreRegionX.has_value() && restoreRegionY.has_value() && restoreRegionW.has_value() && restoreRegionH.has_value())
+				LastSessionWindowState.RestoreRegion = ivec4(restoreRegionX.value(), restoreRegionY.value(), restoreRegionW.value(), restoreRegionH.value());
+
+			const auto positionX = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_PositionX));
+			const auto positionY = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_PositionY));
+			if (positionX.has_value() && positionY.has_value())
+				LastSessionWindowState.Position = ivec2(positionX.value(), positionY.value());
+
+			const auto sizeX = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_SizeX));
+			const auto sizeY = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_SizeY));
+			if (sizeX.has_value() && sizeY.has_value())
+				LastSessionWindowState.Size = ivec2(sizeX.value(), sizeY.value());
+
+			LastSessionWindowState.IsFullscreen = TryGetBool(Find(*windowStateJson, AppIDs::LastSessionWindowState_IsFullscreen));
+			LastSessionWindowState.IsMaximized = TryGetBool(Find(*windowStateJson, AppIDs::LastSessionWindowState_IsMaximized));
+			LastSessionWindowState.SwapInterval = TryGetI32(Find(*windowStateJson, AppIDs::LastSessionWindowState_SwapInterval));
+			LastSessionWindowState.ActiveEditorComponent = TryGetStrView(Find(*windowStateJson, AppIDs::LastSessionWindowState_ActiveEditorComponent));
 		}
 
-		if (const json* exportOptionsJson = JsonFind(rootJson, AppIDs::LastPVScriptExportOptions))
+		if (const Value* exportOptionsJson = Find(rootJson, AppIDs::LastPVScriptExportOptions))
 		{
-			LastPVScriptExportOptions.ExportFormatIndex = JsonTryGetI32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_ExportFormatIndex));
-			LastPVScriptExportOptions.PVID = JsonTryGetI32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_PVID));
-			LastPVScriptExportOptions.RootDirectory = JsonTryGetStr(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_RootDirectory));
-			LastPVScriptExportOptions.MDataID = JsonTryGetStr(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MDataID));
-			LastPVScriptExportOptions.BackgroundDim = JsonTryGetF32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_BackgroundDim));
-			LastPVScriptExportOptions.MergeWithExistingMData = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MergeWithExistingMData));
-			LastPVScriptExportOptions.CreateSprSelPV = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_CreateSprSelPV));
-			LastPVScriptExportOptions.AddDummyMovieReference = JsonTryGetBool(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_AddDummyMovieReference));
-			LastPVScriptExportOptions.VorbisVBRQuality = JsonTryGetF32(JsonFind(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_VorbisVBRQuality));
+			LastPVScriptExportOptions.ExportFormatIndex = TryGetI32(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_ExportFormatIndex));
+			LastPVScriptExportOptions.PVID = TryGetI32(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_PVID));
+			LastPVScriptExportOptions.RootDirectory = TryGetStrView(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_RootDirectory));
+			LastPVScriptExportOptions.MDataID = TryGetStrView(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MDataID));
+			LastPVScriptExportOptions.BackgroundDim = TryGetF32(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_BackgroundDim));
+			LastPVScriptExportOptions.MergeWithExistingMData = TryGetBool(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MergeWithExistingMData));
+			LastPVScriptExportOptions.CreateSprSelPV = TryGetBool(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_CreateSprSelPV));
+			LastPVScriptExportOptions.AddDummyMovieReference = TryGetBool(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_AddDummyMovieReference));
+			LastPVScriptExportOptions.VorbisVBRQuality = TryGetF32(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_VorbisVBRQuality));
 		}
 
-		if (const json* recentFilesJson = JsonFind(rootJson, AppIDs::RecentFiles))
+		if (const Value* recentFilesJson = Find(rootJson, AppIDs::RecentFiles))
 		{
-			if (const json* chartFilesJson = JsonFind(*recentFilesJson, AppIDs::RecentFiles_ChartFiles))
+			if (const Value* chartFilesJson = Find(*recentFilesJson, AppIDs::RecentFiles_ChartFiles); chartFilesJson && chartFilesJson->IsArray())
 			{
-				std::for_each(chartFilesJson->rbegin(), chartFilesJson->rend(), [&](const json& jsonIt)
+				if (chartFilesJson->Size() > 0)
 				{
-					if (auto v = JsonTryGetStr(jsonIt); v.has_value())
-						RecentFiles.ChartFiles.Add(v.value());
-				});
+					for (i32 i = static_cast<i32>(chartFilesJson->Size()) - 1; i >= 0; i--)
+					{
+						if (auto v = TryGetStrView(&chartFilesJson->GetArray()[i]); v.has_value())
+							RecentFiles.ChartFiles.Add(v.value());
+					}
+				}
 			}
 		}
 
@@ -117,35 +148,76 @@ namespace Comfy::Studio
 
 	void ComfyStudioAppSettings::SaveToFile(std::string_view filePath) const
 	{
-		json rootJson = json::object();
-		SetJsonSettingsFileVersionForRoot(rootJson, CurrentVersion);
+		auto memberTryIVec2 = [](Json::WriterEx& writer, std::string_view keyX, std::string_view keyY, std::optional<ivec2> value)
+		{
+			if (value.has_value()) { writer.MemberI32(keyX, value->x); writer.MemberI32(keyY, value->y); }
+			else { writer.MemberNull(keyX); writer.MemberNull(keyY); }
+		};
 
-		json& windowStateJson = rootJson[AppIDs::LastSessionWindowState];
-		JsonTrySetIVec4(windowStateJson[AppIDs::LastSessionWindowState_RestoreRegion], LastSessionWindowState.RestoreRegion);
-		JsonTrySetIVec2(windowStateJson[AppIDs::LastSessionWindowState_Position], LastSessionWindowState.Position);
-		JsonTrySetIVec2(windowStateJson[AppIDs::LastSessionWindowState_Size], LastSessionWindowState.Size);
-		JsonTrySetBool(windowStateJson[AppIDs::LastSessionWindowState_IsFullscreen], LastSessionWindowState.IsFullscreen);
-		JsonTrySetBool(windowStateJson[AppIDs::LastSessionWindowState_IsMaximized], LastSessionWindowState.IsMaximized);
-		JsonTrySetI32(windowStateJson[AppIDs::LastSessionWindowState_SwapInterval], LastSessionWindowState.SwapInterval);
-		JsonTrySetStr(windowStateJson[AppIDs::LastSessionWindowState_ActiveEditorComponent], LastSessionWindowState.ActiveEditorComponent);
+		auto memberTryIVec4 = [](Json::WriterEx& writer, std::string_view keyX, std::string_view keyY, std::string_view keyW, std::string_view keyH, std::optional<ivec4> value)
+		{
+			if (value.has_value()) { writer.MemberI32(keyX, value->x); writer.MemberI32(keyY, value->y); writer.MemberI32(keyW, value->z); writer.MemberI32(keyH, value->w); }
+			else { writer.MemberNull(keyX); writer.MemberNull(keyY); writer.MemberNull(keyW); writer.MemberNull(keyH); }
+		};
 
-		json& exportOptionsJson = rootJson[AppIDs::LastPVScriptExportOptions];
-		JsonTrySetI32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_ExportFormatIndex], LastPVScriptExportOptions.ExportFormatIndex);
-		JsonTrySetI32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_PVID], LastPVScriptExportOptions.PVID);
-		JsonTrySetStr(exportOptionsJson[AppIDs::LastPVScriptExportOptions_RootDirectory], LastPVScriptExportOptions.RootDirectory);
-		JsonTrySetStr(exportOptionsJson[AppIDs::LastPVScriptExportOptions_MDataID], LastPVScriptExportOptions.MDataID);
-		JsonTrySetF32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_BackgroundDim], LastPVScriptExportOptions.BackgroundDim);
-		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_MergeWithExistingMData], LastPVScriptExportOptions.MergeWithExistingMData);
-		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_CreateSprSelPV], LastPVScriptExportOptions.CreateSprSelPV);
-		JsonTrySetBool(exportOptionsJson[AppIDs::LastPVScriptExportOptions_AddDummyMovieReference], LastPVScriptExportOptions.AddDummyMovieReference);
-		JsonTrySetF32(exportOptionsJson[AppIDs::LastPVScriptExportOptions_VorbisVBRQuality], LastPVScriptExportOptions.VorbisVBRQuality);
+		Json::WriteBuffer writeBuffer {};
+		Json::WriterEx writer { writeBuffer };
+		writeBuffer.Reserve(0x1000);
 
-		json& recentFilesJson = rootJson[AppIDs::RecentFiles];
-		json& chartFilesJson = recentFilesJson[AppIDs::RecentFiles_ChartFiles];
-		chartFilesJson = json::array();
-		std::for_each(RecentFiles.ChartFiles.View().rbegin(), RecentFiles.ChartFiles.View().rend(), [&](auto& path) { chartFilesJson.emplace_back(path); });
+		writer.ObjectBegin();
+		{
+			writer.MemberStr(IDs::FileVersion, CurrentVersion.ToString());
 
-		IO::SaveJson(filePath, rootJson);
+			writer.MemberObjectBegin(AppIDs::LastSessionWindowState);
+			{
+				memberTryIVec4(writer,
+					AppIDs::LastSessionWindowState_RestoreRegionX, AppIDs::LastSessionWindowState_RestoreRegionY,
+					AppIDs::LastSessionWindowState_RestoreRegionW, AppIDs::LastSessionWindowState_RestoreRegionH,
+					LastSessionWindowState.RestoreRegion);
+
+				memberTryIVec2(writer,
+					AppIDs::LastSessionWindowState_PositionX, AppIDs::LastSessionWindowState_PositionY,
+					LastSessionWindowState.Position);
+
+				memberTryIVec2(writer,
+					AppIDs::LastSessionWindowState_SizeX, AppIDs::LastSessionWindowState_SizeY,
+					LastSessionWindowState.Size);
+
+				writer.MemberTryBool(AppIDs::LastSessionWindowState_IsFullscreen, LastSessionWindowState.IsFullscreen);
+				writer.MemberTryBool(AppIDs::LastSessionWindowState_IsMaximized, LastSessionWindowState.IsMaximized);
+				writer.MemberTryI32(AppIDs::LastSessionWindowState_SwapInterval, LastSessionWindowState.SwapInterval);
+				writer.MemberTryStr(AppIDs::LastSessionWindowState_ActiveEditorComponent, LastSessionWindowState.ActiveEditorComponent);
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(AppIDs::LastPVScriptExportOptions);
+			{
+				writer.MemberTryI32(AppIDs::LastPVScriptExportOptions_ExportFormatIndex, LastPVScriptExportOptions.ExportFormatIndex);
+				writer.MemberTryI32(AppIDs::LastPVScriptExportOptions_PVID, LastPVScriptExportOptions.PVID);
+				writer.MemberTryStr(AppIDs::LastPVScriptExportOptions_RootDirectory, LastPVScriptExportOptions.RootDirectory);
+				writer.MemberTryStr(AppIDs::LastPVScriptExportOptions_MDataID, LastPVScriptExportOptions.MDataID);
+				writer.MemberTryF32(AppIDs::LastPVScriptExportOptions_BackgroundDim, LastPVScriptExportOptions.BackgroundDim);
+				writer.MemberTryBool(AppIDs::LastPVScriptExportOptions_MergeWithExistingMData, LastPVScriptExportOptions.MergeWithExistingMData);
+				writer.MemberTryBool(AppIDs::LastPVScriptExportOptions_CreateSprSelPV, LastPVScriptExportOptions.CreateSprSelPV);
+				writer.MemberTryBool(AppIDs::LastPVScriptExportOptions_AddDummyMovieReference, LastPVScriptExportOptions.AddDummyMovieReference);
+				writer.MemberTryF32(AppIDs::LastPVScriptExportOptions_VorbisVBRQuality, LastPVScriptExportOptions.VorbisVBRQuality);
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(AppIDs::RecentFiles);
+			{
+				writer.MemberArrayBegin(AppIDs::RecentFiles_ChartFiles);
+				{
+					std::for_each(RecentFiles.ChartFiles.View().rbegin(), RecentFiles.ChartFiles.View().rend(), [&](auto& path) { writer.Str(path); });
+				}
+				writer.MemberArrayEnd();
+			}
+			writer.MemberObjectEnd();
+		}
+		writer.ObjectEnd();
+
+		const auto formattedOutputJson = std::string_view(writeBuffer.GetString(), writeBuffer.GetLength());
+		IO::File::WriteAllText(filePath, formattedOutputJson);
 	}
 
 	void ComfyStudioAppSettings::RestoreDefault()
@@ -309,135 +381,124 @@ namespace Comfy::Studio
 			};
 		}
 
-		TargetProperties JsonTryGetTargetProperties(const json& j)
+		TargetProperties JsonTryGetTargetProperties(const Json::Value& j)
 		{
 			TargetProperties result;
-			result.Position.x = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_PositionX)).value_or(0.0f);
-			result.Position.y = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_PositionY)).value_or(0.0f);
-			result.Angle = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Angle)).value_or(0.0f);
-			result.Frequency = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Frequency)).value_or(0.0f);
-			result.Amplitude = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Amplitude)).value_or(0.0f);
-			result.Distance = JsonTryGetF32(JsonFind(j, IDs::TargetProperties_Distance)).value_or(0.0f);
+			result.Position.x = Json::TryGetF32(Json::Find(j, IDs::TargetProperties_PositionX)).value_or(0.0f);
+			result.Position.y = Json::TryGetF32(Json::Find(j, IDs::TargetProperties_PositionY)).value_or(0.0f);
+			result.Angle = Json::TryGetF32(Json::Find(j, IDs::TargetProperties_Angle)).value_or(0.0f);
+			result.Frequency = Json::TryGetF32(Json::Find(j, IDs::TargetProperties_Frequency)).value_or(0.0f);
+			result.Amplitude = Json::TryGetF32(Json::Find(j, IDs::TargetProperties_Amplitude)).value_or(0.0f);
+			result.Distance = Json::TryGetF32(Json::Find(j, IDs::TargetProperties_Distance)).value_or(0.0f);
 			return result;
 		}
-
-		void JsonSetTargetProperties(json& j, const TargetProperties& v)
-		{
-			j[IDs::TargetProperties_PositionX] = v.Position.x;
-			j[IDs::TargetProperties_PositionY] = v.Position.y;
-			j[IDs::TargetProperties_Angle] = v.Angle;
-			j[IDs::TargetProperties_Frequency] = v.Frequency;
-			j[IDs::TargetProperties_Amplitude] = v.Amplitude;
-			j[IDs::TargetProperties_Distance] = v.Distance;
-		}
-
 	}
 
 	namespace UserIDs
 	{
-		const std::string System = "system";
-		const std::string System_Video = "video";
+		constexpr std::string_view System = "system";
+		constexpr std::string_view System_Video = "video";
 
-		const std::string System_Audio = "audio";
-		const std::string System_Audio_SongVolume = "song_volume";
-		const std::string System_Audio_ButtonSoundVolume = "button_sound_volume";
-		const std::string System_Audio_SoundEffectVolume = "sound_effect_volume";
-		const std::string System_Audio_MetronomeVolume = "metronome_volume";
-		const std::string System_Audio_OpenDeviceOnStartup = "open_device_on_startup";
-		const std::string System_Audio_CloseDeviceOnIdleFocusLoss = "close_device_on_idle_focus_loss";
-		const std::string System_Audio_RequestExclusiveDeviceAccess = "request_exclusive_device_access";
+		constexpr std::string_view System_Audio = "audio";
+		constexpr std::string_view System_Audio_SongVolume = "song_volume";
+		constexpr std::string_view System_Audio_ButtonSoundVolume = "button_sound_volume";
+		constexpr std::string_view System_Audio_SoundEffectVolume = "sound_effect_volume";
+		constexpr std::string_view System_Audio_MetronomeVolume = "metronome_volume";
+		constexpr std::string_view System_Audio_OpenDeviceOnStartup = "open_device_on_startup";
+		constexpr std::string_view System_Audio_CloseDeviceOnIdleFocusLoss = "close_device_on_idle_focus_loss";
+		constexpr std::string_view System_Audio_RequestExclusiveDeviceAccess = "request_exclusive_device_access";
 
-		const std::string System_Gui = "gui";
-		const std::string System_Gui_ShowTestMenu = "show_test_menu";
-		const std::string System_Gui_AntiAliasedLines = "anti_aliased_lines";
-		const std::string System_Gui_AntiAliasedFill = "anti_aliased_fill";
-		const std::string System_Gui_TargetDistanceGuideCircleSegments = "target_distance_guide_circle_segments";
-		const std::string System_Gui_TargetDistanceGuideMaxCount = "target_distance_guide_max_count";
-		const std::string System_Gui_TargetButtonPathCurveSegments = "target_button_path_curve_segments";
-		const std::string System_Gui_TargetButtonPathMaxCount = "target_button_path_max_count";
+		constexpr std::string_view System_Gui = "gui";
+		constexpr std::string_view System_Gui_ShowTestMenu = "show_test_menu";
+		constexpr std::string_view System_Gui_AntiAliasedLines = "anti_aliased_lines";
+		constexpr std::string_view System_Gui_AntiAliasedFill = "anti_aliased_fill";
+		constexpr std::string_view System_Gui_TargetDistanceGuideCircleSegments = "target_distance_guide_circle_segments";
+		constexpr std::string_view System_Gui_TargetDistanceGuideMaxCount = "target_distance_guide_max_count";
+		constexpr std::string_view System_Gui_TargetButtonPathCurveSegments = "target_button_path_curve_segments";
+		constexpr std::string_view System_Gui_TargetButtonPathMaxCount = "target_button_path_max_count";
 
-		const std::string Input = "input";
-		const std::string Input_ControllerLayoutMappings = "controller_layout_mappings";
-		const std::string Input_Bindings = "bindings";
-		const std::string Input_PlaytestBindings = "playtest_bindings";
+		constexpr std::string_view Input = "input";
+		constexpr std::string_view Input_ControllerLayoutMappings = "controller_layout_mappings";
+		constexpr std::string_view Input_Bindings = "bindings";
+		constexpr std::string_view Input_PlaytestBindings = "playtest_bindings";
 
-		const std::string TargetPreview = "target_preview";
-		const std::string TargetPreview_ShowButtons = "show_buttons";
-		const std::string TargetPreview_ShowGrid = "show_grid";
-		const std::string TargetPreview_ShowHoldInfo = "show_hold_info";
-		const std::string TargetPreview_ShowBackgroundCheckerboard = "show_background_checkerboard";
-		const std::string TargetPreview_BackgroundDim = "background_dim";
-		const std::string TargetPreview_PostHitLingerDurationTicks = "post_hit_linger_duration_ticks";
-		const std::string TargetPreview_DisplayPracticeBackground = "display_practice_background";
+		constexpr std::string_view TargetPreview = "target_preview";
+		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
+		constexpr std::string_view TargetPreview_ShowGrid = "show_grid";
+		constexpr std::string_view TargetPreview_ShowHoldInfo = "show_hold_info";
+		constexpr std::string_view TargetPreview_ShowBackgroundCheckerboard = "show_background_checkerboard";
+		constexpr std::string_view TargetPreview_BackgroundDim = "background_dim";
+		constexpr std::string_view TargetPreview_PostHitLingerDurationTicks = "post_hit_linger_duration_ticks";
+		constexpr std::string_view TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
-		const std::string PositionTool = "position_tool";
-		const std::string PositionTool_ShowDistanceGuides = "show_distance_guides";
-		const std::string PositionTool_ShowTargetGrabTooltip = "show_target_grab_tooltip";
-		const std::string PositionTool_UseAxisSnapGuides = "use_axis_snap_guides";
-		const std::string PositionTool_AxisSnapGuideDistanceThreshold = "axis_snap_guide_distance_threshold";
-		const std::string PositionTool_PositionMouseSnap = "position_mouse_snap";
-		const std::string PositionTool_PositionMouseSnapRough = "position_mouse_snap_rough";
-		const std::string PositionTool_PositionMouseSnapPrecise = "position_mouse_snap_precise";
-		const std::string PositionTool_PositionKeyMoveStep = "position_key_move_step";
-		const std::string PositionTool_PositionKeyMoveStepRough = "position_key_move_step_rough";
-		const std::string PositionTool_PositionKeyMoveStepPrecise = "position_key_move_step_precise";
-		const std::string PositionTool_MouseRowCenterDistanceThreshold = "mouse_row_center_distance_threshold";
-		const std::string PositionTool_PositionInterpolationCommandSnap = "position_interpolation_command_snap";
-		const std::string PositionTool_DiagonalMouseRowLayouts = "diagonal_mouse_row_layouts";
-		const std::string PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX = "per_beat_diagonal_spacing_x";
-		const std::string PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY = "per_beat_diagonal_spacing_y";
-		const std::string PositionTool_DiagonalMouseRowLayouts_DisplayName = "display_name";
+		constexpr std::string_view PositionTool = "position_tool";
+		constexpr std::string_view PositionTool_ShowDistanceGuides = "show_distance_guides";
+		constexpr std::string_view PositionTool_ShowTargetGrabTooltip = "show_target_grab_tooltip";
+		constexpr std::string_view PositionTool_UseAxisSnapGuides = "use_axis_snap_guides";
+		constexpr std::string_view PositionTool_AxisSnapGuideDistanceThreshold = "axis_snap_guide_distance_threshold";
+		constexpr std::string_view PositionTool_PositionMouseSnap = "position_mouse_snap";
+		constexpr std::string_view PositionTool_PositionMouseSnapRough = "position_mouse_snap_rough";
+		constexpr std::string_view PositionTool_PositionMouseSnapPrecise = "position_mouse_snap_precise";
+		constexpr std::string_view PositionTool_PositionKeyMoveStep = "position_key_move_step";
+		constexpr std::string_view PositionTool_PositionKeyMoveStepRough = "position_key_move_step_rough";
+		constexpr std::string_view PositionTool_PositionKeyMoveStepPrecise = "position_key_move_step_precise";
+		constexpr std::string_view PositionTool_MouseRowCenterDistanceThreshold = "mouse_row_center_distance_threshold";
+		constexpr std::string_view PositionTool_PositionInterpolationCommandSnap = "position_interpolation_command_snap";
+		constexpr std::string_view PositionTool_DiagonalMouseRowLayouts = "diagonal_mouse_row_layouts";
+		constexpr std::string_view PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX = "per_beat_diagonal_spacing_x";
+		constexpr std::string_view PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY = "per_beat_diagonal_spacing_y";
+		constexpr std::string_view PositionTool_DiagonalMouseRowLayouts_DisplayName = "display_name";
 
-		const std::string PathTool = "path_tool";
-		const std::string PathTool_AngleMouseSnap = "angle_mouse_snap";
-		const std::string PathTool_AngleMouseSnapRough = "angle_mouse_snap_rough";
-		const std::string PathTool_AngleMouseSnapPrecise = "angle_mouse_snap_precise";
-		const std::string PathTool_AngleMouseScrollDirection = "angle_mouse_scroll_direction";
-		const std::string PathTool_AngleMouseScrollStep = "angle_mouse_scroll_step";
-		const std::string PathTool_AngleMouseScrollRough = "angle_mouse_scroll_step_rough";
-		const std::string PathTool_AngleMouseScrollPrecise = "angle_mouse_scroll_step_precise";
-		const std::string PathTool_AngleMouseMovementDistanceThreshold = "angle_mouse_movement_distance_threshold";
-		const std::string PathTool_AngleMouseTargetCenterDistanceThreshold = "angle_mouse_target_center_distance_threshold";
+		constexpr std::string_view PathTool = "path_tool";
+		constexpr std::string_view PathTool_AngleMouseSnap = "angle_mouse_snap";
+		constexpr std::string_view PathTool_AngleMouseSnapRough = "angle_mouse_snap_rough";
+		constexpr std::string_view PathTool_AngleMouseSnapPrecise = "angle_mouse_snap_precise";
+		constexpr std::string_view PathTool_AngleMouseScrollDirection = "angle_mouse_scroll_direction";
+		constexpr std::string_view PathTool_AngleMouseScrollStep = "angle_mouse_scroll_step";
+		constexpr std::string_view PathTool_AngleMouseScrollRough = "angle_mouse_scroll_step_rough";
+		constexpr std::string_view PathTool_AngleMouseScrollPrecise = "angle_mouse_scroll_step_precise";
+		constexpr std::string_view PathTool_AngleMouseMovementDistanceThreshold = "angle_mouse_movement_distance_threshold";
+		constexpr std::string_view PathTool_AngleMouseTargetCenterDistanceThreshold = "angle_mouse_target_center_distance_threshold";
 
-		const std::string TargetPreset = "target_preset";
-		const std::string TargetPreset_StaticSyncPresets = "static_sync_presets";
-		const std::string TargetPreset_StaticSyncPresets_Name = "name";
-		const std::string TargetPreset_StaticSyncPresets_Targets = "targets";
-		const std::string TargetPreset_StaticSyncPresets_Targets_ButtonType = "button_type";
-		const std::string TargetPreset_StaticSyncPresets_Targets_Properties = "properties";
+		constexpr std::string_view TargetPreset = "target_preset";
+		constexpr std::string_view TargetPreset_StaticSyncPresets = "static_sync_presets";
+		constexpr std::string_view TargetPreset_StaticSyncPresets_Name = "name";
+		constexpr std::string_view TargetPreset_StaticSyncPresets_Targets = "targets";
+		constexpr std::string_view TargetPreset_StaticSyncPresets_Targets_ButtonType = "button_type";
+		constexpr std::string_view TargetPreset_StaticSyncPresets_Targets_Properties = "properties";
 
-		const std::string TargetPreset_SequencePresets = "sequence_presets";
-		const std::string TargetPreset_SequencePresets_GuiButtonType = "gui_button_type";
-		const std::string TargetPreset_SequencePresets_Name = "name";
-		const std::string TargetPreset_SequencePresets_Circle = "circle";
-		const std::string TargetPreset_SequencePresets_Circle_DurationTicks = "duration_ticks";
-		const std::string TargetPreset_SequencePresets_Circle_Radius = "radius";
-		const std::string TargetPreset_SequencePresets_Circle_Direction = "direction";
-		const std::string TargetPreset_SequencePresets_Circle_CenterX = "center_x";
-		const std::string TargetPreset_SequencePresets_Circle_CenterY = "center_y";
-		const std::string TargetPreset_SequencePresets_BezierPath = "bezier_path";
+		constexpr std::string_view TargetPreset_SequencePresets = "sequence_presets";
+		constexpr std::string_view TargetPreset_SequencePresets_GuiButtonType = "gui_button_type";
+		constexpr std::string_view TargetPreset_SequencePresets_Name = "name";
+		constexpr std::string_view TargetPreset_SequencePresets_Circle = "circle";
+		constexpr std::string_view TargetPreset_SequencePresets_Circle_DurationTicks = "duration_ticks";
+		constexpr std::string_view TargetPreset_SequencePresets_Circle_Radius = "radius";
+		constexpr std::string_view TargetPreset_SequencePresets_Circle_Direction = "direction";
+		constexpr std::string_view TargetPreset_SequencePresets_Circle_CenterX = "center_x";
+		constexpr std::string_view TargetPreset_SequencePresets_Circle_CenterY = "center_y";
+		constexpr std::string_view TargetPreset_SequencePresets_BezierPath = "bezier_path";
 
-		const std::string TargetPreset_InspectorDropdown = "inspector_dropdown";
-		const std::string TargetPreset_InspectorDropdown_PositionsX = "positions_x";
-		const std::string TargetPreset_InspectorDropdown_PositionsY = "positions_y";
-		const std::string TargetPreset_InspectorDropdown_Angles = "angles";
-		const std::string TargetPreset_InspectorDropdown_Frequencies = "frequencies";
-		const std::string TargetPreset_InspectorDropdown_Amplitudes = "amplitudes";
-		const std::string TargetPreset_InspectorDropdown_Distances = "distances";
+		constexpr std::string_view TargetPreset_InspectorDropdown = "inspector_dropdown";
+		constexpr std::string_view TargetPreset_InspectorDropdown_PositionsX = "positions_x";
+		constexpr std::string_view TargetPreset_InspectorDropdown_PositionsY = "positions_y";
+		constexpr std::string_view TargetPreset_InspectorDropdown_Angles = "angles";
+		constexpr std::string_view TargetPreset_InspectorDropdown_Frequencies = "frequencies";
+		constexpr std::string_view TargetPreset_InspectorDropdown_Amplitudes = "amplitudes";
+		constexpr std::string_view TargetPreset_InspectorDropdown_Distances = "distances";
 
-		const std::string ChartProperties = "chart_properties";
-		const std::string ChartProperties_ChartCreatorDefaultName = "chart_creator_default_name";
+		constexpr std::string_view ChartProperties = "chart_properties";
+		constexpr std::string_view ChartProperties_ChartCreatorDefaultName = "chart_creator_default_name";
 
-		const std::string BPMCalculator = "bpm_calculator";
-		const std::string BPMCalculator_AutoResetEnabled = "auto_reset_enabled";
-		const std::string BPMCalculator_ApplyToTempoMap = "apply_to_tempo_map";
-		const std::string BPMCalculator_TapSoundType = "tap_sound_type";
+		constexpr std::string_view BPMCalculator = "bpm_calculator";
+		constexpr std::string_view BPMCalculator_AutoResetEnabled = "auto_reset_enabled";
+		constexpr std::string_view BPMCalculator_ApplyToTempoMap = "apply_to_tempo_map";
+		constexpr std::string_view BPMCalculator_TapSoundType = "tap_sound_type";
 
-		const std::string Playtest = "playtest";
-		const std::string Playtest_EnterFullscreenOnMaximizedStart = "enter_fullscreen_on_maximized_start";
-		const std::string Playtest_AutoHideCursor = "auto_hide_cursor";
-		const std::string Playtest_SongOffsetSecWasapiShared = "song_offset_sec_wasapi_shared";
-		const std::string Playtest_SongOffsetSecWasapiExclusive = "song_offset_sec_wasapi_exclusive";
+		constexpr std::string_view Playtest = "playtest";
+		constexpr std::string_view Playtest_EnterFullscreenOnMaximizedStart = "enter_fullscreen_on_maximized_start";
+		constexpr std::string_view Playtest_AutoHideCursor = "auto_hide_cursor";
+		constexpr std::string_view Playtest_SongOffsetSecWasapiShared = "song_offset_sec_wasapi_shared";
+		constexpr std::string_view Playtest_SongOffsetSecWasapiExclusive = "song_offset_sec_wasapi_exclusive";
 
 		template <typename Func>
 		void ForEachMultiBindingWithID(/* const */ ComfyStudioUserSettings& userData, Func func)
@@ -537,11 +598,25 @@ namespace Comfy::Studio
 
 	bool ComfyStudioUserSettings::LoadFromFile(std::string_view filePath)
 	{
-		const std::optional<json> loadedJson = IO::LoadJson(filePath);
-		if (!loadedJson.has_value())
+		std::string insituFileContent = IO::File::ReadAllText(filePath);
+		if (insituFileContent.empty())
 			return false;
 
-		const json& rootJson = loadedJson.value();
+		using namespace Json;
+		Document rootJson;
+		rootJson.ParseInsitu(insituFileContent.data());
+
+		if (rootJson.HasParseError())
+		{
+			// TODO: Proper error handling
+			const auto parseError = rootJson.GetParseError();
+			assert(false);
+			return false;
+		}
+
+		if (!rootJson.IsObject())
+			return false;
+
 		const auto fileVersion = TryGetJsonSettingsFileVersionFromRoot(rootJson).value_or(SemanticVersion {});
 		if (fileVersion.Major > CurrentVersion.Major)
 		{
@@ -553,62 +628,62 @@ namespace Comfy::Studio
 		//		 To compensate all parser code needs to clear out all vectors to avoid duplicate entries and only assign to trivial types if the corresponding json entry was found
 		RestoreDefault();
 
-		if (const json* systemJson = JsonFind(rootJson, UserIDs::System))
+		if (const Value* systemJson = Find(rootJson, UserIDs::System))
 		{
-			if (const json* videoJson = JsonFind(*systemJson, UserIDs::System_Video))
+			if (const Value* videoJson = Find(*systemJson, UserIDs::System_Video))
 			{
 			}
 
-			if (const json* audioJson = JsonFind(*systemJson, UserIDs::System_Audio))
+			if (const Value* audioJson = Find(*systemJson, UserIDs::System_Audio))
 			{
-				JsonTryAssign(System.Audio.SongVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SongVolume)));
-				JsonTryAssign(System.Audio.ButtonSoundVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_ButtonSoundVolume)));
-				JsonTryAssign(System.Audio.SoundEffectVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_SoundEffectVolume)));
-				JsonTryAssign(System.Audio.MetronomeVolume, JsonTryGetF32(JsonFind(*audioJson, UserIDs::System_Audio_MetronomeVolume)));
-				JsonTryAssign(System.Audio.OpenDeviceOnStartup, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_OpenDeviceOnStartup)));
-				JsonTryAssign(System.Audio.CloseDeviceOnIdleFocusLoss, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss)));
-				JsonTryAssign(System.Audio.RequestExclusiveDeviceAccess, JsonTryGetBool(JsonFind(*audioJson, UserIDs::System_Audio_RequestExclusiveDeviceAccess)));
+				TryAssign(System.Audio.SongVolume, TryGetF32(Find(*audioJson, UserIDs::System_Audio_SongVolume)));
+				TryAssign(System.Audio.ButtonSoundVolume, TryGetF32(Find(*audioJson, UserIDs::System_Audio_ButtonSoundVolume)));
+				TryAssign(System.Audio.SoundEffectVolume, TryGetF32(Find(*audioJson, UserIDs::System_Audio_SoundEffectVolume)));
+				TryAssign(System.Audio.MetronomeVolume, TryGetF32(Find(*audioJson, UserIDs::System_Audio_MetronomeVolume)));
+				TryAssign(System.Audio.OpenDeviceOnStartup, TryGetBool(Find(*audioJson, UserIDs::System_Audio_OpenDeviceOnStartup)));
+				TryAssign(System.Audio.CloseDeviceOnIdleFocusLoss, TryGetBool(Find(*audioJson, UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss)));
+				TryAssign(System.Audio.RequestExclusiveDeviceAccess, TryGetBool(Find(*audioJson, UserIDs::System_Audio_RequestExclusiveDeviceAccess)));
 			}
 
-			if (const json* guiJson = JsonFind(*systemJson, UserIDs::System_Gui))
+			if (const Value* guiJson = Find(*systemJson, UserIDs::System_Gui))
 			{
-				JsonTryAssign(System.Gui.ShowTestMenu, JsonTryGetBool(JsonFind(*guiJson, UserIDs::System_Gui_ShowTestMenu)));
-				JsonTryAssign(System.Gui.AntiAliasedLines, JsonTryGetBool(JsonFind(*guiJson, UserIDs::System_Gui_AntiAliasedLines)));
-				JsonTryAssign(System.Gui.AntiAliasedFill, JsonTryGetBool(JsonFind(*guiJson, UserIDs::System_Gui_AntiAliasedFill)));
-				JsonTryAssign(System.Gui.TargetDistanceGuideCircleSegments, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetDistanceGuideCircleSegments)));
-				JsonTryAssign(System.Gui.TargetDistanceGuideMaxCount, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetDistanceGuideMaxCount)));
-				JsonTryAssign(System.Gui.TargetButtonPathCurveSegments, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetButtonPathCurveSegments)));
-				JsonTryAssign(System.Gui.TargetButtonPathMaxCount, JsonTryGetI32(JsonFind(*guiJson, UserIDs::System_Gui_TargetButtonPathMaxCount)));
+				TryAssign(System.Gui.ShowTestMenu, TryGetBool(Find(*guiJson, UserIDs::System_Gui_ShowTestMenu)));
+				TryAssign(System.Gui.AntiAliasedLines, TryGetBool(Find(*guiJson, UserIDs::System_Gui_AntiAliasedLines)));
+				TryAssign(System.Gui.AntiAliasedFill, TryGetBool(Find(*guiJson, UserIDs::System_Gui_AntiAliasedFill)));
+				TryAssign(System.Gui.TargetDistanceGuideCircleSegments, TryGetI32(Find(*guiJson, UserIDs::System_Gui_TargetDistanceGuideCircleSegments)));
+				TryAssign(System.Gui.TargetDistanceGuideMaxCount, TryGetI32(Find(*guiJson, UserIDs::System_Gui_TargetDistanceGuideMaxCount)));
+				TryAssign(System.Gui.TargetButtonPathCurveSegments, TryGetI32(Find(*guiJson, UserIDs::System_Gui_TargetButtonPathCurveSegments)));
+				TryAssign(System.Gui.TargetButtonPathMaxCount, TryGetI32(Find(*guiJson, UserIDs::System_Gui_TargetButtonPathMaxCount)));
 			}
 		}
 
-		if (const json* inputJson = JsonFind(rootJson, UserIDs::Input))
+		if (const Value* inputJson = Find(rootJson, UserIDs::Input))
 		{
-			if (const json* layoutMappingsJson = JsonFind(*inputJson, UserIDs::Input_ControllerLayoutMappings))
+			if (const Value* layoutMappingsJson = Find(*inputJson, UserIDs::Input_ControllerLayoutMappings); layoutMappingsJson && layoutMappingsJson->IsArray())
 			{
 				Input.ControllerLayoutMappings.clear();
-				Input.ControllerLayoutMappings.reserve(layoutMappingsJson->size());
-				for (const json& layoutMappingJson : *layoutMappingsJson)
+				Input.ControllerLayoutMappings.reserve(layoutMappingsJson->Size());
+				for (const Value& layoutMappingJson : layoutMappingsJson->GetArray())
 				{
-					auto layoutMapping = Input::ControllerLayoutMappingFromStorageString(JsonTryGetStrView(layoutMappingJson).value_or(""));
+					auto layoutMapping = Input::ControllerLayoutMappingFromStorageString(TryGetStrView(&layoutMappingJson).value_or(""));
 					if (Input::IsValidControllerID(layoutMapping.ProductID))
 						Input.ControllerLayoutMappings.push_back(std::move(layoutMapping));
 				}
 			}
 
-			if (const json* bindingsJson = JsonFind(*inputJson, UserIDs::Input_Bindings))
+			if (const Value* bindingsJson = Find(*inputJson, UserIDs::Input_Bindings))
 			{
-				UserIDs::ForEachMultiBindingWithID(*this, [&](Input::MultiBinding& multiBinding, auto&& multiBindingID)
+				UserIDs::ForEachMultiBindingWithID(*this, [&](Input::MultiBinding& multiBinding, std::string_view multiBindingID)
 				{
-					if (const json* multiBindingJson = JsonFind(*bindingsJson, multiBindingID))
+					if (const Value* multiBindingJson = Find(*bindingsJson, multiBindingID); multiBindingJson && multiBindingJson->IsArray())
 					{
 						multiBinding.BindingCount = 0;
-						for (const json& bindingJson : *multiBindingJson)
+						for (const Value& bindingJson : multiBindingJson->GetArray())
 						{
-							if (multiBinding.BindingCount < multiBinding.Bindings.size() && bindingJson.is_string())
+							if (multiBinding.BindingCount < multiBinding.Bindings.size() && bindingJson.IsString())
 							{
 								auto& binding = multiBinding.Bindings[multiBinding.BindingCount++];
-								binding = Input::BindingFromStorageString(JsonTryGetStrView(bindingJson).value_or(""));
+								binding = Input::BindingFromStorageString(TryGetStrView(&bindingJson).value_or(""));
 
 								if (binding.IsEmpty())
 									multiBinding.BindingCount--;
@@ -618,92 +693,92 @@ namespace Comfy::Studio
 				});
 			}
 
-			if (const json* playtestBindingsJson = JsonFind(*inputJson, UserIDs::Input_PlaytestBindings))
+			if (const Value* playtestBindingsJson = Find(*inputJson, UserIDs::Input_PlaytestBindings); playtestBindingsJson && playtestBindingsJson->IsArray())
 			{
 				Input.PlaytestBindings.clear();
-				Input.PlaytestBindings.reserve(playtestBindingsJson->size());
-				for (const json& playtestBindingJson : *playtestBindingsJson)
+				Input.PlaytestBindings.reserve(playtestBindingsJson->Size());
+				for (const Value& playtestBindingJson : playtestBindingsJson->GetArray())
 				{
-					if (auto playtestBinding = PlayTestBindingFromStorageString(JsonTryGetStrView(playtestBindingJson).value_or("")); !playtestBinding.IsEmpty())
+					if (auto playtestBinding = PlayTestBindingFromStorageString(TryGetStrView(&playtestBindingJson).value_or("")); !playtestBinding.IsEmpty())
 						Input.PlaytestBindings.push_back(std::move(playtestBinding));
 				}
 			}
 		}
 
-		if (const json* targetPreviewJson = JsonFind(rootJson, UserIDs::TargetPreview))
+		if (const Value* targetPreviewJson = Find(rootJson, UserIDs::TargetPreview))
 		{
-			JsonTryAssign(TargetPreview.ShowButtons, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)));
-			JsonTryAssign(TargetPreview.ShowGrid, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)));
-			JsonTryAssign(TargetPreview.ShowHoldInfo, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowHoldInfo)));
-			JsonTryAssign(TargetPreview.ShowBackgroundCheckerboard, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)));
-			JsonTryAssign(TargetPreview.BackgroundDim, JsonTryGetF32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDim)));
-			if (auto v = JsonTryGetI32(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)); v.has_value())
+			TryAssign(TargetPreview.ShowButtons, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)));
+			TryAssign(TargetPreview.ShowGrid, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)));
+			TryAssign(TargetPreview.ShowHoldInfo, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowHoldInfo)));
+			TryAssign(TargetPreview.ShowBackgroundCheckerboard, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)));
+			TryAssign(TargetPreview.BackgroundDim, TryGetF32(Find(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDim)));
+			if (auto v = TryGetI32(Find(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)); v.has_value())
 				TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v.value());
-			JsonTryAssign(TargetPreview.DisplayPracticeBackground, JsonTryGetBool(JsonFind(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)));
+			TryAssign(TargetPreview.DisplayPracticeBackground, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)));
 		}
 
-		if (const json* positionToolJson = JsonFind(rootJson, UserIDs::PositionTool))
+		if (const Value* positionToolJson = Find(rootJson, UserIDs::PositionTool))
 		{
-			JsonTryAssign(PositionTool.ShowDistanceGuides, JsonTryGetBool(JsonFind(*positionToolJson, UserIDs::PositionTool_ShowDistanceGuides)));
-			JsonTryAssign(PositionTool.ShowTargetGrabTooltip, JsonTryGetBool(JsonFind(*positionToolJson, UserIDs::PositionTool_ShowTargetGrabTooltip)));
-			JsonTryAssign(PositionTool.UseAxisSnapGuides, JsonTryGetBool(JsonFind(*positionToolJson, UserIDs::PositionTool_UseAxisSnapGuides)));
-			JsonTryAssign(PositionTool.AxisSnapGuideDistanceThreshold, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_AxisSnapGuideDistanceThreshold)));
-			JsonTryAssign(PositionTool.PositionMouseSnap, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnap)));
-			JsonTryAssign(PositionTool.PositionMouseSnapRough, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapRough)));
-			JsonTryAssign(PositionTool.PositionMouseSnapPrecise, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapPrecise)));
-			JsonTryAssign(PositionTool.PositionKeyMoveStep, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionKeyMoveStep)));
-			JsonTryAssign(PositionTool.PositionKeyMoveStepRough, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionKeyMoveStepRough)));
-			JsonTryAssign(PositionTool.PositionKeyMoveStepPrecise, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionKeyMoveStepPrecise)));
-			JsonTryAssign(PositionTool.MouseRowCenterDistanceThreshold, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_MouseRowCenterDistanceThreshold)));
-			JsonTryAssign(PositionTool.PositionInterpolationCommandSnap, JsonTryGetF32(JsonFind(*positionToolJson, UserIDs::PositionTool_PositionInterpolationCommandSnap)));
-			if (const json* diagonalRowLayoutsJson = JsonFind(*positionToolJson, UserIDs::PositionTool_DiagonalMouseRowLayouts))
+			TryAssign(PositionTool.ShowDistanceGuides, TryGetBool(Find(*positionToolJson, UserIDs::PositionTool_ShowDistanceGuides)));
+			TryAssign(PositionTool.ShowTargetGrabTooltip, TryGetBool(Find(*positionToolJson, UserIDs::PositionTool_ShowTargetGrabTooltip)));
+			TryAssign(PositionTool.UseAxisSnapGuides, TryGetBool(Find(*positionToolJson, UserIDs::PositionTool_UseAxisSnapGuides)));
+			TryAssign(PositionTool.AxisSnapGuideDistanceThreshold, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_AxisSnapGuideDistanceThreshold)));
+			TryAssign(PositionTool.PositionMouseSnap, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionMouseSnap)));
+			TryAssign(PositionTool.PositionMouseSnapRough, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapRough)));
+			TryAssign(PositionTool.PositionMouseSnapPrecise, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapPrecise)));
+			TryAssign(PositionTool.PositionKeyMoveStep, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionKeyMoveStep)));
+			TryAssign(PositionTool.PositionKeyMoveStepRough, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionKeyMoveStepRough)));
+			TryAssign(PositionTool.PositionKeyMoveStepPrecise, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionKeyMoveStepPrecise)));
+			TryAssign(PositionTool.MouseRowCenterDistanceThreshold, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_MouseRowCenterDistanceThreshold)));
+			TryAssign(PositionTool.PositionInterpolationCommandSnap, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionInterpolationCommandSnap)));
+			if (const Value* diagonalRowLayoutsJson = Find(*positionToolJson, UserIDs::PositionTool_DiagonalMouseRowLayouts); diagonalRowLayoutsJson && diagonalRowLayoutsJson->IsArray())
 			{
 				PositionTool.DiagonalMouseRowLayouts.clear();
-				PositionTool.DiagonalMouseRowLayouts.reserve(diagonalRowLayoutsJson->size());
-				for (const json& rowLayoutJson : *diagonalRowLayoutsJson)
+				PositionTool.DiagonalMouseRowLayouts.reserve(diagonalRowLayoutsJson->Size());
+				for (const Value& rowLayoutJson : diagonalRowLayoutsJson->GetArray())
 				{
 					auto& rowLayout = PositionTool.DiagonalMouseRowLayouts.emplace_back();
-					rowLayout.PerBeatDiagonalSpacing.x = JsonTryGetF32(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX)).value_or(0.0f);
-					rowLayout.PerBeatDiagonalSpacing.y = JsonTryGetF32(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY)).value_or(0.0f);
-					rowLayout.DisplayName = std::move(JsonTryGetStr(JsonFind(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName)).value_or(""));
+					rowLayout.PerBeatDiagonalSpacing.x = TryGetF32(Find(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX)).value_or(0.0f);
+					rowLayout.PerBeatDiagonalSpacing.y = TryGetF32(Find(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY)).value_or(0.0f);
+					rowLayout.DisplayName = TryGetStrView(Find(rowLayoutJson, UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName)).value_or("");
 				}
 			}
 		}
 
-		if (const json* pathToolJson = JsonFind(rootJson, UserIDs::PathTool))
+		if (const Value* pathToolJson = Find(rootJson, UserIDs::PathTool))
 		{
-			JsonTryAssign(PathTool.AngleMouseSnap, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseSnap)));
-			JsonTryAssign(PathTool.AngleMouseSnapRough, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseSnapRough)));
-			JsonTryAssign(PathTool.AngleMouseSnapPrecise, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseSnapPrecise)));
-			JsonTryAssign(PathTool.AngleMouseScrollDirection, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollDirection)));
-			JsonTryAssign(PathTool.AngleMouseScrollStep, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollStep)));
-			JsonTryAssign(PathTool.AngleMouseScrollRough, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollRough)));
-			JsonTryAssign(PathTool.AngleMouseScrollPrecise, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseScrollPrecise)));
-			JsonTryAssign(PathTool.AngleMouseMovementDistanceThreshold, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseMovementDistanceThreshold)));
-			JsonTryAssign(PathTool.AngleMouseTargetCenterDistanceThreshold, JsonTryGetF32(JsonFind(*pathToolJson, UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold)));
+			TryAssign(PathTool.AngleMouseSnap, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseSnap)));
+			TryAssign(PathTool.AngleMouseSnapRough, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseSnapRough)));
+			TryAssign(PathTool.AngleMouseSnapPrecise, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseSnapPrecise)));
+			TryAssign(PathTool.AngleMouseScrollDirection, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseScrollDirection)));
+			TryAssign(PathTool.AngleMouseScrollStep, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseScrollStep)));
+			TryAssign(PathTool.AngleMouseScrollRough, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseScrollRough)));
+			TryAssign(PathTool.AngleMouseScrollPrecise, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseScrollPrecise)));
+			TryAssign(PathTool.AngleMouseMovementDistanceThreshold, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseMovementDistanceThreshold)));
+			TryAssign(PathTool.AngleMouseTargetCenterDistanceThreshold, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold)));
 		}
 
-		if (const json* targetPresetJson = JsonFind(rootJson, UserIDs::TargetPreset))
+		if (const Value* targetPresetJson = Find(rootJson, UserIDs::TargetPreset))
 		{
-			if (const json* syncPresetsJson = JsonFind(*targetPresetJson, UserIDs::TargetPreset_StaticSyncPresets))
+			if (const Value* syncPresetsJson = Find(*targetPresetJson, UserIDs::TargetPreset_StaticSyncPresets); syncPresetsJson && syncPresetsJson->IsArray())
 			{
 				TargetPreset.StaticSyncPresets.clear();
-				TargetPreset.StaticSyncPresets.reserve(syncPresetsJson->size());
-				for (const json& syncPresetJson : *syncPresetsJson)
+				TargetPreset.StaticSyncPresets.reserve(syncPresetsJson->Size());
+				for (const Value& syncPresetJson : syncPresetsJson->GetArray())
 				{
 					auto& syncPreset = TargetPreset.StaticSyncPresets.emplace_back();
-					syncPreset.Name = std::move(JsonTryGetStr(JsonFind(syncPresetJson, UserIDs::TargetPreset_StaticSyncPresets_Name)).value_or(""));
+					syncPreset.Name = TryGetStrView(Find(syncPresetJson, UserIDs::TargetPreset_StaticSyncPresets_Name)).value_or("");
 
-					if (const json* targetDataArrayJson = JsonFind(syncPresetJson, UserIDs::TargetPreset_StaticSyncPresets_Targets))
+					if (const Value* targetDataArrayJson = Find(syncPresetJson, UserIDs::TargetPreset_StaticSyncPresets_Targets); targetDataArrayJson && targetDataArrayJson->IsArray())
 					{
-						for (const json& targetDataJson : *targetDataArrayJson)
+						for (const Value& targetDataJson : targetDataArrayJson->GetArray())
 						{
 							if (syncPreset.TargetCount < syncPreset.Targets.size())
 							{
 								auto& targetData = syncPreset.Targets[syncPreset.TargetCount++];
-								targetData.Type = static_cast<ButtonType>(JsonTryGetI32(JsonFind(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType)).value_or(0));
+								targetData.Type = static_cast<ButtonType>(TryGetI32(Find(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType)).value_or(0));
 
-								if (const json* propertiesJson = JsonFind(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties))
+								if (const Value* propertiesJson = Find(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties))
 									targetData.Properties = JsonTryGetTargetProperties(*propertiesJson);
 							}
 						}
@@ -711,26 +786,26 @@ namespace Comfy::Studio
 				}
 			}
 
-			if (const json* sequencePresetsJson = JsonFind(*targetPresetJson, UserIDs::TargetPreset_SequencePresets))
+			if (const Value* sequencePresetsJson = Find(*targetPresetJson, UserIDs::TargetPreset_SequencePresets); sequencePresetsJson && sequencePresetsJson->IsArray())
 			{
 				TargetPreset.SequencePresets.clear();
-				TargetPreset.SequencePresets.reserve(sequencePresetsJson->size());
-				for (const json& sequencePresetJson : *sequencePresetsJson)
+				TargetPreset.SequencePresets.reserve(sequencePresetsJson->Size());
+				for (const Value& sequencePresetJson : sequencePresetsJson->GetArray())
 				{
 					auto& sequencePreset = TargetPreset.SequencePresets.emplace_back();
-					sequencePreset.ButtonType = static_cast<SequencePresetButtonType>(JsonTryGetI32(JsonFind(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_GuiButtonType)).value_or(0));
-					sequencePreset.Name = std::move(JsonTryGetStr(JsonFind(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_Name)).value_or(""));
+					sequencePreset.ButtonType = static_cast<SequencePresetButtonType>(TryGetI32(Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_GuiButtonType)).value_or(0));
+					sequencePreset.Name = TryGetStrView(Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_Name)).value_or("");
 
-					if (const json* circleJson = JsonFind(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_Circle))
+					if (const Value* circleJson = Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_Circle))
 					{
 						sequencePreset.Type = SequencePresetType::Circle;
-						sequencePreset.Circle.Duration = BeatTick::FromTicks(JsonTryGetI32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks)).value_or(0));
-						sequencePreset.Circle.Radius = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_Radius)).value_or(0.0f);
-						sequencePreset.Circle.Direction = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_Direction)).value_or(0.0f);
-						sequencePreset.Circle.Center.x = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_CenterX)).value_or(0.0f);
-						sequencePreset.Circle.Center.y = JsonTryGetF32(JsonFind(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_CenterY)).value_or(0.0f);
+						sequencePreset.Circle.Duration = BeatTick::FromTicks(TryGetI32(Find(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks)).value_or(0));
+						sequencePreset.Circle.Radius = TryGetF32(Find(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_Radius)).value_or(0.0f);
+						sequencePreset.Circle.Direction = TryGetF32(Find(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_Direction)).value_or(0.0f);
+						sequencePreset.Circle.Center.x = TryGetF32(Find(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_CenterX)).value_or(0.0f);
+						sequencePreset.Circle.Center.y = TryGetF32(Find(*circleJson, UserIDs::TargetPreset_SequencePresets_Circle_CenterY)).value_or(0.0f);
 					}
-					else if (const json* bezierPathJson = JsonFind(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_BezierPath))
+					else if (const Value* bezierPathJson = Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_BezierPath))
 					{
 						// TODO: ...
 						sequencePreset.Type = SequencePresetType::BezierPath;
@@ -738,20 +813,20 @@ namespace Comfy::Studio
 				}
 			}
 
-			if (const json* inspectorDropdownJson = JsonFind(*targetPresetJson, UserIDs::TargetPreset_InspectorDropdown))
+			if (const Value* inspectorDropdownJson = Find(*targetPresetJson, UserIDs::TargetPreset_InspectorDropdown))
 			{
 				auto parseVector = [inspectorDropdownJson](auto&& id, auto& outVector)
 				{
-					if (const json* arrayJson = JsonFind(*inspectorDropdownJson, id))
+					if (const Value* arrayJson = Find(*inspectorDropdownJson, id); arrayJson && arrayJson->IsArray())
 					{
 						outVector.clear();
-						outVector.reserve(arrayJson->size());
-						for (const json& itemJson : *arrayJson)
+						outVector.reserve(arrayJson->Size());
+						for (const Value& itemJson : arrayJson->GetArray())
 						{
 							if constexpr (std::is_floating_point_v<typename std::remove_reference_t<decltype(outVector)>::value_type>)
-								outVector.push_back(JsonTryGetF32(itemJson).value_or(0.0f));
+								outVector.push_back(TryGetF32(&itemJson).value_or(0.0f));
 							else
-								outVector.push_back(JsonTryGetI32(itemJson).value_or(0));
+								outVector.push_back(TryGetI32(&itemJson).value_or(0));
 						}
 					}
 				};
@@ -765,26 +840,26 @@ namespace Comfy::Studio
 			}
 		}
 
-		if (const json* chartPropertiesJson = JsonFind(rootJson, UserIDs::ChartProperties))
+		if (const Value* chartPropertiesJson = Find(rootJson, UserIDs::ChartProperties))
 		{
-			JsonTryAssign(ChartProperties.ChartCreatorDefaultName, JsonTryGetStr(JsonFind(*chartPropertiesJson, UserIDs::ChartProperties_ChartCreatorDefaultName)));
+			TryAssign(ChartProperties.ChartCreatorDefaultName, TryGetStrView(Find(*chartPropertiesJson, UserIDs::ChartProperties_ChartCreatorDefaultName)));
 		}
 
-		if (const json* bpmCalculatorJson = JsonFind(rootJson, UserIDs::BPMCalculator))
+		if (const Value* bpmCalculatorJson = Find(rootJson, UserIDs::BPMCalculator))
 		{
-			JsonTryAssign(BPMCalculator.AutoResetEnabled, JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_AutoResetEnabled)));
-			JsonTryAssign(BPMCalculator.ApplyToTempoMap, JsonTryGetBool(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_ApplyToTempoMap)));
-			if (auto v = JsonTryGetI32(JsonFind(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType)); v.has_value())
+			TryAssign(BPMCalculator.AutoResetEnabled, TryGetBool(Find(*bpmCalculatorJson, UserIDs::BPMCalculator_AutoResetEnabled)));
+			TryAssign(BPMCalculator.ApplyToTempoMap, TryGetBool(Find(*bpmCalculatorJson, UserIDs::BPMCalculator_ApplyToTempoMap)));
+			if (auto v = TryGetI32(Find(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType)); v.has_value())
 				BPMCalculator.TapSoundType = static_cast<BPMTapSoundType>(v.value());
 		}
 
-		if (const json* playtestJson = JsonFind(rootJson, UserIDs::Playtest))
+		if (const Value* playtestJson = Find(rootJson, UserIDs::Playtest))
 		{
-			JsonTryAssign(Playtest.EnterFullscreenOnMaximizedStart, JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_EnterFullscreenOnMaximizedStart)));
-			JsonTryAssign(Playtest.AutoHideCursor, JsonTryGetBool(JsonFind(*playtestJson, UserIDs::Playtest_AutoHideCursor)));
-			if (auto v = JsonTryGetF64(JsonFind(*playtestJson, UserIDs::Playtest_SongOffsetSecWasapiShared)); v.has_value())
+			TryAssign(Playtest.EnterFullscreenOnMaximizedStart, TryGetBool(Find(*playtestJson, UserIDs::Playtest_EnterFullscreenOnMaximizedStart)));
+			TryAssign(Playtest.AutoHideCursor, TryGetBool(Find(*playtestJson, UserIDs::Playtest_AutoHideCursor)));
+			if (auto v = TryGetF64(Find(*playtestJson, UserIDs::Playtest_SongOffsetSecWasapiShared)); v.has_value())
 				Playtest.SongOffsetWasapiShared = TimeSpan::FromSeconds(v.value());
-			if (auto v = JsonTryGetF64(JsonFind(*playtestJson, UserIDs::Playtest_SongOffsetSecWasapiExclusive)); v.has_value())
+			if (auto v = TryGetF64(Find(*playtestJson, UserIDs::Playtest_SongOffsetSecWasapiExclusive)); v.has_value())
 				Playtest.SongOffsetWasapiExclusive = TimeSpan::FromSeconds(v.value());
 		}
 
@@ -793,179 +868,253 @@ namespace Comfy::Studio
 
 	void ComfyStudioUserSettings::SaveToFile(std::string_view filePath) const
 	{
-		json rootJson = json::object();
-		SetJsonSettingsFileVersionForRoot(rootJson, CurrentVersion);
-
-		json& systemJson = rootJson[UserIDs::System];
+		auto memberF32Vector = [](Json::WriterEx& writer, std::string_view key, const std::vector<f32>& values)
 		{
-			json& videoJson = systemJson[UserIDs::System_Video];
-			videoJson = json::object();
+			writer.MemberArrayBegin(key);
+			for (const f32 value : values)
+				writer.F32(value);
+			writer.MemberArrayEnd();
+		};
 
-			json& audioJson = systemJson[UserIDs::System_Audio];
-			audioJson[UserIDs::System_Audio_SongVolume] = System.Audio.SongVolume;
-			audioJson[UserIDs::System_Audio_ButtonSoundVolume] = System.Audio.ButtonSoundVolume;
-			audioJson[UserIDs::System_Audio_SoundEffectVolume] = System.Audio.SoundEffectVolume;
-			audioJson[UserIDs::System_Audio_MetronomeVolume] = System.Audio.MetronomeVolume;
-			audioJson[UserIDs::System_Audio_OpenDeviceOnStartup] = System.Audio.OpenDeviceOnStartup;
-			audioJson[UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss] = System.Audio.CloseDeviceOnIdleFocusLoss;
-			audioJson[UserIDs::System_Audio_RequestExclusiveDeviceAccess] = System.Audio.RequestExclusiveDeviceAccess;
-
-			json& guiJson = systemJson[UserIDs::System_Gui];
-			guiJson[UserIDs::System_Gui_ShowTestMenu] = System.Gui.ShowTestMenu;
-			guiJson[UserIDs::System_Gui_AntiAliasedLines] = System.Gui.AntiAliasedLines;
-			guiJson[UserIDs::System_Gui_AntiAliasedFill] = System.Gui.AntiAliasedFill;
-			guiJson[UserIDs::System_Gui_TargetDistanceGuideCircleSegments] = System.Gui.TargetDistanceGuideCircleSegments;
-			guiJson[UserIDs::System_Gui_TargetDistanceGuideMaxCount] = System.Gui.TargetDistanceGuideMaxCount;
-			guiJson[UserIDs::System_Gui_TargetButtonPathCurveSegments] = System.Gui.TargetButtonPathCurveSegments;
-			guiJson[UserIDs::System_Gui_TargetButtonPathMaxCount] = System.Gui.TargetButtonPathMaxCount;
-		}
-
-		json& inputJson = rootJson[UserIDs::Input];
+		auto memberI32Vector = [](Json::WriterEx& writer, std::string_view key, const std::vector<i32>& values)
 		{
-			json& layoutMappingsJson = inputJson[UserIDs::Input_ControllerLayoutMappings];
-			layoutMappingsJson = json::array();
-			for (const auto& layoutMapping : Input.ControllerLayoutMappings)
-				layoutMappingsJson.emplace_back(Input::ControllerLayoutMappingToStorageString(layoutMapping));
+			writer.MemberArrayBegin(key);
+			for (const i32 value : values)
+				writer.I32(value);
+			writer.MemberArrayEnd();
+		};
 
-			json& bindingsJson = inputJson[UserIDs::Input_Bindings];
-			UserIDs::ForEachMultiBindingWithID(*const_cast<ComfyStudioUserSettings*>(this), [&](const Input::MultiBinding& multiBinding, auto&& multiBindingID)
+		Json::WriteBuffer writeBuffer {};
+		Json::WriterEx writer { writeBuffer };
+		writeBuffer.Reserve(0x8000);
+
+		writer.ObjectBegin();
+		{
+			writer.MemberStr(IDs::FileVersion, CurrentVersion.ToString());
+
+			writer.MemberObjectBegin(UserIDs::System);
 			{
-				json& multiBindingJson = bindingsJson[multiBindingID];
-				multiBindingJson = json::array();
-				for (const auto& binding : multiBinding)
-					multiBindingJson.emplace_back(Input::BindingToStorageString(binding).data());
-			});
-
-			json& playtestBindingsJson = inputJson[UserIDs::Input_PlaytestBindings];
-			playtestBindingsJson = json::array();
-			for (const auto& playtestBinding : Input.PlaytestBindings)
-				playtestBindingsJson.emplace_back(PlayTestBindingToStorageString(playtestBinding).data());
-		}
-
-		json& targetPreviewJson = rootJson[UserIDs::TargetPreview];
-		{
-			targetPreviewJson[UserIDs::TargetPreview_ShowButtons] = TargetPreview.ShowButtons;
-			targetPreviewJson[UserIDs::TargetPreview_ShowGrid] = TargetPreview.ShowGrid;
-			targetPreviewJson[UserIDs::TargetPreview_ShowHoldInfo] = TargetPreview.ShowHoldInfo;
-			targetPreviewJson[UserIDs::TargetPreview_ShowBackgroundCheckerboard] = TargetPreview.ShowBackgroundCheckerboard;
-			targetPreviewJson[UserIDs::TargetPreview_BackgroundDim] = TargetPreview.BackgroundDim;
-			targetPreviewJson[UserIDs::TargetPreview_PostHitLingerDurationTicks] = TargetPreview.PostHitLingerDuration.Ticks();
-			targetPreviewJson[UserIDs::TargetPreview_DisplayPracticeBackground] = TargetPreview.DisplayPracticeBackground;
-		}
-
-		json& positionToolJson = rootJson[UserIDs::PositionTool];
-		{
-			positionToolJson[UserIDs::PositionTool_ShowDistanceGuides] = PositionTool.ShowDistanceGuides;
-			positionToolJson[UserIDs::PositionTool_ShowTargetGrabTooltip] = PositionTool.ShowTargetGrabTooltip;
-			positionToolJson[UserIDs::PositionTool_UseAxisSnapGuides] = PositionTool.UseAxisSnapGuides;
-			positionToolJson[UserIDs::PositionTool_AxisSnapGuideDistanceThreshold] = PositionTool.AxisSnapGuideDistanceThreshold;
-			positionToolJson[UserIDs::PositionTool_PositionMouseSnap] = PositionTool.PositionMouseSnap;
-			positionToolJson[UserIDs::PositionTool_PositionMouseSnapRough] = PositionTool.PositionMouseSnapRough;
-			positionToolJson[UserIDs::PositionTool_PositionMouseSnapPrecise] = PositionTool.PositionMouseSnapPrecise;
-			positionToolJson[UserIDs::PositionTool_PositionKeyMoveStep] = PositionTool.PositionKeyMoveStep;
-			positionToolJson[UserIDs::PositionTool_PositionKeyMoveStepRough] = PositionTool.PositionKeyMoveStepRough;
-			positionToolJson[UserIDs::PositionTool_PositionKeyMoveStepPrecise] = PositionTool.PositionKeyMoveStepPrecise;
-			positionToolJson[UserIDs::PositionTool_MouseRowCenterDistanceThreshold] = PositionTool.MouseRowCenterDistanceThreshold;
-			positionToolJson[UserIDs::PositionTool_PositionInterpolationCommandSnap] = PositionTool.PositionInterpolationCommandSnap;
-			json& diagonalRowLayoutsJson = positionToolJson[UserIDs::PositionTool_DiagonalMouseRowLayouts];
-			diagonalRowLayoutsJson = json::array();
-			for (const auto& rowLayout : PositionTool.DiagonalMouseRowLayouts)
-			{
-				json& rowLayoutJson = diagonalRowLayoutsJson.emplace_back(json::object());
-				rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX] = rowLayout.PerBeatDiagonalSpacing.x;
-				rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY] = rowLayout.PerBeatDiagonalSpacing.y;
-				rowLayoutJson[UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName] = rowLayout.DisplayName;
-			}
-		}
-
-		json& pathToolJson = rootJson[UserIDs::PathTool];
-		{
-			pathToolJson[UserIDs::PathTool_AngleMouseSnap] = PathTool.AngleMouseSnap;
-			pathToolJson[UserIDs::PathTool_AngleMouseSnapRough] = PathTool.AngleMouseSnapRough;
-			pathToolJson[UserIDs::PathTool_AngleMouseSnapPrecise] = PathTool.AngleMouseSnapPrecise;
-			pathToolJson[UserIDs::PathTool_AngleMouseScrollDirection] = PathTool.AngleMouseScrollDirection;
-			pathToolJson[UserIDs::PathTool_AngleMouseScrollStep] = PathTool.AngleMouseScrollStep;
-			pathToolJson[UserIDs::PathTool_AngleMouseScrollRough] = PathTool.AngleMouseScrollRough;
-			pathToolJson[UserIDs::PathTool_AngleMouseScrollPrecise] = PathTool.AngleMouseScrollPrecise;
-			pathToolJson[UserIDs::PathTool_AngleMouseMovementDistanceThreshold] = PathTool.AngleMouseMovementDistanceThreshold;
-			pathToolJson[UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold] = PathTool.AngleMouseTargetCenterDistanceThreshold;
-		}
-
-		json& targetPresetJson = rootJson[UserIDs::TargetPreset];
-		{
-			json& syncPresetsJson = targetPresetJson[UserIDs::TargetPreset_StaticSyncPresets];
-			syncPresetsJson = json::array();
-			for (const auto& syncPreset : TargetPreset.StaticSyncPresets)
-			{
-				json& syncPresetJson = syncPresetsJson.emplace_back(json::object());
-				json& targetDataArrayJson = syncPresetJson[UserIDs::TargetPreset_StaticSyncPresets_Targets];
-
-				syncPresetJson[UserIDs::TargetPreset_StaticSyncPresets_Name] = syncPreset.Name;
-				for (size_t i = 0; i < syncPreset.TargetCount; i++)
+				writer.MemberObjectBegin(UserIDs::System_Audio);
 				{
-					const auto& targetData = syncPreset.Targets[i];
-					json& targetDataJson = targetDataArrayJson.emplace_back(json::object());
-
-					targetDataJson[UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType] = static_cast<i32>(targetData.Type);
-					JsonSetTargetProperties(targetDataJson[UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties], targetData.Properties);
+					writer.MemberF32(UserIDs::System_Audio_SongVolume, System.Audio.SongVolume);
+					writer.MemberF32(UserIDs::System_Audio_ButtonSoundVolume, System.Audio.ButtonSoundVolume);
+					writer.MemberF32(UserIDs::System_Audio_SoundEffectVolume, System.Audio.SoundEffectVolume);
+					writer.MemberF32(UserIDs::System_Audio_MetronomeVolume, System.Audio.MetronomeVolume);
+					writer.MemberBool(UserIDs::System_Audio_OpenDeviceOnStartup, System.Audio.OpenDeviceOnStartup);
+					writer.MemberBool(UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss, System.Audio.CloseDeviceOnIdleFocusLoss);
+					writer.MemberBool(UserIDs::System_Audio_RequestExclusiveDeviceAccess, System.Audio.RequestExclusiveDeviceAccess);
 				}
-			}
+				writer.MemberObjectEnd();
 
-			json& sequencePresetsJson = targetPresetJson[UserIDs::TargetPreset_SequencePresets];
-			sequencePresetsJson = json::array();
-			for (const auto& sequencePreset : TargetPreset.SequencePresets)
+				writer.MemberObjectBegin(UserIDs::System_Gui);
+				{
+					writer.MemberBool(UserIDs::System_Gui_ShowTestMenu, System.Gui.ShowTestMenu);
+					writer.MemberBool(UserIDs::System_Gui_AntiAliasedLines, System.Gui.AntiAliasedLines);
+					writer.MemberBool(UserIDs::System_Gui_AntiAliasedFill, System.Gui.AntiAliasedFill);
+					writer.MemberI32(UserIDs::System_Gui_TargetDistanceGuideCircleSegments, System.Gui.TargetDistanceGuideCircleSegments);
+					writer.MemberI32(UserIDs::System_Gui_TargetDistanceGuideMaxCount, System.Gui.TargetDistanceGuideMaxCount);
+					writer.MemberI32(UserIDs::System_Gui_TargetButtonPathCurveSegments, System.Gui.TargetButtonPathCurveSegments);
+					writer.MemberI32(UserIDs::System_Gui_TargetButtonPathMaxCount, System.Gui.TargetButtonPathMaxCount);
+				}
+				writer.MemberObjectEnd();
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::Input);
 			{
-				json& sequencePresetJson = sequencePresetsJson.emplace_back(json::object());
-				sequencePresetJson[UserIDs::TargetPreset_SequencePresets_GuiButtonType] = static_cast<i32>(sequencePreset.ButtonType);
-				sequencePresetJson[UserIDs::TargetPreset_SequencePresets_Name] = sequencePreset.Name;
+				writer.MemberArrayBegin(UserIDs::Input_ControllerLayoutMappings);
+				{
+					for (const auto& layoutMapping : Input.ControllerLayoutMappings)
+						writer.Str(Input::ControllerLayoutMappingToStorageString(layoutMapping));
+				}
+				writer.MemberArrayEnd();
 
-				if (sequencePreset.Type == SequencePresetType::Circle)
+				writer.MemberObjectBegin(UserIDs::Input_Bindings);
 				{
-					json& circleJson = sequencePresetJson[UserIDs::TargetPreset_SequencePresets_Circle];
-					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks] = sequencePreset.Circle.Duration.Ticks();
-					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Radius] = sequencePreset.Circle.Radius;
-					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_Direction] = sequencePreset.Circle.Direction;
-					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_CenterX] = sequencePreset.Circle.Center.x;
-					circleJson[UserIDs::TargetPreset_SequencePresets_Circle_CenterY] = sequencePreset.Circle.Center.y;
+					UserIDs::ForEachMultiBindingWithID(*const_cast<ComfyStudioUserSettings*>(this), [&](const Input::MultiBinding& multiBinding, std::string_view multiBindingID)
+					{
+						writer.MemberArrayBegin(multiBindingID);
+						{
+							for (const auto& binding : multiBinding)
+								writer.Str(Input::BindingToStorageString(binding).data());
+						}
+						writer.MemberArrayEnd();
+					});
 				}
-				else if (sequencePreset.Type == SequencePresetType::BezierPath)
+				writer.MemberObjectEnd();
+
+				writer.MemberArrayBegin(UserIDs::Input_PlaytestBindings);
 				{
-					json& bezierPathJson = sequencePresetJson[UserIDs::TargetPreset_SequencePresets_BezierPath];
-					// TODO: ...
-					bezierPathJson = json::object();
+					for (const auto& playtestBinding : Input.PlaytestBindings)
+						writer.Str(PlayTestBindingToStorageString(playtestBinding).data());
 				}
+				writer.MemberArrayEnd();
+
+
 			}
+			writer.MemberObjectEnd();
 
-			json& inspectorDropdownJson = targetPresetJson[UserIDs::TargetPreset_InspectorDropdown];
-			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_PositionsX] = TargetPreset.InspectorDropdown.PositionsX;
-			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_PositionsY] = TargetPreset.InspectorDropdown.PositionsY;
-			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Angles] = TargetPreset.InspectorDropdown.Angles;
-			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Frequencies] = TargetPreset.InspectorDropdown.Frequencies;
-			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Amplitudes] = TargetPreset.InspectorDropdown.Amplitudes;
-			inspectorDropdownJson[UserIDs::TargetPreset_InspectorDropdown_Distances] = TargetPreset.InspectorDropdown.Distances;
+			writer.MemberObjectBegin(UserIDs::TargetPreview);
+			{
+				writer.MemberBool(UserIDs::TargetPreview_ShowButtons, TargetPreview.ShowButtons);
+				writer.MemberBool(UserIDs::TargetPreview_ShowGrid, TargetPreview.ShowGrid);
+				writer.MemberBool(UserIDs::TargetPreview_ShowHoldInfo, TargetPreview.ShowHoldInfo);
+				writer.MemberBool(UserIDs::TargetPreview_ShowBackgroundCheckerboard, TargetPreview.ShowBackgroundCheckerboard);
+				writer.MemberF32(UserIDs::TargetPreview_BackgroundDim, TargetPreview.BackgroundDim);
+				writer.MemberI32(UserIDs::TargetPreview_PostHitLingerDurationTicks, TargetPreview.PostHitLingerDuration.Ticks());
+				writer.MemberBool(UserIDs::TargetPreview_DisplayPracticeBackground, TargetPreview.DisplayPracticeBackground);
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::PositionTool);
+			{
+				writer.MemberBool(UserIDs::PositionTool_ShowDistanceGuides, PositionTool.ShowDistanceGuides);
+				writer.MemberBool(UserIDs::PositionTool_ShowTargetGrabTooltip, PositionTool.ShowTargetGrabTooltip);
+				writer.MemberBool(UserIDs::PositionTool_UseAxisSnapGuides, PositionTool.UseAxisSnapGuides);
+				writer.MemberF32(UserIDs::PositionTool_AxisSnapGuideDistanceThreshold, PositionTool.AxisSnapGuideDistanceThreshold);
+				writer.MemberF32(UserIDs::PositionTool_PositionMouseSnap, PositionTool.PositionMouseSnap);
+				writer.MemberF32(UserIDs::PositionTool_PositionMouseSnapRough, PositionTool.PositionMouseSnapRough);
+				writer.MemberF32(UserIDs::PositionTool_PositionMouseSnapPrecise, PositionTool.PositionMouseSnapPrecise);
+				writer.MemberF32(UserIDs::PositionTool_PositionKeyMoveStep, PositionTool.PositionKeyMoveStep);
+				writer.MemberF32(UserIDs::PositionTool_PositionKeyMoveStepRough, PositionTool.PositionKeyMoveStepRough);
+				writer.MemberF32(UserIDs::PositionTool_PositionKeyMoveStepPrecise, PositionTool.PositionKeyMoveStepPrecise);
+				writer.MemberF32(UserIDs::PositionTool_MouseRowCenterDistanceThreshold, PositionTool.MouseRowCenterDistanceThreshold);
+				writer.MemberF32(UserIDs::PositionTool_PositionInterpolationCommandSnap, PositionTool.PositionInterpolationCommandSnap);
+
+				writer.MemberArrayBegin(UserIDs::PositionTool_DiagonalMouseRowLayouts);
+				{
+					for (const auto& rowLayout : PositionTool.DiagonalMouseRowLayouts)
+					{
+						writer.ObjectBegin();
+						writer.MemberF32(UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingX, rowLayout.PerBeatDiagonalSpacing.x);
+						writer.MemberF32(UserIDs::PositionTool_DiagonalMouseRowLayouts_PerBeatDiagonalSpacingY, rowLayout.PerBeatDiagonalSpacing.y);
+						writer.MemberStr(UserIDs::PositionTool_DiagonalMouseRowLayouts_DisplayName, rowLayout.DisplayName);
+						writer.ObjectEnd();
+					}
+				}
+				writer.MemberArrayEnd();
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::PathTool);
+			{
+				writer.MemberF32(UserIDs::PathTool_AngleMouseSnap, PathTool.AngleMouseSnap);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseSnapRough, PathTool.AngleMouseSnapRough);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseSnapPrecise, PathTool.AngleMouseSnapPrecise);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseScrollDirection, PathTool.AngleMouseScrollDirection);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseScrollStep, PathTool.AngleMouseScrollStep);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseScrollRough, PathTool.AngleMouseScrollRough);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseScrollPrecise, PathTool.AngleMouseScrollPrecise);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseMovementDistanceThreshold, PathTool.AngleMouseMovementDistanceThreshold);
+				writer.MemberF32(UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold, PathTool.AngleMouseTargetCenterDistanceThreshold);
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::TargetPreset);
+			{
+				writer.MemberArrayBegin(UserIDs::TargetPreset_StaticSyncPresets);
+				{
+					for (const auto& syncPreset : TargetPreset.StaticSyncPresets)
+					{
+						writer.ObjectBegin();
+						writer.MemberStr(UserIDs::TargetPreset_StaticSyncPresets_Name, syncPreset.Name);
+						writer.MemberArrayBegin(UserIDs::TargetPreset_StaticSyncPresets_Targets);
+						{
+							for (size_t i = 0; i < syncPreset.TargetCount; i++)
+							{
+								const auto& targetData = syncPreset.Targets[i];
+
+								writer.ObjectBegin();
+								writer.MemberI32(UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType, static_cast<i32>(targetData.Type));
+
+								writer.MemberObjectBegin(UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties);
+								writer.MemberF32(IDs::TargetProperties_PositionX, targetData.Properties.Position.x);
+								writer.MemberF32(IDs::TargetProperties_PositionY, targetData.Properties.Position.y);
+								writer.MemberF32(IDs::TargetProperties_Angle, targetData.Properties.Angle);
+								writer.MemberF32(IDs::TargetProperties_Frequency, targetData.Properties.Frequency);
+								writer.MemberF32(IDs::TargetProperties_Amplitude, targetData.Properties.Amplitude);
+								writer.MemberF32(IDs::TargetProperties_Distance, targetData.Properties.Distance);
+								writer.MemberObjectEnd();
+
+								writer.ObjectEnd();
+							}
+						}
+						writer.MemberArrayEnd();
+						writer.ObjectEnd();
+					}
+				}
+				writer.MemberArrayEnd();
+
+				writer.MemberArrayBegin(UserIDs::TargetPreset_SequencePresets);
+				{
+					for (const auto& sequencePreset : TargetPreset.SequencePresets)
+					{
+						writer.ObjectBegin();
+
+						writer.MemberI32(UserIDs::TargetPreset_SequencePresets_GuiButtonType, static_cast<i32>(sequencePreset.ButtonType));
+						writer.MemberStr(UserIDs::TargetPreset_SequencePresets_Name, sequencePreset.Name);
+
+						if (sequencePreset.Type == SequencePresetType::Circle)
+						{
+							writer.MemberObjectBegin(UserIDs::TargetPreset_SequencePresets_Circle);
+							writer.MemberI32(UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks, sequencePreset.Circle.Duration.Ticks());
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_Radius, sequencePreset.Circle.Radius);
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_Direction, sequencePreset.Circle.Direction);
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_CenterX, sequencePreset.Circle.Center.x);
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_CenterY, sequencePreset.Circle.Center.y);
+							writer.MemberObjectEnd();
+						}
+						else if (sequencePreset.Type == SequencePresetType::BezierPath)
+						{
+							writer.MemberObjectBegin(UserIDs::TargetPreset_SequencePresets_BezierPath);
+							// TODO: ...
+							writer.MemberObjectEnd();
+						}
+						writer.ObjectEnd();
+					}
+				}
+				writer.MemberArrayEnd();
+
+				writer.MemberObjectBegin(UserIDs::TargetPreset_InspectorDropdown);
+				{
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_PositionsX, TargetPreset.InspectorDropdown.PositionsX);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_PositionsY, TargetPreset.InspectorDropdown.PositionsY);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Angles, TargetPreset.InspectorDropdown.Angles);
+					memberI32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Frequencies, TargetPreset.InspectorDropdown.Frequencies);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Amplitudes, TargetPreset.InspectorDropdown.Amplitudes);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Distances, TargetPreset.InspectorDropdown.Distances);
+				}
+				writer.MemberObjectEnd();
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::ChartProperties);
+			{
+				writer.MemberStr(UserIDs::ChartProperties_ChartCreatorDefaultName, ChartProperties.ChartCreatorDefaultName);
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::BPMCalculator);
+			{
+				writer.MemberBool(UserIDs::BPMCalculator_AutoResetEnabled, BPMCalculator.AutoResetEnabled);
+				writer.MemberBool(UserIDs::BPMCalculator_ApplyToTempoMap, BPMCalculator.ApplyToTempoMap);
+				writer.MemberI32(UserIDs::BPMCalculator_TapSoundType, static_cast<i32>(BPMCalculator.TapSoundType));
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::Playtest);
+			{
+				writer.MemberBool(UserIDs::Playtest_EnterFullscreenOnMaximizedStart, Playtest.EnterFullscreenOnMaximizedStart);
+				writer.MemberBool(UserIDs::Playtest_AutoHideCursor, Playtest.AutoHideCursor);
+				writer.MemberF64(UserIDs::Playtest_SongOffsetSecWasapiShared, Playtest.SongOffsetWasapiShared.TotalSeconds());
+				writer.MemberF64(UserIDs::Playtest_SongOffsetSecWasapiExclusive, Playtest.SongOffsetWasapiExclusive.TotalSeconds());
+			}
+			writer.MemberObjectEnd();
 		}
+		writer.ObjectEnd();
 
-		json& chartPropertiesJson = rootJson[UserIDs::ChartProperties];
-		{
-			chartPropertiesJson[UserIDs::ChartProperties_ChartCreatorDefaultName] = ChartProperties.ChartCreatorDefaultName;
-		}
-
-		json& bpmCalculatorJson = rootJson[UserIDs::BPMCalculator];
-		{
-			bpmCalculatorJson[UserIDs::BPMCalculator_AutoResetEnabled] = BPMCalculator.AutoResetEnabled;
-			bpmCalculatorJson[UserIDs::BPMCalculator_ApplyToTempoMap] = BPMCalculator.ApplyToTempoMap;
-			bpmCalculatorJson[UserIDs::BPMCalculator_TapSoundType] = static_cast<i32>(BPMCalculator.TapSoundType);
-		}
-
-		json& playtestJson = rootJson[UserIDs::Playtest];
-		{
-			playtestJson[UserIDs::Playtest_EnterFullscreenOnMaximizedStart] = Playtest.EnterFullscreenOnMaximizedStart;
-			playtestJson[UserIDs::Playtest_AutoHideCursor] = Playtest.AutoHideCursor;
-			playtestJson[UserIDs::Playtest_SongOffsetSecWasapiShared] = Playtest.SongOffsetWasapiShared.TotalSeconds();
-			playtestJson[UserIDs::Playtest_SongOffsetSecWasapiExclusive] = Playtest.SongOffsetWasapiExclusive.TotalSeconds();
-		}
-
-		IO::SaveJson(filePath, rootJson);
+		const auto formattedOutputJson = std::string_view(writeBuffer.GetString(), writeBuffer.GetLength());
+		IO::File::WriteAllText(filePath, formattedOutputJson);
 	}
 
 	void ComfyStudioUserSettings::RestoreDefault()
