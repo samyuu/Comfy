@@ -5,213 +5,138 @@
 #include <optional>
 #include <future>
 
-#define JSON_NOEXCEPTION
-#define JSON_USE_IMPLICIT_CONVERSIONS 0
-// BUG: List items use incorrect spacing / indentation
-// #define JSON_COMFY_FORMATTING
-#include <nlohmann/json.hpp>
+#define RAPIDJSON_HAS_STDSTRING 0
+#define RAPIDJSON_48BITPOINTER_OPTIMIZATION 1
+#define RAPIDJSON_SSE2
+#define RAPIDJSON_ASSERT(x) assert(x)
+#define RAPIDJSON_PARSE_DEFAULT_FLAGS (kParseCommentsFlag | kParseTrailingCommasFlag | kParseNanAndInfFlag)
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stream.h>
 
-namespace Comfy
+// NOTE: Naming the "JSON" symbols uppercase might be "more correct" but ends up looking worse and less readable than pascal case "Json"
+//		 and also matches how the .NET JSON library names it
+namespace Comfy::Json
 {
-	using json = nlohmann::json;
+	constexpr std::string_view Extension = ".json";
+	constexpr std::string_view FilterName = "JSON (*.json)";
+	constexpr std::string_view FilterSpec = "*.json";
 
-	// NOTE: Naming the "JSON" symbols uppercase might be "more correct" but ends up looking worse and less readable than pascal case "Json"
-	//		 and is also how the .NET JSON library names it
-
-	constexpr std::string_view JsonExtension = ".json";
-	constexpr std::string_view JsonFilterName = "JSON (*.json)";
-	constexpr std::string_view JsonFilterSpec = "*.json";
-
-	namespace JsonDetail
-	{
-		constexpr bool AllowExceptions = false;
-		constexpr bool IgnoreComments = true;
 #if 0 // TODO: Which to use..?
-		constexpr i32 Indentation = 4;
-		constexpr char IndentationChar = ' ';
+	constexpr i32 IndentationCharCount = 4;
+	constexpr char IndentationChar = ' ';
 #else // ... these very .cpp source files use "\r\n" (0x0D, 0x0A) for new lines and a single "\t" (0x09) as indentation rendered as 4 spaces
-		constexpr i32 Indentation = 1;
-		constexpr char IndentationChar = '\t';
+	constexpr i32 IndentationCharCount = 1;
+	constexpr char IndentationChar = '\t';
 #endif
-		constexpr bool EnsureASCII = false;
-		constexpr json::error_handler_t ErrorHandler = json::error_handler_t::ignore;
 
-		template <typename T>
-		inline std::optional<T> TryGetInteger(const json& j)
-		{
-			static_assert(std::is_integral_v<T>);
-			if (j.is_number_integer())
-				return j.get<T>();
-			// NOTE: In case the user had incorrectly entered a decimal separator
-			else if (j.is_number_float())
-				return static_cast<T>(j.get<f64>());
-			else
-				return std::nullopt;
-		}
+	using Document = rapidjson::Document;
+	using Allocator = rapidjson::Document::AllocatorType;
+	using Value = rapidjson::Value;
+	using ValueIt = rapidjson::Value::MemberIterator;
+	using ConstValueIt = rapidjson::Value::ConstMemberIterator;
+	using SizeType = rapidjson::SizeType;
 
-		template <typename T>
-		inline std::optional<T> TryGetFloat(const json& j)
-		{
-			static_assert(std::is_floating_point_v<T>);
-			if (j.is_number_float())
-				return j.get<T>();
-			// NOTE: In case the user had incorrectly left out the decimal separator
-			else if (j.is_number_integer())
-				return static_cast<T>(j.get<i64>());
-			else
-				return std::nullopt;
-		}
+	inline rapidjson::GenericStringRef<char> StringViewRef(std::string_view stringView) { return rapidjson::StringRef(stringView.data(), stringView.size()); }
 
-		inline std::optional<bool> TryGetBoolean(const json& j)
-		{
-			if (j.is_boolean())
-				return j.get<bool>();
-			// NOTE: In case the user had intended an implicit conversion from 0 / 1
-			else if (j.is_number_integer())
-				return static_cast<bool>(j.get<i64>());
-			else
-				return std::nullopt;
-		}
+	inline Value* Find(Document& j, std::string_view key) { ValueIt f = j.FindMember(StringViewRef(key)); return (f != j.MemberEnd()) ? &f->value : nullptr; }
+	inline const Value* Find(const Document& j, std::string_view key) { ConstValueIt f = j.FindMember(StringViewRef(key)); return (f != j.MemberEnd()) ? &f->value : nullptr; }
 
-		inline std::optional<std::string> TryGetString(const json& j)
-		{
-			if (j.is_string())
-				return j.get<std::string>();
-			else
-				return std::nullopt;
-		}
+	inline Value* Find(Value& j, std::string_view key) { ValueIt f = j.FindMember(StringViewRef(key)); return (f != j.MemberEnd()) ? &f->value : nullptr; }
+	inline const Value* Find(const Value& j, std::string_view key) { ConstValueIt f = j.FindMember(StringViewRef(key)); return (f != j.MemberEnd()) ? &f->value : nullptr; }
 
-		inline std::optional<std::string_view> TryGetStringView(const json& j)
-		{
-			if (j.is_string())
-				return j.get<std::string_view>();
-			else
-				return std::nullopt;
-		}
+	// NOTE: Having non null checked reference overloads would be better when iterating over arrays but I deem it not worth the extra code complecity for now
 
-		template <typename VecType>
-		inline std::optional<VecType> TryGetVec(const json& j)
-		{
-			using ComponentType = typename VecType::value_type;
-			const std::array<std::string, 4> componentNames = { "x", "y", "z", "w" };
-			VecType result;
+	// TODO: Make sure this accepts ints as well
+	inline std::optional<bool> TryGetBool(const Value* j) { if (j != nullptr && j->IsBool()) { return j->GetBool(); } else { return std::nullopt; } }
 
-			for (typename VecType::length_type i = 0; i < VecType::length(); i++)
-			{
-				if (auto foundComponent = j.find(componentNames[i]); foundComponent != j.end())
-				{
-					if constexpr (std::is_floating_point_v<ComponentType>)
-					{
-						if (auto v = TryGetFloat<ComponentType>(*foundComponent); v.has_value())
-							result[i] = v.value();
-						else
-							return std::nullopt;
-					}
-					else
-					{
-						if (auto v = TryGetInteger<ComponentType>(*foundComponent); v.has_value())
-							result[i] = v.value();
-						else
-							return std::nullopt;
-					}
-				}
-				else
-				{
-					return std::nullopt;
-				}
-			}
+	// TODO: Make sure this accepts floats as well
+	inline std::optional<i32> TryGetI32(const Value* j) { if (j != nullptr && j->IsInt()) { return j->GetInt(); } else { return std::nullopt; } }
+	inline std::optional<u32> TryGetU32(const Value* j) { if (j != nullptr && j->IsUint()) { return j->GetUint(); } else { return std::nullopt; } }
 
-			return result;
-		}
-	}
+	// TODO: Make sure this accepts ints as well
+	inline std::optional<f32> TryGetF32(const Value* j) { if (j != nullptr && j->IsNumber()) { return j->GetFloat(); } else { return std::nullopt; } }
+	inline std::optional<f64> TryGetF64(const Value* j) { if (j != nullptr && j->IsNumber()) { return j->GetDouble(); } else { return std::nullopt; } }
 
-	inline auto JsonTryGetBool(const json& j) { return JsonDetail::TryGetBoolean(j); }
-	inline auto JsonTryGetBool(const json* j) { return (j != nullptr) ? JsonTryGetBool(*j) : std::nullopt; }
+	inline std::optional<std::string_view> TryGetStrView(const Value* j) { if (j != nullptr && j->IsString()) { return std::string_view(j->GetString(), j->GetStringLength()); } else { return std::nullopt; } }
 
-	inline auto JsonTryGetI8(const json& j) { return JsonDetail::TryGetInteger<i8>(j); }
-	inline auto JsonTryGetI8(const json* j) { return (j != nullptr) ? JsonTryGetI8(*j) : std::nullopt; }
-	inline auto JsonTryGetU8(const json& j) { return JsonDetail::TryGetInteger<u8>(j); }
-	inline auto JsonTryGetU8(const json* j) { return (j != nullptr) ? JsonTryGetU8(*j) : std::nullopt; }
+	inline void TryAssign(bool& out, std::optional<bool>&& v) { if (v.has_value()) { out = v.value(); } }
+	inline void TryAssign(i32& out, std::optional<i32>&& v) { if (v.has_value()) { out = v.value(); } }
+	inline void TryAssign(u32& out, std::optional<u32>&& v) { if (v.has_value()) { out = v.value(); } }
+	inline void TryAssign(f32& out, std::optional<f32>&& v) { if (v.has_value()) { out = v.value(); } }
+	inline void TryAssign(f64& out, std::optional<f64>&& v) { if (v.has_value()) { out = v.value(); } }
+	inline void TryAssign(std::string& out, std::optional<std::string_view>&& v) { if (v.has_value()) { out = v.value(); } }
 
-	inline auto JsonTryGetI16(const json& j) { return JsonDetail::TryGetInteger<i16>(j); }
-	inline auto JsonTryGetI16(const json* j) { return (j != nullptr) ? JsonTryGetI16(*j) : std::nullopt; }
-	inline auto JsonTryGetU16(const json& j) { return JsonDetail::TryGetInteger<u16>(j); }
-	inline auto JsonTryGetU16(const json* j) { return (j != nullptr) ? JsonTryGetU16(*j) : std::nullopt; }
+	template <typename BaseWriter, typename OutputStream>
+	class WriterWrapper
+	{
+	public:
+		WriterWrapper(OutputStream& os) : writer(os) { writer.SetIndent(IndentationChar, IndentationCharCount); }
 
-	inline auto JsonTryGetI32(const json& j) { return JsonDetail::TryGetInteger<i32>(j); }
-	inline auto JsonTryGetI32(const json* j) { return (j != nullptr) ? JsonTryGetI32(*j) : std::nullopt; }
-	inline auto JsonTryGetU32(const json& j) { return JsonDetail::TryGetInteger<u32>(j); }
-	inline auto JsonTryGetU32(const json* j) { return (j != nullptr) ? JsonTryGetU32(*j) : std::nullopt; }
+		inline void ArrayBegin() { writer.StartArray(); }
+		inline void ArrayEnd() { writer.EndArray(); }
+		inline void MemberArrayBegin(std::string_view key) { MemberKey(key); ArrayBegin(); }
+		inline void MemberArrayEnd() { ArrayEnd(); }
 
-	inline auto JsonTryGetI64(const json& j) { return JsonDetail::TryGetInteger<i64>(j); }
-	inline auto JsonTryGetI64(const json* j) { return (j != nullptr) ? JsonTryGetI64(*j) : std::nullopt; }
-	inline auto JsonTryGetU64(const json& j) { return JsonDetail::TryGetInteger<u64>(j); }
-	inline auto JsonTryGetU64(const json* j) { return (j != nullptr) ? JsonTryGetU64(*j) : std::nullopt; }
+		inline void ObjectBegin() { writer.StartObject(); }
+		inline void ObjectEnd() { writer.EndObject(); }
+		inline void MemberObjectBegin(std::string_view key) { MemberKey(key); ObjectBegin(); }
+		inline void MemberObjectEnd() { ObjectEnd(); }
 
-	inline auto JsonTryGetF32(const json& j) { return JsonDetail::TryGetFloat<f32>(j); }
-	inline auto JsonTryGetF32(const json* j) { return (j != nullptr) ? JsonTryGetF32(*j) : std::nullopt; }
-	inline auto JsonTryGetF64(const json& j) { return JsonDetail::TryGetFloat<f64>(j); }
-	inline auto JsonTryGetF64(const json* j) { return (j != nullptr) ? JsonTryGetF64(*j) : std::nullopt; }
+		inline void Null() { writer.Null(); }
+		inline void Bool(bool value) { writer.Bool(value); }
+		inline void I32(i32 value) { writer.Int(value); }
+		inline void U32(u32 value) { writer.Uint(value); }
+		inline void F32(f32 value) { writer.Double(static_cast<f64>(value)); }
+		inline void F64(f64 value) { writer.Double(value); }
+		inline void Str(std::string_view value) { writer.String(value.data(), static_cast<SizeType>(value.size())); }
 
-	inline auto JsonTryGetStr(const json& j) { return JsonDetail::TryGetString(j); }
-	inline auto JsonTryGetStr(const json* j) { return (j != nullptr) ? JsonTryGetStr(*j) : std::nullopt; }
-	inline auto JsonTryGetStrView(const json& j) { return JsonDetail::TryGetStringView(j); }
-	inline auto JsonTryGetStrView(const json* j) { return (j != nullptr) ? JsonTryGetStrView(*j) : std::nullopt; }
+		inline void MemberKey(std::string_view key) { writer.Key(key.data(), static_cast<SizeType>(key.size())); }
+		inline void MemberNull(std::string_view key) { MemberKey(key); Null(); }
+		inline void MemberBool(std::string_view key, bool value) { MemberKey(key); Bool(value); }
+		inline void MemberI32(std::string_view key, i32 value) { MemberKey(key); I32(value); }
+		inline void MemberU32(std::string_view key, u32 value) { MemberKey(key); U32(value); }
+		inline void MemberF32(std::string_view key, f32 value) { MemberKey(key); F32(value); }
+		inline void MemberF64(std::string_view key, f64 value) { MemberKey(key); F64(value); }
+		inline void MemberStr(std::string_view key, std::string_view value) { MemberKey(key); Str(value); }
 
-	inline auto JsonTryGetVec2(const json& j) { return JsonDetail::TryGetVec<vec2>(j); }
-	inline auto JsonTryGetVec2(const json* j) { return (j != nullptr) ? JsonTryGetVec2(*j) : std::nullopt; }
-	inline auto JsonTryGetVec3(const json& j) { return JsonDetail::TryGetVec<vec3>(j); }
-	inline auto JsonTryGetVec3(const json* j) { return (j != nullptr) ? JsonTryGetVec3(*j) : std::nullopt; }
-	inline auto JsonTryGetVec4(const json& j) { return JsonDetail::TryGetVec<vec4>(j); }
-	inline auto JsonTryGetVec4(const json* j) { return (j != nullptr) ? JsonTryGetVec4(*j) : std::nullopt; }
+		// TODO: Consider renaming all optional helpers from "Try" to "Opt" (?)
+		inline void MemberTryBool(std::string_view key, std::optional<bool> value) { MemberKey(key); value.has_value() ? Bool(value.value()) : Null(); }
+		inline void MemberTryI32(std::string_view key, std::optional<i32> value) { MemberKey(key); value.has_value() ? I32(value.value()) : Null(); }
+		inline void MemberTryU32(std::string_view key, std::optional<u32> value) { MemberKey(key); value.has_value() ? U32(value.value()) : Null(); }
+		inline void MemberTryF32(std::string_view key, std::optional<f32> value) { MemberKey(key); value.has_value() ? F32(value.value()) : Null(); }
+		inline void MemberTryF64(std::string_view key, std::optional<f64> value) { MemberKey(key); value.has_value() ? F64(value.value()) : Null(); }
+		inline void MemberTryStr(std::string_view key, const std::optional<std::string>& value) { MemberKey(key); value.has_value() ? Str(value.value()) : Null(); }
 
-	inline auto JsonTryGetIVec2(const json& j) { return JsonDetail::TryGetVec<ivec2>(j); }
-	inline auto JsonTryGetIVec2(const json* j) { return (j != nullptr) ? JsonTryGetIVec2(*j) : std::nullopt; }
-	inline auto JsonTryGetIVec3(const json& j) { return JsonDetail::TryGetVec<ivec3>(j); }
-	inline auto JsonTryGetIVec3(const json* j) { return (j != nullptr) ? JsonTryGetIVec3(*j) : std::nullopt; }
-	inline auto JsonTryGetIVec4(const json& j) { return JsonDetail::TryGetVec<ivec4>(j); }
-	inline auto JsonTryGetIVec4(const json* j) { return (j != nullptr) ? JsonTryGetIVec4(*j) : std::nullopt; }
+#if 1 // TODO: Is this a good idea (?)
+		void MemberI32(std::string_view key, bool value) = delete;
+		void MemberI32(std::string_view key, u32 value) = delete;
+		void MemberI32(std::string_view key, f32 value) = delete;
+		void MemberI32(std::string_view key, f64 value) = delete;
 
-	template <typename T>
-	inline void JsonTryAssign(T& out, std::optional<T>&& v) { if (v.has_value()) { out = std::move(v.value()); } }
+		void MemberU32(std::string_view key, bool value) = delete;
+		void MemberU32(std::string_view key, i32 value) = delete;
+		void MemberU32(std::string_view key, f32 value) = delete;
+		void MemberU32(std::string_view key, f64 value) = delete;
 
-	inline void JsonSetVec2(json& j, const vec2& v) { j["x"] = v.x; j["y"] = v.y; }
-	inline void JsonSetVec3(json& j, const vec3& v) { j["x"] = v.x; j["y"] = v.y; j["z"] = v.z; }
-	inline void JsonSetVec4(json& j, const vec4& v) { j["x"] = v.x; j["y"] = v.y; j["z"] = v.z; j["w"] = v.w; }
-	inline void JsonSetIVec2(json& j, const ivec2& v) { j["x"] = v.x; j["y"] = v.y; }
-	inline void JsonSetIVec3(json& j, const ivec3& v) { j["x"] = v.x; j["y"] = v.y; j["z"] = v.z; }
-	inline void JsonSetIVec4(json& j, const ivec4& v) { j["x"] = v.x; j["y"] = v.y; j["z"] = v.z; j["w"] = v.w; }
+		void MemberF32(std::string_view key, bool value) = delete;
+		void MemberF32(std::string_view key, i32 value) = delete;
+		void MemberF32(std::string_view key, u32 value) = delete;
+		void MemberF32(std::string_view key, f64 value) = delete;
 
-	inline void JsonTrySetBool(json& j, const std::optional<bool>& v) { if (v.has_value()) { j = v.value(); } }
-	inline void JsonTrySetI32(json& j, const std::optional<i32>& v) { if (v.has_value()) { j = v.value(); } }
-	inline void JsonTrySetU32(json& j, const std::optional<u32>& v) { if (v.has_value()) { j = v.value(); } }
-	inline void JsonTrySetI64(json& j, const std::optional<i64>& v) { if (v.has_value()) { j = v.value(); } }
-	inline void JsonTrySetU64(json& j, const std::optional<u64>& v) { if (v.has_value()) { j = v.value(); } }
-	inline void JsonTrySetF32(json& j, const std::optional<f32>& v) { if (v.has_value()) { j = v.value(); } }
-	inline void JsonTrySetF64(json& j, const std::optional<f64>& v) { if (v.has_value()) { j = v.value(); } }
-	inline void JsonTrySetVec2(json& j, const std::optional<vec2>& v) { if (v.has_value()) { JsonSetVec2(j, v.value()); } }
-	inline void JsonTrySetVec3(json& j, const std::optional<vec3>& v) { if (v.has_value()) { JsonSetVec3(j, v.value()); } }
-	inline void JsonTrySetVec4(json& j, const std::optional<vec4>& v) { if (v.has_value()) { JsonSetVec4(j, v.value()); } }
-	inline void JsonTrySetIVec2(json& j, const std::optional<ivec2>& v) { if (v.has_value()) { JsonSetIVec2(j, v.value()); } }
-	inline void JsonTrySetIVec3(json& j, const std::optional<ivec3>& v) { if (v.has_value()) { JsonSetIVec3(j, v.value()); } }
-	inline void JsonTrySetIVec4(json& j, const std::optional<ivec4>& v) { if (v.has_value()) { JsonSetIVec4(j, v.value()); } }
-	inline void JsonTrySetStr(json& j, const std::optional<std::string>& v) { if (v.has_value()) { j = v.value(); } }
+		void MemberF64(std::string_view key, bool value) = delete;
+		void MemberF64(std::string_view key, i32 value) = delete;
+		void MemberF64(std::string_view key, u32 value) = delete;
+		void MemberF64(std::string_view key, f32 value) = delete;
+#endif
 
-	template <typename KeyType>
-	inline json* JsonFind(json& j, KeyType&& key) { auto f = j.find(std::forward<KeyType>(key)); return (f != j.end()) ? &(*f) : nullptr; }
+	private:
+		BaseWriter writer;
+	};
 
-	template <typename KeyType>
-	inline const json* JsonFind(const json& j, KeyType&& key) { auto f = j.find(std::forward<KeyType>(key)); return (f != j.cend()) ? &(*f) : nullptr; }
+	using WriteBuffer = rapidjson::StringBuffer;
+	using WriterEx = WriterWrapper<rapidjson::PrettyWriter<WriteBuffer>, WriteBuffer>;
 
-	COMFY_NODISCARD std::string JsonToString(const json& json);
-	COMFY_NODISCARD json JsonFromString(std::string_view jsonString);
-}
-
-namespace Comfy::IO
-{
-	COMFY_NODISCARD std::optional<json> LoadJson(std::string_view filePath);
-	COMFY_NODISCARD std::future<std::optional<json>> LoadJsonAsync(std::string_view filePath);
-
-	/* COMFY_NODISCARD */ bool SaveJson(std::string_view filePath, const json& json);
-	COMFY_NODISCARD std::future<bool> SaveJsonAsync(std::string_view filePath, const json* json);
+	void DummyFunctionToShutUpLinkerWarning4221();
 }
