@@ -700,7 +700,7 @@ namespace Comfy::Studio::Editor
 			data.ID = target.ID;
 			data.NewValue = properties;
 			data.NewValue.Position = ((properties.Position - flipCenter) * componentFlipMask) + flipCenter;
-			data.NewValue.Angle = isHorizontal ? Rules::NormalizeAngle(-data.NewValue.Angle) : Rules::NormalizeAngle(data.NewValue.Angle - 180.0f);
+			data.NewValue.Angle = isHorizontal ? Rules::NormalizeAngle(-data.NewValue.Angle) : Rules::NormalizeAngle(180.0f - data.NewValue.Angle);
 			data.NewValue.Frequency *= -1.0f;
 		}
 
