@@ -62,14 +62,21 @@ namespace Comfy::Graphics::Utilities
 			return true;
 		}
 
-		constexpr vec4 GetTexelRegionFromPixelRegion(const vec4& pixelRegion, vec2 textureSize)
+		constexpr vec4 GetTexelRegionFromPixelRegion(const vec4& spritePixelRegion, vec2 textureAtlasSize)
 		{
 			const vec4 texelRegion =
 			{
-				(pixelRegion.x / textureSize.x),
-				(pixelRegion.y / textureSize.y),
-				(pixelRegion.z / textureSize.x),
-				(pixelRegion.w / textureSize.y),
+#if 0
+				(spritePixelRegion.x / textureAtlasSize.x),
+				(spritePixelRegion.y / textureAtlasSize.y),
+				(spritePixelRegion.z / textureAtlasSize.x),
+				(spritePixelRegion.w / textureAtlasSize.y),
+#else
+				(spritePixelRegion.x / textureAtlasSize.x),
+				(spritePixelRegion.y / textureAtlasSize.y),
+				((spritePixelRegion.x + spritePixelRegion.z) / textureAtlasSize.x),
+				((spritePixelRegion.y + spritePixelRegion.w) / textureAtlasSize.y),
+#endif
 			};
 			return texelRegion;
 		}
