@@ -417,6 +417,10 @@ namespace Comfy::Studio
 		constexpr std::string_view System_Gui_TargetButtonPathCurveSegments = "target_button_path_curve_segments";
 		constexpr std::string_view System_Gui_TargetButtonPathMaxCount = "target_button_path_max_count";
 
+		constexpr std::string_view System_Discord = "discord";
+		constexpr std::string_view System_Discord_EnableRichPresence = "enable_rich_presence";
+		constexpr std::string_view System_Discord_ShareElapsedTime = "share_elapsed_time";
+
 		constexpr std::string_view Input = "input";
 		constexpr std::string_view Input_ControllerLayoutMappings = "controller_layout_mappings";
 		constexpr std::string_view Input_Bindings = "bindings";
@@ -654,6 +658,12 @@ namespace Comfy::Studio
 				TryAssign(System.Gui.TargetDistanceGuideMaxCount, TryGetI32(Find(*guiJson, UserIDs::System_Gui_TargetDistanceGuideMaxCount)));
 				TryAssign(System.Gui.TargetButtonPathCurveSegments, TryGetI32(Find(*guiJson, UserIDs::System_Gui_TargetButtonPathCurveSegments)));
 				TryAssign(System.Gui.TargetButtonPathMaxCount, TryGetI32(Find(*guiJson, UserIDs::System_Gui_TargetButtonPathMaxCount)));
+			}
+
+			if (const Value* discordJson = Find(*systemJson, UserIDs::System_Discord))
+			{
+				TryAssign(System.Discord.EnableRichPresence, TryGetBool(Find(*discordJson, UserIDs::System_Discord_EnableRichPresence)));
+				TryAssign(System.Discord.ShareElapsedTime, TryGetBool(Find(*discordJson, UserIDs::System_Discord_ShareElapsedTime)));
 			}
 		}
 
@@ -917,6 +927,13 @@ namespace Comfy::Studio
 					writer.MemberI32(UserIDs::System_Gui_TargetButtonPathMaxCount, System.Gui.TargetButtonPathMaxCount);
 				}
 				writer.MemberObjectEnd();
+
+				writer.MemberObjectBegin(UserIDs::System_Discord);
+				{
+					writer.MemberBool(UserIDs::System_Discord_EnableRichPresence, System.Discord.EnableRichPresence);
+					writer.MemberBool(UserIDs::System_Discord_ShareElapsedTime, System.Discord.ShareElapsedTime);
+				}
+				writer.MemberObjectEnd();
 			}
 			writer.MemberObjectEnd();
 
@@ -1132,10 +1149,15 @@ namespace Comfy::Studio
 		System.Gui.ShowTestMenu = false;
 		System.Gui.AntiAliasedLines = true;
 		System.Gui.AntiAliasedFill = true;
-		System.Gui.TargetDistanceGuideCircleSegments = 64;
+		// NOTE: ... auto tessellation (?)
+		System.Gui.TargetDistanceGuideCircleSegments = 0; // 64;
 		System.Gui.TargetDistanceGuideMaxCount = 64;
 		System.Gui.TargetButtonPathCurveSegments = 32;
 		System.Gui.TargetButtonPathMaxCount = 64;
+
+		// NOTE: This one is debatable...
+		System.Discord.EnableRichPresence = true;
+		System.Discord.ShareElapsedTime = true;
 
 		{
 			using namespace Input;

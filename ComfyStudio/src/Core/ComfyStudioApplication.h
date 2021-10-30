@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "ComfyStudioDiscord.h"
 #include "Window/ApplicationHost.h"
 #include "BaseWindow.h"
 #include "Editor/Core/EditorManager.h"

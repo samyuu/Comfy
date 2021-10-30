@@ -1,4 +1,5 @@
 #include "ChartEditorSettingsWindow.h"
+#include "Core/ComfyStudioDiscord.h"
 #include "Input/Input.h"
 #include "Audio/Audio.h"
 #include <FontIcons.h>
@@ -601,6 +602,20 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsInputText("Chart Creator Default Name", userData.ChartProperties.ChartCreatorDefaultName, "n/a");
 			GuiEndSettingsColumns();
 		}
+
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+		if (Gui::CollapsingHeader("Discord Integration", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+			pendingChanges |= GuiSettingsCheckbox("Enaled Discord Rich Presence", userData.System.Discord.EnableRichPresence);
+
+			Gui::PushItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
+			pendingChanges |= GuiSettingsCheckbox("Share Elapsed Time", userData.System.Discord.ShareElapsedTime);
+			Gui::PopItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
+
+			GuiEndSettingsColumns();
+		}
+#endif
 
 		if (Gui::CollapsingHeader("Target Preview", ImGuiTreeNodeFlags_DefaultOpen))
 		{

@@ -2,6 +2,7 @@
 #include "Types.h"
 #include "Editor/Core/IEditorComponent.h"
 #include "ChartEditorSettingsWindow.h"
+#include "Core/ComfyStudioDiscord.h"
 #include "Chart.h"
 #include "SyncWindow.h"
 #include "PresetWindow.h"
@@ -93,6 +94,7 @@ namespace Comfy::Studio::Editor
 		void UpdateApplicationClosingRequest();
 		void UpdateGlobalControlInput();
 		void UpdateApplicationWindowTitle();
+		void UpdateDiscordStatusIfEnabled(bool isPlaytesting);
 		void UpdateAsyncSongSourceLoading();
 
 		void GuiChildWindows();
@@ -171,6 +173,11 @@ namespace Comfy::Studio::Editor
 
 		std::future<bool> chartSaveFileFuture;
 		std::unique_ptr<ComfyStudioChartFile> lastSavedChartFile;
+
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+		Discord::Status discordStatus = {};
+		i64 unixTimeOnChartBegin = 0;
+#endif
 
 	private:
 		std::string songSourceFilePathAbsolute;

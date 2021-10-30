@@ -244,6 +244,19 @@ namespace Comfy::Studio
 			editorManager->GuiWindows();
 			GuiTestWindowWindows();
 		}
+
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+		// NOTE: Not sure if this really makes much sense but the idea here is to not delay the window starting up in any way 
+		//		 in case loading the DLL or initializing discord core takes more than a small fraction of a second
+		constexpr i32 frameThresholdAfterWhichToAllowDiscord = 6;
+		if (Gui::GetFrameCount() > frameThresholdAfterWhichToAllowDiscord)
+		{
+			Discord::GlobalSetIsRuntimeEnabled(GlobalUserData.System.Discord.EnableRichPresence);
+
+			if (Discord::GlobalGetIsRuntimeEnabled())
+				Discord::GlobalOnUpdateTick();
+		}
+#endif
 	}
 
 	void ComfyStudioApplication::UpdateWindowFocusAudioEngineResponse()

@@ -55,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\rapidjson\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\rapidjson\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\discord_game_sdk\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -109,7 +109,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\rapidjson\include;$(SolutionDir)Dependencies\iconfont\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(SolutionDir)ComfyLib\src;$(SolutionDir)ComfyEngine\src;$(SolutionDir)Dependencies\glm\include;$(SolutionDir)Dependencies\stb\include;$(SolutionDir)Dependencies\rapidjson\include;$(SolutionDir)Dependencies\iconfont\include;$(SolutionDir)Dependencies\discord_game_sdk\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -159,6 +159,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Core\ComfyStudioDiscord.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetTreeView.cpp" />
@@ -231,6 +232,7 @@
     <ClCompile Include="src\EntryPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\ComfyStudioDiscord.h" />
     <ClInclude Include="src\Editor\Aet\AetCommands.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />

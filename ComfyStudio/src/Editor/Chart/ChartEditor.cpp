@@ -79,6 +79,7 @@ namespace Comfy::Studio::Editor
 		UpdateApplicationClosingRequest();
 		UpdateGlobalControlInput();
 		UpdateApplicationWindowTitle();
+		UpdateDiscordStatusIfEnabled(false);
 		UpdateAsyncSongSourceLoading();
 
 		GuiChildWindows();
@@ -156,7 +157,7 @@ namespace Comfy::Studio::Editor
 					CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPJEChartFileDialog(); });
 
 				if (Gui::MenuItem("Import PV Script Chart...", nullptr, false, true))
-					CheckOpenSaveConfirmationPopupThenCall([this]() { OpenReadImportPVScriptFileDialogThenOpenImportWindow(); });
+					CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPVScriptFileDialogThenOpenImportWindow(); });
 
 				Gui::EndMenu();
 			}
@@ -256,6 +257,8 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::OnExclusiveGui()
 	{
+		UpdateDiscordStatusIfEnabled(true);
+
 		auto& playTestWindow = GetOrCreatePlayTestWindow();
 		playTestWindow.ExclusiveGui();
 
@@ -384,6 +387,10 @@ namespace Comfy::Studio::Editor
 
 		timeline->SetCursorTime(TimeSpan::Zero());
 		timeline->ResetScrollAndZoom();
+
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+		unixTimeOnChartBegin = Discord::GlobalGetCurrentUnixTime();
+#endif
 	}
 
 	void ChartEditor::LoadNativeChartFileSync(std::string_view filePath)
@@ -732,6 +739,29 @@ namespace Comfy::Studio::Editor
 			parentApplication.SetFormattedWindowTitle(windowTitle);
 			lastSetWindowTitle = windowTitle;
 		}
+	}
+
+	void ChartEditor::UpdateDiscordStatusIfEnabled(bool isPlaytesting)
+	{
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+		if (Discord::GlobalGetIsRuntimeEnabled() && chart != nullptr)
+		{
+			discordStatus.UnixStartTime = GlobalUserData.System.Discord.ShareElapsedTime ? unixTimeOnChartBegin : 0;
+
+			discordStatus.LargeImageKey = Discord::ImageKey::ComfyApplicatonIcon;
+			discordStatus.LargeImageText = "Comfy Studio";
+			discordStatus.SmallImageKey = Discord::ImageKey::ComfyApplicatonIcon;
+			discordStatus.SmallImageText = IndexOr(static_cast<std::underlying_type_t<Difficulty>>(chart->Properties.Difficulty.Type), DifficultyNames, "Invalid");;
+
+			discordStatus.State = (isPlaytesting) ? "Playing a Chart" : "Creating a Chart";
+			discordStatus.Details.clear();
+			discordStatus.Details += chart->SongTitleOrDefault();
+			discordStatus.Details += " by ";
+			discordStatus.Details += chart->Properties.Song.Artist.empty() ? "Unknown" : chart->Properties.Song.Artist;
+
+			Discord::GlobalSetStatus(discordStatus);
+		}
+#endif
 	}
 
 	void ChartEditor::UpdateAsyncSongSourceLoading()

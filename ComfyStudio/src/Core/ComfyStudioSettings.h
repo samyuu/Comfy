@@ -55,7 +55,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 16, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 17, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -94,6 +94,12 @@ namespace Comfy::Studio
 				i32 TargetButtonPathCurveSegments;
 				i32 TargetButtonPathMaxCount;
 			} Gui;
+
+			struct
+			{
+				bool EnableRichPresence;
+				bool ShareElapsedTime;
+			} Discord;
 		} System;
 
 		struct // NOTE: Underscores in symbols are usually a big no go but definitely help with readability here quite a lot
