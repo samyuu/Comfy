@@ -28,5 +28,15 @@ namespace Comfy::IO
 		{
 			::SetCurrentDirectoryW(UTF8::WideArg(directoryPath).c_str());
 		}
+
+		std::string GetExecutableDirectory()
+		{
+			wchar_t buffer[MAX_PATH];
+			::GetModuleFileNameW(NULL, buffer, MAX_PATH);
+
+			std::string result = UTF8::Narrow(buffer);
+			result = Path::GetDirectoryName(result);
+			return result;
+		}
 	}
 }

@@ -48,6 +48,8 @@ namespace Comfy::IO
 		COMFY_NODISCARD std::string GetWorkingDirectory();
 		void SetWorkingDirectory(std::string_view directoryPath);
 
+		COMFY_NODISCARD std::string GetExecutableDirectory();
+
 		template <typename Func>
 		void IterateFiles(std::string_view directoryPath, Func func) { Detail::Iterate<true, false, false>(directoryPath, func); }
 
