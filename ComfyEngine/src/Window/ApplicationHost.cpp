@@ -43,6 +43,10 @@ namespace Comfy
 			bool IsFullscreenRequested = false;
 			bool IsMaximized = false;
 
+			bool SizeMoveActive = false;
+			bool RedrawTimerActive = false;
+			UINT RedrawTimerID = 0;
+
 			// NOTE: All positions and sizes are always stored in client space
 			ivec2 Position = DefaultStartupWindowPosition;
 			ivec2 Size = DefaultStartupWindowSize;
@@ -614,12 +618,39 @@ namespace Comfy
 
 			switch (message)
 			{
+			case WM_CREATE:
+			{
+				::SetTimer(Window.Handle, Window.RedrawTimerID, USER_TIMER_MINIMUM, nullptr);
+				return 0;
+			}
+
+			case WM_TIMER:
+			{
+				if (wParam == Window.RedrawTimerID && Window.RedrawTimerActive)
+				{
+					if (Window.IsRunning && Callback.UpdateFunction && Render::D3D11::D3D.SwapChain != nullptr)
+						ProgramLoopTick();
+				}
+				return 0;
+			}
+
+			case WM_ENTERSIZEMOVE:
+			{
+				Window.SizeMoveActive = true;
+				Window.RedrawTimerActive = true;
+				return 0;
+			}
+
+			case WM_EXITSIZEMOVE:
+			{
+				Window.SizeMoveActive = false;
+				Window.RedrawTimerActive = false;
+				return 0;
+			}
 
 			case WM_SIZE:
 			{
-				auto shortParams = reinterpret_cast<const short*>(&lParam);
-				const ivec2 size = { shortParams[0], shortParams[1] };
-
+				const ivec2 size = { LOWORD(lParam), HIWORD(lParam) };
 				const bool minimized = (wParam == SIZE_MINIMIZED);
 				const bool maximized = (wParam == SIZE_MAXIMIZED);
 
@@ -710,6 +741,9 @@ namespace Comfy
 
 			case WM_DESTROY:
 			{
+				if (Window.RedrawTimerID != 0)
+					::KillTimer(Window.Handle, Window.RedrawTimerID);
+
 				InternalWindowDestroyCallback();
 				return 0;
 			}
