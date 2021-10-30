@@ -8,17 +8,13 @@ namespace Comfy::System
 {
 	constexpr HMODULE InvalidModuleHandle = NULL;
 
-	LibraryLoader::LibraryLoader(const char* libraryName, bool loadOnInit) : libraryName(libraryName), moduleHandle(InvalidModuleHandle)
+	LibraryLoader::LibraryLoader(std::string_view libraryName, bool loadOnInit) : libraryName(libraryName), moduleHandle(InvalidModuleHandle)
 	{
 		if (loadOnInit)
-			Load(nullptr);
+			Load("");
 	}
 
-	LibraryLoader::~LibraryLoader()
-	{
-	}
-
-	bool LibraryLoader::Load(const char* directory)
+	bool LibraryLoader::Load(std::string_view loadDirectory, bool loadDirectoryOnly)
 	{
 		if (GetLibraryLoaded())
 		{
@@ -26,26 +22,31 @@ namespace Comfy::System
 			return false;
 		}
 
-		std::string previousWorkingDirectory;
-		if (directory != nullptr)
+		if (loadDirectoryOnly)
 		{
-			previousWorkingDirectory = IO::Directory::GetWorkingDirectory();
-			IO::Directory::SetWorkingDirectory(directory);
+			assert(!loadDirectory.empty());
+			moduleHandle = ::LoadLibraryW(UTF8::WideArg(IO::Path::Combine(loadDirectory, libraryName)).c_str());
+		}
+		else if (!loadDirectory.empty())
+		{
+			const auto previousWorkingDirectory = IO::Directory::GetWorkingDirectory();
+			IO::Directory::SetWorkingDirectory(loadDirectory);
+			moduleHandle = ::LoadLibraryW(UTF8::WideArg(libraryName).c_str());
+			IO::Directory::SetWorkingDirectory(previousWorkingDirectory);
+		}
+		else
+		{
+			moduleHandle = ::LoadLibraryW(UTF8::WideArg(libraryName).c_str());
 		}
 
-		moduleHandle = ::LoadLibraryW(UTF8::WideArg(libraryName).c_str());
-		const bool success = (moduleHandle != InvalidModuleHandle);
-
-		if (directory != nullptr)
-			IO::Directory::SetWorkingDirectory(previousWorkingDirectory);
-
-		if (!success)
+		const bool wasSuccessful = (moduleHandle != InvalidModuleHandle);
+		if (!wasSuccessful)
 		{
-			int loadLibraryError = ::GetLastError();
+			const int loadLibraryError = ::GetLastError();
 			Logger::LogErrorLine(__FUNCTION__ "(): Unable to load library %s. Error: %d", libraryName.c_str(), loadLibraryError);
 		}
 
-		return success;
+		return wasSuccessful;
 	}
 
 	void LibraryLoader::UnLoad()

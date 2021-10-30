@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "CoreTypes.h"
 
 namespace Comfy::System
@@ -6,10 +7,11 @@ namespace Comfy::System
 	class LibraryLoader
 	{
 	public:
-		LibraryLoader(const char* libraryName, bool loadOnInit = false);
-		~LibraryLoader();
+		LibraryLoader(std::string_view libraryName, bool loadOnInit = false);
+		~LibraryLoader() = default;
 
-		bool Load(const char* directory = nullptr);
+	public:
+		bool Load(std::string_view loadDirectory = "", bool loadDirectoryOnly = false);
 		void UnLoad();
 
 		bool GetLibraryLoaded() const;
