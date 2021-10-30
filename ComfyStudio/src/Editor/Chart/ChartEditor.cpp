@@ -54,6 +54,10 @@ namespace Comfy::Studio::Editor
 		const auto fileToOpen = parentApplication.GetFileToOpenOnStartup();
 		if (!fileToOpen.empty() && Util::MatchesInsensitive(IO::Path::GetExtension(fileToOpen), ComfyStudioChartFile::Extension))
 			LoadNativeChartFileSync(fileToOpen);
+
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+		unixTimeOnChartBegin = Discord::GlobalGetCurrentUnixTime();
+#endif
 	}
 
 	const char* ChartEditor::GetName() const
