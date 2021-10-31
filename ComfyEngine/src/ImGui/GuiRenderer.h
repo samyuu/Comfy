@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Gui.h"
 #include "Window/ApplicationHost.h"
 

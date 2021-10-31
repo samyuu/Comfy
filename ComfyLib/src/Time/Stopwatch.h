@@ -1,6 +1,6 @@
 #pragma once
+#include "Types.h"
 #include "TimeSpan.h"
-#include "CoreMacros.h"
 
 #define COMFY_DEBUG_STOPWATCH(description) auto COMFY_UNIQUENAME(__DEBUG_STOPWATCH) = ::Comfy::DebugStopwatch(description)
 

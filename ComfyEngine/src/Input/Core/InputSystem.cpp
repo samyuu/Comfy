@@ -7,7 +7,7 @@
 #include "ImGui/Gui.h"
 
 #define DIRECTINPUT_VERSION 0x0800
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include <dinput.h>
 #include <bitset>
 

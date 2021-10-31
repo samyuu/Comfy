@@ -11,13 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\CoreMacros.h" />
-    <ClInclude Include="src\CoreTypes.h" />
-    <ClInclude Include="src\Core\Algorithm.h" />
     <ClInclude Include="src\Core\Hacks.h" />
-    <ClInclude Include="src\Core\ScopeExitFunc.h" />
     <ClInclude Include="src\Core\SemanticVersion.h" />
-    <ClInclude Include="src\Core\StartupFuncWrapper.h" />
     <ClInclude Include="src\Database\Game\GmBtnSfxDB.h" />
     <ClInclude Include="src\Database\Game\GmPvListDB.h" />
     <ClInclude Include="src\Database\Game\PvDB.h" />
@@ -59,14 +54,12 @@
     <ClInclude Include="src\Script\PVScript.h" />
     <ClInclude Include="src\Time\Stopwatch.h" />
     <ClInclude Include="src\Core\Logger.h" />
-    <ClInclude Include="src\Core\NonCopyable.h" />
     <ClInclude Include="src\Time\TimeSpan.h" />
-    <ClInclude Include="src\Core\Win32\ComfyWindows.h" />
+    <ClInclude Include="src\Core\Win32LeanWindowsHeader.h" />
     <ClInclude Include="src\Database\AetDB.h" />
     <ClInclude Include="src\Database\Database.h" />
     <ClInclude Include="src\Database\SprDB.h" />
     <ClInclude Include="src\Database\TexDB.h" />
-    <ClInclude Include="src\FileAddr.h" />
     <ClInclude Include="src\IO\Archive\ComfyArchive.h" />
     <ClInclude Include="src\IO\Archive\FArc.h" />
     <ClInclude Include="src\IO\Crypto\Crypto.h" />
@@ -79,7 +72,6 @@
     <ClInclude Include="src\IO\Stream\FileStream.h" />
     <ClInclude Include="src\IO\Stream\MemoryStream.h" />
     <ClInclude Include="src\IO\Stream\IStream.h" />
-    <ClInclude Include="src\IntegralTypes.h" />
     <ClInclude Include="src\Misc\EndianHelper.h" />
     <ClInclude Include="src\Misc\ImageHelper.h" />
     <ClInclude Include="src\Misc\StringUtil.h" />

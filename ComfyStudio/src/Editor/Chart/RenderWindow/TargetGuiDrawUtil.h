@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Render/Render.h"
 #include "ImGui/Gui.h"

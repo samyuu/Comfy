@@ -1,5 +1,5 @@
 #pragma once
-#include "CoreTypes.h"
+#include "Types.h"
 #include "TempoChange.h"
 
 namespace Comfy::Studio::Editor

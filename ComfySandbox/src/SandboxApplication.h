@@ -1,7 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
-#include "CoreMacros.h"
 #include "Window/ApplicationHost.h"
 #include "PerformanceOverlay.h"
 #include "Tests/TestTask.h"

@@ -1,7 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
-#include "CoreMacros.h"
 #include "Stream/FileStream.h"
 #include "Stream/MemoryStream.h"
 #include "Stream/Manipulator/StreamReader.h"

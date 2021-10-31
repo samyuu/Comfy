@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "ImGui/ComfyTextureID.h"
 
 namespace Comfy::Render

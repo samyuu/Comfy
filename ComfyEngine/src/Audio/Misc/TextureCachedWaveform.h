@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Waveform.h"
 #include "Graphics/TexSet.h"
 #include "Time/TimeSpan.h"

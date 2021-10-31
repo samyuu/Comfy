@@ -20,18 +20,18 @@ namespace Comfy::IO
 		{
 #if 0
 			::CoInitialize(nullptr);
-			COMFY_SCOPE_EXIT([] { ::CoUninitialize(); });
+			defer { ::CoUninitialize(); }
 #endif
 
 			IShellLinkW* shellLink;
 			if (FAILED(::CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, reinterpret_cast<LPVOID*>(&shellLink))))
 				return "";
-			COMFY_SCOPE_EXIT([&] { shellLink->Release(); });
+			defer { shellLink->Release(); };
 
 			IPersistFile* persistFile;
 			if (FAILED(shellLink->QueryInterface(IID_IPersistFile, reinterpret_cast<LPVOID*>(&persistFile))))
 				return "";
-			COMFY_SCOPE_EXIT([&] { persistFile->Release(); });
+			defer { persistFile->Release(); };
 
 			if (FAILED(persistFile->Load(UTF8::WideArg(lnkFilePath).c_str(), STGM_READ)))
 				return "";

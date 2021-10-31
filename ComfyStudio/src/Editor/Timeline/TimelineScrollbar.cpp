@@ -1,5 +1,4 @@
 #include "TimelineScrollbar.h"
-#include "CoreTypes.h"
 
 namespace Comfy::Studio::Editor
 {

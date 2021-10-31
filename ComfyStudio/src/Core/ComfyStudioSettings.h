@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Core/SemanticVersion.h"
 #include "Editor/Common/RecentFilesList.h"
 #include "Editor/Chart/TargetPropertyPresets.h"

@@ -15,7 +15,7 @@ namespace Comfy::Audio
 		u64 totalFrameCount;
 
 		i16* data = drflac_open_memory_and_read_pcm_frames_s16(fileData, fileSize, &channels, &sampleRate, &totalFrameCount);
-		COMFY_SCOPE_EXIT([&] { drflac_free(data); });
+		defer { drflac_free(data); };
 
 		if (data == nullptr)
 			return DecoderResult::Failure;

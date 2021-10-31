@@ -1,4 +1,4 @@
-#include "CoreMacros.h"
+#include "Types.h"
 
 // NOTE: To automatically resolve the correct include directory based on the build configuration
 #if COMFY_DEBUG

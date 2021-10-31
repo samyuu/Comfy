@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Editor/Chart/Chart.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Script/PVScript.h"

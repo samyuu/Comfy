@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 
 // NOTE: Following the "UTF-8 Everywhere" guidelines
 namespace Comfy::UTF8

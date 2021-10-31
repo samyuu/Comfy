@@ -19,7 +19,7 @@ int main(int argc, const char* argv[])
 #include "CLI/CommandLine.h"
 #include "IO/Path.h"
 #include "IO/Directory.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include <shellapi.h>
 
 namespace Comfy::Studio

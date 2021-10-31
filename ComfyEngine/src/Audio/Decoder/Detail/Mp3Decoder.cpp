@@ -18,7 +18,7 @@ namespace Comfy::Audio
 
 		u64 frameCount;
 		i16* data = drmp3_open_memory_and_read_s16(fileData, fileSize, &config, &frameCount);
-		COMFY_SCOPE_EXIT([&] { drmp3_free(data); });
+		defer { drmp3_free(data); };
 
 		if (data == nullptr)
 			return DecoderResult::Failure;

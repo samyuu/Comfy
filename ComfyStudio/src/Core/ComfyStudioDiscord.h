@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 
 // NOTE: If this is disabled then the discord headers won't even be touched.
 //		 If it *is* enabled but discord isn't available or anything else fails

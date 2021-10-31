@@ -55,7 +55,7 @@ namespace Comfy::Util
 
 		int components;
 		stbi_uc* pixels = stbi_load(filePath.data(), &outSize.x, &outSize.y, &components, rgbaComponents);
-		COMFY_SCOPE_EXIT([&] { stbi_image_free(pixels); });
+		defer { stbi_image_free(pixels); };
 
 		if (pixels != nullptr)
 		{

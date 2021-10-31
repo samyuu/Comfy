@@ -1,8 +1,7 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Time/TimeSpan.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include <functional>
 #include <optional>
 

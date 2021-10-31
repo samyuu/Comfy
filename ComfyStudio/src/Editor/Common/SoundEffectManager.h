@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Audio/Audio.h"
 #include "Database/Game/GmBtnSfxDB.h"
 

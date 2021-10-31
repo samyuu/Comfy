@@ -14,7 +14,7 @@ namespace Comfy::Audio
 		i16* sampleData;
 
 		const i32 frameCount = stb_vorbis_decode_memory(static_cast<const uint8*>(fileData), static_cast<int>(fileSize), &channels, &sampleRate, &sampleData);
-		COMFY_SCOPE_EXIT([&] { free(sampleData); });
+		defer { free(sampleData); };
 
 		if (sampleData == nullptr || frameCount < 0)
 			return DecoderResult::Failure;

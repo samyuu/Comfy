@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Time/TimeSpan.h"
 #include "TimelineScrollbar.h"
 #include "ImGui/Gui.h"

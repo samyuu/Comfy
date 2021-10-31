@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 
 namespace Comfy::Audio

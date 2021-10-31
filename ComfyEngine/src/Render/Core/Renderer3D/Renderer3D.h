@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "RenderCommand3D.h"
 #include "RenderTarget3D.h"
 #include "Render/Core/Camera.h"

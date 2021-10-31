@@ -16,7 +16,7 @@ namespace Comfy::Audio
 
 		// drwav_open_memory_and_read_s16_into_vector(fileData, fileSize, &channels, &sampleRate, &sampleCount, outputData->SampleData);
 		i16* data = drwav_open_memory_and_read_s16(fileData, fileSize, &channels, &sampleRate, &sampleCount);
-		COMFY_SCOPE_EXIT([&] { drwav_free(data); });
+		defer { drwav_free(data); };
 
 		if (data == nullptr)
 			return DecoderResult::Failure;
@@ -47,7 +47,7 @@ namespace Comfy::Audio
 		size_t memoryDataSize = 0;
 
 		drwav* wavContext = drwav_open_memory_write_sequential(&memoryData, &memoryDataSize, &format, sampleCount);
-		COMFY_SCOPE_EXIT([&] { drwav_close(wavContext); drwav_free(memoryData); });
+		defer { drwav_close(wavContext); drwav_free(memoryData); };
 
 		if (wavContext == nullptr)
 			return std::make_pair(nullptr, 0);

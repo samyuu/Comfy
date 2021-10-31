@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "../Crypto.h"
 
 namespace Comfy::IO::Crypto::Detail

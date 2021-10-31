@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Graphics/Auth3D/ObjSet.h"
 #include "Graphics/Auth3D/Transform.h"
 

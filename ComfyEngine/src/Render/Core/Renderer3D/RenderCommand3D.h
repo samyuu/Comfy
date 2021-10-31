@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Graphics/Auth3D/ObjSet.h"
 
 namespace Comfy::Render

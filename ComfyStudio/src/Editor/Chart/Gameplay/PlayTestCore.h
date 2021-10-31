@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Editor/Chart/SortedTargetList.h"
 #include "Time/TimeSpan.h"
 #include "Input/Input.h"

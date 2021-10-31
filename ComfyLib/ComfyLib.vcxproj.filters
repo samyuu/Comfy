@@ -15,16 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core\Win32\ComfyWindows.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\Algorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Core\Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\NonCopyable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Misc\EndianHelper.h">
@@ -37,15 +28,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Misc\TextDatabaseParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CoreTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FileAddr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IntegralTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Types.h">
@@ -108,16 +90,10 @@
     <ClInclude Include="src\Database\TexDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\CoreMacros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Time\TimeSpan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Time\Stopwatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\ScopeExitFunc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\IO\File.h">
@@ -195,9 +171,6 @@
     <ClInclude Include="src\Graphics\Auth3D\Misc\DebugObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\StartupFuncWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Auth2D\Aet\AetUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -256,6 +229,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\SemanticVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Win32LeanWindowsHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "IO/Stream/BinaryMode.h"
 #include "IO/Stream/IStream.h"
 #include "Misc/EndianHelper.h"

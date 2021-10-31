@@ -1,5 +1,5 @@
 #pragma once
-#include "CoreMacros.h"
+#include "Types.h"
 
 namespace Comfy::Studio::BuildConfiguration
 {

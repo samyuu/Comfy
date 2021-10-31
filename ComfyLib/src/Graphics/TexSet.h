@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "GPUResource.h"
 #include "Resource/IDTypes.h"
 #include "Graphics/GraphicTypes.h"

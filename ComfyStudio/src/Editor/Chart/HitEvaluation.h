@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Time/TimeSpan.h"
 
 namespace Comfy::Studio::Editor

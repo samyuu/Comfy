@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Chart.h"
 #include "Undo/Undo.h"
 #include "Audio/Audio.h"

@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "IO/Stream/FileInterfaces.h"
 #include <optional>
 

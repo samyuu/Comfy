@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Graphics/Auth3D/BoundingTypes.h"
 #include "Graphics/Auth3D/Ray.h"
 

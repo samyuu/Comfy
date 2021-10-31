@@ -1,5 +1,5 @@
 #include "Directory.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 
 namespace Comfy::IO
 {

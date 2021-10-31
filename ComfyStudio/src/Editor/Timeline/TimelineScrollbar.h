@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "ImGui/Gui.h"
 
 namespace Comfy::Studio::Editor

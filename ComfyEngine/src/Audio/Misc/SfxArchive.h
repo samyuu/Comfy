@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Audio/Core/AudioEngine.h"
 #include "Database/SfxDB.h"
 #include "IO/Archive/FArc.h"

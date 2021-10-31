@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "GameContext.h"
 #include "GameState.h"
 #include "GameStateTransition.h"

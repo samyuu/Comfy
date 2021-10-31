@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Core/BaseWindow.h"
 #include "Input/Input.h"
 

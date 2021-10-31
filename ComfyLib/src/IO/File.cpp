@@ -2,7 +2,7 @@
 #include "Path.h"
 #include "Archive/FArc.h"
 #include "Misc/UTF8.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 
 namespace Comfy::IO
 {

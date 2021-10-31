@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Render/Render.h"
 #include "Time/TimeSpan.h"
 #include "Editor/Chart/Chart.h"

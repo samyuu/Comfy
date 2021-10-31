@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Core/ComfyStudioSettings.h"
 #include "ImGui/Gui.h"
 

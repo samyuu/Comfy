@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "BeatTick.h"
 #include "Time/TimeSpan.h"
 #include <unordered_map>

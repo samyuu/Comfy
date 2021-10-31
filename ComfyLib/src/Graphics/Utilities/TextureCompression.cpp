@@ -1,7 +1,7 @@
 #include "TextureCompression.h"
 #include "IO/Path.h"
 #include "Misc/UTF8.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include <DirectXTex.h>
 
 #pragma comment(lib, "DirectXTex.lib")

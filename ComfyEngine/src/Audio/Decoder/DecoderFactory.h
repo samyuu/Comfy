@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "IDecoder.h"
 #include "Audio/SampleProvider/ISampleProvider.h"
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Tests/Game/Core/GameState.h"
 
 namespace Comfy::Sandbox::Tests::Game

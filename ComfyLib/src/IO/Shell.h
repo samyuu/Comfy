@@ -1,7 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
-#include "CoreMacros.h"
 
 namespace Comfy::IO
 {

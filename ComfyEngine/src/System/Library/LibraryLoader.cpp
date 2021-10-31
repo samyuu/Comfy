@@ -1,7 +1,7 @@
 #include "LibraryLoader.h"
 #include "IO/Directory.h"
 #include "Core/Logger.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include "Misc/StringUtil.h"
 
 namespace Comfy::System

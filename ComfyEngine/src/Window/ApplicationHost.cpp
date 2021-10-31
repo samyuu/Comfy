@@ -4,7 +4,7 @@
 #include "Audio/Audio.h"
 #include "Input/Input.h"
 #include "Core/Logger.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include "IO/File.h"
 #include "IO/Shell.h"
 #include "System/Profiling/Profiler.h"

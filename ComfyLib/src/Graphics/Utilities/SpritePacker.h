@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "Graphics/TexSet.h"
 #include "Graphics/Auth2D/SprSet.h"
 #include <functional>

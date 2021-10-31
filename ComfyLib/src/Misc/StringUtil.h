@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
 #include "ASCII.h"
 #include "UTF8.h"
 #include <algorithm>

@@ -1,7 +1,5 @@
 #pragma once
 #include "Types.h"
-#include "CoreTypes.h"
-#include "CoreMacros.h"
 #include <optional>
 #include <future>
 
@@ -23,13 +21,8 @@ namespace Comfy::Json
 	constexpr std::string_view FilterName = "JSON (*.json)";
 	constexpr std::string_view FilterSpec = "*.json";
 
-#if 0 // TODO: Which to use..?
-	constexpr i32 IndentationCharCount = 4;
-	constexpr char IndentationChar = ' ';
-#else // ... these very .cpp source files use "\r\n" (0x0D, 0x0A) for new lines and a single "\t" (0x09) as indentation rendered as 4 spaces
 	constexpr i32 IndentationCharCount = 1;
 	constexpr char IndentationChar = '\t';
-#endif
 
 	using Document = rapidjson::Document;
 	using Allocator = rapidjson::Document::AllocatorType;
@@ -109,7 +102,7 @@ namespace Comfy::Json
 		inline void MemberTryF64(std::string_view key, std::optional<f64> value) { MemberKey(key); value.has_value() ? F64(value.value()) : Null(); }
 		inline void MemberTryStr(std::string_view key, const std::optional<std::string>& value) { MemberKey(key); value.has_value() ? Str(value.value()) : Null(); }
 
-#if 1 // TODO: Is this a good idea (?)
+#if 1 // NOTE: To try and avoid implicit conversion error at compile time
 		void MemberI32(std::string_view key, bool value) = delete;
 		void MemberI32(std::string_view key, u32 value) = delete;
 		void MemberI32(std::string_view key, f32 value) = delete;

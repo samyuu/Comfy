@@ -1,6 +1,6 @@
 #include "Types.h"
 #include "TimeSpan.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include "Core/Logger.h"
 
 namespace Comfy

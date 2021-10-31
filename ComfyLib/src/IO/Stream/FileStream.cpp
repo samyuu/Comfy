@@ -1,5 +1,5 @@
 #include "FileStream.h"
-#include "Core/Win32/ComfyWindows.h"
+#include "Core/Win32LeanWindowsHeader.h"
 #include "Misc/StringUtil.h"
 
 namespace Comfy::IO
