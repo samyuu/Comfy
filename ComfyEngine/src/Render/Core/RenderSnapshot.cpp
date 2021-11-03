@@ -1,6 +1,6 @@
 #include "RenderSnapshot.h"
 #include "Renderer3D/RenderTarget3D.h"
-#include "Render/D3D11/Texture/Texture.h"
+#include "Render/D3D11/D3D11Texture.h"
 
 namespace Comfy::Render
 {
@@ -26,8 +26,8 @@ namespace Comfy::Render
 	void RenderSnapshot::TakeSnapshot(const RenderTarget3D& renderTarget)
 	{
 		if (texture == nullptr)
-			texture = std::make_unique<D3D11::Texture2D>(renderTarget.GetRenderTarget());
+			texture = std::make_unique<D3D11Texture2DAndView>(GlobalD3D11, renderTarget.GetRenderTarget());
 		else
-			texture->CreateCopy(renderTarget.GetRenderTarget());
+			texture->CreateCopyFrom(GlobalD3D11, renderTarget.GetRenderTarget());
 	}
 }

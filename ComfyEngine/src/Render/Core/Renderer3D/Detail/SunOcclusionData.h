@@ -1,17 +1,17 @@
 #pragma once
-#include "Render/D3D11/State/OcclusionQuery.h"
+#include "Render/D3D11/D3D11State.h"
 
 namespace Comfy::Render::Detail
 {
 	struct SunOcclusionData
 	{
 		// NOTE: Sun covered by opaque geometry
-		D3D11::OcclusionQuery OcclusionQuery = { "Renderer3D::SunOcclusionQuery" };
+		D3D11OcclusionQuery OcclusionQuery = { GlobalD3D11, "Renderer3D::SunOcclusionQuery" };
 
 		// TODO: Array of queries to detect the sun being at the edge of the screen
-		// D3D11::OcclusionQuery OffScreenOcclusionQuery = { "Renderer3D::SunOffScreenOcclusionQuery" };
+		// D3D11OcclusionQuery OffScreenOcclusionQuery = { GlobalD3D11, "Renderer3D::SunOffScreenOcclusionQuery" };
 
 		// NOTE: Sun without depth testing to calculate covered percentage
-		D3D11::OcclusionQuery NoDepthOcclusionQuery = { "Renderer3D::SunNoDepthOcclusionQuery" };
+		D3D11OcclusionQuery NoDepthOcclusionQuery = { GlobalD3D11, "Renderer3D::SunNoDepthOcclusionQuery" };
 	};
 }

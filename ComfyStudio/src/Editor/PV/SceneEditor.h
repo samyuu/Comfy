@@ -112,7 +112,7 @@ namespace Comfy::Studio::Editor
 		std::array<char, 260> iblPathBuffer = { "dev_rom/ibl/tst.ibl" };
 
 		// NOTE: To keep track of the open and closed render target debug windows
-		u32 openRenderTargetsFlags = 0;
+		u64 openRenderTargetsFlags = 0;
 
 		struct EntityInspector
 		{

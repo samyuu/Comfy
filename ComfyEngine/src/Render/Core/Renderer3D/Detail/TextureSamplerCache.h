@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Graphics/Auth3D/ObjSet.h"
-#include "Render/D3D11/Texture/TextureSampler.h"
+#include "Render/D3D11/D3D11Texture.h"
 
 namespace Comfy::Render::Detail
 {
@@ -32,8 +32,8 @@ namespace Comfy::Render::Detail
 				{
 					for (int v = 0; v < AddressMode_Count; v++)
 					{
-						samplers[u][v].emplace(filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, anistropicFiltering);
-						D3D11_SetObjectDebugName(samplers[u][v]->GetSampler(), "Renderer3D::Sampler::%s-%s", AddressModeNames[u], AddressModeNames[v]);
+						samplers[u][v].emplace(GlobalD3D11, filter, D3DAddressModes[u], D3DAddressModes[v], 0.0f, anistropicFiltering);
+						D3D11_SetObjectDebugName(samplers[u][v]->SamplerState.Get(), "Renderer3D::Sampler::%s-%s", AddressModeNames[u], AddressModeNames[v]);
 					}
 				}
 
@@ -41,7 +41,7 @@ namespace Comfy::Render::Detail
 			}
 		}
 
-		D3D11::TextureSampler& GetSampler(Graphics::MaterialTextureData::TextureSamplerFlags flags)
+		D3D11TextureSampler& GetSampler(Graphics::MaterialTextureData::TextureSamplerFlags flags)
 		{
 			const auto u = flags.MirrorU ? Mirror : flags.RepeatU ? Repeat : Clamp;
 			const auto v = flags.MirrorV ? Mirror : flags.RepeatV ? Repeat : Clamp;
@@ -52,6 +52,6 @@ namespace Comfy::Render::Detail
 		enum AddressMode { Mirror, Repeat, Clamp, AddressMode_Count };
 
 		i32 lastAnistropicFiltering = -1;
-		std::array<std::array<std::optional<D3D11::TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
+		std::array<std::array<std::optional<D3D11TextureSampler>, AddressMode_Count>, AddressMode_Count> samplers;
 	};
 }

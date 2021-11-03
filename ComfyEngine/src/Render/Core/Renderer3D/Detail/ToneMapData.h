@@ -1,5 +1,5 @@
 #pragma once
-#include "Render/D3D11/Texture/Texture.h"
+#include "Render/D3D11/D3D11Texture.h"
 #include "Graphics/Auth3D/LightParam/GlowParameter.h"
 
 namespace Comfy::Render::Detail
@@ -13,7 +13,7 @@ namespace Comfy::Render::Detail
 				Update(glow);
 		}
 
-		D3D11::Texture1D* GetLookupTexture()
+		D3D11Texture1DAndView* GetLookupTexture()
 		{
 			return lookupTexture.get();
 		}
@@ -67,15 +67,15 @@ namespace Comfy::Render::Detail
 		void UpdateTexture()
 		{
 			if (lookupTexture == nullptr)
-				lookupTexture = std::make_unique<D3D11::Texture1D>(static_cast<i32>(textureData.size()), textureData.data(), DXGI_FORMAT_R32G32_FLOAT);
+				lookupTexture = std::make_unique<D3D11Texture1DAndView>(GlobalD3D11, static_cast<i32>(textureData.size()), textureData.data(), DXGI_FORMAT_R32G32_FLOAT, D3D11_USAGE_DYNAMIC);
 			else
-				lookupTexture->UploadData(sizeof(textureData), textureData.data());
+				lookupTexture->UploadDataIfDynamic(GlobalD3D11, sizeof(textureData), textureData.data());
 		}
 
 	private:
 		Graphics::GlowParameter lastSetGlow;
 
 		std::array<vec2, 512> textureData;
-		std::unique_ptr<D3D11::Texture1D> lookupTexture = nullptr;
+		std::unique_ptr<D3D11Texture1DAndView> lookupTexture = nullptr;
 	};
 }

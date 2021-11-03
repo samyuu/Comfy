@@ -1,52 +1,43 @@
 #include "ComfyTextureID.h"
-#include "Graphics/TexSet.h"
-#include "Graphics/Auth3D/LightParam/IBLParameters.h"
-#include "Render/D3D11/Texture/RenderTarget.h"
-#include "Render/D3D11/Texture/Texture.h"
-#include "Render/D3D11/GraphicsResourceUtil.h"
+#include "Render/D3D11/D3D11Texture.h"
+#include "Render/D3D11/D3D11OpaqueResource.h"
 
 namespace Comfy
 {
 	using namespace Graphics;
 
-	ComfyTextureID::ComfyTextureID(const nullptr_t dummy)
+	ComfyTextureID::ComfyTextureID(ID3D11ShaderResourceView* resourceView)
 	{
-		Data.ResourceView = reinterpret_cast<u64>(dummy);
+		Data.ResourceView = reinterpret_cast<u64>(resourceView);
 	}
 
 	ComfyTextureID::ComfyTextureID(const Tex& tex)
 	{
-		auto getResourceView = [&](auto* texture) { return (texture != nullptr) ? texture->GetResourceView() : nullptr; };
-		auto resourceView = (tex.GetSignature() == TxpSig::Texture2D) ?
-			getResourceView(Render::D3D11::GetTexture2D(tex)) :
-			getResourceView(Render::D3D11::GetCubeMap(tex));
-
-		Data.ResourceView = reinterpret_cast<u64>(resourceView);
-		Data.DecompressRGTC = tex.GetFormat() == TextureFormat::RGTC2;
-		Data.IsCubeMap = tex.GetSignature() == TxpSig::CubeMap;
+		Data.ResourceView = reinterpret_cast<u64>(Render::GetD3D11Texture2DView(Render::GlobalD3D11, tex));
+		Data.DecompressRGTC = (tex.GetFormat() == TextureFormat::RGTC2);
+		Data.IsCubeMap = (tex.GetSignature() == TxpSig::CubeMap);
 	}
 
 	ComfyTextureID::ComfyTextureID(const LightMapIBL& lightMap)
 	{
-		auto cubeMap = Render::D3D11::GetCubeMap(lightMap);
-		Data.ResourceView = (cubeMap != nullptr) ? reinterpret_cast<u64>(cubeMap->GetResourceView()) : 0;
+		Data.ResourceView = reinterpret_cast<u64>(Render::GetD3D11Texture2DView(Render::GlobalD3D11, lightMap));
 		Data.IsCubeMap = true;
 	}
 
-	ComfyTextureID::ComfyTextureID(const Render::D3D11::TextureResource& texture)
+	ComfyTextureID::ComfyTextureID(const Render::D3D11Texture2DAndView& texture)
 	{
-		Data.ResourceView = reinterpret_cast<u64>(texture.GetResourceView());
-		Data.DecompressRGTC = texture.GetTextureFormat() == TextureFormat::RGTC2;
-		Data.IsCubeMap = texture.GetArraySize() == 6;
+		Data.ResourceView = reinterpret_cast<u64>(texture.TextureView.Get());
+		Data.DecompressRGTC = (texture.TextureFormat == TextureFormat::RGTC2);
+		Data.IsCubeMap = texture.GetIsCubeMap();
 	}
 
-	ComfyTextureID::ComfyTextureID(const Render::D3D11::RenderTarget& renderTarget)
+	ComfyTextureID::ComfyTextureID(const Render::D3D11RenderTargetAndView& renderTarget)
 	{
-		Data.ResourceView = reinterpret_cast<u64>(renderTarget.GetResourceView());
+		Data.ResourceView = reinterpret_cast<u64>(renderTarget.ColorTextureView.Get());
 	}
 
-	ComfyTextureID::ComfyTextureID(const Render::D3D11::DepthOnlyRenderTarget& renderTarget)
+	ComfyTextureID::ComfyTextureID(const Render::D3D11RenderTargetAndView& renderTarget, bool depthBuffer)
 	{
-		Data.ResourceView = reinterpret_cast<u64>(renderTarget.GetResourceView());
+		Data.ResourceView = reinterpret_cast<u64>(depthBuffer ? renderTarget.DepthTextureView.Get() : renderTarget.ColorTextureView.Get());
 	}
 }

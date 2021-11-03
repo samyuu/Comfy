@@ -576,13 +576,14 @@ namespace Comfy::Studio::Editor
 			if (activeRenderWindow.GetRenderTarget() == nullptr)
 				return;
 
-			const auto subTargets = activeRenderWindow.GetRenderTarget()->GetSubTargets();
-			for (int index = 0; index < static_cast<int>(subTargets.Count); index++)
+			auto[subTargets, subTargetCount] = activeRenderWindow.GetRenderTarget()->GetSubTargets();
+			for (i32 index = 0; index < static_cast<i32>(subTargetCount); index++)
 			{
-				const auto& subTarget = subTargets.Targets[index];
+				const auto& subTarget = subTargets[index];
+				Gui::PushID(&subTarget);
 
-				const u32 openMask = (1 << index);
-				Gui::Selectable(subTarget.Name);
+				const u64 openMask = (static_cast<u64>(1) << static_cast<u64>(index));
+				Gui::Selectable(subTarget.Name.c_str());
 
 				if (Gui::IsItemHovered() && Gui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 					openRenderTargetsFlags ^= openMask;
@@ -593,7 +594,7 @@ namespace Comfy::Studio::Editor
 					constexpr f32 desiredWidth = 512.0f;
 
 					bool open = true;
-					if (Gui::Begin(subTarget.Name, &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoDocking))
+					if (Gui::Begin(subTarget.Name.c_str(), &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoDocking))
 						Gui::Image(subTarget.TextureID, vec2(desiredWidth, desiredWidth * aspectRatio));
 					Gui::End();
 					if (!open)
@@ -607,6 +608,8 @@ namespace Comfy::Studio::Editor
 					Gui::Image(subTarget.TextureID, vec2(desiredWidth, desiredWidth * aspectRatio));
 					Gui::EndTooltip();
 				}
+
+				Gui::PopID();
 			}
 		});
 	}

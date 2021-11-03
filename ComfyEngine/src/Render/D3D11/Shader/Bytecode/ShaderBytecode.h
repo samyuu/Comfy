@@ -1,11 +1,11 @@
 #pragma once
-#include "Render/D3D11/Shader/Shader.h"
+#include "Render/D3D11/D3D11Shader.h"
 
-#define DECLARE_BYTECODE_GETTER(shader)	BytecodeBlob shader();
-#define DEFINE_BYTECODE_GETTER(shader)	BytecodeBlob shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }
+#define DECLARE_BYTECODE_GETTER(shader)	D3D11BytecodeView shader();
+#define DEFINE_BYTECODE_GETTER(shader)	D3D11BytecodeView shader() { return { ::shader##_Bytecode, sizeof(::shader##_Bytecode) }; }
 
 // NOTE: Public interface
-namespace Comfy::Render::D3D11
+namespace Comfy::Render
 {
 	DECLARE_BYTECODE_GETTER(ImGuiDefault_VS);
 	DECLARE_BYTECODE_GETTER(ImGuiDefault_PS);
@@ -181,7 +181,7 @@ namespace Comfy::Render::D3D11
 #include SHADER_BYTECODE_FILE(Water_VS.h)
 #include SHADER_BYTECODE_FILE(Water_PS.h)
 
-namespace Comfy::Render::D3D11
+namespace Comfy::Render
 {
 	DEFINE_BYTECODE_GETTER(ImGuiDefault_VS);
 	DEFINE_BYTECODE_GETTER(ImGuiDefault_PS);

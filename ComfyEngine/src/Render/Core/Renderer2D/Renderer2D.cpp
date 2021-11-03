@@ -2,17 +2,14 @@
 #include "Detail/RenderTarget2DImpl.h"
 #include "Detail/SpriteBatchData.h"
 #include "Detail/TextureSamplerCache.h"
-#include "Render/D3D11/GraphicsResourceUtil.h"
-#include "Render/D3D11/Buffer/ConstantBuffer.h"
-#include "Render/D3D11/Buffer/IndexBuffer.h"
-#include "Render/D3D11/Buffer/VertexBuffer.h"
+#include "Render/D3D11/D3D11.h"
+#include "Render/D3D11/D3D11Buffer.h"
+#include "Render/D3D11/D3D11GraphicsTypeHelpers.h"
+#include "Render/D3D11/D3D11OpaqueResource.h"
+#include "Render/D3D11/D3D11Shader.h"
+#include "Render/D3D11/D3D11State.h"
+#include "Render/D3D11/D3D11Texture.h"
 #include "Render/D3D11/Shader/Bytecode/ShaderBytecode.h"
-#include "Render/D3D11/State/BlendState.h"
-#include "Render/D3D11/State/DepthStencilState.h"
-#include "Render/D3D11/State/InputLayout.h"
-#include "Render/D3D11/State/RasterizerState.h"
-#include "Render/D3D11/Texture/RenderTarget.h"
-#include "Render/D3D11/Texture/TextureSampler.h"
 
 namespace Comfy::Render
 {
@@ -65,46 +62,46 @@ namespace Comfy::Render
 			struct MultiTextureShaders
 			{
 				// TODO: Permutation for all texture formats being the same to ~~avoid any branching~~ have a single branch
-				std::array<D3D11::ShaderPair, MaxSpriteTextureSlots> TextureBatch =
+				std::array<D3D11ShaderPair, MaxSpriteTextureSlots> TextureBatch =
 				{
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_01_PS(), "Renderer2D::SpriteMultiTextureBatch_01_PS" },
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_02_PS(), "Renderer2D::SpriteMultiTextureBatch_02_PS" },
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_03_PS(), "Renderer2D::SpriteMultiTextureBatch_03_PS" },
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_04_PS(), "Renderer2D::SpriteMultiTextureBatch_04_PS" },
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_05_PS(), "Renderer2D::SpriteMultiTextureBatch_05_PS" },
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_06_PS(), "Renderer2D::SpriteMultiTextureBatch_06_PS" },
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_07_PS(), "Renderer2D::SpriteMultiTextureBatch_07_PS" },
-					D3D11::ShaderPair { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatch_08_PS(), "Renderer2D::SpriteMultiTextureBatch_08_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_01_PS(), "Renderer2D::SpriteMultiTextureBatch_01_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_02_PS(), "Renderer2D::SpriteMultiTextureBatch_02_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_03_PS(), "Renderer2D::SpriteMultiTextureBatch_03_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_04_PS(), "Renderer2D::SpriteMultiTextureBatch_04_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_05_PS(), "Renderer2D::SpriteMultiTextureBatch_05_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_06_PS(), "Renderer2D::SpriteMultiTextureBatch_06_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_07_PS(), "Renderer2D::SpriteMultiTextureBatch_07_PS" },
+					D3D11ShaderPair { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatch_08_PS(), "Renderer2D::SpriteMultiTextureBatch_08_PS" },
 				};
-				D3D11::ShaderPair TextureBatchMultiply = { D3D11::SpriteMultiTexture_VS(), D3D11::SpriteMultiTextureBatchBlend_08_PS(), "Renderer2D::SpriteMultiTextureBatchBlend_08" };
+				D3D11ShaderPair TextureBatchMultiply = { GlobalD3D11, SpriteMultiTexture_VS(), SpriteMultiTextureBatchBlend_08_PS(), "Renderer2D::SpriteMultiTextureBatchBlend_08" };
 			} Multi;
 
 			struct SingleTextureShaders
 			{
-				D3D11::ShaderPair TextureCheckerboard = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureCheckerboard_PS(), "Renderer2D::SpriteSingleTextureCheckerboard" };
-				D3D11::ShaderPair TextureFont = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureFont_PS(), "Renderer2D::SpriteSingleTextureFont" };
-				D3D11::ShaderPair TextureMask = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMask_PS(), "Renderer2D::SpriteSingleTextureMask" };
-				D3D11::ShaderPair TextureMaskMultiply = { D3D11::SpriteSingleTexture_VS(), D3D11::SpriteSingleTextureMaskBlend_PS(), "Renderer2D::SpriteSingleTextureMaskBlend" };
+				D3D11ShaderPair TextureCheckerboard = { GlobalD3D11, SpriteSingleTexture_VS(), SpriteSingleTextureCheckerboard_PS(), "Renderer2D::SpriteSingleTextureCheckerboard" };
+				D3D11ShaderPair TextureFont = { GlobalD3D11, SpriteSingleTexture_VS(), SpriteSingleTextureFont_PS(), "Renderer2D::SpriteSingleTextureFont" };
+				D3D11ShaderPair TextureMask = { GlobalD3D11, SpriteSingleTexture_VS(), SpriteSingleTextureMask_PS(), "Renderer2D::SpriteSingleTextureMask" };
+				D3D11ShaderPair TextureMaskMultiply = { GlobalD3D11, SpriteSingleTexture_VS(), SpriteSingleTextureMaskBlend_PS(), "Renderer2D::SpriteSingleTextureMaskBlend" };
 			} Single;
 
 			struct PostProcessingShaders
 			{
-				D3D11::ShaderPair ColorCorrection = { D3D11::SpriteFullscreenQuad_VS(), D3D11::SpriteColorCorrection_PS(), "Renderer2D::SpriteColorCorrection" };
+				D3D11ShaderPair ColorCorrection = { GlobalD3D11, SpriteFullscreenQuad_VS(), SpriteColorCorrection_PS(), "Renderer2D::SpriteColorCorrection" };
 			} PostProcessing;
 		} Shaders;
 
-		D3D11::DefaultConstantBufferTemplate<CameraConstantData> CameraConstantBuffer = { 0 };
-		D3D11::DynamicConstantBufferTemplate<SpriteConstantData> SpriteConstantBuffer = { 0 };
-		D3D11::DynamicConstantBufferTemplate<PostProcessData> PostProcessConstantBuffer = { 1 };
+		D3D11ConstantBufferTemplate<CameraConstantData> CameraConstantBuffer = { GlobalD3D11, 0, D3D11_USAGE_DEFAULT };
+		D3D11ConstantBufferTemplate<SpriteConstantData> SpriteConstantBuffer = { GlobalD3D11, 0, D3D11_USAGE_DYNAMIC };
+		D3D11ConstantBufferTemplate<PostProcessData> PostProcessConstantBuffer = { GlobalD3D11, 1, D3D11_USAGE_DYNAMIC };
 
-		std::unique_ptr<D3D11::StaticIndexBuffer> SpriteQuadIndexBuffer = nullptr;
-		std::unique_ptr<D3D11::DynamicVertexBuffer> SpriteQuadVertexBuffer = nullptr;
-		std::unique_ptr<D3D11::DynamicVertexBuffer> SpriteShapeVertexBuffer = nullptr;
+		std::unique_ptr<D3D11IndexBuffer> SpriteQuadIndexBuffer = nullptr;
+		std::unique_ptr<D3D11VertexBuffer> SpriteQuadVertexBuffer = nullptr;
+		std::unique_ptr<D3D11VertexBuffer> SpriteShapeVertexBuffer = nullptr;
 
-		std::unique_ptr<D3D11::InputLayout> InputLayout = nullptr;
+		std::unique_ptr<D3D11InputLayout> InputLayout = nullptr;
 
 		// NOTE: Disable backface culling for negatively scaled sprites
-		D3D11::RasterizerState RasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE };
+		D3D11RasterizerState RasterizerState = { GlobalD3D11, D3D11_FILL_SOLID, D3D11_CULL_NONE };
 
 		Detail::TextureSamplerCache2D TextureSamplers = {};
 
@@ -130,11 +127,11 @@ namespace Comfy::Render
 
 		struct AetBlendStates
 		{
-			D3D11::BlendState Normal = { AetBlendMode::Normal };
-			D3D11::BlendState Add = { AetBlendMode::Add };
-			D3D11::BlendState Multiply = { AetBlendMode::Multiply };
-			D3D11::BlendState LinearDodge = { AetBlendMode::LinearDodge };
-			D3D11::BlendState Overlay = { AetBlendMode::Overlay };
+			D3D11BlendState Normal = { GlobalD3D11, AetBlendMode::Normal };
+			D3D11BlendState Add = { GlobalD3D11,AetBlendMode::Add };
+			D3D11BlendState Multiply = { GlobalD3D11,AetBlendMode::Multiply };
+			D3D11BlendState LinearDodge = { GlobalD3D11,AetBlendMode::LinearDodge };
+			D3D11BlendState Overlay = { GlobalD3D11,AetBlendMode::Overlay };
 		} AetBlendStates;
 
 		std::vector<Detail::SpriteDrawCallBatch> DrawCallBatches;
@@ -148,11 +145,11 @@ namespace Comfy::Render
 	public:
 		Impl(Renderer2D& parent) : AetRenderer(parent), FontRenderer(parent)
 		{
-			D3D11_SetObjectDebugName(CameraConstantBuffer.Buffer.GetBuffer(), "Renderer2D::CameraConstantBuffer");
-			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.GetBuffer(), "Renderer2D::SpriteConstantBuffer");
-			D3D11_SetObjectDebugName(PostProcessConstantBuffer.Buffer.GetBuffer(), "Renderer2D::PostProcessConstantBuffer");
+			D3D11_SetObjectDebugName(CameraConstantBuffer.Buffer.Buffer.Get(), "Renderer2D::CameraConstantBuffer");
+			D3D11_SetObjectDebugName(SpriteConstantBuffer.Buffer.Buffer.Get(), "Renderer2D::SpriteConstantBuffer");
+			D3D11_SetObjectDebugName(PostProcessConstantBuffer.Buffer.Buffer.Get(), "Renderer2D::PostProcessConstantBuffer");
 
-			D3D11_SetObjectDebugName(RasterizerState.GetRasterizerState(), "Renderer2D::RasterizerState");
+			D3D11_SetObjectDebugName(RasterizerState.RasterizerState.Get(), "Renderer2D::RasterizerState");
 
 			InternalCreateIndexBuffer();
 			InternalCreateVertexBuffer();
@@ -185,19 +182,19 @@ namespace Comfy::Render
 				offset += static_cast<u16>(Detail::SpriteQuadVertices::GetVertexCount());
 			}
 
-			SpriteQuadIndexBuffer = std::make_unique<D3D11::StaticIndexBuffer>(indexData.size() * sizeof(Detail::SpriteQuadIndices), indexData.data(), IndexFormat::U16);
-			D3D11_SetObjectDebugName(SpriteQuadIndexBuffer->GetBuffer(), "Renderer2D::QuadIndexBuffer");
+			SpriteQuadIndexBuffer = std::make_unique<D3D11IndexBuffer>(GlobalD3D11, indexData.size() * sizeof(Detail::SpriteQuadIndices), indexData.data(), IndexFormat::U16, D3D11_USAGE_IMMUTABLE);
+			D3D11_SetObjectDebugName(SpriteQuadIndexBuffer->Buffer.Get(), "Renderer2D::QuadIndexBuffer");
 		}
 
 		void InternalCreateVertexBuffer()
 		{
-			SpriteQuadVertexBuffer = std::make_unique<D3D11::DynamicVertexBuffer>(MaxBatchItemSize * sizeof(Detail::SpriteQuadVertices), nullptr, sizeof(Detail::SpriteVertex));
-			D3D11_SetObjectDebugName(SpriteQuadVertexBuffer->GetBuffer(), "Renderer2D::QuadVertexBuffer");
+			SpriteQuadVertexBuffer = std::make_unique<D3D11VertexBuffer>(GlobalD3D11, MaxBatchItemSize * sizeof(Detail::SpriteQuadVertices), nullptr, sizeof(Detail::SpriteVertex), D3D11_USAGE_DYNAMIC);
+			D3D11_SetObjectDebugName(SpriteQuadVertexBuffer->Buffer.Get(), "Renderer2D::QuadVertexBuffer");
 		}
 
 		void InternalCreateInputLayout()
 		{
-			static constexpr D3D11::InputElement elements[] =
+			static constexpr D3D11InputElement elements[] =
 			{
 				{ "POSITION",	0, DXGI_FORMAT_R32G32_FLOAT,	offsetof(Detail::SpriteVertex, Position)				},
 				{ "TEXCOORD",	0, DXGI_FORMAT_R32G32_FLOAT,	offsetof(Detail::SpriteVertex, TextureCoordinates)		},
@@ -206,8 +203,8 @@ namespace Comfy::Render
 				{ "TEXINDEX",	0, DXGI_FORMAT_R32_UINT,		offsetof(Detail::SpriteVertex, TextureIndex)			},
 			};
 
-			InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), Shaders.Multi.TextureBatch[0].VS);
-			D3D11_SetObjectDebugName(InputLayout->GetLayout(), "Renderer2D::InputLayout");
+			InputLayout = std::make_unique<D3D11InputLayout>(GlobalD3D11, elements, std::size(elements), Shaders.Multi.TextureBatch[0].VS);
+			D3D11_SetObjectDebugName(InputLayout->InputLayout.Get(), "Renderer2D::InputLayout");
 		}
 
 		int FindAvailableTextureSlot(Detail::SpriteDrawCallBatch& currentBatch, TexSamplerView texView) const
@@ -301,7 +298,7 @@ namespace Comfy::Render
 			}
 		}
 
-		const D3D11::ShaderPair& GetBatchItemShader(const Detail::SpriteBatchItem& item, int usedTextureSlots) const
+		const D3D11ShaderPair& GetBatchItemShader(const Detail::SpriteBatchItem& item, int usedTextureSlots) const
 		{
 			if (item.DrawTextBorder)
 				return Shaders.Single.TextureFont;
@@ -332,13 +329,13 @@ namespace Comfy::Render
 
 		ID3D11SamplerState* TryGetTextureSampler(TexSamplerView texView)
 		{
-			return TextureSamplers.GetSampler(texView).GetSampler();
+			return TextureSamplers.GetSampler(texView).SamplerState.Get();
 		}
 
 		ID3D11ShaderResourceView* TryGetTextureResourceView(TexSamplerView texView)
 		{
-			const auto* tex2D = texView ? D3D11::GetTexture2D(texView.Texture) : nullptr;
-			return (tex2D != nullptr) ? tex2D->GetResourceView() : nullptr;
+			const auto* tex2D = texView ? GetD3D11Texture2D(GlobalD3D11, texView.Texture) : nullptr;
+			return (tex2D != nullptr) ? tex2D->TextureView.Get() : nullptr;
 		}
 
 		bool TryGetIsTexViewYCbCr(TexSamplerView texView) const
@@ -356,30 +353,32 @@ namespace Comfy::Render
 
 			if (!SpriteShapeVertices.empty())
 			{
-				if (SpriteShapeVertexBuffer == nullptr || (SpriteShapeVertices.size() * sizeof(Detail::SpriteVertex)) > SpriteShapeVertexBuffer->GetDescription().ByteWidth)
+				if (SpriteShapeVertexBuffer == nullptr || (SpriteShapeVertices.size() * sizeof(Detail::SpriteVertex)) > SpriteShapeVertexBuffer->BufferDesc.ByteWidth)
 				{
 					// NOTE: Use capacity to automatically leverage the exponential growth behavior of std::vector
-					SpriteShapeVertexBuffer = std::make_unique<D3D11::DynamicVertexBuffer>(
+					SpriteShapeVertexBuffer = std::make_unique<D3D11VertexBuffer>(
+						GlobalD3D11,
 						SpriteShapeVertices.capacity() * sizeof(Detail::SpriteVertex),
 						SpriteShapeVertices.data(),
-						sizeof(Detail::SpriteVertex));
+						sizeof(Detail::SpriteVertex),
+						D3D11_USAGE_DYNAMIC);
 
-					D3D11_SetObjectDebugName(SpriteShapeVertexBuffer->GetBuffer(), "Renderer2D::ShapeVertexBuffer");
+					D3D11_SetObjectDebugName(SpriteShapeVertexBuffer->Buffer.Get(), "Renderer2D::ShapeVertexBuffer");
 				}
 				else
 				{
-					SpriteShapeVertexBuffer->UploadData(SpriteShapeVertices.size() * sizeof(Detail::SpriteVertex), SpriteShapeVertices.data());
+					SpriteShapeVertexBuffer->UploadDataIfDynamic(GlobalD3D11, SpriteShapeVertices.size() * sizeof(Detail::SpriteVertex), SpriteShapeVertices.data());
 				}
 			}
 
-			SpriteQuadVertexBuffer->UploadData(SpriteQuadVertices.size() * sizeof(Detail::SpriteQuadVertices), SpriteQuadVertices.data());
+			SpriteQuadVertexBuffer->UploadDataIfDynamic(GlobalD3D11, SpriteQuadVertices.size() * sizeof(Detail::SpriteQuadVertices), SpriteQuadVertices.data());
 
 			Camera->UpdateMatrices();
 			CameraConstantBuffer.Data.ViewProjection = glm::transpose(Camera->GetViewProjection());
-			CameraConstantBuffer.UploadData();
+			CameraConstantBuffer.UploadData(GlobalD3D11);
 
-			const D3D11::ShaderPair* lastBoundShader = nullptr;
-			const D3D11::DynamicVertexBuffer* lastBoundVB = nullptr;
+			const D3D11ShaderPair* lastBoundShader = nullptr;
+			const D3D11VertexBuffer* lastBoundVB = nullptr;
 
 			PrimitiveType lastPrimitive = PrimitiveType::Count;
 			AetBlendMode lastBlendMode = AetBlendMode::Count;
@@ -392,7 +391,7 @@ namespace Comfy::Render
 
 				if (lastPrimitive != item.Primitive)
 				{
-					D3D11::D3D.Context->IASetPrimitiveTopology(D3D11::PrimitiveTypeToD3DTopology(item.Primitive));
+					GlobalD3D11.ImmediateContext->IASetPrimitiveTopology(PrimitiveTypeToD3DTopology(item.Primitive));
 					lastPrimitive = item.Primitive;
 				}
 
@@ -405,13 +404,13 @@ namespace Comfy::Render
 				const auto usedTextureSlots = GetUsedSpriteTextureSlotsCount(batch);
 				if (const auto& itemShader = GetBatchItemShader(item, usedTextureSlots); lastBoundShader != &itemShader)
 				{
-					itemShader.Bind();
+					itemShader.Bind(GlobalD3D11);
 					lastBoundShader = &itemShader;
 				}
 
 				if (const auto& itemVB = (item.ShapeVertexCount > 0) ? SpriteShapeVertexBuffer : SpriteQuadVertexBuffer; lastBoundVB != itemVB.get())
 				{
-					itemVB->Bind();
+					itemVB->Bind(GlobalD3D11);
 					lastBoundVB = itemVB.get();
 				}
 
@@ -422,8 +421,8 @@ namespace Comfy::Render
 					textureSamplers[0] = TryGetTextureSampler(item.TexView);
 					textureResourceViews[0] = TryGetTextureResourceView(item.TexView);
 
-					D3D11::D3D.Context->PSSetSamplers(0, 1, textureSamplers.data());
-					D3D11::D3D.Context->PSSetShaderResources(0, 1, textureResourceViews.data());
+					GlobalD3D11.ImmediateContext->PSSetSamplers(0, 1, textureSamplers.data());
+					GlobalD3D11.ImmediateContext->PSSetShaderResources(0, 1, textureResourceViews.data());
 				}
 				else if (item.MaskTexView != nullptr)
 				{
@@ -433,8 +432,8 @@ namespace Comfy::Render
 					textureResourceViews[0] = TryGetTextureResourceView(item.TexView);
 					textureResourceViews[1] = TryGetTextureResourceView(item.MaskTexView);
 
-					D3D11::D3D.Context->PSSetSamplers(0, 2, textureSamplers.data());
-					D3D11::D3D.Context->PSSetShaderResources(0, 2, textureResourceViews.data());
+					GlobalD3D11.ImmediateContext->PSSetSamplers(0, 2, textureSamplers.data());
+					GlobalD3D11.ImmediateContext->PSSetShaderResources(0, 2, textureResourceViews.data());
 				}
 				else // NOTE: Multi texture batch
 				{
@@ -444,8 +443,8 @@ namespace Comfy::Render
 						textureResourceViews[i] = TryGetTextureResourceView(batch.TexViews[i]);
 					}
 
-					D3D11::D3D.Context->PSSetSamplers(0, static_cast<UINT>(usedTextureSlots), textureSamplers.data());
-					D3D11::D3D.Context->PSSetShaderResources(0, static_cast<UINT>(usedTextureSlots), textureResourceViews.data());
+					GlobalD3D11.ImmediateContext->PSSetSamplers(0, static_cast<UINT>(usedTextureSlots), textureSamplers.data());
+					GlobalD3D11.ImmediateContext->PSSetShaderResources(0, static_cast<UINT>(usedTextureSlots), textureResourceViews.data());
 				}
 
 				SpriteConstantBuffer.Data.BlendMode = item.BlendMode;
@@ -455,7 +454,7 @@ namespace Comfy::Render
 				for (u32 i = 0; i < static_cast<u32>(MaxSpriteTextureSlots); i++)
 					SpriteConstantBuffer.Data.FormatFlags |= (static_cast<u32>(TryGetIsTexViewYCbCr(batch.TexViews[i])) << i);
 				SpriteConstantBuffer.Data.CheckerboardSize = vec4(item.CheckerboardSize, 0.0f, 0.0f);
-				SpriteConstantBuffer.UploadData();
+				SpriteConstantBuffer.UploadData(GlobalD3D11);
 
 				if (item.ShapeVertexCount > 0)
 				{
@@ -463,13 +462,13 @@ namespace Comfy::Render
 					for (size_t i = 0; i < batch.ItemCount; i++)
 						totalVertices += BatchItems[batch.ItemIndex + i].ShapeVertexCount;
 
-					D3D11::D3D.Context->Draw(
+					GlobalD3D11.ImmediateContext->Draw(
 						totalVertices,
 						item.ShapeVertexIndex);
 				}
 				else
 				{
-					D3D11::D3D.Context->DrawIndexed(
+					GlobalD3D11.ImmediateContext->DrawIndexed(
 						batch.ItemCount * Detail::SpriteQuadIndices::TotalIndices(),
 						batch.QuadIndex * Detail::SpriteQuadIndices::TotalIndices(),
 						0);
@@ -486,34 +485,34 @@ namespace Comfy::Render
 		void InternalSetBeginState()
 		{
 			D3D11_BeginDebugEvent("Set Begin State");
-			RenderTarget->Main.ResizeIfDifferent(RenderTarget->Param.Resolution);
-			RenderTarget->Main.SetMultiSampleCountIfDifferent(RenderTarget->Param.MultiSampleCount);
-			RenderTarget->Main.BindSetViewport();
+			RenderTarget->Main.RecreateWithNewSizeIfDifferent(GlobalD3D11, RenderTarget->Param.Resolution);
+			RenderTarget->Main.RecreateWithNewMultiSampleCountIfDifferent(GlobalD3D11, RenderTarget->Param.MultiSampleCount);
+			RenderTarget->Main.BindAndSetViewport(GlobalD3D11);
 
-			RenderTarget->Output.ResizeIfDifferent(RenderTarget->Param.Resolution);
+			RenderTarget->Output.RecreateWithNewSizeIfDifferent(GlobalD3D11, RenderTarget->Param.Resolution);
 
 			if (RenderTarget->Param.Clear)
-				RenderTarget->Main.Clear(RenderTarget->Param.ClearColor);
+				RenderTarget->Main.ClearColor(GlobalD3D11, RenderTarget->Param.ClearColor);
 
-			RasterizerState.Bind();
-			InputLayout->Bind();
-			SpriteQuadIndexBuffer->Bind();
+			RasterizerState.Bind(GlobalD3D11);
+			InputLayout->Bind(GlobalD3D11);
+			SpriteQuadIndexBuffer->Bind(GlobalD3D11);
 
-			CameraConstantBuffer.BindVertexShader();
-			SpriteConstantBuffer.BindPixelShader();
-			PostProcessConstantBuffer.BindPixelShader();
+			CameraConstantBuffer.BindVertexShader(GlobalD3D11);
+			SpriteConstantBuffer.BindPixelShader(GlobalD3D11);
+			PostProcessConstantBuffer.BindPixelShader(GlobalD3D11);
 			D3D11_EndDebugEvent();
 		}
 
 		void InternalSetEndState()
 		{
 			D3D11_BeginDebugEvent("Set End State");
-			RenderTarget->Main.UnBind();
+			RenderTarget->Main.UnBind(GlobalD3D11);
 
 			if (RenderTarget->Param.MultiSampleCount > 1)
 			{
 				// TODO: Allow both MSAA and PP
-				D3D11::D3D.Context->ResolveSubresource(RenderTarget->Output.GetResource(), 0, RenderTarget->Main.GetResource(), 0, RenderTarget->Main.GetBackBufferDescription().Format);
+				GlobalD3D11.ImmediateContext->ResolveSubresource(RenderTarget->Output.ColorTexture.Get(), 0, RenderTarget->Main.ColorTexture.Get(), 0, RenderTarget->Main.ColorTextureDesc.Format);
 			}
 			else if (RenderTarget->Param.PostProcessingEnabled)
 			{
@@ -522,35 +521,35 @@ namespace Comfy::Render
 				PostProcessConstantBuffer.Data.PostProcessCoefficients[0] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[0], 0.0f);
 				PostProcessConstantBuffer.Data.PostProcessCoefficients[1] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[1], 0.0f);
 				PostProcessConstantBuffer.Data.PostProcessCoefficients[2] = vec4(RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[2], 0.0f);
-				PostProcessConstantBuffer.UploadData();
+				PostProcessConstantBuffer.UploadData(GlobalD3D11);
 
-				Shaders.PostProcessing.ColorCorrection.Bind();
+				Shaders.PostProcessing.ColorCorrection.Bind(GlobalD3D11);
 
-				RenderTarget->Output.Bind();
-				D3D11::TextureResource::BindArray<1>(0, { &RenderTarget->Main });
-				D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+				RenderTarget->Output.Bind(GlobalD3D11);
+				GlobalD3D11.ImmediateContext->PSSetShaderResources(0, 1, PtrArg<ID3D11ShaderResourceView*>(RenderTarget->Main.ColorTextureView.Get()));
+				GlobalD3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-				D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				D3D11::D3D.Context->Draw(6, 0);
+				GlobalD3D11.ImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				GlobalD3D11.ImmediateContext->Draw(6, 0);
 
-				D3D11::TextureResource::BindArray<1>(0, { nullptr });
-				RenderTarget->Output.UnBind();
+				GlobalD3D11.ImmediateContext->PSSetShaderResources(0, 1, PtrArg<ID3D11ShaderResourceView*>(nullptr));
+				RenderTarget->Output.UnBind(GlobalD3D11);
 
-				Shaders.PostProcessing.ColorCorrection.UnBind();
+				Shaders.PostProcessing.ColorCorrection.UnBind(GlobalD3D11);
 			}
 			else
 			{
-				D3D11::D3D.Context->CopyResource(RenderTarget->Output.GetResource(), RenderTarget->Main.GetResource());
+				GlobalD3D11.ImmediateContext->CopyResource(RenderTarget->Output.ColorTexture.Get(), RenderTarget->Main.ColorTexture.Get());
 			}
 
-			PostProcessConstantBuffer.UnBindPixelShader();
-			SpriteConstantBuffer.UnBindPixelShader();
-			CameraConstantBuffer.UnBindVertexShader();
+			PostProcessConstantBuffer.UnBindPixelShader(GlobalD3D11);
+			SpriteConstantBuffer.UnBindPixelShader(GlobalD3D11);
+			CameraConstantBuffer.UnBindVertexShader(GlobalD3D11);
 
-			SpriteQuadIndexBuffer->UnBind();
-			SpriteQuadVertexBuffer->UnBind();
-			InputLayout->UnBind();
-			RasterizerState.UnBind();
+			SpriteQuadIndexBuffer->UnBind(GlobalD3D11);
+			SpriteQuadVertexBuffer->UnBind(GlobalD3D11);
+			InputLayout->UnBind(GlobalD3D11);
+			RasterizerState.UnBind(GlobalD3D11);
 
 			D3D11_EndDebugEvent();
 		}
@@ -560,23 +559,23 @@ namespace Comfy::Render
 			switch (blendMode)
 			{
 			case AetBlendMode::Unknown:
-				AetBlendStates.Normal.UnBind();
+				AetBlendStates.Normal.UnBind(GlobalD3D11);
 				break;
 			default:
 			case AetBlendMode::Normal:
-				AetBlendStates.Normal.Bind();
+				AetBlendStates.Normal.Bind(GlobalD3D11);
 				break;
 			case AetBlendMode::Add:
-				AetBlendStates.Add.Bind();
+				AetBlendStates.Add.Bind(GlobalD3D11);
 				break;
 			case AetBlendMode::Multiply:
-				AetBlendStates.Multiply.Bind();
+				AetBlendStates.Multiply.Bind(GlobalD3D11);
 				break;
 			case AetBlendMode::LinearDodge:
-				AetBlendStates.LinearDodge.Bind();
+				AetBlendStates.LinearDodge.Bind(GlobalD3D11);
 				break;
 			case AetBlendMode::Overlay:
-				AetBlendStates.Overlay.Bind();
+				AetBlendStates.Overlay.Bind(GlobalD3D11);
 				break;
 			}
 		}
@@ -789,7 +788,7 @@ namespace Comfy::Render
 
 	void Renderer2D::UploadToGPUFreeCPUMemory(Graphics::Tex& tex)
 	{
-		const auto* texture2D = D3D11::GetTexture2D(tex);
+		const auto* texture2D = GetD3D11Texture2D(GlobalD3D11, tex);
 		if (texture2D == nullptr)
 			return;
 

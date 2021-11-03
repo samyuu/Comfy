@@ -4,10 +4,7 @@
 
 namespace Comfy::Render
 {
-	namespace D3D11
-	{
-		class Texture2D;
-	}
+	struct D3D11Texture2DAndView;
 
 	class RenderTarget2D;
 	class RenderTarget3D;
@@ -26,6 +23,6 @@ namespace Comfy::Render
 		void TakeSnapshot(const RenderTarget3D& renderTarget);
 
 	private:
-		std::unique_ptr<D3D11::Texture2D> texture;
+		std::unique_ptr<D3D11Texture2DAndView> texture;
 	};
 }

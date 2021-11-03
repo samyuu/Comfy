@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Render/Core/Renderer2D/RenderCommand2D.h"
-#include "Render/D3D11/Texture/Texture.h"
+#include "Render/D3D11/D3D11Texture.h"
 #include <optional>
 
 namespace Comfy::Render

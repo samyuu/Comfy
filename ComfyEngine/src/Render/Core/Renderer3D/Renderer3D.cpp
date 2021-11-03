@@ -7,18 +7,13 @@
 #include "Detail/ShaderFlags.h"
 #include "Detail/ShaderPairs.h"
 #include "Detail/SubsurfaceScattering.h"
-#include "Render/D3D11/GraphicsResourceUtil.h"
-#include "Render/D3D11/Buffer/ConstantBuffer.h"
-#include "Render/D3D11/Buffer/IndexBuffer.h"
-#include "Render/D3D11/Buffer/VertexBuffer.h"
-#include "Render/D3D11/State/BlendState.h"
-#include "Render/D3D11/State/DepthStencilState.h"
-#include "Render/D3D11/State/InputLayout.h"
-#include "Render/D3D11/State/OcclusionQuery.h"
-#include "Render/D3D11/State/RasterizerState.h"
-#include "Render/D3D11/Texture/DepthBuffer.h"
-#include "Render/D3D11/Texture/RenderTarget.h"
-#include "Render/D3D11/Texture/TextureSampler.h"
+#include "Render/D3D11/D3D11.h"
+#include "Render/D3D11/D3D11Buffer.h"
+#include "Render/D3D11/D3D11GraphicsTypeHelpers.h"
+#include "Render/D3D11/D3D11OpaqueResource.h"
+#include "Render/D3D11/D3D11Shader.h"
+#include "Render/D3D11/D3D11State.h"
+#include "Render/D3D11/D3D11Texture.h"
 
 #include "ImGui/Gui.h"
 
@@ -166,7 +161,7 @@ namespace Comfy::Render
 		return vec4(1.0f / size, size);
 	}
 
-	vec4 GetPackedTextureSize(const D3D11::RenderTargetBase& renderTarget)
+	vec4 GetPackedTextureSize(const D3D11RenderTargetAndView& renderTarget)
 	{
 		return GetPackedTextureSize(vec2(renderTarget.GetSize()));
 	}
@@ -276,28 +271,29 @@ namespace Comfy::Render
 	struct Renderer3D::Impl
 	{
 	public:
+		D3D11& D3D11 = GlobalD3D11;
 		TexGetter TexGetter;
 
 		Detail::RendererShaderPairs Shaders;
 		Detail::RendererConstantBuffers ConstantBuffers;
 
-		std::unique_ptr<D3D11::InputLayout> GenericInputLayout = nullptr;
-		std::unique_ptr<D3D11::InputLayout> ShadowSilhouetteInputLayout = nullptr;
+		std::unique_ptr<D3D11InputLayout> GenericInputLayout = nullptr;
+		std::unique_ptr<D3D11InputLayout> ShadowSilhouetteInputLayout = nullptr;
 
-		D3D11::RasterizerState SolidBackfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
-		D3D11::RasterizerState SolidFrontfaceCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_FRONT, "Renderer3D::SolidFrontfaceCulling" };
-		D3D11::RasterizerState SolidNoCullingRasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE, "Renderer3D::SolidNoCulling" };
-		D3D11::RasterizerState WireframeRasterizerState = { D3D11_FILL_WIREFRAME, D3D11_CULL_NONE, "Renderer3D::Wireframe" };
+		D3D11RasterizerState SolidBackfaceCullingRasterizerState = { D3D11, D3D11_FILL_SOLID, D3D11_CULL_BACK, "Renderer3D::SolidBackfaceCulling" };
+		D3D11RasterizerState SolidFrontfaceCullingRasterizerState = { D3D11, D3D11_FILL_SOLID, D3D11_CULL_FRONT, "Renderer3D::SolidFrontfaceCulling" };
+		D3D11RasterizerState SolidNoCullingRasterizerState = { D3D11, D3D11_FILL_SOLID, D3D11_CULL_NONE, "Renderer3D::SolidNoCulling" };
+		D3D11RasterizerState WireframeRasterizerState = { D3D11, D3D11_FILL_WIREFRAME, D3D11_CULL_NONE, "Renderer3D::Wireframe" };
 
-		D3D11::DepthStencilState TransparencyPassDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::Transparency" };
+		D3D11DepthStencilState TransparencyPassDepthStencilState = { D3D11, true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::Transparency" };
 
-		//D3D11::DepthStencilState DepthNoWriteDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::DepthNoWrite" };
-		//D3D11::DepthStencilState NoDepthNoWriteDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::NoDepthNoWrite" };
-		D3D11::DepthStencilState LensFlareReadDepthDepthStencilState = { true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareReadDepth" };
-		D3D11::DepthStencilState LensFlareIgnoreDepthDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareIgnoreDepth" };
+		//D3D11DepthStencilState DepthNoWriteDepthStencilState = { D3D11, true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::DepthNoWrite" };
+		//D3D11DepthStencilState NoDepthNoWriteDepthStencilState = { D3D11, false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::NoDepthNoWrite" };
+		D3D11DepthStencilState LensFlareReadDepthDepthStencilState = { D3D11, true, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareReadDepth" };
+		D3D11DepthStencilState LensFlareIgnoreDepthDepthStencilState = { D3D11, false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareIgnoreDepth" };
 
-		// D3D11::DepthStencilState LensFlareNoDepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareNoDepth" };
-		D3D11::BlendState LensFlareSunQueryNoColorWriteBlendState = { D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
+		// D3D11DepthStencilState LensFlareNoDepthStencilState = { D3D11, false, D3D11_DEPTH_WRITE_MASK_ZERO, "Renderer3D::LensFlareNoDepth" };
+		D3D11BlendState LensFlareSunQueryNoColorWriteBlendState = { D3D11, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD, D3D11_BLEND_OP_ADD, D3D11_COLOR_WRITE_ENABLE { } };
 
 		Detail::LensFlareMesh LensFlareMesh;
 
@@ -348,7 +344,7 @@ namespace Comfy::Render
 	public:
 		Impl()
 		{
-			static constexpr D3D11::InputElement genericElements[] =
+			static constexpr D3D11InputElement genericElements[] =
 			{
 				{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
 				{ "NORMAL",			0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Normal },
@@ -372,10 +368,10 @@ namespace Comfy::Render
 				{ "COLOR",			3, DXGI_FORMAT_R32G32B32A32_FLOAT,	0, MorphVertexAttributeOffset + VertexAttribute_Color1 },
 			};
 
-			GenericInputLayout = std::make_unique<D3D11::InputLayout>(genericElements, std::size(genericElements), Shaders.DebugMaterial.VS);
-			D3D11_SetObjectDebugName(GenericInputLayout->GetLayout(), "Renderer3D::GenericInputLayout");
+			GenericInputLayout = std::make_unique<D3D11InputLayout>(D3D11, genericElements, std::size(genericElements), Shaders.DebugMaterial.VS);
+			D3D11_SetObjectDebugName(GenericInputLayout->InputLayout.Get(), "Renderer3D::GenericInputLayout");
 
-			static constexpr D3D11::InputElement silhouetteElements[] =
+			static constexpr D3D11InputElement silhouetteElements[] =
 			{
 				{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, VertexAttribute_Position },
 				{ "TEXCOORD",		0, DXGI_FORMAT_R32G32_FLOAT,		0, VertexAttribute_TextureCoordinate0 },
@@ -385,8 +381,8 @@ namespace Comfy::Render
 				{ "TEXCOORD",		4, DXGI_FORMAT_R32G32_FLOAT,		0, MorphVertexAttributeOffset + VertexAttribute_TextureCoordinate0 },
 			};
 
-			ShadowSilhouetteInputLayout = std::make_unique<D3D11::InputLayout>(silhouetteElements, std::size(silhouetteElements), Shaders.Silhouette.VS);
-			D3D11_SetObjectDebugName(ShadowSilhouetteInputLayout->GetLayout(), "Renderer3D::ShadowSilhouetteInputLayout");
+			ShadowSilhouetteInputLayout = std::make_unique<D3D11InputLayout>(D3D11, silhouetteElements, std::size(silhouetteElements), Shaders.Silhouette.VS);
+			D3D11_SetObjectDebugName(ShadowSilhouetteInputLayout->InputLayout.Get(), "Renderer3D::ShadowSilhouetteInputLayout");
 
 			constexpr size_t reasonableInitialCapacity = 64;
 			DefaultCommandList.OpaqueAndTransparent.reserve(reasonableInitialCapacity);
@@ -505,37 +501,38 @@ namespace Comfy::Render
 				PreRenderReduceFilterShadowMap();
 			}
 
-			GenericInputLayout->Bind();
+			GenericInputLayout->Bind(D3D11);
 
 			if (Current.RenderTarget->Param.RenderReflection && IsAnyCommand.ScreenReflection)
 			{
 				PreRenderScreenReflection();
-				Current.RenderTarget->Reflection.RenderTarget.BindResource(TextureSlot_ScreenReflection);
+				Current.RenderTarget->Reflection.RenderTarget.BindColorTexturePS(D3D11, TextureSlot_ScreenReflection);
 			}
 
 			if (Current.RenderTarget->Param.RenderSubsurfaceScattering && IsAnyCommand.SubsurfaceScattering)
 			{
 				PreRenderSubsurfaceScattering();
 				PreRenderReduceFilterSubsurfaceScattering();
-				Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets.back().BindResource(TextureSlot_SubsurfaceScattering);
+				Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets.back().BindColorTexturePS(D3D11, TextureSlot_SubsurfaceScattering);
 			}
 
 			D3D11_BeginDebugEvent("Opaque Geometry");
-			Current.RenderTarget->Main.Current().SetMultiSampleCountIfDifferent(Current.RenderTarget->Param.MultiSampleCount);
-			Current.RenderTarget->Main.Current().ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
-			Current.RenderTarget->Main.Current().BindSetViewport();
+			// TODO: If the MultiSampleCount is unsupported then this currently tries to recreate the unsupported format every frame.
+			//		 After attempting to set the MultiSampleCount the source Param->X variable should be set to the actual MultiSampleCount (?) which would be 1 in case of failure
+			Current.RenderTarget->Main.Current().RecreateWithNewMultiSampleCountIfDifferent(D3D11, Current.RenderTarget->Param.MultiSampleCount);
+			Current.RenderTarget->Main.Current().RecreateWithNewSizeIfDifferent(D3D11, Current.RenderTarget->Param.RenderResolution);
+			Current.RenderTarget->Main.Current().BindAndSetViewport(D3D11);
 
 			if (Current.RenderTarget->Param.Clear)
-				Current.RenderTarget->Main.Current().Clear(Current.RenderTarget->Param.ClearColor);
-			else
-				Current.RenderTarget->Main.Current().GetDepthBuffer()->Clear();
+				Current.RenderTarget->Main.Current().ClearColor(D3D11, Current.RenderTarget->Param.ClearColor);
+			Current.RenderTarget->Main.Current().ClearDepth(D3D11);
 
 			if (Current.RenderTarget->Param.Wireframe)
-				WireframeRasterizerState.Bind();
+				WireframeRasterizerState.Bind(D3D11);
 
 			if (Current.RenderTarget->Param.RenderOpaque && !DefaultCommandList.OpaqueAndTransparent.empty())
 			{
-				D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+				D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 				for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 					RenderOpaqueObjCommand(command);
@@ -548,12 +545,12 @@ namespace Comfy::Render
 			D3D11_BeginDebugEvent("Transparent Geometry");
 			if (Current.RenderTarget->Param.RenderTransparent && !DefaultCommandList.Transparent.empty())
 			{
-				TransparencyPassDepthStencilState.Bind();
+				TransparencyPassDepthStencilState.Bind(D3D11);
 
 				for (auto& command : DefaultCommandList.Transparent)
 					RenderTransparentSubMeshCommand(command);
 
-				TransparencyPassDepthStencilState.UnBind();
+				TransparencyPassDepthStencilState.UnBind(D3D11);
 			}
 			D3D11_EndDebugEvent();
 
@@ -563,8 +560,8 @@ namespace Comfy::Render
 			if (IsAnyCommand.SilhouetteOutline)
 				RenderSilhouette();
 
-			Current.RenderTarget->Main.Current().UnBind();
-			GenericInputLayout->UnBind();
+			Current.RenderTarget->Main.Current().UnBind(D3D11);
+			GenericInputLayout->UnBind(D3D11);
 
 			ResolveMSAAIfNeeded();
 			D3D11_EndDebugEvent();
@@ -579,8 +576,8 @@ namespace Comfy::Render
 			auto& currentMain = Current.RenderTarget->Main.Current();
 			auto& currentMainResolved = Current.RenderTarget->Main.CurrentResolved();
 
-			currentMainResolved.ResizeIfDifferent(currentMain.GetSize());
-			D3D11::D3D.Context->ResolveSubresource(currentMainResolved.GetResource(), 0, currentMain.GetResource(), 0, currentMain.GetBackBufferDescription().Format);
+			currentMainResolved.RecreateWithNewSizeIfDifferent(D3D11, currentMain.GetSize());
+			D3D11.ImmediateContext->ResolveSubresource(currentMainResolved.ColorTexture.Get(), 0, currentMain.ColorTexture.Get(), 0, currentMain.ColorTextureDesc.Format);
 			D3D11_EndDebugEvent();
 		}
 
@@ -639,66 +636,68 @@ namespace Comfy::Render
 
 		void BindUploadSceneCBs()
 		{
-			ConstantBuffers.Scene.UploadData();
-			ConstantBuffers.Scene.BindShaders();
+			ConstantBuffers.Scene.UploadData(D3D11);
+			ConstantBuffers.Scene.BindShaders(D3D11);
 
-			ConstantBuffers.Object.BindShaders();
-			ConstantBuffers.Skeleton.BindVertexShader();
+			ConstantBuffers.Object.BindShaders(D3D11);
+			ConstantBuffers.Skeleton.BindVertexShader(D3D11);
 		}
 
 		void BindSceneTextures()
 		{
-			D3D11::ShaderResourceView::BindArray<TextureSlot_Count>(TextureSlot_Diffuse,
-				{
-					// NOTE: Diffuse = 0
-					nullptr,
-					// NOTE: Ambient = 1
-					nullptr,
-					// NOTE: Normal = 2
-					nullptr,
-					// NOTE: Specular = 3
-					nullptr,
-					// NOTE: Tranparency = 4
-					nullptr,
-					// NOTE: Environment = 5
-					nullptr,
-					// NOTE: Translucency = 6
-					nullptr,
-					// NOTE: Reserved = 7
-					nullptr,
+			ID3D11ShaderResourceView* sceneTextureViews[TextureSlot_Count] =
+			{
+				// NOTE: Diffuse = 0
+				nullptr,
+				// NOTE: Ambient = 1
+				nullptr,
+				// NOTE: Normal = 2
+				nullptr,
+				// NOTE: Specular = 3
+				nullptr,
+				// NOTE: Tranparency = 4
+				nullptr,
+				// NOTE: Environment = 5
+				nullptr,
+				// NOTE: Translucency = 6
+				nullptr,
+				// NOTE: Reserved = 7
+				nullptr,
 
-					// NOTE: ---
-					nullptr,
+				// NOTE: ---
+				nullptr,
 
-					// NOTE: IBLLightMaps_0 = 9
-					(Current.SceneParam->IBL == nullptr) ? nullptr : D3D11::GetCubeMap(Current.SceneParam->IBL->LightMaps[0]),
-					// NOTE: IBLLightMaps_1 = 10
-					(Current.SceneParam->IBL == nullptr) ? nullptr : D3D11::GetCubeMap(Current.SceneParam->IBL->LightMaps[1]),
-					// NOTE: IBLLightMaps_2 = 11
-					(Current.SceneParam->IBL == nullptr) ? nullptr : D3D11::GetCubeMap(Current.SceneParam->IBL->LightMaps[2]),
+				// NOTE: IBLLightMaps_0 = 9
+				(Current.SceneParam->IBL == nullptr) ? nullptr : GetD3D11Texture2DView(D3D11, Current.SceneParam->IBL->LightMaps[0]),
+				// NOTE: IBLLightMaps_1 = 10
+				(Current.SceneParam->IBL == nullptr) ? nullptr : GetD3D11Texture2DView(D3D11, Current.SceneParam->IBL->LightMaps[1]),
+				// NOTE: IBLLightMaps_2 = 11
+				(Current.SceneParam->IBL == nullptr) ? nullptr : GetD3D11Texture2DView(D3D11, Current.SceneParam->IBL->LightMaps[2]),
 
-					// NOTE: ---
-					nullptr,
-					// NOTE: ---
-					nullptr,
-					// NOTE: ---
-					nullptr,
+				// NOTE: ---
+				nullptr,
+				// NOTE: ---
+				nullptr,
+				// NOTE: ---
+				nullptr,
 
-					// NOTE: ScreenReflection = 15
-					nullptr,
+				// NOTE: ScreenReflection = 15
+				nullptr,
 
-					// NOTE: SubsurfaceScattering = 16
-					nullptr,
+				// NOTE: SubsurfaceScattering = 16
+				nullptr,
 
-					// NOTE: ---
-					nullptr,
+				// NOTE: ---
+				nullptr,
 
-					// NOTE: ---
-					nullptr,
+				// NOTE: ---
+				nullptr,
 
-					// NOTE: StageShadowMap = 19
-					nullptr,
-				});
+				// NOTE: StageShadowMap = 19
+				nullptr,
+			};
+
+			D3D11.ImmediateContext->PSSetShaderResources(TextureSlot_Diffuse, TextureSlot_Count, sceneTextureViews);
 		}
 
 		void PreRenderShadowMap()
@@ -706,9 +705,9 @@ namespace Comfy::Render
 			D3D11_BeginDebugEvent("Shadow Map");
 			const auto& light = Current.SceneParam->Light.Character;
 
-			ShadowSilhouetteInputLayout->Bind();
+			ShadowSilhouetteInputLayout->Bind(D3D11);
 
-			SolidNoCullingRasterizerState.Bind();
+			SolidNoCullingRasterizerState.Bind(D3D11);
 
 			const Sphere frustumSphere = CalculateShadowViewFrustumSphere();
 			constexpr float nearFarTargetSpan = 20.0f - 0.1f;
@@ -732,37 +731,37 @@ namespace Comfy::Render
 
 			ConstantBuffers.Scene.Data.Scene.View = glm::transpose(lightView);
 			ConstantBuffers.Scene.Data.Scene.ViewProjection = glm::transpose(lightProjection * lightView);
-			ConstantBuffers.Scene.UploadData();
+			ConstantBuffers.Scene.UploadData(D3D11);
 
-			Current.RenderTarget->Shadow.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.ShadowMapResolution);
-			Current.RenderTarget->Shadow.RenderTarget.BindSetViewport();
-			Current.RenderTarget->Shadow.RenderTarget.Clear(vec4(0.0f));
-			D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+			Current.RenderTarget->Shadow.RenderTarget.RecreateWithNewSizeIfDifferent(D3D11, Current.RenderTarget->Param.ShadowMapResolution);
+			Current.RenderTarget->Shadow.RenderTarget.BindAndSetViewport(D3D11);
+			Current.RenderTarget->Shadow.RenderTarget.ClearDepth(D3D11);
+			D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-			Shaders.Silhouette.Bind();
+			Shaders.Silhouette.Bind(D3D11);
 			for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 			{
 				RenderOpaqueObjCommand(command, RenderFlags_ShadowPass | RenderFlags_NoMaterialShader | RenderFlags_NoRasterizerState | RenderFlags_NoFrustumCulling | RenderFlags_DiffuseTextureOnly);
 			}
 
-			Current.RenderTarget->Shadow.RenderTarget.UnBind();
+			Current.RenderTarget->Shadow.RenderTarget.UnBind(D3D11);
 
 			ConstantBuffers.Scene.Data.Scene.View = glm::transpose(Current.Camera->GetView());
 			ConstantBuffers.Scene.Data.Scene.ViewProjection = glm::transpose(Current.Camera->GetViewProjection());
 			ConstantBuffers.Scene.Data.Scene.LightSpace = glm::transpose(lightProjection * lightView);
-			ConstantBuffers.Scene.UploadData();
+			ConstantBuffers.Scene.UploadData(D3D11);
 			D3D11_EndDebugEvent();
 		}
 
 		void PreRenderReduceFilterShadowMap()
 		{
 			D3D11_BeginDebugEvent("Shadow Map Filter");
-			SolidNoCullingRasterizerState.Bind();
+			SolidNoCullingRasterizerState.Bind(D3D11);
 
-			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+			D3D11.ImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-			D3D11::TextureSampler::BindArray<1>(0, { nullptr });
+			D3D11.ImmediateContext->PSSetShaderResources(0, 1, PtrArg<ID3D11ShaderResourceView*>(nullptr));
 
 			const ivec2 fullResolution = Current.RenderTarget->Shadow.RenderTarget.GetSize();
 			const ivec2 halfResolution = fullResolution / 2;
@@ -770,68 +769,68 @@ namespace Comfy::Render
 
 			// NOTE: ESM
 			{
-				ConstantBuffers.ESMFilter.BindPixelShader();
+				ConstantBuffers.ESMFilter.BindPixelShader(D3D11);
 
 				for (auto& renderTarget : Current.RenderTarget->Shadow.ExponentialRenderTargets)
-					renderTarget.ResizeIfDifferent(fullResolution);
+					renderTarget.RecreateWithNewSizeIfDifferent(D3D11, fullResolution);
 
-				Shaders.ESMGauss.Bind();
-				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].BindSetViewport();
-				Current.RenderTarget->Shadow.RenderTarget.BindResource(0);
+				Shaders.ESMGauss.Bind(D3D11);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].BindAndSetViewport(D3D11);
+				Current.RenderTarget->Shadow.RenderTarget.BindDepthTexturePS(D3D11, 0);
 				ConstantBuffers.ESMFilter.Data.Coefficients = DefaultShadowCoefficients;
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f / fullResolution.x, 0.0f);
 				ConstantBuffers.ESMFilter.Data.FarTexelOffset = vec2(DefaultShadowTexelOffset, DefaultShadowTexelOffset);
-				ConstantBuffers.ESMFilter.UploadData();
+				ConstantBuffers.ESMFilter.UploadData(D3D11);
 				SubmitQuadDrawCall();
-				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].UnBind();
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].UnBind(D3D11);
 
-				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].Bind();
-				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].BindResource(0);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].Bind(D3D11);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[0].BindColorTexturePS(D3D11, 0);
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(0.0f, 1.0f / fullResolution.y);
-				ConstantBuffers.ESMFilter.UploadData();
+				ConstantBuffers.ESMFilter.UploadData(D3D11);
 				SubmitQuadDrawCall();
-				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].UnBind();
-				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].BindResource(TextureSlot_ESMFull);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].UnBind(D3D11);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].BindColorTexturePS(D3D11, TextureSlot_ESMFull);
 
 				for (auto& renderTarget : Current.RenderTarget->Shadow.ExponentialBlurRenderTargets)
-					renderTarget.ResizeIfDifferent(blurResolution);
+					renderTarget.RecreateWithNewSizeIfDifferent(D3D11, blurResolution);
 
-				Shaders.ESMFilterMin.Bind();
-				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].BindSetViewport();
-				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].BindResource(0);
+				Shaders.ESMFilterMin.Bind(D3D11);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].BindAndSetViewport(D3D11);
+				Current.RenderTarget->Shadow.ExponentialRenderTargets[1].BindColorTexturePS(D3D11, 0);
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(1.0f) / vec2(fullResolution);
-				ConstantBuffers.ESMFilter.UploadData();
+				ConstantBuffers.ESMFilter.UploadData(D3D11);
 				SubmitQuadDrawCall();
-				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].UnBind();
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].UnBind(D3D11);
 
-				Shaders.ESMFilterErosion.Bind();
-				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].Bind();
-				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].BindResource(0);
+				Shaders.ESMFilterErosion.Bind(D3D11);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].Bind(D3D11);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[0].BindColorTexturePS(D3D11, 0);
 				ConstantBuffers.ESMFilter.Data.TextureStep = vec2(0.75f) / vec2(blurResolution);
-				ConstantBuffers.ESMFilter.UploadData();
+				ConstantBuffers.ESMFilter.UploadData(D3D11);
 				SubmitQuadDrawCall();
-				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].UnBind();
-				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].BindResource(TextureSlot_ESMGauss);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].UnBind(D3D11);
+				Current.RenderTarget->Shadow.ExponentialBlurRenderTargets[1].BindColorTexturePS(D3D11, TextureSlot_ESMGauss);
 			}
 
 			{
 				// NOTE: This is the alternative to rendering to a depth and color buffer, is this more performant though, I'm not sure
-				Shaders.DepthThreshold.Bind();
+				Shaders.DepthThreshold.Bind(D3D11);
 
-				Current.RenderTarget->Shadow.ThresholdRenderTarget.ResizeIfDifferent(halfResolution);
-				Current.RenderTarget->Shadow.ThresholdRenderTarget.BindSetViewport();
-				Current.RenderTarget->Shadow.RenderTarget.BindResource(0);
+				Current.RenderTarget->Shadow.ThresholdRenderTarget.RecreateWithNewSizeIfDifferent(D3D11, halfResolution);
+				Current.RenderTarget->Shadow.ThresholdRenderTarget.BindAndSetViewport(D3D11);
+				Current.RenderTarget->Shadow.RenderTarget.BindDepthTexturePS(D3D11, 0);
 				SubmitQuadDrawCall();
-				Current.RenderTarget->Shadow.ThresholdRenderTarget.UnBind();
+				Current.RenderTarget->Shadow.ThresholdRenderTarget.UnBind(D3D11);
 
 				for (auto& renderTarget : Current.RenderTarget->Shadow.BlurRenderTargets)
-					renderTarget.ResizeIfDifferent(blurResolution);
+					renderTarget.RecreateWithNewSizeIfDifferent(D3D11, blurResolution);
 
 				const int blurTargets = static_cast<int>(Current.RenderTarget->Shadow.BlurRenderTargets.size());
 				const int blurPasses = Current.RenderTarget->Param.ShadowBlurPasses + 1;
 
-				D3D11::D3D.SetViewport(blurResolution);
-				Shaders.ImgFilter.Bind();
+				D3D11.SetViewport(blurResolution);
+				Shaders.ImgFilter.Bind(D3D11);
 
 				for (int passIndex = 0; passIndex < blurPasses; passIndex++)
 				{
@@ -842,15 +841,15 @@ namespace Comfy::Render
 					auto& destinationTarget = Current.RenderTarget->Shadow.BlurRenderTargets[blurIndex];
 
 					if (passIndex == 1)
-						Shaders.ImgFilterBlur.Bind();
+						Shaders.ImgFilterBlur.Bind(D3D11);
 
-					sourceTarget.BindResource(0);
-					destinationTarget.Bind();
+					sourceTarget.BindColorTexturePS(D3D11, 0);
+					destinationTarget.Bind(D3D11);
 					SubmitQuadDrawCall();
-					destinationTarget.UnBind();
+					destinationTarget.UnBind(D3D11);
 
 					if (passIndex == (blurPasses - 1))
-						destinationTarget.BindResource(TextureSlot_ShadowMap);
+						destinationTarget.BindColorTexturePS(D3D11, TextureSlot_ShadowMap);
 				}
 			}
 			D3D11_EndDebugEvent();
@@ -859,20 +858,19 @@ namespace Comfy::Render
 		void PreRenderScreenReflection()
 		{
 			D3D11_BeginDebugEvent("Screen Reflection");
-			Current.RenderTarget->Reflection.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.ReflectionRenderResolution);
-			Current.RenderTarget->Reflection.RenderTarget.BindSetViewport();
+			Current.RenderTarget->Reflection.RenderTarget.RecreateWithNewSizeIfDifferent(D3D11, Current.RenderTarget->Param.ReflectionRenderResolution);
+			Current.RenderTarget->Reflection.RenderTarget.BindAndSetViewport(D3D11);
 
 			if (Current.RenderTarget->Param.ClearReflection)
-				Current.RenderTarget->Reflection.RenderTarget.Clear(Current.RenderTarget->Param.ClearColor);
-			else
-				Current.RenderTarget->Reflection.RenderTarget.GetDepthBuffer()->Clear();
+				Current.RenderTarget->Reflection.RenderTarget.ClearColor(D3D11, Current.RenderTarget->Param.ClearColor);
+			Current.RenderTarget->Reflection.RenderTarget.ClearDepth(D3D11);
 
 			if (!ReflectionCommandList.OpaqueAndTransparent.empty())
 			{
 				// TODO: Render using cheaper reflection shaders
 				if (Current.RenderTarget->Param.RenderOpaque)
 				{
-					D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+					D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 					for (auto& command : ReflectionCommandList.OpaqueAndTransparent)
 						RenderOpaqueObjCommand(command);
@@ -880,70 +878,70 @@ namespace Comfy::Render
 
 				if (Current.RenderTarget->Param.RenderTransparent && !ReflectionCommandList.Transparent.empty())
 				{
-					TransparencyPassDepthStencilState.Bind();
+					TransparencyPassDepthStencilState.Bind(D3D11);
 
 					for (auto& command : ReflectionCommandList.Transparent)
 						RenderTransparentSubMeshCommand(command);
 
-					TransparencyPassDepthStencilState.UnBind();
+					TransparencyPassDepthStencilState.UnBind(D3D11);
 				}
 			}
 
-			Current.RenderTarget->Reflection.RenderTarget.UnBind();
+			Current.RenderTarget->Reflection.RenderTarget.UnBind(D3D11);
 			D3D11_EndDebugEvent();
 		}
 
 		void PreRenderSubsurfaceScattering()
 		{
 			D3D11_BeginDebugEvent("Subsurface Scattering");
-			Current.RenderTarget->SubsurfaceScattering.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.RecreateWithNewSizeIfDifferent(D3D11, Current.RenderTarget->Param.RenderResolution);
 
-			Current.RenderTarget->SubsurfaceScattering.RenderTarget.BindSetViewport();
-			Current.RenderTarget->SubsurfaceScattering.RenderTarget.Clear(vec4(0.0f));
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.BindAndSetViewport(D3D11);
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.ClearColorAndDepth(D3D11, vec4(0.0f));
 
 			if (!DefaultCommandList.OpaqueAndTransparent.empty())
 			{
-				D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+				D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 				for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 					RenderOpaqueObjCommand(command, RenderFlags_SSSPass);
 			}
 
-			Current.RenderTarget->SubsurfaceScattering.RenderTarget.UnBind();
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.UnBind(D3D11);
 			D3D11_EndDebugEvent();
 		}
 
 		void PreRenderReduceFilterSubsurfaceScattering()
 		{
 			D3D11_BeginDebugEvent("Subsurface Scattering Filter");
-			SolidNoCullingRasterizerState.Bind();
+			SolidNoCullingRasterizerState.Bind(D3D11);
 
-			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+			D3D11.ImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-			D3D11::TextureSampler::BindArray<1>(0, { nullptr });
+			D3D11.ImmediateContext->PSSetSamplers(0, 1, PtrArg<ID3D11SamplerState*>(nullptr));
 
-			Shaders.SSSFilterCopy.Bind();
-			Current.RenderTarget->SubsurfaceScattering.RenderTarget.BindResource(0);
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].BindSetViewport();
+			Shaders.SSSFilterCopy.Bind(D3D11);
+			Current.RenderTarget->SubsurfaceScattering.RenderTarget.BindColorTexturePS(D3D11, 0);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].BindAndSetViewport(D3D11);
 			SubmitQuadDrawCall();
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].UnBind();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].UnBind(D3D11);
 
-			Shaders.SSSFilterMin.Bind();
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].BindResource(0);
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].BindSetViewport();
+			Shaders.SSSFilterMin.Bind(D3D11);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[0].BindColorTexturePS(D3D11, 0);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].BindAndSetViewport(D3D11);
 			SubmitQuadDrawCall();
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].UnBind();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].UnBind(D3D11);
 
 			ConstantBuffers.SSSFilter.Data.TextureSize = GetPackedTextureSize(Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1]);
 			Detail::CalculateSSSCoefficients(*Current.Camera, ConstantBuffers.SSSFilter.Data);
-			ConstantBuffers.SSSFilter.BindPixelShader();
-			ConstantBuffers.SSSFilter.UploadData();
-			Shaders.SSSFilterGauss2D.Bind();
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].BindResource(0);
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].BindSetViewport();
+			ConstantBuffers.SSSFilter.BindPixelShader(D3D11);
+			ConstantBuffers.SSSFilter.UploadData(D3D11);
+			Shaders.SSSFilterGauss2D.Bind(D3D11);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[1].BindColorTexturePS(D3D11, 0);
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].BindAndSetViewport(D3D11);
 			SubmitQuadDrawCall();
-			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].UnBind();
+			Current.RenderTarget->SubsurfaceScattering.FilterRenderTargets[2].UnBind(D3D11);
 			D3D11_EndDebugEvent();
 		}
 
@@ -1003,7 +1001,7 @@ namespace Comfy::Render
 			BindMeshVertexBuffers(mesh, GetMorphMesh(obj, objCommand->SourceCommand, mesh));
 
 			auto& material = GetSubMeshMaterial(subMesh, command.ObjCommand->SourceCommand);
-			Current.RenderTarget->BlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind();
+			Current.RenderTarget->BlendStates.GetState(material.BlendFlags.SrcBlendFactor, material.BlendFlags.DstBlendFactor).Bind(D3D11);
 
 			PrepareAndRenderSubMesh(*command.ObjCommand, mesh, subMesh, material);
 			D3D11_EndDebugEvent();
@@ -1012,28 +1010,28 @@ namespace Comfy::Render
 		void RenderSilhouette()
 		{
 			D3D11_BeginDebugEvent("Silhouette");
-			Current.RenderTarget->Silhouette.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
-			Current.RenderTarget->Silhouette.RenderTarget.BindSetViewport();
-			Current.RenderTarget->Silhouette.RenderTarget.Clear(vec4(0.0f));
+			Current.RenderTarget->Silhouette.RenderTarget.RecreateWithNewSizeIfDifferent(D3D11, Current.RenderTarget->Param.RenderResolution);
+			Current.RenderTarget->Silhouette.RenderTarget.BindAndSetViewport(D3D11);
+			Current.RenderTarget->Silhouette.RenderTarget.ClearColorAndDepth(D3D11, vec4(0.0f));
 
 			if (!DefaultCommandList.OpaqueAndTransparent.empty())
 			{
-				D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+				D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 				for (auto& command : DefaultCommandList.OpaqueAndTransparent)
 					RenderOpaqueObjCommand(command, RenderFlags_SilhouetteOutlinePass | RenderFlags_NoMaterialShader | RenderFlags_NoMaterialTextures);
 			}
 
-			Current.RenderTarget->Silhouette.RenderTarget.UnBind();
+			Current.RenderTarget->Silhouette.RenderTarget.UnBind(D3D11);
 			D3D11_EndDebugEvent();
 		}
 
 		void RenderSilhouetteOutlineOverlay()
 		{
 			D3D11_BeginDebugEvent("Silhouette Outline");
-			Current.RenderTarget->Silhouette.RenderTarget.BindResource(0);
+			Current.RenderTarget->Silhouette.RenderTarget.BindColorTexturePS(D3D11, 0);
 
-			Shaders.SilhouetteOutline.Bind();
+			Shaders.SilhouetteOutline.Bind(D3D11);
 			SubmitQuadDrawCall();
 			D3D11_EndDebugEvent();
 		}
@@ -1070,43 +1068,43 @@ namespace Comfy::Render
 				const auto scaleMatrix = glm::scale(mat4(1.0f), vec3(scale * sunDistanceScaleFactor));
 				ConstantBuffers.Object.Data.ModelViewProjection = glm::transpose(Current.Camera->GetViewProjection() * viewAlignedTranslation * scaleMatrix);
 				ConstantBuffers.Object.Data.Material.Diffuse = vec4(Current.SceneParam->Light.Sun.Diffuse * diffuseFactor, 1.0f);
-				ConstantBuffers.Object.UploadData();
+				ConstantBuffers.Object.UploadData(D3D11);
 
 				SubmitSubMeshDrawCall(LensFlareMesh.GetSunSubMesh());
 			};
 
 			auto queryRenderSun = [&](auto& occlusionQuery, float scale = 1.0f)
 			{
-				occlusionQuery.QueryData();
-				occlusionQuery.BeginQuery();
+				occlusionQuery.QueryData(D3D11);
+				occlusionQuery.BeginQuery(D3D11);
 				renderSun(scale);
-				occlusionQuery.EndQuery();
+				occlusionQuery.EndQuery(D3D11);
 			};
 
-			SolidNoCullingRasterizerState.Bind();
-			Shaders.Sun.Bind();
+			SolidNoCullingRasterizerState.Bind(D3D11);
+			Shaders.Sun.Bind(D3D11);
 
-			D3D11::Texture2D::BindArray<1>(TextureSlot_Diffuse, { D3D11::GetTexture2D(TexGetter(&Current.SceneParam->LensFlare.Textures.Sun)) });
-			D3D11::TextureSampler::BindArray<1>(TextureSlot_Diffuse, { nullptr });
+			D3D11.ImmediateContext->PSSetShaderResources(TextureSlot_Diffuse, 1, PtrArg<ID3D11ShaderResourceView*>(GetD3D11Texture2DView(D3D11, TexGetter(&Current.SceneParam->LensFlare.Textures.Sun))));
+			D3D11.ImmediateContext->PSSetSamplers(TextureSlot_Diffuse, 1, PtrArg<ID3D11SamplerState*>(nullptr));
 
 			BindMeshVertexBuffers(LensFlareMesh.GetVertexBufferMesh(), nullptr);
 
-			LensFlareReadDepthDepthStencilState.Bind();
+			LensFlareReadDepthDepthStencilState.Bind(D3D11);
 
 			queryRenderSun(Current.RenderTarget->Sun.OcclusionQuery, 1.0f);
 			// queryRenderSun(Current.RenderTarget->Sun.OffScreenOcclusionQuery, 1.5f);
 
-			LensFlareSunQueryNoColorWriteBlendState.Bind();
-			LensFlareIgnoreDepthDepthStencilState.Bind();
+			LensFlareSunQueryNoColorWriteBlendState.Bind(D3D11);
+			LensFlareIgnoreDepthDepthStencilState.Bind(D3D11);
 
 			queryRenderSun(Current.RenderTarget->Sun.NoDepthOcclusionQuery, 1.0f);
 
 			if (Current.RenderTarget->Param.DebugVisualizeSunOcclusionQuery)
 			{
-				LensFlareSunQueryNoColorWriteBlendState.UnBind();
-				LensFlareIgnoreDepthDepthStencilState.Bind();
+				LensFlareSunQueryNoColorWriteBlendState.UnBind(D3D11);
+				LensFlareIgnoreDepthDepthStencilState.Bind(D3D11);
 
-				Shaders.DebugMaterial.Bind();
+				Shaders.DebugMaterial.Bind(D3D11);
 				renderSun(1.0f);
 			}
 			D3D11_EndDebugEvent();
@@ -1114,18 +1112,18 @@ namespace Comfy::Render
 
 		void RenderLensFlareGhosts()
 		{
-			const auto ghostTexture = D3D11::GetTexture2D(TexGetter(&Current.SceneParam->LensFlare.Textures.Ghost));
+			const auto* ghostTexture = GetD3D11Texture2D(D3D11, TexGetter(&Current.SceneParam->LensFlare.Textures.Ghost));
 			if (ghostTexture == nullptr)
 				return;
 
 			D3D11_BeginDebugEvent("Lens Flare Ghosts");
-			TransparencyPassDepthStencilState.Bind();
+			TransparencyPassDepthStencilState.Bind(D3D11);
 
-			Current.RenderTarget->BlendStates.GetState(BlendFactor::One, BlendFactor::One).Bind();
-			Shaders.LensFlare.Bind();
+			Current.RenderTarget->BlendStates.GetState(BlendFactor::One, BlendFactor::One).Bind(D3D11);
+			Shaders.LensFlare.Bind(D3D11);
 
-			D3D11::Texture2D::BindArray<1>(TextureSlot_Diffuse, { ghostTexture });
-			D3D11::TextureSampler::BindArray<1>(TextureSlot_Diffuse, { nullptr });
+			D3D11.ImmediateContext->PSSetShaderResources(TextureSlot_Diffuse, 1, PtrArg<ID3D11ShaderResourceView*>(ghostTexture->TextureView.Get()));
+			D3D11.ImmediateContext->PSSetSamplers(TextureSlot_Diffuse, 1, PtrArg<ID3D11SamplerState*>(nullptr));
 
 			BindMeshVertexBuffers(LensFlareMesh.GetVertexBufferMesh(), nullptr);
 
@@ -1141,7 +1139,7 @@ namespace Comfy::Render
 					glm::scale(mat4(1.0f), vec3(scale))
 				);
 
-				ConstantBuffers.Object.UploadData();
+				ConstantBuffers.Object.UploadData(D3D11);
 				SubmitSubMeshDrawCall(LensFlareMesh.GetGhostSubMesh(type));
 			};
 
@@ -1166,7 +1164,7 @@ namespace Comfy::Render
 					renderGhost(info.Type, ghostPosition, ghostScale, ghostRotation, ghostOpacity);
 			}
 
-			TransparencyPassDepthStencilState.UnBind();
+			TransparencyPassDepthStencilState.UnBind(D3D11);
 
 			// TODO: Render lens flare flare and shaft textures at sun screen position
 			D3D11_EndDebugEvent();
@@ -1175,38 +1173,39 @@ namespace Comfy::Render
 		void RenderPostProcessing()
 		{
 			D3D11_BeginDebugEvent("Post Processing");
-			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			D3D11.ImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			constexpr u32 morphAttrbutesFactor = 2;
 			constexpr u32 attributesToReset = (VertexAttribute_Count * morphAttrbutesFactor);
 
 			std::array<ID3D11Buffer*, attributesToReset> buffers = {};
 			std::array<UINT, attributesToReset> strides = {}, offsets = {};
-			D3D11::D3D.Context->IASetVertexBuffers(0, attributesToReset, buffers.data(), strides.data(), offsets.data());
+			D3D11.ImmediateContext->IASetVertexBuffers(0, attributesToReset, buffers.data(), strides.data(), offsets.data());
 
-			SolidNoCullingRasterizerState.Bind();
-			D3D11::D3D.Context->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+			SolidNoCullingRasterizerState.Bind(D3D11);
+			D3D11.ImmediateContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-			D3D11::TextureSampler::BindArray<1>(0, { nullptr });
+			D3D11.ImmediateContext->PSSetShaderResources(0, 1, PtrArg<ID3D11ShaderResourceView*>(nullptr));
 
 			if (Current.RenderTarget->Param.RenderBloom)
 				RenderBloom();
 
 			D3D11_BeginDebugEvent("Tone Mapping");
-			Current.RenderTarget->Output.RenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution);
-			Current.RenderTarget->Output.RenderTarget.BindSetViewport();
+			Current.RenderTarget->Output.RenderTarget.RecreateWithNewSizeIfDifferent(D3D11, Current.RenderTarget->Param.RenderResolution);
+			Current.RenderTarget->Output.RenderTarget.BindAndSetViewport(D3D11);
 
 			Current.RenderTarget->ToneMap.UpdateIfNeeded(Current.SceneParam->Glow);
 
 			const bool autoExposureEnabled = (Current.RenderTarget->Param.AutoExposure && Current.RenderTarget->Param.RenderBloom && Current.SceneParam->Glow.AutoExposure);
 
-			D3D11::ShaderResourceView::BindArray<4>(0,
-				{
-					&Current.RenderTarget->Main.CurrentOrResolved(),
-					(Current.RenderTarget->Param.RenderBloom) ? &Current.RenderTarget->Bloom.CombinedBlurRenderTarget : nullptr,
-					Current.RenderTarget->ToneMap.GetLookupTexture(),
-					autoExposureEnabled ? &Current.RenderTarget->Bloom.ExposureRenderTargets.back() : nullptr
-				});
+			ID3D11ShaderResourceView* shaderResourceViews[4] =
+			{
+				Current.RenderTarget->Main.CurrentOrResolved().ColorTextureView.Get(),
+				Current.RenderTarget->Param.RenderBloom ? Current.RenderTarget->Bloom.CombinedBlurRenderTarget.ColorTextureView.Get() : nullptr,
+				Current.RenderTarget->ToneMap.GetLookupTexture()->TextureView.Get(),
+				autoExposureEnabled ? Current.RenderTarget->Bloom.ExposureRenderTargets.back().ColorTextureView.Get() : nullptr,
+			};
+			D3D11.ImmediateContext->PSSetShaderResources(0, static_cast<UINT>(std::size(shaderResourceViews)), shaderResourceViews);
 
 			ConstantBuffers.ToneMap.Data.Exposure = Current.SceneParam->Glow.Exposure;
 			ConstantBuffers.ToneMap.Data.Gamma = Current.SceneParam->Glow.Gamma;
@@ -1215,14 +1214,16 @@ namespace Comfy::Render
 			ConstantBuffers.ToneMap.Data.AlphaLerp = Current.RenderTarget->Param.ToneMapPreserveAlpha ? 0.0f : 1.0f;
 			ConstantBuffers.ToneMap.Data.AlphaValue = 1.0f;
 			ConstantBuffers.ToneMap.Data.AutoExposure = autoExposureEnabled;
-			ConstantBuffers.ToneMap.UploadData();
-			ConstantBuffers.ToneMap.BindPixelShader();
+			ConstantBuffers.ToneMap.UploadData(D3D11);
+			ConstantBuffers.ToneMap.BindPixelShader(D3D11);
 
-			Shaders.ToneMap.Bind();
+			Shaders.ToneMap.Bind(D3D11);
 			SubmitQuadDrawCall();
 			D3D11_EndDebugEvent();
 
-			D3D11::ShaderResourceView::BindArray<3>(0, { nullptr, nullptr, nullptr });
+			ID3D11ShaderResourceView* nullShaderResourceViews[3] = {};
+			D3D11.ImmediateContext->PSSetShaderResources(0, static_cast<UINT>(std::size(nullShaderResourceViews)), nullShaderResourceViews);
+
 			Current.RenderTarget->Main.AdvanceRenderTarget();
 			D3D11_EndDebugEvent();
 		}
@@ -1232,11 +1233,11 @@ namespace Comfy::Render
 			D3D11_BeginDebugEvent("Bloom");
 			auto& bloom = Current.RenderTarget->Bloom;
 
-			bloom.BaseRenderTarget.ResizeIfDifferent(Current.RenderTarget->Param.RenderResolution / 2);
+			bloom.BaseRenderTarget.RecreateWithNewSizeIfDifferent(D3D11, Current.RenderTarget->Param.RenderResolution / 2);
 
 			ConstantBuffers.ReduceTex.Data.CombineBlurred = false;
-			ConstantBuffers.ReduceTex.BindPixelShader();
-			Shaders.ReduceTex.Bind();
+			ConstantBuffers.ReduceTex.BindPixelShader(D3D11);
+			Shaders.ReduceTex.Bind(D3D11);
 
 			for (int i = -1; i < static_cast<int>(bloom.ReduceRenderTargets.size()); i++)
 			{
@@ -1245,10 +1246,10 @@ namespace Comfy::Render
 
 				ConstantBuffers.ReduceTex.Data.TextureSize = GetPackedTextureSize(lastRenderTarget);
 				ConstantBuffers.ReduceTex.Data.ExtractBrightness = (i == 0);
-				ConstantBuffers.ReduceTex.UploadData();
+				ConstantBuffers.ReduceTex.UploadData(D3D11);
 
-				renderTarget.BindSetViewport();
-				lastRenderTarget.BindResource(0);
+				renderTarget.BindAndSetViewport(D3D11);
+				lastRenderTarget.BindColorTexturePS(D3D11, 0);
 
 				SubmitQuadDrawCall();
 			}
@@ -1257,13 +1258,13 @@ namespace Comfy::Render
 				RenderExposurePreBloom();
 
 			CalculateGaussianBlurKernel(Current.SceneParam->Glow, ConstantBuffers.PPGaussCoef.Data);
-			ConstantBuffers.PPGaussCoef.UploadData();
-			ConstantBuffers.PPGaussCoef.BindPixelShader();
+			ConstantBuffers.PPGaussCoef.UploadData(D3D11);
+			ConstantBuffers.PPGaussCoef.BindPixelShader(D3D11);
 
 			ConstantBuffers.PPGaussTex.Data.FinalPass = false;
-			ConstantBuffers.PPGaussTex.BindPixelShader();
+			ConstantBuffers.PPGaussTex.BindPixelShader(D3D11);
 
-			Shaders.PPGauss.Bind();
+			Shaders.PPGauss.Bind(D3D11);
 
 			for (int i = 1; i < 4; i++)
 			{
@@ -1278,12 +1279,12 @@ namespace Comfy::Render
 					constexpr vec4 verticalOffsets = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
 					ConstantBuffers.PPGaussTex.Data.TextureOffsets = (j % 2 == 0) ? horizontalOffsets : verticalOffsets;
-					ConstantBuffers.PPGaussTex.UploadData();
+					ConstantBuffers.PPGaussTex.UploadData(D3D11);
 
-					sourceTarget->BindResource(0);
-					destinationTarget->BindSetViewport();
+					sourceTarget->BindColorTexturePS(D3D11, 0);
+					destinationTarget->BindAndSetViewport(D3D11);
 					SubmitQuadDrawCall();
-					destinationTarget->UnBind();
+					destinationTarget->UnBind(D3D11);
 
 					// NOTE: Ping pong between them to avoid having to use additional render targets
 					std::swap(sourceTarget, destinationTarget);
@@ -1292,30 +1293,30 @@ namespace Comfy::Render
 
 			ConstantBuffers.PPGaussTex.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[0]);
 			ConstantBuffers.PPGaussTex.Data.FinalPass = true;
-			ConstantBuffers.PPGaussTex.UploadData();
+			ConstantBuffers.PPGaussTex.UploadData(D3D11);
 
-			bloom.BlurRenderTargets[0].BindSetViewport();
-			bloom.ReduceRenderTargets[0].BindResource(0);
+			bloom.BlurRenderTargets[0].BindAndSetViewport(D3D11);
+			bloom.ReduceRenderTargets[0].BindColorTexturePS(D3D11, 0);
 			SubmitQuadDrawCall();
 
-			std::array<const D3D11::ShaderResourceView*, 4> combinedBlurInputTargets =
-			{
-				&bloom.BlurRenderTargets[0],
-				// NOTE: Use the reduce targets because of the ping pong blur rendering
-				&bloom.ReduceRenderTargets[1],
-				&bloom.ReduceRenderTargets[2],
-				&bloom.ReduceRenderTargets[3],
-			};
+			bloom.CombinedBlurRenderTarget.BindAndSetViewport(D3D11);
 
-			bloom.CombinedBlurRenderTarget.BindSetViewport();
-			D3D11::ShaderResourceView::BindArray(0, combinedBlurInputTargets);
+			ID3D11ShaderResourceView* combinedBlurInputTargets[4] =
+			{
+				bloom.BlurRenderTargets[0].ColorTextureView.Get(),
+				// NOTE: Use the reduce targets because of the ping pong blur rendering
+				bloom.ReduceRenderTargets[1].ColorTextureView.Get(),
+				bloom.ReduceRenderTargets[2].ColorTextureView.Get(),
+				bloom.ReduceRenderTargets[3].ColorTextureView.Get(),
+			};
+			D3D11.ImmediateContext->PSSetShaderResources(0, static_cast<UINT>(std::size(combinedBlurInputTargets)), combinedBlurInputTargets);
 
 			ConstantBuffers.ReduceTex.Data.TextureSize = GetPackedTextureSize(bloom.ReduceRenderTargets[3]);
 			ConstantBuffers.ReduceTex.Data.ExtractBrightness = false;
 			ConstantBuffers.ReduceTex.Data.CombineBlurred = true;
-			ConstantBuffers.ReduceTex.UploadData();
-			ConstantBuffers.ReduceTex.BindPixelShader();
-			Shaders.ReduceTex.Bind();
+			ConstantBuffers.ReduceTex.UploadData(D3D11);
+			ConstantBuffers.ReduceTex.BindPixelShader(D3D11);
+			Shaders.ReduceTex.Bind(D3D11);
 
 			SubmitQuadDrawCall();
 
@@ -1327,11 +1328,11 @@ namespace Comfy::Render
 		void RenderExposurePreBloom()
 		{
 			D3D11_BeginDebugEvent("Exposure Pre Bloom");
-			Shaders.ExposureMinify.Bind();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[0].BindSetViewport();
-			Current.RenderTarget->Bloom.ReduceRenderTargets.back().BindResource(0);
+			Shaders.ExposureMinify.Bind(D3D11);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[0].BindAndSetViewport(D3D11);
+			Current.RenderTarget->Bloom.ReduceRenderTargets.back().BindColorTexturePS(D3D11, 0);
 			SubmitQuadDrawCall();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[0].UnBind();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[0].UnBind(D3D11);
 			D3D11_EndDebugEvent();
 		}
 
@@ -1339,20 +1340,20 @@ namespace Comfy::Render
 		{
 			D3D11_BeginDebugEvent("Exposure Post Bloom");
 			CalculateExposureSpotCoefficients(ConstantBuffers.Exposure.Data);
-			ConstantBuffers.Exposure.UploadData();
-			ConstantBuffers.Exposure.BindPixelShader();
+			ConstantBuffers.Exposure.UploadData(D3D11);
+			ConstantBuffers.Exposure.BindPixelShader(D3D11);
 
-			Shaders.ExposureMeasure.Bind();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[1].BindSetViewport();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[0].BindResource(0);
+			Shaders.ExposureMeasure.Bind(D3D11);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[1].BindAndSetViewport(D3D11);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[0].BindColorTexturePS(D3D11, 0);
 			SubmitQuadDrawCall();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[1].UnBind();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[1].UnBind(D3D11);
 
-			Shaders.ExposureAverage.Bind();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[2].BindSetViewport();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[1].BindResource(0);
+			Shaders.ExposureAverage.Bind(D3D11);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[2].BindAndSetViewport(D3D11);
+			Current.RenderTarget->Bloom.ExposureRenderTargets[1].BindColorTexturePS(D3D11, 0);
 			SubmitQuadDrawCall();
-			Current.RenderTarget->Bloom.ExposureRenderTargets[2].UnBind();
+			Current.RenderTarget->Bloom.ExposureRenderTargets[2].UnBind(D3D11);
 			D3D11_EndDebugEvent();
 		}
 
@@ -1369,10 +1370,10 @@ namespace Comfy::Render
 
 				for (VertexAttribute i = 0; i < VertexAttribute_Count; i++)
 				{
-					if (auto* vertexBuffer = D3D11::GetVertexBuffer(mesh, i); vertexBuffer != nullptr)
+					if (auto* vertexBuffer = GetD3D11VertexBuffer(D3D11, mesh, i); vertexBuffer != nullptr)
 					{
-						buffers[i] = vertexBuffer->GetBuffer();
-						strides[i] = vertexBuffer->GetDescription().StructureByteStride;
+						buffers[i] = vertexBuffer->Buffer.Get();
+						strides[i] = vertexBuffer->BufferDesc.StructureByteStride;
 						offsets[i] = 0;
 					}
 					else
@@ -1384,7 +1385,7 @@ namespace Comfy::Render
 				}
 
 				const UINT startSlot = MorphVertexAttributeOffset * meshIndex;
-				D3D11::D3D.Context->IASetVertexBuffers(startSlot, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
+				D3D11.ImmediateContext->IASetVertexBuffers(startSlot, VertexAttribute_Count, buffers.data(), strides.data(), offsets.data());
 			}
 		}
 
@@ -1395,13 +1396,13 @@ namespace Comfy::Render
 			if (flags & RenderFlags_SilhouetteOutlinePass)
 			{
 				if (command.SourceCommand.Flags.SilhouetteOutline)
-					Shaders.SolidWhite.Bind();
+					Shaders.SolidWhite.Bind(D3D11);
 				else
-					Shaders.SolidBlack.Bind();
+					Shaders.SolidBlack.Bind(D3D11);
 			}
 			else if (!(flags & RenderFlags_NoMaterialShader))
 			{
-				((flags & RenderFlags_SSSPass) ? GetSSSMaterialShader(material) : GetMaterialShader(command, mesh, subMesh, material)).Bind();
+				((flags & RenderFlags_SSSPass) ? GetSSSMaterialShader(material) : GetMaterialShader(command, mesh, subMesh, material)).Bind(D3D11);
 			}
 
 			const u32 boundMaterialTexturesFlags = (flags & RenderFlags_NoMaterialTextures) ? 0 : BindMaterialTextures(command, material, flags);
@@ -1415,7 +1416,7 @@ namespace Comfy::Render
 			ConstantBuffers.Object.Data.MorphWeight = GetObjectCBMorphWeight(command);
 			ConstantBuffers.Object.Data.ShaderFlags = GetObjectCBShaderFlags(command, mesh, subMesh, material, boundMaterialTexturesFlags, flags);
 
-			ConstantBuffers.Object.UploadData();
+			ConstantBuffers.Object.UploadData(D3D11);
 
 			// DEBUG:
 			{
@@ -1475,8 +1476,8 @@ namespace Comfy::Render
 			ConstantBuffers.Object.Data.DiffuseScreenTexture = false;
 			ConstantBuffers.Object.Data.AmbientTextureType = 0;
 
-			std::array<const D3D11::ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
-			std::array<const D3D11::TextureSampler*, TextureSlot_MaterialTextureCount> textureSamplers = {};
+			std::array<ID3D11ShaderResourceView*, TextureSlot_MaterialTextureCount> textureResources = {};
+			std::array<ID3D11SamplerState*, TextureSlot_MaterialTextureCount> textureSamplers = {};
 
 			for (auto& materialTexture : material.Textures)
 			{
@@ -1516,12 +1517,8 @@ namespace Comfy::Render
 
 				Current.RenderTarget->TextureSamplers.CreateIfNeeded(Current.RenderTarget->Param.AnistropicFiltering);
 
-				if (tex->GetSignature() == TxpSig::Texture2D)
-					textureResources[correspondingTextureSlot] = D3D11::GetTexture2D(*tex);
-				else
-					textureResources[correspondingTextureSlot] = D3D11::GetCubeMap(*tex);
-
-				textureSamplers[correspondingTextureSlot] = &Current.RenderTarget->TextureSamplers.GetSampler(samplerFlags);
+				textureResources[correspondingTextureSlot] = GetD3D11Texture2DView(D3D11, *tex);
+				textureSamplers[correspondingTextureSlot] = Current.RenderTarget->TextureSamplers.GetSampler(samplerFlags).SamplerState.Get();
 
 				if (correspondingTextureSlot == TextureSlot_Diffuse)
 				{
@@ -1536,7 +1533,7 @@ namespace Comfy::Render
 						if (*texID == dynamic->ScreenRenderTextureID)
 						{
 							ConstantBuffers.Object.Data.DiffuseScreenTexture = true;
-							textureResources[correspondingTextureSlot] = &Current.RenderTarget->Main.PreviousOrResolved();
+							textureResources[correspondingTextureSlot] = Current.RenderTarget->Main.PreviousOrResolved().ColorTextureView.Get();
 
 							// HACK: Flip to adjust for the expected OpenGL texture coordinates, problematic because it also effects all other textures using the first TEXCOORD attribute
 							ConstantBuffers.Object.Data.Material.DiffuseTextureTransform *= glm::scale(mat4(1.0f), vec3(1.0f, -1.0f, 1.0f));
@@ -1564,13 +1561,13 @@ namespace Comfy::Render
 
 			if (flags & RenderFlags_DiffuseTextureOnly)
 			{
-				D3D11::ShaderResourceView::BindArray<1>(TextureSlot_Diffuse, { textureResources[TextureSlot_Diffuse] });
-				D3D11::TextureSampler::BindArray<1>(TextureSlot_Diffuse, { textureSamplers[TextureSlot_Diffuse] });
+				D3D11.ImmediateContext->PSSetShaderResources(TextureSlot_Diffuse, 1, &textureResources[TextureSlot_Diffuse]);
+				D3D11.ImmediateContext->PSSetSamplers(TextureSlot_Diffuse, 1, &textureSamplers[TextureSlot_Diffuse]);
 			}
 			else
 			{
-				D3D11::ShaderResourceView::BindArray(TextureSlot_Diffuse, textureResources);
-				D3D11::TextureSampler::BindArray(TextureSlot_Diffuse, textureSamplers);
+				D3D11.ImmediateContext->PSSetShaderResources(TextureSlot_Diffuse, static_cast<UINT>(textureResources.size()), textureResources.data());
+				D3D11.ImmediateContext->PSSetSamplers(TextureSlot_Diffuse, static_cast<UINT>(textureSamplers.size()), textureSamplers.data());
 			}
 
 			u32 boundMaterialTexturesFlags = 0;
@@ -1615,9 +1612,9 @@ namespace Comfy::Render
 		void SetSubMeshRasterizerState(const Material& material)
 		{
 			if (material.BlendFlags.DoubleSided)
-				SolidNoCullingRasterizerState.Bind();
+				SolidNoCullingRasterizerState.Bind(D3D11);
 			else
-				SolidBackfaceCullingRasterizerState.Bind();
+				SolidBackfaceCullingRasterizerState.Bind(D3D11);
 		}
 
 		void SetObjectCBMaterialData(const Material& material, Detail::ObjectConstantData::MaterialData& outMaterialData) const
@@ -1779,7 +1776,7 @@ namespace Comfy::Render
 			return result;
 		}
 
-		D3D11::ShaderPair& GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
+		D3D11ShaderPair& GetMaterialShader(const ObjRenderCommand& command, const Mesh& mesh, const SubMesh& subMesh, const Material& material)
 		{
 			if (Current.RenderTarget->Param.AllowDebugShaderOverride)
 			{
@@ -1837,7 +1834,7 @@ namespace Comfy::Render
 			return Shaders.DebugMaterial;
 		}
 
-		D3D11::ShaderPair& GetSSSMaterialShader(const Material& material)
+		D3D11ShaderPair& GetSSSMaterialShader(const Material& material)
 		{
 			if (Detail::UsesSSSSkinConst(material))
 				return Shaders.SSSSkinConst;
@@ -1849,11 +1846,11 @@ namespace Comfy::Render
 		{
 			const size_t indexCount = subMesh.GetIndexCount();
 
-			if (auto* indexBuffer = D3D11::GetIndexBuffer(subMesh); indexBuffer != nullptr)
-				indexBuffer->Bind();
+			if (auto* indexBuffer = GetD3D11IndexBuffer(D3D11, subMesh); indexBuffer != nullptr)
+				indexBuffer->Bind(D3D11);
 
-			D3D11::D3D.Context->IASetPrimitiveTopology(D3D11::PrimitiveTypeToD3DTopology(subMesh.Primitive));
-			D3D11::D3D.Context->DrawIndexed(static_cast<UINT>(indexCount), 0, 0);
+			D3D11.ImmediateContext->IASetPrimitiveTopology(PrimitiveTypeToD3DTopology(subMesh.Primitive));
+			D3D11.ImmediateContext->DrawIndexed(static_cast<UINT>(indexCount), 0, 0);
 
 			Statistics.VerticesRendered += indexCount;
 		}
@@ -1861,7 +1858,7 @@ namespace Comfy::Render
 		void SubmitQuadDrawCall()
 		{
 			constexpr UINT quadVertexCount = 6;
-			D3D11::D3D.Context->Draw(quadVertexCount, 0);
+			D3D11.ImmediateContext->Draw(quadVertexCount, 0);
 		}
 
 		Sphere CalculateShadowViewFrustumSphere() const

@@ -1,15 +1,9 @@
 #include "ComfyD3D11.h"
-#include "Render/D3D11/Direct3D.h"
-#include "Render/D3D11/Buffer/ConstantBuffer.h"
-#include "Render/D3D11/Buffer/IndexBuffer.h"
-#include "Render/D3D11/Buffer/VertexBuffer.h"
-#include "Render/D3D11/State/BlendState.h"
-#include "Render/D3D11/State/DepthStencilState.h"
-#include "Render/D3D11/State/InputLayout.h"
-#include "Render/D3D11/State/RasterizerState.h"
-#include "Render/D3D11/Texture/DepthBuffer.h"
-#include "Render/D3D11/Texture/Texture.h"
-#include "Render/D3D11/Texture/TextureSampler.h"
+#include "Render/D3D11/D3D11.h"
+#include "Render/D3D11/D3D11Buffer.h"
+#include "Render/D3D11/D3D11Shader.h"
+#include "Render/D3D11/D3D11State.h"
+#include "Render/D3D11/D3D11Texture.h"
 #include "Render/D3D11/Shader/Bytecode/ShaderBytecode.h"
 
 using namespace Comfy::Graphics;
@@ -45,40 +39,40 @@ namespace ImGui
 
 		struct ComfyD3D11DeviceObjects
 		{
-			std::unique_ptr<D3D11::DynamicVertexBuffer> VertexBuffer = nullptr;
-			std::unique_ptr<D3D11::DynamicIndexBuffer> IndexBuffer = nullptr;
+			std::unique_ptr<D3D11VertexBuffer> VertexBuffer = nullptr;
+			std::unique_ptr<D3D11IndexBuffer> IndexBuffer = nullptr;
 
-			D3D11::ShaderPair DefaultShader = { D3D11::ImGuiDefault_VS(), D3D11::ImGuiDefault_PS(), "ComfyD3D11::ImGuiDefault" };
-			D3D11::ShaderPair CustomShader = { D3D11::ImGuiDefault_VS(), D3D11::ImGuiCustom_PS(), "ComfyD3D11::ImGuiCustom" };
+			D3D11ShaderPair DefaultShader = { GlobalD3D11, ImGuiDefault_VS(), ImGuiDefault_PS(), "ComfyD3D11::ImGuiDefault" };
+			D3D11ShaderPair CustomShader = { GlobalD3D11, ImGuiDefault_VS(), ImGuiCustom_PS(), "ComfyD3D11::ImGuiCustom" };
 
-			D3D11::DefaultConstantBufferTemplate<MatrixConstantData> MatrixCB = { 0, "ComfyD3D11::MatrixCB" };
-			D3D11::DynamicConstantBufferTemplate<DynamicConstantData> DynamicCB = { 0, "ComfyD3D11::DynamicCB" };
+			D3D11ConstantBufferTemplate<MatrixConstantData> MatrixCB = { GlobalD3D11, 0, D3D11_USAGE_DEFAULT, "ComfyD3D11::MatrixCB" };
+			D3D11ConstantBufferTemplate<DynamicConstantData> DynamicCB = { GlobalD3D11, 0, D3D11_USAGE_DYNAMIC, "ComfyD3D11::DynamicCB" };
 
-			std::unique_ptr<D3D11::InputLayout> InputLayout = nullptr;
+			std::unique_ptr<D3D11InputLayout> InputLayout = nullptr;
 
-			D3D11::TextureSampler FontSampler = { D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP };
-			std::unique_ptr<D3D11::Texture2D> FontTexture = nullptr;
+			D3D11TextureSampler FontSampler = { GlobalD3D11, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP };
+			std::unique_ptr<D3D11Texture2DAndView> FontTexture = nullptr;
 
-			// D3D11::BlendState BlendState = { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO };
-			D3D11::BlendState BlendState = { D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ONE, D3D11_BLEND_INV_SRC_ALPHA };
+			// D3D11BlendState BlendState = { GlobalD3D11, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ZERO };
+			D3D11BlendState BlendState = { GlobalD3D11, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ONE, D3D11_BLEND_INV_SRC_ALPHA };
 
-			D3D11::RasterizerState RasterizerState = { D3D11_FILL_SOLID, D3D11_CULL_NONE, true, "ComfyD3D11::RasterizerState" };
-			D3D11::DepthStencilState DepthStencilState = { false, D3D11_DEPTH_WRITE_MASK_ALL, "ComfyD3D11::DepthStencilState" };
+			D3D11RasterizerState RasterizerState = { GlobalD3D11, D3D11_FILL_SOLID, D3D11_CULL_NONE, true, "ComfyD3D11::RasterizerState" };
+			D3D11DepthStencilState DepthStencilState = { GlobalD3D11, false, D3D11_DEPTH_WRITE_MASK_ALL, "ComfyD3D11::DepthStencilState" };
 
 			ComfyD3D11DeviceObjects()
 			{
-				static constexpr D3D11::InputElement elements[] =
+				static constexpr D3D11InputElement elements[] =
 				{
 					{ "POSITION",	0, DXGI_FORMAT_R32G32_FLOAT,	offsetof(ImDrawVert, pos)	},
 					{ "TEXCOORD",	0, DXGI_FORMAT_R32G32_FLOAT,	offsetof(ImDrawVert, uv)	},
 					{ "COLOR",		0, DXGI_FORMAT_R8G8B8A8_UNORM,	offsetof(ImDrawVert, col)	},
 				};
 
-				InputLayout = std::make_unique<D3D11::InputLayout>(elements, std::size(elements), DefaultShader.VS);
-				D3D11_SetObjectDebugName(InputLayout->GetLayout(), "ComfyD3D11::InputLayout");
+				InputLayout = std::make_unique<D3D11InputLayout>(GlobalD3D11, elements, std::size(elements), DefaultShader.VS);
+				D3D11_SetObjectDebugName(InputLayout->InputLayout.Get(), "ComfyD3D11::InputLayout");
 
-				D3D11_SetObjectDebugName(FontSampler.GetSampler(), "ComfyD3D11::FontSampler");
-				D3D11_SetObjectDebugName(BlendState.GetBlendState(), "ComfyD3D11::BlendState");
+				D3D11_SetObjectDebugName(FontSampler.SamplerState.Get(), "ComfyD3D11::FontSampler");
+				D3D11_SetObjectDebugName(BlendState.BlendState.Get(), "ComfyD3D11::BlendState");
 
 				CreateSetFontTexture();
 			}
@@ -94,9 +88,9 @@ namespace ImGui
 				ivec2 textureSize;
 				GetIO().Fonts->GetTexDataAsRGBA32(&rgbaPixels, &textureSize.x, &textureSize.y);
 
-				FontTexture = std::make_unique<D3D11::Texture2D>(textureSize, reinterpret_cast<u32*>(rgbaPixels));
-				D3D11_SetObjectDebugName(FontTexture->GetTexture(), "ComfyD3D11::FontTexture");
-				D3D11_SetObjectDebugName(FontTexture->GetResourceView(), "ComfyD3D11::FontTextureView");
+				FontTexture = std::make_unique<D3D11Texture2DAndView>(GlobalD3D11, textureSize, reinterpret_cast<u32*>(rgbaPixels), D3D11_USAGE_IMMUTABLE);
+				D3D11_SetObjectDebugName(FontTexture->Texture.Get(), "ComfyD3D11::FontTexture");
+				D3D11_SetObjectDebugName(FontTexture->TextureView.Get(), "ComfyD3D11::FontTextureView");
 
 				GetIO().Fonts->SetTexID(static_cast<ImTextureID>(*FontTexture));
 			}
@@ -112,6 +106,8 @@ namespace ImGui
 
 		bool Initialize()
 		{
+			auto& d3d11 = GlobalD3D11;
+
 			ImGuiIO& io = GetIO();
 			io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 			io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
@@ -120,13 +116,13 @@ namespace ImGui
 			ComPtr<IDXGIDevice> dxgiDevice = nullptr;
 			ComPtr<IDXGIAdapter> dxgiAdapter = nullptr;
 
-			if (D3D11::D3D.Device->QueryInterface(IID_PPV_ARGS(&dxgiDevice)) != S_OK)
+			if (d3d11.Device->QueryInterface(__uuidof(dxgiDevice), &dxgiDevice) != S_OK)
 				return false;
 
-			if (dxgiDevice->GetParent(IID_PPV_ARGS(&dxgiAdapter)) != S_OK)
+			if (dxgiDevice->GetParent(__uuidof(dxgiAdapter), &dxgiAdapter) != S_OK)
 				return false;
 
-			if (dxgiAdapter->GetParent(IID_PPV_ARGS(&Data.Factory)) != S_OK)
+			if (dxgiAdapter->GetParent(__uuidof(Data.Factory), &Data.Factory) != S_OK)
 				return false;
 
 			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -169,6 +165,8 @@ namespace ImGui
 
 		void RenderDrawData(const ImDrawData* drawData)
 		{
+			auto& d3d11 = GlobalD3D11;
+
 			if (GetIO().Fonts->TexID == nullptr)
 				Data.DeviceObjects->CreateSetFontTexture();
 
@@ -182,9 +180,9 @@ namespace ImGui
 			{
 				D3D11_BeginDebugEvent("Create VBO");
 				Data.VertexBufferSize = drawData->TotalVtxCount + 5000;
-				Data.DeviceObjects->VertexBuffer = std::make_unique<D3D11::DynamicVertexBuffer>(Data.VertexBufferSize * sizeof(ImDrawVert), nullptr, sizeof(ImDrawVert));
+				Data.DeviceObjects->VertexBuffer = std::make_unique<D3D11VertexBuffer>(d3d11, Data.VertexBufferSize * sizeof(ImDrawVert), nullptr, sizeof(ImDrawVert), D3D11_USAGE_DYNAMIC);
 
-				D3D11_SetObjectDebugName(Data.DeviceObjects->VertexBuffer->GetBuffer(), "ComfyD3D11::VertexBuffer");
+				D3D11_SetObjectDebugName(Data.DeviceObjects->VertexBuffer->Buffer.Get(), "ComfyD3D11::VertexBuffer");
 				D3D11_EndDebugEvent();
 			}
 
@@ -192,9 +190,9 @@ namespace ImGui
 			{
 				D3D11_BeginDebugEvent("Create IBO");
 				Data.IndexBufferSize = drawData->TotalIdxCount + 10000;
-				Data.DeviceObjects->IndexBuffer = std::make_unique<D3D11::DynamicIndexBuffer>(Data.IndexBufferSize * sizeof(ImDrawIdx), nullptr, IndexFormat::U16);
+				Data.DeviceObjects->IndexBuffer = std::make_unique<D3D11IndexBuffer>(d3d11, Data.IndexBufferSize * sizeof(ImDrawIdx), nullptr, IndexFormat::U16, D3D11_USAGE_DYNAMIC);
 
-				D3D11_SetObjectDebugName(Data.DeviceObjects->IndexBuffer->GetBuffer(), "ComfyD3D11::IndexBuffer");
+				D3D11_SetObjectDebugName(Data.DeviceObjects->IndexBuffer->Buffer.Get(), "ComfyD3D11::IndexBuffer");
 				D3D11_EndDebugEvent();
 			}
 
@@ -202,8 +200,8 @@ namespace ImGui
 			D3D11_BeginDebugEvent("Update VBO / IBO");
 			{
 				D3D11_MAPPED_SUBRESOURCE mappedVertices, mappedIndices;
-				D3D11::D3D.Context->Map(Data.DeviceObjects->VertexBuffer->GetBuffer(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedVertices);
-				D3D11::D3D.Context->Map(Data.DeviceObjects->IndexBuffer->GetBuffer(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedIndices);
+				d3d11.ImmediateContext->Map(Data.DeviceObjects->VertexBuffer->Buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedVertices);
+				d3d11.ImmediateContext->Map(Data.DeviceObjects->IndexBuffer->Buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedIndices);
 
 				ImDrawVert* vertexDst = static_cast<ImDrawVert*>(mappedVertices.pData);
 				ImDrawIdx* indexDst = static_cast<ImDrawIdx*>(mappedIndices.pData);
@@ -218,8 +216,8 @@ namespace ImGui
 					indexDst += drawList->IdxBuffer.Size;
 				}
 
-				D3D11::D3D.Context->Unmap(Data.DeviceObjects->VertexBuffer->GetBuffer(), 0);
-				D3D11::D3D.Context->Unmap(Data.DeviceObjects->IndexBuffer->GetBuffer(), 0);
+				d3d11.ImmediateContext->Unmap(Data.DeviceObjects->VertexBuffer->Buffer.Get(), 0);
+				d3d11.ImmediateContext->Unmap(Data.DeviceObjects->IndexBuffer->Buffer.Get(), 0);
 			}
 			D3D11_EndDebugEvent();
 
@@ -251,42 +249,44 @@ namespace ImGui
 
 					D3D11StateBackup()
 					{
+						auto& d3d11 = GlobalD3D11;
 						ScissorRectsCount = ViewportsCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-						D3D11::D3D.Context->RSGetScissorRects(&ScissorRectsCount, ScissorRects);
-						D3D11::D3D.Context->RSGetViewports(&ViewportsCount, Viewports);
-						D3D11::D3D.Context->RSGetState(&RS);
-						D3D11::D3D.Context->OMGetBlendState(&BlendState, BlendFactor, &SampleMask);
-						D3D11::D3D.Context->OMGetDepthStencilState(&DepthStencilState, &StencilRef);
-						D3D11::D3D.Context->PSGetShaderResources(0, 1, &PSShaderResource);
-						D3D11::D3D.Context->PSGetSamplers(0, 1, &PSSampler);
+						d3d11.ImmediateContext->RSGetScissorRects(&ScissorRectsCount, ScissorRects);
+						d3d11.ImmediateContext->RSGetViewports(&ViewportsCount, Viewports);
+						d3d11.ImmediateContext->RSGetState(&RS);
+						d3d11.ImmediateContext->OMGetBlendState(&BlendState, BlendFactor, &SampleMask);
+						d3d11.ImmediateContext->OMGetDepthStencilState(&DepthStencilState, &StencilRef);
+						d3d11.ImmediateContext->PSGetShaderResources(0, 1, &PSShaderResource);
+						d3d11.ImmediateContext->PSGetSamplers(0, 1, &PSSampler);
 						PSInstancesCount = VSInstancesCount = 256;
-						D3D11::D3D.Context->PSGetShader(&PS, PSInstances, &PSInstancesCount);
-						D3D11::D3D.Context->VSGetShader(&VS, VSInstances, &VSInstancesCount);
-						D3D11::D3D.Context->VSGetConstantBuffers(0, 1, &VSConstantBuffer);
-						D3D11::D3D.Context->IAGetPrimitiveTopology(&PrimitiveTopology);
-						D3D11::D3D.Context->IAGetIndexBuffer(&IndexBuffer, &IndexBufferFormat, &IndexBufferOffset);
-						D3D11::D3D.Context->IAGetVertexBuffers(0, 1, &VertexBuffer, &VertexBufferStride, &VertexBufferOffset);
-						D3D11::D3D.Context->IAGetInputLayout(&InputLayout);
+						d3d11.ImmediateContext->PSGetShader(&PS, PSInstances, &PSInstancesCount);
+						d3d11.ImmediateContext->VSGetShader(&VS, VSInstances, &VSInstancesCount);
+						d3d11.ImmediateContext->VSGetConstantBuffers(0, 1, &VSConstantBuffer);
+						d3d11.ImmediateContext->IAGetPrimitiveTopology(&PrimitiveTopology);
+						d3d11.ImmediateContext->IAGetIndexBuffer(&IndexBuffer, &IndexBufferFormat, &IndexBufferOffset);
+						d3d11.ImmediateContext->IAGetVertexBuffers(0, 1, &VertexBuffer, &VertexBufferStride, &VertexBufferOffset);
+						d3d11.ImmediateContext->IAGetInputLayout(&InputLayout);
 					}
 
 					~D3D11StateBackup()
 					{
-						D3D11::D3D.Context->RSSetScissorRects(ScissorRectsCount, ScissorRects);
-						D3D11::D3D.Context->RSSetViewports(ViewportsCount, Viewports);
-						D3D11::D3D.Context->RSSetState(RS); if (RS) RS->Release();
-						D3D11::D3D.Context->OMSetBlendState(BlendState, BlendFactor, SampleMask); if (BlendState) BlendState->Release();
-						D3D11::D3D.Context->OMSetDepthStencilState(DepthStencilState, StencilRef); if (DepthStencilState) DepthStencilState->Release();
-						D3D11::D3D.Context->PSSetShaderResources(0, 1, &PSShaderResource); if (PSShaderResource) PSShaderResource->Release();
-						D3D11::D3D.Context->PSSetSamplers(0, 1, &PSSampler); if (PSSampler) PSSampler->Release();
-						D3D11::D3D.Context->PSSetShader(PS, PSInstances, PSInstancesCount); if (PS) PS->Release();
+						auto& d3d11 = GlobalD3D11;
+						d3d11.ImmediateContext->RSSetScissorRects(ScissorRectsCount, ScissorRects);
+						d3d11.ImmediateContext->RSSetViewports(ViewportsCount, Viewports);
+						d3d11.ImmediateContext->RSSetState(RS); if (RS) RS->Release();
+						d3d11.ImmediateContext->OMSetBlendState(BlendState, BlendFactor, SampleMask); if (BlendState) BlendState->Release();
+						d3d11.ImmediateContext->OMSetDepthStencilState(DepthStencilState, StencilRef); if (DepthStencilState) DepthStencilState->Release();
+						d3d11.ImmediateContext->PSSetShaderResources(0, 1, &PSShaderResource); if (PSShaderResource) PSShaderResource->Release();
+						d3d11.ImmediateContext->PSSetSamplers(0, 1, &PSSampler); if (PSSampler) PSSampler->Release();
+						d3d11.ImmediateContext->PSSetShader(PS, PSInstances, PSInstancesCount); if (PS) PS->Release();
 						for (UINT i = 0; i < PSInstancesCount; i++) if (PSInstances[i]) PSInstances[i]->Release();
-						D3D11::D3D.Context->VSSetShader(VS, VSInstances, VSInstancesCount); if (VS) VS->Release();
-						D3D11::D3D.Context->VSSetConstantBuffers(0, 1, &VSConstantBuffer); if (VSConstantBuffer) VSConstantBuffer->Release();
+						d3d11.ImmediateContext->VSSetShader(VS, VSInstances, VSInstancesCount); if (VS) VS->Release();
+						d3d11.ImmediateContext->VSSetConstantBuffers(0, 1, &VSConstantBuffer); if (VSConstantBuffer) VSConstantBuffer->Release();
 						for (UINT i = 0; i < VSInstancesCount; i++) if (VSInstances[i]) VSInstances[i]->Release();
-						D3D11::D3D.Context->IASetPrimitiveTopology(PrimitiveTopology);
-						D3D11::D3D.Context->IASetIndexBuffer(IndexBuffer, IndexBufferFormat, IndexBufferOffset); if (IndexBuffer) IndexBuffer->Release();
-						D3D11::D3D.Context->IASetVertexBuffers(0, 1, &VertexBuffer, &VertexBufferStride, &VertexBufferOffset); if (VertexBuffer) VertexBuffer->Release();
-						D3D11::D3D.Context->IASetInputLayout(InputLayout); if (InputLayout) InputLayout->Release();
+						d3d11.ImmediateContext->IASetPrimitiveTopology(PrimitiveTopology);
+						d3d11.ImmediateContext->IASetIndexBuffer(IndexBuffer, IndexBufferFormat, IndexBufferOffset); if (IndexBuffer) IndexBuffer->Release();
+						d3d11.ImmediateContext->IASetVertexBuffers(0, 1, &VertexBuffer, &VertexBufferStride, &VertexBufferOffset); if (VertexBuffer) VertexBuffer->Release();
+						d3d11.ImmediateContext->IASetInputLayout(InputLayout); if (InputLayout) InputLayout->Release();
 					}
 				} stateBackup = {};
 
@@ -298,29 +298,29 @@ namespace ImGui
 					const f32 bottom = drawData->DisplayPos.y + drawData->DisplaySize.y;
 
 					Data.DeviceObjects->MatrixCB.Data.ModelViewProjection = glm::transpose(glm::ortho(left, right, bottom, top, 0.0f, 1.0f));
-					Data.DeviceObjects->MatrixCB.UploadData();
+					Data.DeviceObjects->MatrixCB.UploadData(d3d11);
 				}
 
-				D3D11::D3D.SetViewport({ drawData->DisplaySize.x, drawData->DisplaySize.y });
-				D3D11::D3D.Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				d3d11.SetViewport({ drawData->DisplaySize.x, drawData->DisplaySize.y });
+				d3d11.ImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-				Data.DeviceObjects->InputLayout->Bind();
-				Data.DeviceObjects->VertexBuffer->Bind();
-				Data.DeviceObjects->IndexBuffer->Bind();
+				Data.DeviceObjects->InputLayout->Bind(d3d11);
+				Data.DeviceObjects->VertexBuffer->Bind(d3d11);
+				Data.DeviceObjects->IndexBuffer->Bind(d3d11);
 
-				Data.DeviceObjects->MatrixCB.BindVertexShader();
-				Data.DeviceObjects->DynamicCB.BindPixelShader();
+				Data.DeviceObjects->MatrixCB.BindVertexShader(d3d11);
+				Data.DeviceObjects->DynamicCB.BindPixelShader(d3d11);
 
-				Data.DeviceObjects->FontSampler.Bind(0);
+				Data.DeviceObjects->FontSampler.Bind(d3d11, 0);
 
-				Data.DeviceObjects->BlendState.Bind();
-				Data.DeviceObjects->RasterizerState.Bind();
-				Data.DeviceObjects->DepthStencilState.Bind();
+				Data.DeviceObjects->BlendState.Bind(d3d11);
+				Data.DeviceObjects->RasterizerState.Bind(d3d11);
+				Data.DeviceObjects->DepthStencilState.Bind(d3d11);
 				D3D11_EndDebugEvent();
 
 				struct D3D11StateCache
 				{
-					const D3D11::ShaderPair* Shader = nullptr;
+					const D3D11ShaderPair* Shader = nullptr;
 
 					const vec4 InvalidScissorRect = vec4(0.0f);
 					vec4 ScissorRect = InvalidScissorRect;
@@ -350,11 +350,11 @@ namespace ImGui
 							const vec4 commandScissorRect = vec4(command.ClipRect) - vec4(vec2(drawData->DisplayPos), vec2(drawData->DisplayPos));
 							if (commandScissorRect != cache.ScissorRect)
 							{
-								D3D11::D3D.SetScissorRect(commandScissorRect);
+								d3d11.SetScissorRect(commandScissorRect);
 								cache.ScissorRect = commandScissorRect;
 							}
 
-							const D3D11::ShaderPair* commandShader = &Data.DeviceObjects->DefaultShader;
+							const D3D11ShaderPair* commandShader = &Data.DeviceObjects->DefaultShader;
 							const ImTextureID& commandTexture = command.TextureId;
 
 							if (commandTexture != cache.TextureID)
@@ -371,27 +371,27 @@ namespace ImGui
 									Data.DeviceObjects->DynamicCB.Data.CubeMapFace = -1;
 									Data.DeviceObjects->DynamicCB.Data.CubeMapUnwrapNet = true;
 									Data.DeviceObjects->DynamicCB.Data.CubeMapMipLevel = commandTexture.Data.CubeMapMipLevel;
-									Data.DeviceObjects->DynamicCB.UploadData();
+									Data.DeviceObjects->DynamicCB.UploadData(d3d11);
 
 									std::array<ID3D11ShaderResourceView*, 2> resourceViews = { nullptr, nullptr };
 									resourceViews[commandTexture.Data.IsCubeMap] = commandTexture.GetResourceView();
 
-									D3D11::D3D.Context->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
+									d3d11.ImmediateContext->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 								}
 								else
 								{
 									std::array<ID3D11ShaderResourceView*, 1> resourceViews = { commandTexture.GetResourceView() };
-									D3D11::D3D.Context->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
+									d3d11.ImmediateContext->PSSetShaderResources(0, static_cast<UINT>(resourceViews.size()), resourceViews.data());
 								}
 							}
 
 							if (commandShader != cache.Shader)
 							{
-								commandShader->Bind();
+								commandShader->Bind(d3d11);
 								cache.Shader = commandShader;
 							}
 
-							D3D11::D3D.Context->DrawIndexed(command.ElemCount, indexOffset, vertexOffset);
+							d3d11.ImmediateContext->DrawIndexed(command.ElemCount, indexOffset, vertexOffset);
 						}
 
 						indexOffset += command.ElemCount;
@@ -435,15 +435,17 @@ namespace ImGui
 			swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 			swapChainDescription.Flags = 0;
 
+			auto& d3d11 = GlobalD3D11;
+
 			assert(userData->SwapChain == nullptr && userData->RenderTargetView == nullptr);
-			ComfyD3D11::Data.Factory->CreateSwapChain(D3D11::D3D.Device, &swapChainDescription, &userData->SwapChain);
+			ComfyD3D11::Data.Factory->CreateSwapChain(d3d11.Device.Get(), &swapChainDescription, &userData->SwapChain);
 
 			if (userData->SwapChain)
 			{
 				ComPtr<ID3D11Texture2D> backBuffer = nullptr;
-				userData->SwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+				userData->SwapChain->GetBuffer(0, __uuidof(backBuffer), &backBuffer);
 
-				D3D11::D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &userData->RenderTargetView);
+				d3d11.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &userData->RenderTargetView);
 			}
 		}
 
@@ -464,11 +466,13 @@ namespace ImGui
 			if (userData->SwapChain == nullptr)
 				return;
 
+			auto& d3d11 = GlobalD3D11;
+
 			ComPtr<ID3D11Texture2D> backBuffer = nullptr;
 			userData->SwapChain->ResizeBuffers(0, static_cast<UINT>(size.x), static_cast<UINT>(size.y), DXGI_FORMAT_UNKNOWN, 0);
-			userData->SwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
+			userData->SwapChain->GetBuffer(0, __uuidof(backBuffer), &backBuffer);
 
-			D3D11::D3D.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &userData->RenderTargetView);
+			d3d11.Device->CreateRenderTargetView(backBuffer.Get(), nullptr, &userData->RenderTargetView);
 		}
 
 		void PlatformRenderWindow(ImGuiViewport* viewport, void*)
@@ -476,13 +480,15 @@ namespace ImGui
 			D3D11_BeginDebugEvent("ImGui::PlatformRenderWindow");
 			auto userData = static_cast<ViewportUserData*>(viewport->RendererUserData);
 
+			auto& d3d11 = GlobalD3D11;
+
 			std::array renderTargets = { userData->RenderTargetView.Get() };
-			D3D11::D3D.Context->OMSetRenderTargets(static_cast<UINT>(renderTargets.size()), renderTargets.data(), nullptr);
+			d3d11.ImmediateContext->OMSetRenderTargets(static_cast<UINT>(renderTargets.size()), renderTargets.data(), nullptr);
 
 			if (!(viewport->Flags & ImGuiViewportFlags_NoRendererClear))
 			{
 				constexpr vec4 clearColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-				D3D11::D3D.Context->ClearRenderTargetView(userData->RenderTargetView.Get(), glm::value_ptr(clearColor));
+				d3d11.ImmediateContext->ClearRenderTargetView(userData->RenderTargetView.Get(), glm::value_ptr(clearColor));
 			}
 
 			ComfyD3D11::RenderDrawData(viewport->DrawData);

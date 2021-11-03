@@ -1,19 +1,20 @@
 #pragma once
 #include "Types.h"
 
-struct ID3D11ShaderResourceView;
+#define COMFY_PACKED_TEXTURE_ID 1
 
-namespace Comfy::Render::D3D11
-{
-	class TextureResource;
-	class RenderTarget;
-	class DepthOnlyRenderTarget;
-}
+struct ID3D11ShaderResourceView;
 
 namespace Comfy::Graphics
 {
 	class Tex;
 	struct LightMapIBL;
+}
+
+namespace Comfy::Render
+{
+	struct D3D11Texture2DAndView;
+	struct D3D11RenderTargetAndView;
 }
 
 namespace Comfy
@@ -39,7 +40,6 @@ namespace Comfy
 		};
 	}
 
-#define COMFY_PACKED_TEXTURE_ID 1
 
 	// NOTE: Value struct wrapper around a resource view with some additional data to avoid stale references
 	struct ComfyTextureID
@@ -52,12 +52,12 @@ namespace Comfy
 
 		DataLayout Data = {};
 
-		ComfyTextureID(const nullptr_t dummy = nullptr);
+		ComfyTextureID(ID3D11ShaderResourceView* resourceView = nullptr);
 		ComfyTextureID(const Graphics::Tex& tex);
 		ComfyTextureID(const Graphics::LightMapIBL& lightMap);
-		ComfyTextureID(const Render::D3D11::TextureResource& texture);
-		ComfyTextureID(const Render::D3D11::RenderTarget& renderTarget);
-		ComfyTextureID(const Render::D3D11::DepthOnlyRenderTarget& renderTarget);
+		ComfyTextureID(const Render::D3D11Texture2DAndView& texture);
+		ComfyTextureID(const Render::D3D11RenderTargetAndView& renderTarget);
+		ComfyTextureID(const Render::D3D11RenderTargetAndView& renderTarget, bool depthBuffer);
 
 		inline ID3D11ShaderResourceView* GetResourceView() const { return reinterpret_cast<ID3D11ShaderResourceView*>(Data.ResourceView); }
 

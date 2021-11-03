@@ -1,6 +1,5 @@
 #include "ApplicationHost.h"
-#include "Render/D3D11/Direct3D.h"
-#include "Render/D3D11/Texture/RenderTarget.h"
+#include "Render/D3D11/D3D11.h"
 #include "Audio/Audio.h"
 #include "Input/Input.h"
 #include "Core/Logger.h"
@@ -169,7 +168,7 @@ namespace Comfy
 					::Sleep(static_cast<u32>(Timing.PowerSleepDuration.TotalMilliseconds()));
 				}
 
-				Render::D3D11::D3D.SwapChain->Present(Timing.SwapInterval, 0);
+				Render::GlobalD3D11.OutputWindow.SwapChain->Present(Timing.SwapInterval, 0);
 			}
 			PostUpdateElapsedTime();
 		}
@@ -189,7 +188,7 @@ namespace Comfy
 			Audio::AudioEngine::DeleteInstance();
 
 			Input::GlobalSystemDispose(Window.Handle);
-			Render::D3D11::D3D.Dispose();
+			Render::GlobalD3D11.Dispose();
 			DisposeWindow();
 		}
 
@@ -289,9 +288,9 @@ namespace Comfy
 			Window.IsFullscreenRequested = Window.IsFullscreen;
 			Window.IsFullscreen = false;
 
-			if (!Render::D3D11::D3D.Initialize(Window.Handle))
+			if (!Render::GlobalD3D11.Initialize(Window.Handle))
 			{
-				Render::D3D11::D3D.Dispose();
+				Render::GlobalD3D11.Dispose();
 				return false;
 			}
 
@@ -347,11 +346,11 @@ namespace Comfy
 				if (Callback.WindowResize)
 					Callback.WindowResize(Window.Size);
 
-				if (Render::D3D11::D3D.WindowRenderTarget != nullptr)
-					Render::D3D11::D3D.ResizeWindowRenderTarget(size);
+				if (Render::GlobalD3D11.OutputWindow.SwapChain != nullptr)
+					Render::GlobalD3D11.ResizeSwapchainIfNeeded(size);
 
 				// HACK: Far from perfect and might cause issues in the future but fixes the ugly freeze frame while resizing for now
-				if (Window.IsRunning && Callback.UpdateFunction && Render::D3D11::D3D.SwapChain != nullptr)
+				if (Window.IsRunning && Callback.UpdateFunction && Render::GlobalD3D11.OutputWindow.SwapChain != nullptr)
 					ProgramLoopTick();
 			}
 		}
@@ -567,11 +566,11 @@ namespace Comfy
 				// NOTE: Make sure to update the input system after ImGui as it partially relies on it
 				Input::GlobalSystemUpdateFrame(Timing.ElapsedTime, Window.AnyFocused);
 				Callback.UpdateFunction();
-				Render::D3D11::D3D.WindowRenderTarget->BindSetViewport();
-				Render::D3D11::D3D.WindowRenderTarget->Clear(Window.ClearColor);
+				Render::GlobalD3D11.WindowRenderTargetBindAndSetViewport();
+				Render::GlobalD3D11.WindowRenderTargetClearColor(Window.ClearColor);
 			}
 			GuiRenderer.EndFrame();
-			Render::D3D11::D3D.EndOfFrameClearStaleDeviceObjects();
+			Render::GlobalD3D11.EndOfFrameDeleteDeferedObjects();
 		}
 
 		void PostUpdateElapsedTime()
@@ -628,7 +627,7 @@ namespace Comfy
 			{
 				if (wParam == Window.RedrawTimerID && Window.RedrawTimerActive)
 				{
-					if (Window.IsRunning && Callback.UpdateFunction && Render::D3D11::D3D.SwapChain != nullptr)
+					if (Window.IsRunning && Callback.UpdateFunction && Render::GlobalD3D11.OutputWindow.SwapChain != nullptr)
 						ProgramLoopTick();
 				}
 				return 0;

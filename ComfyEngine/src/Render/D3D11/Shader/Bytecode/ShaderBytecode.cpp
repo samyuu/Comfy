@@ -10,7 +10,7 @@
 #endif /* COMFY_DEBUG / COMFY_RELEASE */
 
 // NOTE: Include BYTE typedef
-#include "Render/D3D11/Direct3D.h"
+#include "Render/D3D11/D3D11Common.h"
 
 // NOTE: Include implementation so only one file needs to be added every time a shader is added
 #define SHADER_BYTECODE_IMPLEMENTATION

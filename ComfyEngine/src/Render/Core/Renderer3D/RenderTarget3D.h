@@ -23,26 +23,26 @@ namespace Comfy::Render
 
 	public:
 		virtual ComfyTextureID GetTextureID() const = 0;
-		virtual const D3D11::RenderTarget& GetRenderTarget() const = 0;
+		virtual const D3D11RenderTargetAndView& GetRenderTarget() const = 0;
 
 	public:
 		virtual std::unique_ptr<u8[]> TakeScreenshot() = 0;
 
 		struct SubTarget
 		{
-			const char* Name;
+			std::string Name;
 			ivec2 Size;
 			ComfyTextureID TextureID;
 		};
 
-		struct SubTargetView
+		struct SubTargetsArrayView
 		{
 			const SubTarget* Targets;
 			size_t Count;
 		};
 
 		// NOTE: For debug displaying the different render stages
-		virtual SubTargetView GetSubTargets() = 0;
+		virtual SubTargetsArrayView GetSubTargets() = 0;
 
 	public:
 		// NOTE: Settings used by the Renderer3D for rendering specific features and managing the sub targets

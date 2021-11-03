@@ -2,7 +2,8 @@
 #include "Types.h"
 #include "Graphics/GraphicTypes.h"
 #include "Render/Core/Renderer2D/RenderCommand2D.h"
-#include "Render/D3D11/Texture/TextureSampler.h"
+#include "Render/D3D11/D3D11Texture.h"
+#include "Render/D3D11/D3D11GraphicsTypeHelpers.h"
 #include <optional>
 
 namespace Comfy::Render::Detail
@@ -10,7 +11,7 @@ namespace Comfy::Render::Detail
 	struct TextureSamplerCache2D
 	{
 	public:
-		D3D11::TextureSampler& GetSampler(Render::TexSamplerView texSamplerView)
+		D3D11TextureSampler& GetSampler(Render::TexSamplerView texSamplerView)
 		{
 			using namespace Graphics;
 			assert(texSamplerView.AddressU < TextureAddressMode::Count && texSamplerView.AddressV < TextureAddressMode::Count);
@@ -23,11 +24,12 @@ namespace Comfy::Render::Detail
 			if (!sampler.has_value())
 			{
 				sampler.emplace(
-					D3D11::TextureFilterToD3D(texSamplerView.Filter),
-					D3D11::TextureAddressModeToD3D(texSamplerView.AddressU),
-					D3D11::TextureAddressModeToD3D(texSamplerView.AddressV));
+					GlobalD3D11,
+					TextureFilterToD3D(texSamplerView.Filter),
+					TextureAddressModeToD3D(texSamplerView.AddressU),
+					TextureAddressModeToD3D(texSamplerView.AddressV));
 
-				D3D11_SetObjectDebugName(sampler->GetSampler(), "Renderer2D::Sampler::%s-%s::%s",
+				D3D11_SetObjectDebugName(sampler->SamplerState.Get(), "Renderer2D::Sampler::%s-%s::%s",
 					TextureAddressModeNames[static_cast<size_t>(texSamplerView.AddressU)],
 					TextureAddressModeNames[static_cast<size_t>(texSamplerView.AddressV)],
 					TextureFilterNames[static_cast<size_t>(texSamplerView.Filter)]);
@@ -37,7 +39,7 @@ namespace Comfy::Render::Detail
 		}
 
 	private:
-		using WrapUSamplerArray = std::array<std::optional<D3D11::TextureSampler>, EnumCount<Graphics::TextureAddressMode>()>;
+		using WrapUSamplerArray = std::array<std::optional<D3D11TextureSampler>, EnumCount<Graphics::TextureAddressMode>()>;
 		using WrapUVSamplerArray = std::array<WrapUSamplerArray, EnumCount<Graphics::TextureAddressMode>()>;
 		using WrapUVFilterSamplerArray = std::array<WrapUVSamplerArray, EnumCount<Graphics::TextureFilter>()>;
 
