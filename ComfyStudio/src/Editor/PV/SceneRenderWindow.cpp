@@ -1,7 +1,7 @@
 #include "SceneRenderWindow.h"
 #include "CameraAxisIndication.h"
 #include "Graphics/Auth3D/Misc/DebugObj.h"
-#include "Render/Misc/RayIntersection.h"
+#include "Render/Core/RayIntersection.h"
 #include "Editor/Core/Theme.h"
 #include "Input/Input.h"
 
