@@ -5,6 +5,9 @@
 #include "Misc/UTF8.h"
 #include <shlwapi.h>
 #include <shobjidl.h>
+#include <wrl.h>
+
+using Microsoft::WRL::ComPtr;
 
 namespace Comfy::IO
 {
@@ -238,21 +241,21 @@ namespace Comfy::IO
 		bool FileDialog::InternalCreateAndShowDialog(bool save, bool selectFolder)
 		{
 			HRESULT result = S_OK;
-			IFileDialog* fileDialog = nullptr;
+			ComPtr<IFileDialog> fileDialog = nullptr;
 
-			if (result = ::CoCreateInstance(save ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog)); !SUCCEEDED(result))
+			if (result = ::CoCreateInstance(save ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, __uuidof(fileDialog), &fileDialog); !SUCCEEDED(result))
 				return false;
 
 			DWORD eventCookie = 0;
-			IFileDialogEvents* dialogEvents = nullptr;
-			IFileDialogCustomize* dialogCustomize = nullptr;
+			ComPtr<IFileDialogEvents> dialogEvents = nullptr;
+			ComPtr<IFileDialogCustomize> dialogCustomize = nullptr;
 
-			if (result = DialogEventHandler::CreateInstance(IID_PPV_ARGS(&dialogEvents)); SUCCEEDED(result))
+			if (result = DialogEventHandler::CreateInstance(__uuidof(dialogEvents), &dialogEvents); SUCCEEDED(result))
 			{
-				if (result = fileDialog->Advise(dialogEvents, &eventCookie); SUCCEEDED(result))
+				if (result = fileDialog->Advise(dialogEvents.Get(), &eventCookie); SUCCEEDED(result))
 				{
-					if (result = fileDialog->QueryInterface(IID_PPV_ARGS(&dialogCustomize)); SUCCEEDED(result))
-						PlaceCustomDialogItems(CustomizeItems, *dialogCustomize);
+					if (result = fileDialog->QueryInterface(__uuidof(dialogCustomize), &dialogCustomize); SUCCEEDED(result))
+						PlaceCustomDialogItems(CustomizeItems, *dialogCustomize.Get());
 
 					DWORD existingOptionsFlags = 0;
 					result = fileDialog->GetOptions(&existingOptionsFlags);
@@ -288,15 +291,13 @@ namespace Comfy::IO
 						result = fileDialog->SetFileTypeIndex(FilterIndex);
 					}
 				}
-
-				dialogEvents->Release();
 			}
 
 			if (SUCCEEDED(result))
 			{
 				if (result = fileDialog->Show(reinterpret_cast<HWND>(ParentWindowHandle)); SUCCEEDED(result))
 				{
-					IShellItem* itemResult = nullptr;
+					ComPtr<IShellItem> itemResult = nullptr;
 					if (result = fileDialog->GetResult(&itemResult); SUCCEEDED(result))
 					{
 						wchar_t* filePath = nullptr;
@@ -306,25 +307,16 @@ namespace Comfy::IO
 							OutFilePath = UTF8::Narrow(filePath);
 
 							if (dialogCustomize != nullptr)
-								ReadCustomDialogItems(CustomizeItems, *dialogCustomize);
+								ReadCustomDialogItems(CustomizeItems, *dialogCustomize.Get());
 
 							::CoTaskMemFree(filePath);
 						}
 					}
-
-					if (itemResult != nullptr)
-						itemResult->Release();
 				}
 			}
 
-			if (dialogCustomize != nullptr)
-				dialogCustomize->Release();
-
 			if (fileDialog != nullptr)
-			{
 				fileDialog->Unadvise(eventCookie);
-				fileDialog->Release();
-			}
 
 			return SUCCEEDED(result) && !OutFilePath.empty();
 		}
