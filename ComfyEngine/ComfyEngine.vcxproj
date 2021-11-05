@@ -238,6 +238,7 @@
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\SunOcclusionData.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\TextureSamplerCache.h" />
     <ClInclude Include="src\Render\Core\Renderer3D\Detail\ToneMapData.h" />
+    <ClInclude Include="src\Render\Movie\MoviePlayer.h" />
     <ClInclude Include="src\Render\Render.h" />
     <ClInclude Include="src\System\ComfyData.h" />
     <ClInclude Include="src\System\Library\LibraryLoader.h" />
@@ -299,6 +300,7 @@
     <ClCompile Include="src\Render\Core\RenderSnapshot.cpp" />
     <ClCompile Include="src\Render\D3D11\Shader\Bytecode\ShaderBytecode.cpp" />
     <ClCompile Include="src\Render\Core\Renderer2D\Detail\SpriteBatchData.cpp" />
+    <ClCompile Include="src\Render\Movie\MoviePlayer.cpp" />
     <ClCompile Include="src\System\ComfyData.cpp" />
     <ClCompile Include="src\System\Library\LibraryLoader.cpp" />
     <ClCompile Include="src\System\Profiling\Profiler.cpp" />

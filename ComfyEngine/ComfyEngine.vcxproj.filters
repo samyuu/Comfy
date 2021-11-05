@@ -279,6 +279,9 @@
     <ClInclude Include="src\Render\D3D11\D3D11GraphicsTypeHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Render\Movie\MoviePlayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Audio\Decoder\Detail\FlacDecoder.cpp">
@@ -444,6 +447,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Render\D3D11\D3D11Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Render\Movie\MoviePlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -240,35 +240,37 @@ namespace Comfy::IO
 
 		bool FileDialog::InternalCreateAndShowDialog(bool save, bool selectFolder)
 		{
-			HRESULT result = S_OK;
+			HRESULT hr = S_OK;
 			ComPtr<IFileDialog> fileDialog = nullptr;
 
-			if (result = ::CoCreateInstance(save ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, __uuidof(fileDialog), &fileDialog); !SUCCEEDED(result))
+			// hr = ::CoInitialize(nullptr);
+
+			if (hr = ::CoCreateInstance(save ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, __uuidof(fileDialog), &fileDialog); !SUCCEEDED(hr))
 				return false;
 
 			DWORD eventCookie = 0;
 			ComPtr<IFileDialogEvents> dialogEvents = nullptr;
 			ComPtr<IFileDialogCustomize> dialogCustomize = nullptr;
 
-			if (result = DialogEventHandler::CreateInstance(__uuidof(dialogEvents), &dialogEvents); SUCCEEDED(result))
+			if (hr = DialogEventHandler::CreateInstance(__uuidof(dialogEvents), &dialogEvents); SUCCEEDED(hr))
 			{
-				if (result = fileDialog->Advise(dialogEvents.Get(), &eventCookie); SUCCEEDED(result))
+				if (hr = fileDialog->Advise(dialogEvents.Get(), &eventCookie); SUCCEEDED(hr))
 				{
-					if (result = fileDialog->QueryInterface(__uuidof(dialogCustomize), &dialogCustomize); SUCCEEDED(result))
+					if (hr = fileDialog->QueryInterface(__uuidof(dialogCustomize), &dialogCustomize); SUCCEEDED(hr))
 						PlaceCustomDialogItems(CustomizeItems, *dialogCustomize.Get());
 
 					DWORD existingOptionsFlags = 0;
-					result = fileDialog->GetOptions(&existingOptionsFlags);
-					result = fileDialog->SetOptions(existingOptionsFlags | FOS_FORCEFILESYSTEM | (selectFolder ? FOS_PICKFOLDERS : 0));
+					hr = fileDialog->GetOptions(&existingOptionsFlags);
+					hr = fileDialog->SetOptions(existingOptionsFlags | FOS_FORCEFILESYSTEM | (selectFolder ? FOS_PICKFOLDERS : 0));
 
 					if (!Title.empty())
-						result = fileDialog->SetTitle(UTF8::WideArg(Title).c_str());
+						hr = fileDialog->SetTitle(UTF8::WideArg(Title).c_str());
 
 					if (!FileName.empty())
-						result = fileDialog->SetFileName(UTF8::WideArg(FileName).c_str());
+						hr = fileDialog->SetFileName(UTF8::WideArg(FileName).c_str());
 
 					if (!DefaultExtension.empty())
-						result = fileDialog->SetDefaultExtension(UTF8::WideArg(Util::StripPrefix(DefaultExtension, ".")).c_str());
+						hr = fileDialog->SetDefaultExtension(UTF8::WideArg(Util::StripPrefix(DefaultExtension, ".")).c_str());
 
 					if (!selectFolder && !Filters.empty())
 					{
@@ -287,23 +289,24 @@ namespace Comfy::IO
 								});
 						}
 
-						result = fileDialog->SetFileTypes(static_cast<UINT>(convertedFilters.size()), convertedFilters.data());
-						result = fileDialog->SetFileTypeIndex(FilterIndex);
+						hr = fileDialog->SetFileTypes(static_cast<UINT>(convertedFilters.size()), convertedFilters.data());
+						hr = fileDialog->SetFileTypeIndex(FilterIndex);
 					}
 				}
 			}
 
-			if (SUCCEEDED(result))
+			if (SUCCEEDED(hr))
 			{
-				if (result = fileDialog->Show(reinterpret_cast<HWND>(ParentWindowHandle)); SUCCEEDED(result))
+				// BUG: It's possible for this to never return if one too many (even a single?) CoInitialize*Ex*() has been called (?) ... probably related to the threading model (?)
+				if (hr = fileDialog->Show(reinterpret_cast<HWND>(ParentWindowHandle)); SUCCEEDED(hr))
 				{
 					ComPtr<IShellItem> itemResult = nullptr;
-					if (result = fileDialog->GetResult(&itemResult); SUCCEEDED(result))
+					if (hr = fileDialog->GetResult(&itemResult); SUCCEEDED(hr))
 					{
 						wchar_t* filePath = nullptr;
-						if (result = itemResult->GetDisplayName(SIGDN_FILESYSPATH, &filePath); SUCCEEDED(result))
+						if (hr = itemResult->GetDisplayName(SIGDN_FILESYSPATH, &filePath); SUCCEEDED(hr))
 						{
-							result = fileDialog->GetFileTypeIndex(&FilterIndex);
+							hr = fileDialog->GetFileTypeIndex(&FilterIndex);
 							OutFilePath = UTF8::Narrow(filePath);
 
 							if (dialogCustomize != nullptr)
@@ -318,7 +321,7 @@ namespace Comfy::IO
 			if (fileDialog != nullptr)
 				fileDialog->Unadvise(eventCookie);
 
-			return SUCCEEDED(result) && !OutFilePath.empty();
+			return SUCCEEDED(hr) && !OutFilePath.empty();
 		}
 	}
 }
