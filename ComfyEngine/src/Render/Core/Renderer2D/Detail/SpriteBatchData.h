@@ -50,14 +50,14 @@ namespace Comfy::Render::Detail
 		SpriteVertex BottomRight;
 
 	public:
-		void SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords);
+		void SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords, bool flipTexY);
 		static constexpr u32 GetVertexCount() { return sizeof(SpriteQuadVertices) / sizeof(SpriteVertex); };
 
 	public:
 		void SetPositionsNoRotation(vec2 position, vec2 size);
 		void SetPositions(vec2 position, vec2 size, vec2 origin, float rotation);
-		void SetTexCoords(vec2 topLeft, vec2 bottomRight);
-		void SetNullTexCoords();
+		void SetTexCoords(vec2 topLeft, vec2 bottomRight, bool flipY);
+		void SetCenterTexCoords();
 		void SetTexMaskCoords(
 			TexSamplerView texView, vec2 position, vec2 scale, vec2 origin, float rotation,
 			vec2 maskPosition, vec2 maskScale, vec2 maskOrigin, float maskRotation, const vec4& maskSourceRegion);

@@ -35,6 +35,7 @@ namespace Comfy::Graphics
 
 		Cached_TexID ID = TexID::Invalid;
 
+		bool GPU_FlipY = false;
 		InternallyManagedGPUResource GPU_Texture2D;
 		InternallyManagedGPUResource GPU_CubeMap;
 

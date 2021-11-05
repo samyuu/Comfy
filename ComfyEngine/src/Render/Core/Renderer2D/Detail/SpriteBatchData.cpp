@@ -18,22 +18,22 @@ namespace Comfy::Render::Detail
 		BottomRight.TextureIndex = textureIndex;
 	}
 
-	void SpriteQuadVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords)
+	void SpriteQuadVertices::SetValues(vec2 position, const vec4& sourceRegion, vec2 size, vec2 origin, float rotation, vec2 scale, const vec4 colors[4], bool setTexCoords, bool flipTexY)
 	{
 		SetPositions(position, vec2(sourceRegion.z, sourceRegion.w) * scale, origin * scale, rotation);
 
 		if (setTexCoords)
 		{
-			const auto topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
-			const auto bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
-			SetTexCoords(topLeft, bottomRight);
+			const vec2 topLeft = vec2(sourceRegion.x / size.x, sourceRegion.y / size.y);
+			const vec2 bottomRight = vec2((sourceRegion.x + sourceRegion.z) / size.x, (sourceRegion.y + sourceRegion.w) / size.y);
+			SetTexCoords(topLeft, bottomRight, flipTexY);
 		}
 		else
 		{
 			// TODO: Avoid this by binding texture samplers ~~for each texture~~ and render the WhiteTexture using D3D11_TEXTURE_ADDRESS_WRAP
 			//		 because different texture addresses are so rare it might be better to handle them the same way as BlendMode (what about masks(?))
 			//		 but then the white texture still requires null tex coords
-			SetNullTexCoords();
+			SetCenterTexCoords();
 		}
 
 		SetColorArray(colors);
@@ -80,8 +80,11 @@ namespace Comfy::Render::Detail
 		}
 	}
 
-	void SpriteQuadVertices::SetTexCoords(vec2 topLeft, vec2 bottomRight)
+	void SpriteQuadVertices::SetTexCoords(vec2 topLeft, vec2 bottomRight, bool flipY)
 	{
+		if (flipY)
+			std::swap(topLeft.y, bottomRight.y);
+
 		TopLeft.TextureCoordinates.x = topLeft.x;
 		TopLeft.TextureCoordinates.y = topLeft.y;
 
@@ -95,9 +98,9 @@ namespace Comfy::Render::Detail
 		BottomRight.TextureCoordinates.y = bottomRight.y;
 	}
 
-	void SpriteQuadVertices::SetNullTexCoords()
+	void SpriteQuadVertices::SetCenterTexCoords()
 	{
-		constexpr auto center = vec2(0.5f, 0.5f);
+		constexpr vec2 center = { 0.5f, 0.5f };
 
 		TopLeft.TextureCoordinates = center;
 		TopRight.TextureCoordinates = center;

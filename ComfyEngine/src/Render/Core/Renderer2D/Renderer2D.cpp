@@ -614,7 +614,8 @@ namespace Comfy::Render
 				command.Rotation,
 				command.Scale,
 				command.CornerColors.data(),
-				(command.TexView != nullptr) || alwaysSetTexCoords);
+				(command.TexView != nullptr) || alwaysSetTexCoords,
+				(command.TexView != nullptr && command.TexView.Texture != nullptr) ? command.TexView.Texture->GPU_FlipY : false);
 		}
 
 		void InternalDraw(const RenderCommand2D& command, const RenderCommand2D& commandMask)
@@ -635,7 +636,8 @@ namespace Comfy::Render
 				commandMask.Rotation,
 				commandMask.Scale,
 				commandMask.CornerColors.data(),
-				commandMask.TexView != nullptr);
+				commandMask.TexView != nullptr,
+				(commandMask.TexView != nullptr && commandMask.TexView.Texture != nullptr) ? commandMask.TexView.Texture->GPU_FlipY : false);
 
 			// TODO: Null mask texture (?)
 			pair.Vertices->SetTexMaskCoords(
