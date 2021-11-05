@@ -10,8 +10,8 @@ namespace Comfy::Audio
 
 	DecoderResult VorbisDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData)
 	{
-		i32 channels, sampleRate;
-		i16* sampleData;
+		i32 channels = {}, sampleRate = {};
+		i16* sampleData = {};
 
 		const i32 frameCount = stb_vorbis_decode_memory(static_cast<const uint8*>(fileData), static_cast<int>(fileSize), &channels, &sampleRate, &sampleData);
 		defer { free(sampleData); };

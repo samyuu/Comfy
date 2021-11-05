@@ -11,8 +11,8 @@ namespace Comfy::Audio
 
 	DecoderResult FlacDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData)
 	{
-		u32 channels, sampleRate;
-		u64 totalFrameCount;
+		u32 channels = {}, sampleRate = {};
+		u64 totalFrameCount = {};
 
 		i16* data = drflac_open_memory_and_read_pcm_frames_s16(fileData, fileSize, &channels, &sampleRate, &totalFrameCount);
 		defer { drflac_free(data); };
