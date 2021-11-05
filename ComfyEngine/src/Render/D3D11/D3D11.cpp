@@ -145,8 +145,10 @@ namespace Comfy::Render
 				filter.DenyList.pIDList = hide;
 				hr = Debug.InfoQueue->AddStorageFilterEntries(&filter);
 
+#if 0
 				hr = Debug.InfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
 				hr = Debug.InfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
+#endif
 #if 0 // BUG: Unhandled exception in KernelBase.dll when used with IMFMediaEngine..?
 				hr = Debug.InfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 #endif

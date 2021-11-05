@@ -30,6 +30,7 @@ namespace Comfy::Render
 		D3D11Texture2DAndView(D3D11& d3d11, const Graphics::LightMapIBL& lightMap);
 		D3D11Texture2DAndView(D3D11& d3d11, ivec2 size, const u32* rgbaBuffer, D3D11_USAGE usage);
 		D3D11Texture2DAndView(D3D11& d3d11, const D3D11RenderTargetAndView& sourceRenderTargetToCopy);
+		D3D11Texture2DAndView(D3D11& d3d11, D3D11_TEXTURE2D_DESC desc);
 		~D3D11Texture2DAndView() override;
 
 		void Bind(D3D11& d3d11, u32 textureSlot) const;

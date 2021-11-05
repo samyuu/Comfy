@@ -374,6 +374,21 @@ namespace Comfy::Render
 		CreateCopyFrom(d3d11, sourceRenderTargetToCopy);
 	}
 
+	D3D11Texture2DAndView::D3D11Texture2DAndView(D3D11& d3d11, D3D11_TEXTURE2D_DESC desc) : D3D11RefForDeferedDeletion(d3d11)
+	{
+		LastBoundSlot = UnboundTextureSlot;
+
+		if (desc.Format == GetDXGIFormat(TextureFormat::RGBA8))
+			TextureFormat = TextureFormat::RGBA8;
+		else
+			assert(false);
+
+		TextureDesc = desc;
+
+		d3d11.Device->CreateTexture2D(&TextureDesc, nullptr, &Texture);
+		d3d11.Device->CreateShaderResourceView(Texture.Get(), nullptr, &TextureView);
+	}
+
 	D3D11Texture2DAndView::~D3D11Texture2DAndView()
 	{
 		D3D11RefForDeferedDeletion.DeferObjectDeletion(TextureView);
