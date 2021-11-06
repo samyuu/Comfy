@@ -120,17 +120,18 @@ namespace Comfy::Studio::Editor
 			if (backgroundTint.a > 0.0f)
 				scriptBuilder.Add(TimeSpan::Zero(), PVCommandLayout::SceneFade(TimeSpan::Zero(), backgroundTint.a, backgroundTint.a, vec3(backgroundTint)));
 
-			const auto clampedStartOffsetCommandTime = std::max(-chart.StartOffset, TimeSpan::Zero());
+			const auto clampedSongOffsetCommandTime = std::max(-chart.SongOffset, TimeSpan::Zero());
 			if (!chart.SongFileName.empty())
-				scriptBuilder.Add(clampedStartOffsetCommandTime, PVCommandLayout::MusicPlay());
+				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MusicPlay());
 
 			if (addMovieCommands)
 			{
-				scriptBuilder.Add(clampedStartOffsetCommandTime, PVCommandLayout::MoviePlay(1));
-				scriptBuilder.Add(clampedStartOffsetCommandTime, PVCommandLayout::MovieDisp(true));
+				// TODO: Handle movie offset
+				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MoviePlay(1));
+				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MovieDisp(true));
 			}
 
-			const TimeSpan targetTimeDelay = std::max(chart.StartOffset, TimeSpan::Zero());
+			const TimeSpan targetTimeDelay = std::max(chart.SongOffset, TimeSpan::Zero());
 			i32 lastFlyDurationMS = {};
 
 			for (const auto& target : chart.Targets)
@@ -738,6 +739,7 @@ namespace Comfy::Studio::Editor
 
 				Gui::Checkbox("Merge with Existing MData", &param.MergeWithExistingMData);
 				Gui::Checkbox("Export Image Sprites", &param.CreateSprSelPV); guiSameLineRightAlignedHintText("(Cover, Logo, Background)");
+				// TODO: Handle this better
 				Gui::Checkbox("Dummy Movie Reference", &param.AddDummyMovieReference); guiSameLineRightAlignedHintText("(MP4 can manually be copied to output MData rom)");
 				Gui::Separator();
 

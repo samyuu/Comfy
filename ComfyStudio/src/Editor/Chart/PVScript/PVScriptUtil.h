@@ -47,6 +47,7 @@ namespace Comfy::Studio::Editor
 		DecompsedPVScriptFileName DecomposedScriptName;
 
 		TimeSpan MusicPlayCommandTime;
+		TimeSpan MoviePlayCommandTime;
 		TimeSpan PVEndCommandTime;
 		std::vector<TargetCommandData> TargetCommands;
 		std::vector<FlyingTimeCommandData> FlyingTimeCommands;

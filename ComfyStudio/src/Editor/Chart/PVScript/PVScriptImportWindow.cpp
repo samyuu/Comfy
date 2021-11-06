@@ -93,11 +93,12 @@ namespace Comfy::Studio::Editor
 			outChart->Properties.Difficulty.Level = DifficultyLevel::Star_07_5;
 			outChart->SongFileName = songPath;
 
-			outChart->StartOffset = -(decomposedScript.MusicPlayCommandTime + settings.TargetOffset);
+			outChart->SongOffset = -(decomposedScript.MusicPlayCommandTime + settings.TargetOffset);
+			outChart->MovieOffset = -(decomposedScript.MoviePlayCommandTime + settings.TargetOffset);
 
 			// NOTE: To avoid an ugly neagtive zero in the chart editor sync window later on
-			if (outChart->StartOffset == -TimeSpan::Zero())
-				outChart->StartOffset = TimeSpan::Zero();
+			if (outChart->SongOffset == -TimeSpan::Zero())
+				outChart->SongOffset = TimeSpan::Zero();
 
 			outChart->Duration = decomposedScript.PVEndCommandTime + settings.TargetOffset;
 

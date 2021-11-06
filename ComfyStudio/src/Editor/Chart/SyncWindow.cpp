@@ -18,15 +18,15 @@ namespace Comfy::Studio::Editor
 		GuiProperty::TreeNode("Song Sync", ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
 			// NOTE: Negative to visually match the drag direction with that of the waveform timeline position
-			constexpr auto offsetDragSpeed = -1.0f;
+			constexpr f32 offsetDragSpeed = -1.0f;
 
-			f32 startOffsetMS = static_cast<f32>(chart.StartOffset.TotalMilliseconds());
-			if (GuiProperty::Input("Start Offset##SyncWindow", startOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
-				undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS));
+			f32 songOffsetMS = static_cast<f32>(chart.SongOffset.TotalMilliseconds());
+			if (GuiProperty::Input("Song Offset##SyncWindow", songOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
+				undoManager.Execute<ChangeSongOffset>(chart, TimeSpan::FromMilliseconds(songOffsetMS));
 
 			GuiProperty::PropertyFuncValueFunc([&]
 			{
-				Gui::TextDisabled("Move by Beat");
+				Gui::TextUnformatted("Move by Beat");
 				return false;
 			}, [&]
 			{
@@ -41,7 +41,7 @@ namespace Comfy::Studio::Editor
 						const auto firstTempo = chart.TempoMap.FindTempoChangeAtTick(BeatTick::Zero()).Tempo;
 						const auto beatDuration = TimeSpan::FromSeconds(60.0 / firstTempo.BeatsPerMinute);
 
-						undoManager.Execute<ChangeStartOffset>(chart, TimeSpan::FromMilliseconds(startOffsetMS) + (beatDuration * factor));
+						undoManager.Execute<ChangeSongOffset>(chart, TimeSpan::FromMilliseconds(songOffsetMS) + (beatDuration * factor));
 					}
 				};
 
@@ -57,8 +57,22 @@ namespace Comfy::Studio::Editor
 				return false;
 			});
 
+			f32 movieOffsetMS = static_cast<f32>(chart.MovieOffset.TotalMilliseconds());
+			if (GuiProperty::Input("Movie Offset##SyncWindow", movieOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
+				undoManager.Execute<ChangeMovieOffset>(chart, TimeSpan::FromMilliseconds(movieOffsetMS));
+
 			auto duration = chart.DurationOrDefault();
-			if (GuiProperty::PropertyLabelValueFunc("Duration", [&]()
+			if (GuiProperty::PropertyFuncValueFunc([&]
+			{
+				f32 durationMS = static_cast<f32>(duration.TotalMilliseconds());
+				f32 durationMSMin = static_cast<f32>(TimeSpan::FromSeconds(1.0).TotalMilliseconds());
+				if (GuiProperty::Detail::DragTextT<f32>("Duration", durationMS, 1000.0f, &durationMSMin, nullptr, 0.0f))
+				{
+					duration = TimeSpan::FromMilliseconds(durationMS);
+					return true;
+				}
+				return false;
+			}, [&]
 			{
 				const auto& style = Gui::GetStyle();
 				const f32 buttonWidth = Gui::GetFrameHeight() * 2.0f;

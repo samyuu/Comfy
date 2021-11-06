@@ -12,6 +12,7 @@
 #include "FileFormat/ComfyStudioChartFile.h"
 #include "Timeline/TargetTimeline.h"
 #include "RenderWindow/TargetRenderWindow.h"
+#include "ChartMoviePlaybackController.h"
 #include "Gameplay/PlayTestWindow.h"
 #include "PVScript/PVScriptImportWindow.h"
 #include "PVScript/PVScriptExportWindow.h"
@@ -41,11 +42,15 @@ namespace Comfy::Studio::Editor
 
 	public:
 		bool OpenLoadAudioFileDialog();
+		bool OpenLoadMovieFileDialog();
 
 		bool OnFileDropped(std::string_view filePath) override;
 
 		void LoadSongAsync(std::string_view filePath);
 		void UnloadSong();
+
+		void LoadMovieAsync(std::string_view filePath);
+		void UnloadMovie(bool disposeMoviePlayer = false);
 
 		void CreateNewChart();
 		void LoadNativeChartFileSync(std::string_view filePath);
@@ -73,6 +78,7 @@ namespace Comfy::Studio::Editor
 		std::string GetOpenReadImageFileDialogPath() const;
 
 		bool IsSongAsyncLoading() const;
+		bool IsMovieAsyncLoading() const;
 
 		void ResumePlayback();
 		void PausePlayback();
@@ -89,6 +95,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
 		SoundEffectManager& GetSoundEffectManager();
+		ChartMoviePlaybackController& GetMoviePlaybackController();
 
 	private:
 		void UpdateApplicationClosingRequest();
@@ -185,6 +192,11 @@ namespace Comfy::Studio::Editor
 
 		Audio::SourceHandle songSource = Audio::SourceHandle::Invalid;
 		Audio::Voice songVoice = Audio::VoiceHandle::Invalid;
+
+		std::string movieFilePathAbsolute;
+		std::unique_ptr<Render::IMoviePlayer> moviePlayer = nullptr;
+
+		ChartMoviePlaybackController moviePlaybackController = {};
 
 	private:
 		bool isPlaying = false;

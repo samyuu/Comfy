@@ -581,7 +581,7 @@ namespace Comfy::Render
 
 		f32 GetPlaybackSpeed() const override
 		{
-			return (mediaEngine != nullptr) ? static_cast<f32>(mediaEngine->GetPlaybackRate()) : 0.0f;
+			return (mediaEngine != nullptr) ? static_cast<f32>(mediaEngine->GetPlaybackRate()) : 1.0f;
 		}
 
 		bool SetPlaybackSpeedAsync(f32 value) override

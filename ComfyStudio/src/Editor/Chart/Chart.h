@@ -73,6 +73,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Should (but doesn't have to) be relative to the chart file directory
 		std::string SongFileName;
+		std::string MovieFileName;
 
 		struct PropertyData
 		{
@@ -133,7 +134,8 @@ namespace Comfy::Studio::Editor
 
 		} Properties = {};
 
-		TimeSpan StartOffset = TimeSpan::Zero();
+		TimeSpan SongOffset = TimeSpan::Zero();
+		TimeSpan MovieOffset = TimeSpan::Zero();
 		TimeSpan Duration = TimeSpan::Zero();
 
 		SortedTempoMap TempoMap;

@@ -6,14 +6,14 @@
 
 namespace Comfy::Studio::Editor
 {
-	class ChangeStartOffset : public Undo::Command
+	class ChangeSongOffset : public Undo::Command
 	{
 	public:
-		ChangeStartOffset(Chart& chart, TimeSpan value) : chart(chart), newValue(value), oldValue(chart.StartOffset) {}
+		ChangeSongOffset(Chart& chart, TimeSpan value) : chart(chart), newValue(value), oldValue(chart.SongOffset) {}
 
 	public:
-		void Undo() override { chart.StartOffset = oldValue; }
-		void Redo() override { chart.StartOffset = newValue; }
+		void Undo() override { chart.SongOffset = oldValue; }
+		void Redo() override { chart.SongOffset = newValue; }
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
 		{
@@ -25,7 +25,33 @@ namespace Comfy::Studio::Editor
 			return Undo::MergeResult::ValueUpdated;
 		}
 
-		std::string_view GetName() const override { return "Change Offset"; }
+		std::string_view GetName() const override { return "Change Song Offset"; }
+
+	private:
+		Chart& chart;
+		TimeSpan newValue, oldValue;
+	};
+
+	class ChangeMovieOffset : public Undo::Command
+	{
+	public:
+		ChangeMovieOffset(Chart& chart, TimeSpan value) : chart(chart), newValue(value), oldValue(chart.MovieOffset) {}
+
+	public:
+		void Undo() override { chart.MovieOffset = oldValue; }
+		void Redo() override { chart.MovieOffset = newValue; }
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			auto* other = static_cast<decltype(this)>(&commandToMerge);
+			if (&other->chart != &chart)
+				return Undo::MergeResult::Failed;
+
+			newValue = other->newValue;
+			return Undo::MergeResult::ValueUpdated;
+		}
+
+		std::string_view GetName() const override { return "Change Movie Offset"; }
 
 	private:
 		Chart& chart;

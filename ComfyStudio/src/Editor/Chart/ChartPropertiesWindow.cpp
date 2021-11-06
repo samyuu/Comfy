@@ -214,6 +214,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartPropertiesWindow::Gui(Chart& chart)
 	{
+		static const std::string readOnlyPath;
 		constexpr const char* defaultHint = "n/a";
 
 		GuiPropertyRAII::PropertyValueColumns columns;
@@ -236,7 +237,6 @@ namespace Comfy::Studio::Editor
 
 				if (songIsLoading)
 				{
-					static const std::string readOnlyPath;
 					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readOnlyPath), ImGuiInputTextFlags_ReadOnly);
 				}
 				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "song.ogg", &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
@@ -257,6 +257,41 @@ namespace Comfy::Studio::Editor
 				Gui::PopStyleVar();
 
 				Gui::PopItemDisabledAndTextColorIf(songIsLoading);
+				return false;
+			});
+
+			changesMade |= GuiProperty::PropertyLabelValueFunc("Movie File Name", [&]
+			{
+				const auto& style = Gui::GetStyle();
+				const f32 buttonSize = Gui::GetFrameHeight();
+
+				const bool movieIsLoading = chartEditor.IsMovieAsyncLoading();
+				Gui::PushItemDisabledAndTextColorIf(movieIsLoading);
+
+				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+
+				if (movieIsLoading)
+				{
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readOnlyPath), ImGuiInputTextFlags_ReadOnly);
+				}
+				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "movie.mp4", &chart.MovieFileName, ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					chartEditor.LoadMovieAsync(chart.MovieFileName);
+					changesMade = true;
+				}
+
+				Gui::PopItemWidth();
+
+				Gui::PushStyleVar(ImGuiStyleVar_FramePadding, vec2(style.FramePadding.y));
+				Gui::SameLine(0, style.ItemInnerSpacing.x);
+				if (Gui::Button("...", vec2(buttonSize)))
+				{
+					if (chartEditor.OpenLoadMovieFileDialog())
+						changesMade = true;
+				}
+				Gui::PopStyleVar();
+
+				Gui::PopItemDisabledAndTextColorIf(movieIsLoading);
 				return false;
 			});
 

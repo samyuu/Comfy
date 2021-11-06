@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	namespace ChartFileFormat
 	{
 		// NOTE: Increment major version for breaking changes and minor version for backwards and forward compatible additions
-		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 5, };
+		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 6, };
 		enum class Endianness : u16 { Little = 'L', Big = 'B' };
 		enum class PointerSize : u16 { Bit32 = 32, Bit64 = 64 };
 		enum class HeaderFlags : u32 { None = 0xFFFFFFFF };
@@ -60,6 +60,7 @@ namespace Comfy::Studio::Editor
 		constexpr std::string_view SectionIDError = "Error";
 		constexpr std::string_view SectionIDMetadata = "Metadata";
 		constexpr std::string_view SectionIDMetadataSongFileName = "Song File Name";
+		constexpr std::string_view SectionIDMetadataMovieFileName = "Movie File Name";
 		constexpr std::string_view SectionIDMetadataSongTitle = "Song Title";
 		constexpr std::string_view SectionIDMetadataSongTitleReading = "Song Title Reading";
 		constexpr std::string_view SectionIDMetadataArtist = "Artist";
@@ -80,6 +81,7 @@ namespace Comfy::Studio::Editor
 		constexpr std::string_view SectionIDChartSectionIDScale = "Scale";
 		constexpr std::string_view SectionIDChartSectionIDTime = "Time";
 		constexpr std::string_view SectionIDChartSectionIDTimeSongOffset = "Song Offset";
+		constexpr std::string_view SectionIDChartSectionIDTimeMovieOffset = "Movie Offset";
 		constexpr std::string_view SectionIDChartSectionIDTimeDuration = "Duration";
 		constexpr std::string_view SectionIDChartSectionIDTimeSongPreviewStart = "Song Preview Start";
 		constexpr std::string_view SectionIDChartSectionIDTimeSongPreviewDuration = "Song Preview Duration";
@@ -143,6 +145,7 @@ namespace Comfy::Studio::Editor
 		auto findMetadataStr = [this](std::string_view key, std::string& outValue) { outValue = metadata.Find(key); };
 		auto findMetadataI32 = [this](std::string_view key, i32& outValue) { outValue = Util::StringParsing::ParseType<i32>(metadata.Find(key)); };
 		findMetadataStr(SectionIDMetadataSongFileName, outChart->SongFileName);
+		findMetadataStr(SectionIDMetadataMovieFileName, outChart->MovieFileName);
 		findMetadataStr(SectionIDMetadataSongTitle, outChart->Properties.Song.Title);
 		findMetadataStr(SectionIDMetadataSongTitleReading, outChart->Properties.Song.TitleReading);
 		findMetadataStr(SectionIDMetadataArtist, outChart->Properties.Song.Artist);
@@ -164,7 +167,8 @@ namespace Comfy::Studio::Editor
 			findMetadataStr(std::string_view(buffer, sprintf_s(buffer, SectionIDMetadataExtraInfoValueFmt.data(), i)), outChart->Properties.Song.ExtraInfo[i].Value);
 		}
 
-		outChart->StartOffset = chart.Time.SongOffset;
+		outChart->SongOffset = chart.Time.SongOffset;
+		outChart->MovieOffset = chart.Time.MovieOffset;
 		outChart->Duration = chart.Time.Duration;
 		outChart->Properties.SongPreview.StartTime = chart.Time.SongPreviewStart;
 		outChart->Properties.SongPreview.Duration = chart.Time.SongPreviewDuration;
@@ -342,6 +346,8 @@ namespace Comfy::Studio::Editor
 
 													if (key == SectionIDChartSectionIDTimeSongOffset)
 														chart.Time.SongOffset = value;
+													else if (key == SectionIDChartSectionIDTimeMovieOffset)
+														chart.Time.MovieOffset = value;
 													else if (key == SectionIDChartSectionIDTimeDuration)
 														chart.Time.Duration = value;
 													else if (key == SectionIDChartSectionIDTimeSongPreviewStart)
@@ -574,6 +580,7 @@ namespace Comfy::Studio::Editor
 										const auto timeEntries = std::array
 										{
 											std::make_pair(SectionIDChartSectionIDTimeSongOffset, chart.Time.SongOffset),
+											std::make_pair(SectionIDChartSectionIDTimeMovieOffset, chart.Time.MovieOffset),
 											std::make_pair(SectionIDChartSectionIDTimeDuration, chart.Time.Duration),
 											std::make_pair(SectionIDChartSectionIDTimeSongPreviewStart, chart.Time.SongPreviewStart),
 											std::make_pair(SectionIDChartSectionIDTimeSongPreviewDuration, chart.Time.SongPreviewDuration),
@@ -761,6 +768,7 @@ namespace Comfy::Studio::Editor
 
 		auto addMetadata = [this](std::string_view key, std::string_view value) { if (!value.empty()) { metadata.Add(std::string(key), std::string(value)); } };
 		addMetadata(SectionIDMetadataSongFileName, sourceChart.SongFileName);
+		addMetadata(SectionIDMetadataMovieFileName, sourceChart.MovieFileName);
 		addMetadata(SectionIDMetadataSongTitle, sourceChart.Properties.Song.Title);
 		addMetadata(SectionIDMetadataSongTitleReading, sourceChart.Properties.Song.TitleReading);
 		addMetadata(SectionIDMetadataArtist, sourceChart.Properties.Song.Artist);
@@ -805,7 +813,8 @@ namespace Comfy::Studio::Editor
 		chart.Scale.PlacementAreaSize = Rules::PlacementAreaSize;
 		chart.Scale.FullAngleRotation = 360.0f;
 
-		chart.Time.SongOffset = sourceChart.StartOffset;
+		chart.Time.SongOffset = sourceChart.SongOffset;
+		chart.Time.MovieOffset = sourceChart.MovieOffset;
 		chart.Time.Duration = sourceChart.Duration;
 		chart.Time.SongPreviewStart = sourceChart.Properties.SongPreview.StartTime;
 		chart.Time.SongPreviewDuration = sourceChart.Properties.SongPreview.Duration;

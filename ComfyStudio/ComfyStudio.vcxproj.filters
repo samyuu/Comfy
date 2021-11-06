@@ -228,6 +228,9 @@
     <ClCompile Include="src\Core\ComfyStudioDiscord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Editor\Chart\ChartMoviePlaybackController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataTest\AudioTestWindow.h">
@@ -522,6 +525,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\ComfyStudioDiscord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\Chart\ChartMoviePlaybackController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -297,6 +297,7 @@ namespace Comfy::Studio::Editor
 		void UpdateTick()
 		{
 			UpdateUserInput();
+			sharedContext.MoviePlaybackController->OnUpdateTick(GetIsPlayback(), GetPlaybackTime(), sharedContext.Chart->MovieOffset, sharedContext.SongVoice->GetPlaybackSpeed());
 
 			if (GetIsPlayback() && autoplayEnabled)
 				UpdateAutoplayInput();
@@ -482,17 +483,35 @@ namespace Comfy::Studio::Editor
 		{
 			const auto playbackTime = GetPlaybackTime();
 
-			TargetRenderHelper::BackgroundData backgroundData = {};
-			backgroundData.DrawGrid = true;
-			backgroundData.DrawDim = true;
-			backgroundData.DrawCover = true;
-			backgroundData.DrawLogo = true;
-			backgroundData.DrawBackground = true;
-			backgroundData.PlaybackTime = playbackTime;
-			backgroundData.CoverSprite = sharedContext.Chart->Properties.Image.Cover.GetTexSprView();
-			backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
-			backgroundData.BackgroundSprite = sharedContext.Chart->Properties.Image.Background.GetTexSprView();
-			sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
+			// TODO: Properly implement background options
+			if (auto texSprView = sharedContext.MoviePlaybackController->GetCurrentTexture(playbackTime); texSprView)
+			{
+				TargetRenderHelper::BackgroundData backgroundData = {};
+				backgroundData.DrawGrid = false;
+				backgroundData.DrawDim = false;
+				backgroundData.DrawCover = false;
+				backgroundData.DrawLogo = false;
+				backgroundData.DrawBackground = true;
+				backgroundData.PlaybackTime = playbackTime;
+				backgroundData.CoverSprite = sharedContext.Chart->Properties.Image.Cover.GetTexSprView();
+				backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
+				backgroundData.BackgroundSprite = texSprView;
+				sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
+			}
+			else
+			{
+				TargetRenderHelper::BackgroundData backgroundData = {};
+				backgroundData.DrawGrid = true;
+				backgroundData.DrawDim = true;
+				backgroundData.DrawCover = true;
+				backgroundData.DrawLogo = true;
+				backgroundData.DrawBackground = true;
+				backgroundData.PlaybackTime = playbackTime;
+				backgroundData.CoverSprite = sharedContext.Chart->Properties.Image.Cover.GetTexSprView();
+				backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
+				backgroundData.BackgroundSprite = sharedContext.Chart->Properties.Image.Background.GetTexSprView();
+				sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
+			}
 
 			if (!holdState.EventHistory.empty())
 			{
@@ -1009,6 +1028,11 @@ namespace Comfy::Studio::Editor
 				for (size_t i = 0; i < EnumCount<ChainSoundSlot>(); i++)
 					sharedContext.ButtonSoundController->FadeOutLastChainSound(static_cast<ChainSoundSlot>(i));
 			}
+
+			if (isPlaying)
+				sharedContext.MoviePlaybackController->OnPause(GetPlaybackTime());
+			else
+				sharedContext.MoviePlaybackController->OnResume(GetPlaybackTime());
 		}
 
 		void FadeOutThenExit(PlayTestExitType exitType)
@@ -1056,6 +1080,7 @@ namespace Comfy::Studio::Editor
 
 			SetPlaybackTime(startTime);
 			sharedContext.SongVoice->SetIsPlaying(true);
+			sharedContext.MoviePlaybackController->OnResume(startTime);
 
 			chartDuration = sharedContext.Chart->DurationOrDefault();
 			availableTargetPairs.clear();
@@ -1478,7 +1503,7 @@ namespace Comfy::Studio::Editor
 				(currentAudioBackend == Audio::AudioBackend::WASAPIShared) ? GlobalUserData.Playtest.SongOffsetWasapiShared :
 				(currentAudioBackend == Audio::AudioBackend::WASAPIExclusive) ? GlobalUserData.Playtest.SongOffsetWasapiExclusive : TimeSpan::Zero();
 
-			const TimeSpan finalOffset = (sharedContext.Chart->StartOffset - userOffset);
+			const TimeSpan finalOffset = (sharedContext.Chart->SongOffset - userOffset);
 
 #if 1 // NOTE: Same thing applies here as for the chart editor
 			return (sharedContext.SongVoice->GetPositionSmooth() - finalOffset);
@@ -1489,7 +1514,8 @@ namespace Comfy::Studio::Editor
 
 		void SetPlaybackTime(TimeSpan value)
 		{
-			sharedContext.SongVoice->SetPosition(value + sharedContext.Chart->StartOffset);
+			sharedContext.SongVoice->SetPosition(value + sharedContext.Chart->SongOffset);
+			sharedContext.MoviePlaybackController->OnSeek(value);
 		}
 
 	private:

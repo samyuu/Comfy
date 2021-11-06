@@ -28,7 +28,8 @@ namespace Comfy::Studio::Editor
 			chart->Properties.ButtonSound.ChainSlideID = chainSound;
 			chart->Properties.ButtonSound.SliderTouchID = touchSound;
 
-			chart->StartOffset = songOffset;
+			chart->SongOffset = songOffset;
+			chart->MovieOffset = videoOffset;
 			chart->Duration = TimeSpan::Zero();
 
 			std::vector<TempoChange> newTempoChanges;
@@ -343,8 +344,8 @@ namespace Comfy::Studio::Editor
 			difficulty = static_cast<u8>(sourceChart.Properties.Difficulty.Type);
 			pvLevel = std::clamp(static_cast<u8>(sourceChart.Properties.Difficulty.Level), static_cast<u8>(1), static_cast<u8>(20)) - 1;
 
-			songOffset = sourceChart.StartOffset;
-			videoOffset = TimeSpan::Zero();
+			songOffset = sourceChart.SongOffset;
+			videoOffset = sourceChart.MovieOffset;
 			songEnd = sourceChart.TimelineMap.GetTickAt(sourceChart.DurationOrDefault());
 
 			const auto sourceSongTitle = sourceChart.SongTitleOrDefault();

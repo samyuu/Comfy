@@ -155,10 +155,10 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::UpdateOffsetChangeCursorTimeAdjustment()
 	{
 		lastFrameStartOffset = thisFrameStartOffset;
-		thisFrameStartOffset = workingChart->StartOffset;
+		thisFrameStartOffset = workingChart->SongOffset;
 
-		// NOTE: Cancel out the cursor being moved by a change of offset because this just feels more intuitive to use
-		//		 and always automatically applying the start offset to the playback time makes other calculations easier
+		// NOTE: Cancel out the cursor being moved by a change of song offset because this just feels more intuitive to use
+		//		 and always automatically applying the song offset to the playback time makes other calculations easier
 		if (thisFrameStartOffset != lastFrameStartOffset)
 		{
 			if (GetIsPlayback())
@@ -172,9 +172,9 @@ namespace Comfy::Studio::Editor
 	{
 		lastFrameButtonSoundCursorTime = thisFrameButtonSoundCursorTime;
 #if 0 // NOTE: Using smooth timing here seems to always result in highly irregular sound intervals
-		thisFrameButtonSoundCursorTime = (chartEditor.GetSongVoice().GetPositionSmooth() - workingChart->StartOffset);
+		thisFrameButtonSoundCursorTime = (chartEditor.GetSongVoice().GetPositionSmooth() - workingChart->SongOffset);
 #else
-		thisFrameButtonSoundCursorTime = (chartEditor.GetSongVoice().GetPosition() - workingChart->StartOffset);
+		thisFrameButtonSoundCursorTime = (chartEditor.GetSongVoice().GetPosition() - workingChart->SongOffset);
 #endif
 
 		const auto elapsedTime = (thisFrameButtonSoundCursorTime - lastFrameButtonSoundCursorTime);
@@ -583,17 +583,17 @@ namespace Comfy::Studio::Editor
 			return;
 
 		const f32 timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
-		const f32 scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
+		const f32 scrollXSongOffset = GetScrollX() + GetTimelinePosition(workingChart->SongOffset);
 
 		songTextureCachedWaveform.Draw(baseWindowDrawList,
 			regions.Content.GetTL(),
 			regions.Content.GetTL() + vec2(regions.Content.GetWidth(), timelineHeight),
-			scrollXStartOffset);
+			scrollXSongOffset);
 	}
 
 	void TargetTimeline::DrawWaveformIndividualVertexLines()
 	{
-		const f32 scrollXStartOffset = GetScrollX() + GetTimelinePosition(workingChart->StartOffset);
+		const f32 scrollXSongOffset = GetScrollX() + GetTimelinePosition(workingChart->SongOffset);
 
 		const i64 leftMostVisiblePixel = static_cast<i64>(GetTimelinePosition(BeatTick(0)));
 		const i64 rightMostVisiblePixel = leftMostVisiblePixel + static_cast<i64>(regions.Content.GetWidth());
@@ -610,7 +610,7 @@ namespace Comfy::Studio::Editor
 
 		for (i64 screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
-			const i64 timelinePixel = std::min(static_cast<i64>(glm::round(screenPixel + scrollXStartOffset)), static_cast<i64>(waveformPixelCount - 1));
+			const i64 timelinePixel = std::min(static_cast<i64>(glm::round(screenPixel + scrollXSongOffset)), static_cast<i64>(waveformPixelCount - 1));
 			if (timelinePixel < 0)
 				continue;
 

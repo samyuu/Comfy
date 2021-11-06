@@ -6,6 +6,7 @@
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Editor/Chart/RenderWindow/TargetRenderHelper.h"
 #include "Editor/Chart/RenderWindow/TargetRenderHelperEx.h"
+#include "Editor/Chart/ChartMoviePlaybackController.h"
 #include "Editor/Common/SoundEffectManager.h"
 #include "Editor/Common/ButtonSoundController.h"
 #include "ImGui/Gui.h"
@@ -44,6 +45,7 @@ namespace Comfy::Studio::Editor
 		TargetRenderHelper* RenderHelper;
 		SoundEffectManager* SoundEffectManager;
 		ButtonSoundController* ButtonSoundController;
+		ChartMoviePlaybackController* MoviePlaybackController;
 		Audio::Voice* SongVoice;
 		Chart* Chart;
 	};

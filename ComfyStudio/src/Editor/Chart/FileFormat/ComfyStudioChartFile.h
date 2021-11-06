@@ -55,6 +55,7 @@ namespace Comfy::Studio::Editor
 			struct TimeData
 			{
 				TimeSpan SongOffset;
+				TimeSpan MovieOffset;
 				TimeSpan Duration;
 				TimeSpan SongPreviewStart;
 				TimeSpan SongPreviewDuration;

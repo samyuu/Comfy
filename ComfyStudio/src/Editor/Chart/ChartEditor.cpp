@@ -77,6 +77,7 @@ namespace Comfy::Studio::Editor
 		const auto& buttonIDs = chart->Properties.ButtonSound;
 		buttonSoundController->SetIDs(buttonIDs.ButtonID, buttonIDs.SlideID, buttonIDs.ChainSlideID, buttonIDs.SliderTouchID);
 		buttonSoundController->SetMasterVolume(GlobalUserData.System.Audio.ButtonSoundVolume);
+		moviePlaybackController.OnUpdateTick(GetIsPlayback(), GetPlaybackTimeAsync(), chart->MovieOffset, songVoice.GetPlaybackSpeed());
 
 		songVoice.SetVolume(GlobalUserData.System.Audio.SongVolume);
 
@@ -294,6 +295,26 @@ namespace Comfy::Studio::Editor
 		return true;
 	}
 
+	bool ChartEditor::OpenLoadMovieFileDialog()
+	{
+		IO::Shell::FileDialog fileDialog;
+		fileDialog.Title = "Open Movie File";
+		fileDialog.FileName;
+		fileDialog.DefaultExtension;
+		fileDialog.Filters =
+		{
+			{ "Video Files (.mp4;.mkv;.mov;.webm;.wmv;.avi)", ".mp4;.mkv;.mov;.webm;.wmv;.avi" },
+			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
+		};
+		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
+
+		if (!fileDialog.OpenRead())
+			return false;
+
+		LoadMovieAsync(IO::Path::Normalize(fileDialog.OutFilePath));
+		return true;
+	}
+
 	bool ChartEditor::OnFileDropped(std::string_view filePath)
 	{
 		const auto extension = IO::Path::GetExtension(filePath);
@@ -376,6 +397,45 @@ namespace Comfy::Studio::Editor
 		timeline->OnSongLoaded();
 	}
 
+	void ChartEditor::LoadMovieAsync(std::string_view filePath)
+	{
+		UnloadMovie();
+
+		if (!filePath.empty())
+		{
+			// HACK: Can't create MoviePlayer while exclusive mode is active and the video file has a audio stream. 
+			//		 And even then to allow playback "Give exclusive mode application priority" needs to be enabled...
+			if (Audio::AudioEngine::GetInstance().GetAudioBackend() == Audio::AudioBackend::WASAPIExclusive)
+				Audio::AudioEngine::GetInstance().StopCloseStream();
+		}
+
+		movieFilePathAbsolute = IO::Path::ResolveRelativeTo(filePath, chart->ChartFilePath);
+		chart->MovieFileName = IO::Path::TryMakeRelative(movieFilePathAbsolute, chart->ChartFilePath);
+
+		if (moviePlayer == nullptr)
+			moviePlayer = Render::MakeD3D11MediaFoundationMediaEngineMoviePlayer();
+
+		assert(moviePlayer != nullptr);
+		moviePlayer->OpenFileAsync(movieFilePathAbsolute);
+
+		moviePlaybackController.OnMovieChange(moviePlayer.get());
+	}
+
+	void ChartEditor::UnloadMovie(bool disposeMoviePlayer)
+	{
+		movieFilePathAbsolute.clear();
+
+		if (moviePlayer != nullptr)
+		{
+			if (disposeMoviePlayer)
+				moviePlayer = nullptr;
+			else
+				moviePlayer->CloseFileAsync();
+		}
+
+		moviePlaybackController.OnMovieChange(moviePlayer.get());
+	}
+
 	void ChartEditor::CreateNewChart()
 	{
 		undoManager.ClearAll();
@@ -383,12 +443,14 @@ namespace Comfy::Studio::Editor
 		chart->UpdateMapTimes();
 		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
 		UnloadSong();
+		UnloadMovie(true);
 
 		SyncWorkingChartPointers();
 
 		if (isPlaying)
 			timeline->StopPlayback();
 
+		songVoice.SetPlaybackSpeed(1.0f);
 		timeline->SetCursorTime(TimeSpan::Zero());
 		timeline->ResetScrollAndZoom();
 
@@ -410,8 +472,12 @@ namespace Comfy::Studio::Editor
 		chart->UpdateMapTimes();
 		chart->ChartFilePath = std::string(filePath);
 
+		// NOTE: Always load the audio before the video to try and avoid exclusive mode MoviePlayer issues
 		if (!chart->SongFileName.empty())
 			LoadSongAsync(chart->SongFileName);
+
+		if (!chart->MovieFileName.empty())
+			LoadMovieAsync(chart->MovieFileName);
 
 		chart->Properties.Image.Cover.TryLoad(chart->Properties.Image.CoverFileName, chart->ChartFilePath);
 		chart->Properties.Image.Logo.TryLoad(chart->Properties.Image.LogoFileName, chart->ChartFilePath);
@@ -648,18 +714,26 @@ namespace Comfy::Studio::Editor
 		return (songSourceFuture.valid() && !songSourceFuture._Is_ready());
 	}
 
+	bool ChartEditor::IsMovieAsyncLoading() const
+	{
+		// BUG: This doesn't work corrrectly..?
+		return (moviePlayer != nullptr) && moviePlayer->GetIsLoadingFileAsync();
+	}
+
 	TimeSpan ChartEditor::GetPlaybackTimeAsync() const
 	{
 #if 1 // NOTE: Pottentially less precise and reliable, especially if the audio render thread is overloaded. The improved smoothness should be well worth it however
-		return (songVoice.GetPositionSmooth() - chart->StartOffset);
+		return (songVoice.GetPositionSmooth() - chart->SongOffset);
 #else
-		return (songVoice.GetPosition() - chart->StartOffset);
+		return (songVoice.GetPosition() - chart->SongOffset);
 #endif
 	}
 
 	void ChartEditor::SetPlaybackTime(TimeSpan value)
 	{
-		songVoice.SetPosition(value + chart->StartOffset);
+		songVoice.SetPosition(value + chart->SongOffset);
+
+		moviePlaybackController.OnSeek(value);
 	}
 
 	TimeSpan ChartEditor::GetPlaybackTimeOnPlaybackStart() const
@@ -670,6 +744,11 @@ namespace Comfy::Studio::Editor
 	SoundEffectManager& ChartEditor::GetSoundEffectManager()
 	{
 		return soundEffectManager;
+	}
+
+	ChartMoviePlaybackController& ChartEditor::GetMoviePlaybackController()
+	{
+		return moviePlaybackController;
 	}
 
 	void ChartEditor::UpdateApplicationClosingRequest()
@@ -1073,6 +1152,7 @@ namespace Comfy::Studio::Editor
 			sharedContext.RenderHelper = &renderWindow->GetRenderHelper();
 			sharedContext.SoundEffectManager = &soundEffectManager;
 			sharedContext.ButtonSoundController = buttonSoundController.get();
+			sharedContext.MoviePlaybackController = &moviePlaybackController;
 			sharedContext.SongVoice = &songVoice;
 			sharedContext.Chart = chart.get();
 			playTestWindow = std::make_unique<PlayTestWindow>(sharedContext);
@@ -1135,6 +1215,7 @@ namespace Comfy::Studio::Editor
 		songVoice.SetIsPlaying(true);
 
 		timeline->OnPlaybackResumed();
+		moviePlaybackController.OnResume(GetPlaybackTimeAsync());
 	}
 
 	void ChartEditor::PausePlayback()
@@ -1143,6 +1224,7 @@ namespace Comfy::Studio::Editor
 		isPlaying = false;
 
 		timeline->OnPlaybackPaused();
+		moviePlaybackController.OnPause(GetPlaybackTimeAsync());
 	}
 
 	void ChartEditor::StopPlayback()
@@ -1151,6 +1233,7 @@ namespace Comfy::Studio::Editor
 		PausePlayback();
 
 		timeline->OnPlaybackStopped();
+		moviePlaybackController.OnPause(GetPlaybackTimeAsync());
 	}
 
 	Audio::SourceHandle ChartEditor::GetSongSource()

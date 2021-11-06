@@ -73,6 +73,10 @@ namespace Comfy::Studio::Editor
 			{
 				out.MusicPlayCommandTime = currentCmdTime;
 			}
+			else if (const auto* moviePlayCmd = cmd.TryView<PVCommandLayout::MoviePlay>())
+			{
+				out.MoviePlayCommandTime = currentCmdTime;
+			}
 			else if (const auto* pvEndCmd = cmd.TryView<PVCommandLayout::PVEnd>())
 			{
 				out.PVEndCommandTime = currentCmdTime;

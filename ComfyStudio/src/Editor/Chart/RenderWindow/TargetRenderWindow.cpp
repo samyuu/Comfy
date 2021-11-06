@@ -273,6 +273,25 @@ namespace Comfy::Studio::Editor
 		if (GlobalUserData.TargetPreview.BackgroundDim > 0.0f)
 			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, GlobalUserData.TargetPreview.BackgroundDim)));
 
+		// TODO: Make background setting into an enum (?)
+		//		 And have a single checkbox to draw the playtest background inside the editor (?)
+#if 1 // TEMP: Just hacked in for now for some quick testing...
+		if (auto videoFrameTexSprView = chartEditor.GetMoviePlaybackController().GetCurrentTexture(timeline.GetCursorTime()); videoFrameTexSprView)
+		{
+			TargetRenderHelper::BackgroundData backgroundData;
+			backgroundData.DrawGrid = false;
+			backgroundData.DrawDim = true;
+			backgroundData.DrawCover = false;
+			backgroundData.DrawLogo = false;
+			backgroundData.DrawBackground = true;
+			backgroundData.PlaybackTime = timeline.GetCursorTime();
+			backgroundData.CoverSprite = workingChart->Properties.Image.Cover.GetTexSprView();
+			backgroundData.LogoSprite = workingChart->Properties.Image.Logo.GetTexSprView();
+			backgroundData.BackgroundSprite = videoFrameTexSprView;
+			renderHelper->DrawBackground(renderer, backgroundData);
+		}
+#endif
+
 		if (GlobalUserData.TargetPreview.DisplayPracticeBackground)
 		{
 			TargetRenderHelper::BackgroundData backgroundData;
