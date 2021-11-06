@@ -35,5 +35,6 @@ namespace Comfy::Studio::Editor
 		f32 playbackSpeed = 1.0f, playbackSpeedLastFrame = 1.0f;
 		bool deferMovieStart = false;
 		bool deferMovieResyncAfterReload = false;
+		bool deferSingleFrameStep = false;
 	};
 }
