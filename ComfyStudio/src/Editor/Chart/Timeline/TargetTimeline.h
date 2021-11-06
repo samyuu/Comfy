@@ -216,6 +216,11 @@ namespace Comfy::Studio::Editor
 		const TimeSpan waveformUpdateInterval = COMFY_DEBUG_RELEASE_SWITCH(TimeSpan::FromSeconds(1.0 / 5.0), /*TimeSpan::FromSeconds(1.0 / 30.0)*/TimeSpan::Zero());
 		Stopwatch waveformUpdateStopwatch = Stopwatch::StartNew();
 
+		const TimeSpan waveformFadeInDuration = TimeSpan::FromMilliseconds(240.0f);
+		const TimeSpan waveformExpandDuration = TimeSpan::FromMilliseconds(120.0f);
+		Stopwatch waveformFadeInStopwatch = {};
+		Stopwatch waveformExpandStopwatch = {};
+
 	private:
 		i32 activeBarGridDivision = 16;
 		i32 activeBarChainSlideDivision = 32;

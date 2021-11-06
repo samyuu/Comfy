@@ -8,7 +8,7 @@ namespace Comfy::Audio
 	{
 	}
 
-	void TextureCachedWaveform::Draw(ImDrawList* drawList, vec2 screenTL, vec2 screenBR, f32 scrollOffset, u32 colorTint)
+	void TextureCachedWaveform::Draw(ImDrawList* drawList, vec2 screenTL, vec2 screenBR, f32 scrollOffset, u32 colorTint, f32 heightFactor)
 	{
 		if (!chunksInitialized)
 		{
@@ -17,13 +17,17 @@ namespace Comfy::Audio
 		}
 
 		waveformTimePerPixel = waveform.GetTimePerPixel();
-		const auto scrollPixelOffset = static_cast<i64>(glm::round(scrollOffset));
+		const i64 scrollPixelOffset = static_cast<i64>(glm::round(scrollOffset));
 
-		const auto waveformPixelCount = static_cast<i64>(waveform.GetPixelCount());
-		const auto remainingVisibleWaveformPixels = std::clamp((waveformPixelCount - scrollPixelOffset), 0i64, static_cast<i64>(MaxSupportedRenderWidth));
+		const i64 waveformPixelCount = static_cast<i64>(waveform.GetPixelCount());
+		const i64 remainingVisibleWaveformPixels = std::clamp((waveformPixelCount - scrollPixelOffset), 0i64, static_cast<i64>(MaxSupportedRenderWidth));
 
 		const f32 renderWidth = std::clamp((screenBR.x - screenTL.x), 0.0f, static_cast<f32>(remainingVisibleWaveformPixels));
 		const f32 renderHeight = (screenBR.y - screenTL.y);
+		const f32 renderHeightHalf = (renderHeight * 0.5f);
+
+		const f32 screenTopY = screenTL.y + renderHeightHalf - (renderHeightHalf * heightFactor);
+		const f32 screenBotY = std::max(screenTL.y + renderHeightHalf + (renderHeightHalf * heightFactor), screenTopY + 1.0f);
 
 		bool firstIteration = true;
 		for (i64 xOffset = 0; xOffset < static_cast<i64>(renderWidth); xOffset += PixelsPerChunk)
@@ -47,10 +51,10 @@ namespace Comfy::Audio
 
 			drawList->AddImageQuad(
 				chunk.Texture,
-				screenTL + vec2(chunkVisibleStart, 0.0f),
-				screenTL + vec2(chunkVisibleEnd, 0.0f),
-				screenTL + vec2(chunkVisibleEnd, renderHeight),
-				screenTL + vec2(chunkVisibleStart, renderHeight),
+				vec2(screenTL.x + chunkVisibleStart, screenTopY),
+				vec2(screenTL.x + chunkVisibleEnd, screenTopY),
+				vec2(screenTL.x + chunkVisibleEnd, screenBotY),
+				vec2(screenTL.x + chunkVisibleStart, screenBotY),
 				vec2(0.0f, texCoordOffset),
 				vec2(0.0f, texCoordOffset + texCoordScale),
 				vec2(1.0f, texCoordOffset + texCoordScale),

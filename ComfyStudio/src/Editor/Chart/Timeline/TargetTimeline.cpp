@@ -556,6 +556,12 @@ namespace Comfy::Studio::Editor
 
 		if (waveformUpdatePending && waveformUpdateStopwatch.GetElapsed() >= waveformUpdateInterval)
 		{
+			if (const bool waveformLoadedForNewSong = (songWaveform.GetPixelCount() <= 0); waveformLoadedForNewSong)
+			{
+				waveformFadeInStopwatch.Restart();
+				waveformExpandStopwatch.Restart();
+			}
+
 			const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
 			songWaveform.SetScale(timePerPixel);
 
@@ -585,10 +591,18 @@ namespace Comfy::Studio::Editor
 		const f32 timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
 		const f32 scrollXSongOffset = GetScrollX() + GetTimelinePosition(workingChart->SongOffset);
 
+		const f32 fadeInProgress = static_cast<f32>(ConvertRangeClamped<f64>(0.0, waveformFadeInDuration.TotalSeconds(), 0.0, 1.0, waveformFadeInStopwatch.GetElapsed().TotalSeconds()));
+		const f32 expandProgress = static_cast<f32>(ConvertRangeClamped<f64>(0.0, waveformExpandDuration.TotalSeconds(), 0.0, 1.0, waveformExpandStopwatch.GetElapsed().TotalSeconds()));
+
+		const vec4 waveformTint = { 1.0f, 1.0f, 1.0f, fadeInProgress };
+		const f32 waveformHeightFactor = expandProgress;
+
 		songTextureCachedWaveform.Draw(baseWindowDrawList,
 			regions.Content.GetTL(),
 			regions.Content.GetTL() + vec2(regions.Content.GetWidth(), timelineHeight),
-			scrollXSongOffset);
+			scrollXSongOffset,
+			Gui::ColorConvertFloat4ToU32(waveformTint),
+			waveformHeightFactor);
 	}
 
 	void TargetTimeline::DrawWaveformIndividualVertexLines()

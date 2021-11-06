@@ -30,7 +30,7 @@ namespace Comfy::Audio
 		~TextureCachedWaveform() = default;
 
 	public:
-		void Draw(ImDrawList* drawList, vec2 screenTL, vec2 screenBR, f32 scrollOffset, u32 colorTint = 0xFFFFFFFF);
+		void Draw(ImDrawList* drawList, vec2 screenTL, vec2 screenBR, f32 scrollOffset, u32 colorTint = 0xFFFFFFFF, f32 heightFactor = 1.0f);
 		void InvalidateAll();
 
 	private:
