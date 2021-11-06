@@ -203,10 +203,34 @@ namespace Comfy
 		return index;
 	}
 
+	template <typename T>
+	COMFY_NODISCARD constexpr auto Min(T x, T y) -> T
+	{
+		return (y < x) ? y : x;
+	}
+
+	template <typename T>
+	COMFY_NODISCARD constexpr auto Max(T x, T y) -> T
+	{
+		return (x < y) ? y : x;
+	}
+
+	template <typename T>
+	COMFY_NODISCARD constexpr auto Clamp(T value, T min, T max) -> T
+	{
+		return Min<T>(Max<T>(value, min), max);
+	}
+
 	template <typename FloatType>
 	COMFY_NODISCARD constexpr auto ConvertRange(FloatType originalStart, FloatType originalEnd, FloatType newStart, FloatType newEnd, FloatType value) -> FloatType
 	{
 		static_assert(std::is_floating_point_v<FloatType>);
 		return (newStart + ((value - originalStart) * (newEnd - newStart) / (originalEnd - originalStart)));
+	}
+
+	template <typename FloatType>
+	COMFY_NODISCARD constexpr auto ConvertRangeClamped(FloatType originalStart, FloatType originalEnd, FloatType newStart, FloatType newEnd, FloatType value) -> FloatType
+	{
+		return Clamp<FloatType>(ConvertRange<FloatType>(originalStart, originalEnd, newStart, newEnd, value), newStart, newEnd);
 	}
 }
