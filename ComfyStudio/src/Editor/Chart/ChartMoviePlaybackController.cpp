@@ -7,12 +7,12 @@ namespace Comfy::Studio::Editor
 		moviePlayer = currentMoviePlayer;
 		playbackSpeed = 1.0f;
 		deferMovieStart = false;
-		movieHasChangedSinceLastUpdateTick = true;
+		deferMovieResyncAfterReload = true;
 	}
 
 	void ChartMoviePlaybackController::OnResume(TimeSpan playbackTime)
 	{
-		if (moviePlayer == nullptr || !moviePlayer->GetHasVideoStream())
+		if (!IsMoviePlayerValidAndReady())
 			return;
 
 		if (playbackTime < -movieOffset)
@@ -29,7 +29,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartMoviePlaybackController::OnPause(TimeSpan playbackTime)
 	{
-		if (moviePlayer == nullptr || !moviePlayer->GetHasVideoStream())
+		if (!IsMoviePlayerValidAndReady())
 			return;
 
 		deferMovieStart = false;
@@ -43,7 +43,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartMoviePlaybackController::OnSeek(TimeSpan newPlaybackTime)
 	{
-		if (moviePlayer == nullptr || !moviePlayer->GetHasVideoStream())
+		if (!IsMoviePlayerValidAndReady())
 			return;
 
 		moviePlayer->SetPositionAsync(newPlaybackTime + movieOffset);
@@ -57,22 +57,28 @@ namespace Comfy::Studio::Editor
 		playbackSpeedLastFrame = playbackSpeed;
 		playbackSpeed = currentPlaybackSpeed;
 
-		if (moviePlayer == nullptr || !moviePlayer->GetHasVideoStream())
+		if (!IsMoviePlayerValidAndReady())
 			return;
 
-		if (movieHasChangedSinceLastUpdateTick)
+		// NOTE: Important to check for GetHasEnoughData() otherwise the video position gets reset when the first frame is decoded.
+		if (deferMovieResyncAfterReload && moviePlayer->GetHasEnoughData())
 		{
+			// BUG: If the IAudioBackend fails to initialize (mostly due to exclusive mode) then the movie keeps playing despite the audio being "stuck"
+			OnSeek(playbackTime);
 			if (isPlaying && !moviePlayer->GetIsPlaying())
 				OnResume(playbackTime);
-
-			movieHasChangedSinceLastUpdateTick = false;
+			deferMovieResyncAfterReload = false;
 		}
+		else
+		{
+			// NOTE: Dynamically update the video while the video offset is changed by the user, both while playing and paused
+			if (movieOffset != movieOffsetLastFrame)
+				moviePlayer->SetPositionAsync(moviePlayer->GetPosition() + (movieOffset - movieOffsetLastFrame));
 
-		if (movieOffset != movieOffsetLastFrame)
-			moviePlayer->SetPositionAsync(moviePlayer->GetPosition() + (movieOffset - movieOffsetLastFrame));
-
-		if (playbackSpeed != playbackSpeedLastFrame)
-			moviePlayer->SetPlaybackSpeedAsync(playbackSpeed);
+			// NOTE: Dynamically update the video playback speed by changed by the user
+			if (playbackSpeed != playbackSpeedLastFrame)
+				moviePlayer->SetPlaybackSpeedAsync(playbackSpeed);
+		}
 
 		if (isPlaying && deferMovieStart && (playbackTime >= -movieOffset))
 		{
@@ -85,12 +91,21 @@ namespace Comfy::Studio::Editor
 
 	Render::TexSprView ChartMoviePlaybackController::GetCurrentTexture(TimeSpan playbackTime)
 	{
-		if (moviePlayer == nullptr || !moviePlayer->GetHasVideoStream())
+		if (!IsMoviePlayerValidAndReady())
 			return Render::TexSprView { nullptr, nullptr };
 
 		if ((playbackTime < -movieOffset) || ((playbackTime + movieOffset) > moviePlayer->GetDuration()))
 			return Render::TexSprView { nullptr, nullptr };
 
 		return moviePlayer->GetCurrentTextureAsTexSprView();
+	}
+
+	bool ChartMoviePlaybackController::IsMoviePlayerValidAndReady() const
+	{
+#if 0 // NOTE: Checking either one *seems* to be working correctly so not sure which one makes more sense here...
+		return (moviePlayer != nullptr && moviePlayer->GetHasVideoStream());
+#else
+		return (moviePlayer != nullptr && moviePlayer->GetHasEnoughData());
+#endif
 	}
 }

@@ -27,10 +27,13 @@ namespace Comfy::Studio::Editor
 		Render::TexSprView GetCurrentTexture(TimeSpan playbackTime);
 
 	private:
+		bool IsMoviePlayerValidAndReady() const;
+
+	private:
 		Render::IMoviePlayer* moviePlayer = nullptr;
 		TimeSpan movieOffset = {}, movieOffsetLastFrame = {};
 		f32 playbackSpeed = 1.0f, playbackSpeedLastFrame = 1.0f;
 		bool deferMovieStart = false;
-		bool movieHasChangedSinceLastUpdateTick = false;
+		bool deferMovieResyncAfterReload = false;
 	};
 }

@@ -718,7 +718,6 @@ namespace Comfy::Studio::Editor
 
 	bool ChartEditor::IsMovieAsyncLoading() const
 	{
-		// BUG: This doesn't work corrrectly..?
 		return (moviePlayer != nullptr) && moviePlayer->GetIsLoadingFileAsync();
 	}
 

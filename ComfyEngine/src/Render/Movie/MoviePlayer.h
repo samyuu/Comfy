@@ -131,6 +131,7 @@ namespace Comfy::Render
 		virtual bool SetIsPlayingAsync(bool value) = 0;
 
 		virtual bool GetIsSeeking() const = 0;
+		virtual bool GetHasEnoughData() const = 0;
 
 		virtual f32 GetPlaybackSpeed() const = 0;
 		virtual bool SetPlaybackSpeedAsync(f32 value) = 0;

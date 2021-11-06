@@ -529,7 +529,6 @@ namespace Comfy::Render
 
 		bool GetIsLoadingFileAsync() const override
 		{
-			// BUG: Looks like this isn't always accurate..?
 			return (mediaEngine != nullptr && atomic.CurrentlyLoadingMetadata.load());
 		}
 
@@ -577,6 +576,11 @@ namespace Comfy::Render
 		bool GetIsSeeking() const override
 		{
 			return (mediaEngine != nullptr) ? mediaEngine->IsSeeking() : false;
+		}
+
+		bool GetHasEnoughData() const override
+		{
+			return (mediaEngine != nullptr) ? (mediaEngine->GetReadyState() == MF_MEDIA_ENGINE_READY_HAVE_ENOUGH_DATA) : false;
 		}
 
 		f32 GetPlaybackSpeed() const override
@@ -739,7 +743,9 @@ namespace Comfy::Render
 				if (mediaEngine == nullptr)
 					return false;
 
-				atomic.CurrentlyLoadingMetadata = true;
+				if (!filePathOrName.empty())
+					atomic.CurrentlyLoadingMetadata = true;
+
 				return SUCCEEDED(filePathOrName.empty() ? mediaEngine->SetSource(nullptr) : mediaEngine->SetSource(BStrArg(filePathOrName)));
 			}
 		}
