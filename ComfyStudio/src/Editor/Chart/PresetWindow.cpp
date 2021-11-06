@@ -1,6 +1,8 @@
 #include "PresetWindow.h"
+#include "ChartEditor.h"
 #include "ChartCommands.h"
 #include "TargetPropertyRules.h"
+#include "Core/ComfyStudioApplication.h"
 #include "Core/ComfyStudioSettings.h"
 #include "ImGui/Extensions/ImGuiExtensions.h"
 #include <FontIcons.h>
@@ -22,7 +24,7 @@ namespace Comfy::Studio::Editor
 		constexpr f32 SameLineSequenceButtonHeight = StaticSyncButtonHeight;
 	}
 
-	PresetWindow::PresetWindow(Undo::UndoManager& undoManager) : undoManager(undoManager)
+	PresetWindow::PresetWindow(ChartEditor& chartEditor, Undo::UndoManager& undoManager) : chartEditor(chartEditor), undoManager(undoManager)
 	{
 		// sequencePresetSettings.TickOffset = BeatTick::FromBeats(2);
 		sequencePresetSettings.ApplyFirstTargetTickAsOffset = true;
@@ -296,6 +298,10 @@ namespace Comfy::Studio::Editor
 
 		// HACK: Super hacky but mainly to prevent undesired hover detecting for cases like resize hovering a docked window...
 		if (auto c = Gui::GetMouseCursor(); c != ImGuiMouseCursor_None && c != ImGuiMouseCursor_Arrow && c != ImGuiMouseCursor_Hand)
+			anyHovered = false;
+
+		// HACK: Again a bit hacky but should solve undesired fades while unfocused
+		if (!chartEditor.GetParentApplication().GetHost().IsWindowFocused())
 			anyHovered = false;
 
 		hovered.AnyHoveredLastFrame = hovered.AnyHoveredThisFrame;

@@ -9,10 +9,12 @@
 
 namespace Comfy::Studio::Editor
 {
+	class ChartEditor;
+
 	class PresetWindow : NonCopyable
 	{
 	public:
-		PresetWindow(Undo::UndoManager& undoManager);
+		PresetWindow(ChartEditor& chartEditor, Undo::UndoManager& undoManager);
 		~PresetWindow() = default;
 
 	public:
@@ -33,6 +35,7 @@ namespace Comfy::Studio::Editor
 		void RenderSyncPresetPreview(Render::Renderer2D& renderer, TargetRenderHelper& renderHelper, u32 targetCount, const std::array<PresetTargetData, Rules::MaxSyncPairCount>& presetTargets);
 
 	private:
+		ChartEditor& chartEditor;
 		Undo::UndoManager& undoManager;
 
 		DynamicSyncPresetSettings dynamicSyncPresetSettings = {};

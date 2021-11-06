@@ -752,6 +752,11 @@ namespace Comfy::Studio::Editor
 		return moviePlaybackController;
 	}
 
+	ComfyStudioApplication& ChartEditor::GetParentApplication()
+	{
+		return parentApplication;
+	}
+
 	void ChartEditor::UpdateApplicationClosingRequest()
 	{
 		if (!applicationExitRequested)

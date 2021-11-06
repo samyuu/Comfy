@@ -97,6 +97,8 @@ namespace Comfy::Studio::Editor
 		SoundEffectManager& GetSoundEffectManager();
 		ChartMoviePlaybackController& GetMoviePlaybackController();
 
+		ComfyStudioApplication& GetParentApplication();
+
 	private:
 		void UpdateApplicationClosingRequest();
 		void UpdateGlobalControlInput();
@@ -138,7 +140,7 @@ namespace Comfy::Studio::Editor
 		std::unique_ptr<TargetTimeline> timeline;
 		std::unique_ptr<TargetRenderWindow> renderWindow;
 		SyncWindow syncWindow = { undoManager };
-		PresetWindow presetWindow = { undoManager };
+		PresetWindow presetWindow = { *this, undoManager };
 		TargetInspector inspector = { undoManager };
 		UndoHistoryWindow historyWindow = { undoManager };
 		BPMCalculatorWindow bpmCalculatorWindow = { undoManager };
