@@ -6,6 +6,8 @@
 #include "IO/Directory.h"
 #include "Core/ComfyStudioApplication.h"
 #include "Core/ComfyStudioSettings.h"
+#include "Version/BuildConfiguration.h"
+#include "Version/BuildVersion.h"
 #include "System/ComfyData.h"
 #include "Misc/StringUtil.h"
 #include <FontIcons.h>
@@ -832,7 +834,16 @@ namespace Comfy::Studio::Editor
 			discordStatus.UnixStartTime = GlobalUserData.System.Discord.ShareElapsedTime ? unixTimeOnChartBegin : 0;
 
 			discordStatus.LargeImageKey = Discord::ImageKey::ComfyApplicatonIcon;
-			discordStatus.LargeImageText = "Comfy Studio";
+			discordStatus.LargeImageText.clear();
+			discordStatus.LargeImageText += "Comfy Studio";
+			discordStatus.LargeImageText += " (";
+			discordStatus.LargeImageText += std::string_view(BuildVersion::CommitHash, 8);
+#if 0 // NOTE: Doesn't look too great with line wrap
+			discordStatus.LargeImageText += " - ";
+			discordStatus.LargeImageText += BuildConfiguration::Debug ? "Debug" : "Release";
+#endif
+			discordStatus.LargeImageText += ")";
+
 			discordStatus.SmallImageKey = Discord::ImageKey::ComfyApplicatonIcon;
 			discordStatus.SmallImageText = IndexOr(static_cast<std::underlying_type_t<Difficulty>>(chart->Properties.Difficulty.Type), DifficultyNames, "Invalid");;
 
