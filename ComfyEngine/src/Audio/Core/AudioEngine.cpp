@@ -621,7 +621,7 @@ namespace Comfy::Audio
 
 	SourceHandle AudioEngine::LoadSource(std::string_view fileName, const void* fileContent, size_t fileSize)
 	{
-		return RegisterSource(DecoderFactory::GetInstance().DecodeFile(fileName, fileContent, fileSize), fileName);
+		return RegisterSource(DecoderFactory::GetInstance().DecodeFileContent(fileName, fileContent, fileSize), fileName);
 	}
 
 	SourceHandle AudioEngine::RegisterSource(std::shared_ptr<ISampleProvider> sampleProvider, std::string_view name)
