@@ -282,10 +282,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.Filters =
 		{
 			{ "Audio Files (*.flac;*.ogg;*.mp3;*.wav)", "*.flac;*.ogg;*.mp3;*.wav" },
-			{ "FLAC Files (*.flac)", "*.flac" },
-			{ "Ogg Vorbis (*.ogg)", "*.ogg" },
-			{ "MP3 Files (*.mp3)", "*.mp3" },
-			{ "WAV Files (*.wav)", "*.wav" },
+			{ "Video Files (.mp4;.mkv;.mov;.webm;.wmv;.avi)", ".mp4;.mkv;.mov;.webm;.wmv;.avi" },
 			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
 		};
 		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
@@ -342,6 +339,20 @@ namespace Comfy::Studio::Editor
 		if (IO::Path::DoesAnyPackedExtensionMatch(extension, ".flac;.ogg;.mp3;.wav"))
 		{
 			LoadSongAsync(filePath);
+			undoManager.SetChangesWereMade();
+			return true;
+		}
+
+		if (IO::Path::DoesAnyPackedExtensionMatch(extension, ".mp4;.mkv;.mov;.webm;.wmv;.avi"))
+		{
+			// TODO: Maybe open up a dialog instead asking how to treat dropped files..?
+
+			// NOTE: Always load the audio before the video to try and avoid exclusive mode MoviePlayer issues
+			if (chart->SongFileName.empty())
+				LoadSongAsync(filePath);
+
+			LoadMovieAsync(filePath);
+
 			undoManager.SetChangesWereMade();
 			return true;
 		}
