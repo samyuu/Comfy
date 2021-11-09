@@ -3,6 +3,7 @@
 #include "DataTest/AudioTestWindow.h"
 #include "DataTest/IconTestWindow.h"
 #include "DataTest/InputTestWindow.h"
+#include "DataTest/MovieTestWindow.h"
 #include "System/Profiling/Profiler.h"
 #include "Version/BuildConfiguration.h"
 #include "Version/BuildVersion.h"
@@ -168,9 +169,10 @@ namespace Comfy::Studio
 	{
 		editorManager = std::make_unique<Editor::EditorManager>(*this);
 
-		testWindows.reserve(3);
+		testWindows.reserve(4);
 		testWindows.push_back(std::make_unique<DataTest::InputTestWindow>(*this));
 		testWindows.push_back(std::make_unique<DataTest::AudioTestWindow>(*this));
+		testWindows.push_back(std::make_unique<DataTest::MovieTestWindow>(*this));
 		testWindows.push_back(std::make_unique<DataTest::IconTestWindow>(*this));
 
 		return true;

@@ -160,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\ComfyStudioDiscord.cpp" />
+    <ClCompile Include="src\DataTest\MovieTestWindow.cpp" />
     <ClCompile Include="src\Editor\Aet\AetEditor.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetInspector.cpp" />
     <ClCompile Include="src\Editor\Aet\Core\AetTreeView.cpp" />
@@ -233,6 +234,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\ComfyStudioDiscord.h" />
+    <ClInclude Include="src\DataTest\MovieTestWindow.h" />
     <ClInclude Include="src\Editor\Aet\AetCommands.h" />
     <ClInclude Include="src\Editor\Aet\AetEditor.h" />
     <ClInclude Include="src\Editor\Aet\AetIcons.h" />
