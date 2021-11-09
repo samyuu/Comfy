@@ -134,7 +134,7 @@ namespace Comfy::Studio
 				if (stringToCopy.empty())
 					destinationBuffer[0] = '\0';
 				else
-					memcpy(destinationBuffer, stringToCopy.data(), std::min<size_t>(stringToCopy.size(), bufferSize - 1));
+					memcpy(destinationBuffer, stringToCopy.data(), Max<size_t>(stringToCopy.size(), bufferSize - 1));
 			};
 
 			auto& nextActivity = Global.Activity.NextFrame;

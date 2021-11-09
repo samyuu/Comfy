@@ -10,7 +10,7 @@ namespace Comfy::IO
 
 	void MemoryWriteStream::Seek(FileAddr position)
 	{
-		dataPosition = std::min(static_cast<int64_t>(position), dataLength);
+		dataPosition = Min(static_cast<int64_t>(position), dataLength);
 	}
 
 	FileAddr MemoryWriteStream::GetPosition() const
@@ -48,7 +48,7 @@ namespace Comfy::IO
 		const auto newDataPosition = dataPosition + size;
 		if (newDataPosition > dataBufferAllocatedSize)
 		{
-			const auto newAllocatedSize = std::max(dataBufferAllocatedSize * 2, newDataPosition);
+			const auto newAllocatedSize = Max(dataBufferAllocatedSize * 2, newDataPosition);
 
 			auto newDataBuffer = std::make_unique<u8[]>(newAllocatedSize);
 			std::memcpy(newDataBuffer.get(), dataBuffer.get(), dataLength);

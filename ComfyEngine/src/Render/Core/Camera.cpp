@@ -30,7 +30,7 @@ namespace Comfy::Render
 
 		if (OrthographicLerp != 0.0f)
 		{
-			OrthographicLerp = glm::clamp(OrthographicLerp, 0.0f, 1.0f);
+			OrthographicLerp = Clamp(OrthographicLerp, 0.0f, 1.0f);
 
 			const auto orthoSize = glm::normalize(vec2(AspectRatio, 1.0f)) * glm::distance(ViewPoint, Interest);
 			const auto orthoProjection = glm::ortho(

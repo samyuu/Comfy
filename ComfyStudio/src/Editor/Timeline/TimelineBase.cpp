@@ -10,7 +10,7 @@ namespace Comfy::Studio::Editor
 	{
 		constexpr f32 SmoothDamp(const f32 current, const f32 target, f32& inOutVelocity, const f32 smoothTime, const f32 deltaTime)
 		{
-			const f32 omega = 2.0f / glm::max(0.0001f, smoothTime);
+			const f32 omega = 2.0f / Max(0.0001f, smoothTime);
 			const f32 x = omega * deltaTime;
 			const f32 exp = 1.0f / (1.0f + x + 0.48f * x * x + 0.235f * x * x * x);
 			const f32 change = current - target;
@@ -132,7 +132,7 @@ namespace Comfy::Studio::Editor
 		const auto maxVisibleTime = GetTimelineTime(ScreenToTimelinePosition(regions.Content.GetTR().x));
 
 		// NOTE: Because centered zooming around an off-screen target can be very disorientating as all points on the timeline appear to be moving
-		const auto visibleClampedCursorTime = std::clamp(cursorTime, minVisibleTime, maxVisibleTime);
+		const auto visibleClampedCursorTime = Clamp(cursorTime, minVisibleTime, maxVisibleTime);
 		SetZoomCenteredAroundTime(newZoom, visibleClampedCursorTime);
 	}
 
@@ -141,7 +141,7 @@ namespace Comfy::Studio::Editor
 		const f32 prePosition = GetTimelinePosition(timeToCenter);
 
 		if (newZoom > 0.0f)
-			zoomLevel = std::clamp(newZoom, hardZoomLevelMin, hardZoomLevelMax);
+			zoomLevel = Clamp(newZoom, hardZoomLevelMin, hardZoomLevelMax);
 
 		const f32 postPosition = GetTimelinePosition(timeToCenter);
 		scroll.x = scrollTarget.x = (GetScrollTargetX() + postPosition - prePosition);
@@ -167,7 +167,7 @@ namespace Comfy::Studio::Editor
 			OnInfoColumnScroll();
 
 		// NOTE: Always clamp in case the window has been resized
-		scrollTarget.y = std::clamp(scrollTarget.y, 0.0f, scrollMax.y);
+		scrollTarget.y = Clamp(scrollTarget.y, 0.0f, scrollMax.y);
 	}
 
 	void TimelineBase::UpdateTimelineRegions()
@@ -315,7 +315,7 @@ namespace Comfy::Studio::Editor
 
 		const f32 maxStep = (scrollMax.x + baseWindow->WindowPadding.x * 2.0f) * 0.67f;
 		const f32 speed = io.KeyShift ? mouseScrollSpeedFast : mouseScrollSpeed;
-		const f32 scrollStep = glm::floor(glm::min(2.0f * baseWindow->CalcFontSize(), maxStep)) * speed;
+		const f32 scrollStep = glm::floor(Min(2.0f * baseWindow->CalcFontSize(), maxStep)) * speed;
 
 		scrollTarget.x = (scrollTarget.x + io.MouseWheel * scrollStep);
 	}
@@ -431,7 +431,7 @@ namespace Comfy::Studio::Editor
 		if (scroll.x != scrollTarget.x && ApproxmiatelySame(scroll.x, scrollTarget.x, snapThreshold)) scroll.x = scrollTarget.x;
 		if (scroll.y != scrollTarget.y && ApproxmiatelySame(scroll.y, scrollTarget.y, snapThreshold)) scroll.y = scrollTarget.y;
 
-		zoomLevel = std::clamp(zoomLevel, hardZoomLevelMin, hardZoomLevelMax);
+		zoomLevel = Clamp(zoomLevel, hardZoomLevelMin, hardZoomLevelMax);
 		zoomLevelChangedThisFrame = (lastFrameZoomLevel != zoomLevel);
 		lastFrameZoomLevel = zoomLevel;
 
@@ -450,7 +450,6 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::DrawTimelineZoomSlider()
 	{
-		constexpr f32 percentageFactor = 100.0f;
 		constexpr f32 buttonZoomFactor = 1.1f;
 		const vec2 buttonSize = vec2(zoomButtonWidth, scrollbarSize.y);
 
@@ -462,18 +461,18 @@ namespace Comfy::Studio::Editor
 		Gui::PushItemWidth(zoomSliderWidth - zoomButtonWidth * 2.0f);
 		{
 			if (Gui::ComfySmallButton(ICON_FA_SEARCH_MINUS, buttonSize))
-				SetZoomCenteredAroundCursor(std::clamp(zoomLevel * (1.0f / buttonZoomFactor), zoomSliderMin, zoomSliderMax));
+				SetZoomCenteredAroundCursor(Clamp(zoomLevel * (1.0f / buttonZoomFactor), zoomSliderMin, zoomSliderMax));
 
 			Gui::SameLine();
 
-			f32 zoomPercentage = (zoomLevel * percentageFactor);
-			if (Gui::SliderFloat("##ZoomSlider", &zoomPercentage, zoomSliderMin * percentageFactor, zoomSliderMax * percentageFactor, "%.2f %%"))
-				SetZoomCenteredAroundCursor(zoomPercentage * (1.0f / percentageFactor));
+			f32 zoomPercentage = ToPercent(zoomLevel);
+			if (Gui::SliderFloat("##ZoomSlider", &zoomPercentage, ToPercent(zoomSliderMin), ToPercent(zoomSliderMax), "%.2f %%"))
+				SetZoomCenteredAroundCursor(FromPercent(zoomPercentage));
 
 			Gui::SameLine();
 
 			if (Gui::ComfySmallButton(ICON_FA_SEARCH_PLUS, buttonSize))
-				SetZoomCenteredAroundCursor(std::clamp(zoomLevel * buttonZoomFactor, zoomSliderMin, zoomSliderMax));
+				SetZoomCenteredAroundCursor(Clamp(zoomLevel * buttonZoomFactor, zoomSliderMin, zoomSliderMax));
 		}
 		Gui::PopItemWidth();
 

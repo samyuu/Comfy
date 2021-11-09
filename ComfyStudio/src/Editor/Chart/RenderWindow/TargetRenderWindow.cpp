@@ -515,7 +515,7 @@ namespace Comfy::Studio::Editor
 			if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))
 			{
 				const auto progressUnbound = static_cast<f32>(ConvertRange(targetTime.TotalSeconds(), buttonTime.TotalSeconds(), 0.0, 1.0, cursorTime.TotalSeconds()));
-				const auto progress = glm::clamp(progressUnbound, 0.0f, 1.0f);
+				const auto progress = Clamp(progressUnbound, 0.0f, 1.0f);
 
 				auto properties = Rules::TryGetProperties(target);
 
@@ -567,7 +567,7 @@ namespace Comfy::Studio::Editor
 						syncLineData.Opacity = 1.0f;
 
 						const auto thisIndex = std::distance(&targets[0], &target);
-						for (size_t i = 0; i < std::min(4u, syncLineData.SyncPairCount); i++)
+						for (size_t i = 0; i < Min(4u, syncLineData.SyncPairCount); i++)
 						{
 							const auto& syncTarget = targets[thisIndex + i];
 							const auto syncTargetProperty = Rules::TryGetProperties(syncTarget);

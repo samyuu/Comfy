@@ -562,7 +562,7 @@ namespace Comfy::Studio
 				performance.FrameTimes[performance.FrameTimeIndex++] = Gui::GetIO().DeltaTime;
 				if (performance.FrameTimeIndex >= performance.FrameTimes.size())
 					performance.FrameTimeIndex = 0;
-				performance.FrameTimeSize = std::max(performance.FrameTimeIndex, performance.FrameTimeSize);
+				performance.FrameTimeSize = Max(performance.FrameTimeIndex, performance.FrameTimeSize);
 
 				f32 averageFrameTime = 0.0f;
 				for (size_t i = 0; i < performance.FrameTimeSize; i++)
@@ -571,11 +571,11 @@ namespace Comfy::Studio
 
 				f32 minFrameTime = std::numeric_limits<f32>::max();
 				for (size_t i = 0; i < performance.FrameTimeSize; i++)
-					minFrameTime = std::min(minFrameTime, performance.FrameTimes[i]);
+					minFrameTime = Min(minFrameTime, performance.FrameTimes[i]);
 
 				f32 maxFrameTime = std::numeric_limits<f32>::min();
 				for (size_t i = 0; i < performance.FrameTimeSize; i++)
-					maxFrameTime = std::max(maxFrameTime, performance.FrameTimes[i]);
+					maxFrameTime = Max(maxFrameTime, performance.FrameTimes[i]);
 
 				char overlayText[64];
 				sprintf_s(overlayText,

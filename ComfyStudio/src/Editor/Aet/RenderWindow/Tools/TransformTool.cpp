@@ -398,9 +398,9 @@ namespace Comfy::Studio::Editor
 					bool horizontalNode = scalingNode == BoxNode_Left || scalingNode == BoxNode_Right;
 
 					if (cornerNode || horizontalNode)
-						Gui::Text("X  :  %.f %%", scale.x * 100.0f);
+						Gui::Text("X  :  %.f %%", ToPercent(scale.x));
 					if (cornerNode || verticalNode)
-						Gui::Text("Y  :  %.f %%", scale.y * 100.0f);
+						Gui::Text("Y  :  %.f %%", ToPercent(scale.y));
 				}
 				Gui::EndTooltip();
 			}

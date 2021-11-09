@@ -86,7 +86,6 @@ namespace Comfy::Studio::Editor
 
 	void AetRenderWindow::PreRenderTextureGui()
 	{
-		constexpr float percentFactor = 100.0f;
 		constexpr float itemWidth = 74.0f;
 		constexpr float rulerSize = 18.0f;
 
@@ -112,9 +111,9 @@ namespace Comfy::Studio::Editor
 
 			Gui::SetCursorPosX(Gui::GetWindowWidth() - itemWidth - 2);
 
-			float zoomPercentage = camera.Zoom * percentFactor;
-			if (Gui::ComfyInputFloat("##ZoomDragFloat::AetRenderWindow", &zoomPercentage, 0.15f, cameraController.ZoomMin * percentFactor, cameraController.ZoomMax * percentFactor, "%.2f %%"))
-				cameraController.SetUpdateCameraZoom(camera, zoomPercentage * (1.0f / percentFactor), camera.GetProjectionCenter());
+			float zoomPercentage = ToPercent(camera.Zoom);
+			if (Gui::ComfyInputFloat("##ZoomDragFloat::AetRenderWindow", &zoomPercentage, 0.15f, ToPercent(cameraController.ZoomMin), ToPercent(cameraController.ZoomMax), "%.2f %%"))
+				cameraController.SetUpdateCameraZoom(camera, FromPercent(zoomPercentage), camera.GetProjectionCenter());
 		}
 		Gui::PopItemWidth();
 		Gui::PopStyleVar(2);
@@ -405,7 +404,7 @@ namespace Comfy::Studio::Editor
 
 	void AetRenderWindow::RenderVideo(const Video* video)
 	{
-		const int spriteIndex = glm::clamp(0, static_cast<int>(currentFrame), static_cast<int>(video->Sources.size()) - 1);
+		const int spriteIndex = Clamp(0, static_cast<int>(currentFrame), static_cast<int>(video->Sources.size()) - 1);
 		renderer.Aet().DrawVideo(*video, spriteIndex, vec2(0.0f, 0.0f));
 	}
 

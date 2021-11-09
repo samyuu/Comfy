@@ -261,7 +261,7 @@ namespace Comfy::Graphics::Aet
 				if (objCache.Video != nullptr && objCache.Video->Sources.size() > 1)
 				{
 					objCache.SpriteFrame = static_cast<i32>(glm::round((frame + layer.StartOffset) * layer.TimeScale * objCache.Video->FilesPerFrame));
-					objCache.SpriteFrame = glm::clamp(objCache.SpriteFrame, 0, static_cast<int>(objCache.Video->Sources.size()) - 1);
+					objCache.SpriteFrame = Clamp(objCache.SpriteFrame, 0, static_cast<int>(objCache.Video->Sources.size()) - 1);
 				}
 				else
 				{

@@ -236,7 +236,7 @@ namespace Comfy::Studio::DataTest
 						Gui::EndColumns();
 
 						// Gui::BeginChild("ControllersAxesChild", vec2(0.0f, 0.0f));
-						for (i32 i = static_cast<i32>(NativeAxis::First); i <= std::min(static_cast<i32>(NativeAxis::Last), controllerView.AxisCount); i++)
+						for (i32 i = static_cast<i32>(NativeAxis::First); i <= Min(static_cast<i32>(NativeAxis::Last), controllerView.AxisCount); i++)
 						{
 							const f32 axisValue = Input::GetNativeAxis(controllerView.InstanceID, static_cast<NativeAxis>(i));
 

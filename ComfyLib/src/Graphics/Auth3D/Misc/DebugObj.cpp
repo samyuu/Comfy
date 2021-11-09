@@ -275,8 +275,8 @@ namespace Comfy::Graphics
 	{
 		auto obj = std::make_unique<Obj>();
 		{
-			float maxSize = std::max({ box.Size.x, box.Size.y, box.Size.z });
-			Sphere sphere = { box.Center, maxSize };
+			const f32 maxSize = Max(Max(box.Size.x, box.Size.y), box.Size.z);
+			const Sphere sphere = { box.Center, maxSize };
 
 			GenerateDebugObj("DebugBox", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
@@ -299,7 +299,7 @@ namespace Comfy::Graphics
 
 		auto obj = std::make_unique<Obj>();
 		{
-			Box box = { sphere.Center, vec3(sphere.Radius) };
+			const Box box = { sphere.Center, vec3(sphere.Radius) };
 			GenerateDebugObj("DebugSphere", *obj, sphere, box, color, [&](Mesh& mesh, SubMesh& subMesh)
 			{
 				GenerateUnitIcosahedronMesh(mesh.VertexData.Positions, subMesh.Indices.emplace<std::vector<u16>>(), detailLevel);

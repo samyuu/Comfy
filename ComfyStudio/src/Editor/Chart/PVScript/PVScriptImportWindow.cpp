@@ -153,11 +153,11 @@ namespace Comfy::Studio::Editor
 				}
 				else
 				{
-					out.ButtonTimeDifference.Min = std::min(out.ButtonTimeDifference.Min, buttonTimeDifference);
-					out.ButtonTimeDifference.Max = std::max(out.ButtonTimeDifference.Max, buttonTimeDifference);
+					out.ButtonTimeDifference.Min = Min(out.ButtonTimeDifference.Min, buttonTimeDifference);
+					out.ButtonTimeDifference.Max = Max(out.ButtonTimeDifference.Max, buttonTimeDifference);
 
-					out.TargetTimeDifference.Min = std::min(out.TargetTimeDifference.Min, targetTimeDifference);
-					out.TargetTimeDifference.Max = std::max(out.TargetTimeDifference.Max, targetTimeDifference);
+					out.TargetTimeDifference.Min = Min(out.TargetTimeDifference.Min, targetTimeDifference);
+					out.TargetTimeDifference.Max = Max(out.TargetTimeDifference.Max, targetTimeDifference);
 				}
 
 				out.ButtonTimeDifference.Average += buttonTimeDifference;
@@ -324,7 +324,7 @@ namespace Comfy::Studio::Editor
 					importSettings.FlyingTimeFactor = 1.0f;
 				if (Gui::InputFloat("##FlyingTimeFactor", &importSettings.FlyingTimeFactor, 0.1f, 1.0f, "%.2fx"))
 				{
-					importSettings.FlyingTimeFactor = std::max(minFlyingTimeFactor, importSettings.FlyingTimeFactor);
+					importSettings.FlyingTimeFactor = Max(minFlyingTimeFactor, importSettings.FlyingTimeFactor);
 					UpdateImportedChartAndStatistics();
 				}
 				Gui::PopItemWidth();

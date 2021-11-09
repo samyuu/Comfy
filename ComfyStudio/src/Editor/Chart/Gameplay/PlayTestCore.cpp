@@ -196,7 +196,7 @@ namespace Comfy::Studio::Editor
 				const auto& frontPairSourceTarget = chart.Targets[targetIndex];
 
 				auto& newPair = outTargets.emplace_back();
-				newPair.TargetCount = static_cast<u8>(std::min(static_cast<size_t>(frontPairSourceTarget.Flags.SyncPairCount), newPair.Targets.size()));
+				newPair.TargetCount = static_cast<u8>(Min(static_cast<size_t>(frontPairSourceTarget.Flags.SyncPairCount), newPair.Targets.size()));
 				for (size_t i = 0; i < newPair.TargetCount; i++)
 				{
 					const auto& sourceTarget = chart.Targets[targetIndex + i];
@@ -219,7 +219,7 @@ namespace Comfy::Studio::Editor
 				}
 
 				const auto spawnTimes = chart.TempoMap.GetTargetSpawnTimes(frontPairSourceTarget);
-				newPair.TargetTime = std::max(spawnTimes.TargetTime, TimeSpan::Zero());
+				newPair.TargetTime = Max(spawnTimes.TargetTime, TimeSpan::Zero());
 				newPair.ButtonTime = spawnTimes.ButtonTime;
 				newPair.FlyingTime = spawnTimes.FlyingTime;
 
@@ -611,14 +611,14 @@ namespace Comfy::Studio::Editor
 				const auto elapsedTime = playbackTime - onScreenPair.TargetTime;
 				const auto remainingTime = onScreenPair.ButtonTime - playbackTime;
 
-				const auto progressUnbound = static_cast<f32>(ConvertRange(onScreenPair.TargetTime.TotalSeconds(), onScreenPair.ButtonTime.TotalSeconds(), 0.0, 1.0, playbackTime.TotalSeconds()));
-				const auto progress = glm::clamp(progressUnbound, 0.0f, 1.0f);
+				const f32 progressUnbound = static_cast<f32>(ConvertRange(onScreenPair.TargetTime.TotalSeconds(), onScreenPair.ButtonTime.TotalSeconds(), 0.0, 1.0, playbackTime.TotalSeconds()));
+				const f32 progress = Clamp(progressUnbound, 0.0f, 1.0f);
 
 				constexpr TimeSpan maxPostHitAnimationDuration = TimeSpan::FromSeconds(2.0);
 				if (remainingTime < -maxPostHitAnimationDuration)
 					onScreenPair.NoLongerValid = true;
 
-				const auto hitMissProgress = std::clamp(static_cast<f32>(ConvertRange<f64>(0.0, -HitThreshold::Worst.TotalSeconds(), 1.0, 0.0, remainingTime.TotalSeconds())), 0.0f, 1.0f);
+				const f32 hitMissProgress = Clamp(static_cast<f32>(ConvertRange(0.0, -HitThreshold::Worst.TotalSeconds(), 1.0, 0.0, remainingTime.TotalSeconds())), 0.0f, 1.0f);
 
 				for (size_t i = 0; i < onScreenPair.TargetCount; i++)
 				{
@@ -851,7 +851,7 @@ namespace Comfy::Studio::Editor
 					{
 						comboTextDrawn = true;
 						TargetRenderHelper::TargetComboTextData comboTextData = {};
-						comboTextData.Position = glm::clamp(onScreenPair.PositionCenter, vec2(0.0f, Rules::ComboTextMinHeight), Rules::PlacementAreaSize);
+						comboTextData.Position = Clamp(onScreenPair.PositionCenter, vec2(0.0f, Rules::ComboTextMinHeight), Rules::PlacementAreaSize);
 						comboTextData.Time = timeSinceHit;
 						comboTextData.ComboCount = context.Score.ComboCount;
 						comboTextData.Evaluation = latestHitTarget->HitEvaluation;
@@ -868,7 +868,7 @@ namespace Comfy::Studio::Editor
 
 		void DrawBlackFullscreenQuad(f32 opactiy, f32 min = 0.0f, f32 max = 1.0f)
 		{
-			sharedContext.Renderer->Draw(Render::RenderCommand2D(vec2(0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, std::clamp(opactiy, min, max))));
+			sharedContext.Renderer->Draw(Render::RenderCommand2D(vec2(0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, Clamp(opactiy, min, max))));
 		}
 
 		void DrawPauseToggleFade()
@@ -964,7 +964,7 @@ namespace Comfy::Studio::Editor
 				buffer += "--------------------------------------\n";
 
 				constexpr size_t recentHistoryDisplayCount = 6;
-				for (size_t i = 0; i < std::min(holdState.EventHistory.size(), recentHistoryDisplayCount); i++)
+				for (size_t i = 0; i < Min(holdState.EventHistory.size(), recentHistoryDisplayCount); i++)
 				{
 					const auto& holdEvent = holdState.EventHistory[holdState.EventHistory.size() - (i + 1)];
 					const auto holdEventTimeStr = holdEvent.PlaybackTime.FormatTime();
@@ -1060,13 +1060,13 @@ namespace Comfy::Studio::Editor
 		void MoveResetPointBackward()
 		{
 			PlayOneShotSoundEffect("se_ft_practice_cursor_01");
-			resetPoint = std::clamp(TimeSpan::FloorToSeconds(resetPoint - TimeSpan::FromSeconds(10.0)), TimeSpan::Zero(), chartDuration);
+			resetPoint = Clamp(TimeSpan::FloorToSeconds(resetPoint - TimeSpan::FromSeconds(10.0)), TimeSpan::Zero(), chartDuration);
 		}
 
 		void MoveResetPointToPlaybackTime()
 		{
 			PlayOneShotSoundEffect("se_ft_practice_cursor_01");
-			resetPoint = std::clamp(TimeSpan::FloorToSeconds(GetPlaybackTime()), TimeSpan::Zero(), chartDuration);
+			resetPoint = Clamp(TimeSpan::FloorToSeconds(GetPlaybackTime()), TimeSpan::Zero(), chartDuration);
 		}
 
 		void RestartInitializeChart(TimeSpan startTime, bool resetScore = true)
@@ -1395,11 +1395,11 @@ namespace Comfy::Studio::Editor
 			}
 			else
 			{
-				touchPoint.NormalizedPosition = glm::clamp(touchPoint.NormalizedPosition + touchPoint.Direction * touchPoint.Speed * strength * Gui::GetIO().DeltaTime, 0.0f, 1.0f);
+				touchPoint.NormalizedPosition = Clamp(touchPoint.NormalizedPosition + touchPoint.Direction * touchPoint.Speed * strength * Gui::GetIO().DeltaTime, 0.0f, 1.0f);
 
 				if (touchPoint.LastSoundStopwatch.GetElapsed() > touchPoint.SoundInterval)
 				{
-					const auto touchPointIndex = std::clamp(static_cast<i32>(glm::round(touchPoint.NormalizedPosition * 32.0f)), 0, 31);
+					const auto touchPointIndex = Clamp(static_cast<i32>(glm::round(touchPoint.NormalizedPosition * 32.0f)), 0, 31);
 					sharedContext.ButtonSoundController->PlaySliderTouch(touchPointIndex, 0.5f);
 
 					touchPoint.LastSoundStopwatch.Restart();

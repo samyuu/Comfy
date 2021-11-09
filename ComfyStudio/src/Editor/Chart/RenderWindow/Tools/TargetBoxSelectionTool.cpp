@@ -44,8 +44,8 @@ namespace Comfy::Studio::Editor
 		{
 			if (data.IsSufficientlyLarge)
 			{
-				const vec2 minTargetSpace = vec2(std::min(data.StartTargetSpace.x, data.EndTargetSpace.x), std::min(data.StartTargetSpace.y, data.EndTargetSpace.y));
-				const vec2 maxTargetSpace = vec2(std::max(data.StartTargetSpace.x, data.EndTargetSpace.x), std::max(data.StartTargetSpace.y, data.EndTargetSpace.y));
+				const vec2 minTargetSpace = vec2(Min(data.StartTargetSpace.x, data.EndTargetSpace.x), Min(data.StartTargetSpace.y, data.EndTargetSpace.y));
+				const vec2 maxTargetSpace = vec2(Max(data.StartTargetSpace.x, data.EndTargetSpace.x), Max(data.StartTargetSpace.y, data.EndTargetSpace.y));
 
 				auto isTargetInSelectionRange = [&](const TimelineTarget& target) -> bool
 				{
@@ -104,8 +104,8 @@ namespace Comfy::Studio::Editor
 		const auto minMouse = renderWindow.TargetAreaToScreenSpace(data.StartTargetSpace);
 		const auto maxMouse = renderWindow.TargetAreaToScreenSpace(data.EndTargetSpace);
 
-		const auto start = vec2(glm::clamp(minMouse.x, regionMin.x, regionMax.x), glm::clamp(minMouse.y, regionMin.y, regionMax.y));
-		const auto end = vec2(glm::clamp(maxMouse.x, regionMin.x, regionMax.x), glm::clamp(maxMouse.y, regionMin.y, regionMax.y));
+		const auto start = vec2(Clamp(minMouse.x, regionMin.x, regionMax.x), Clamp(minMouse.y, regionMin.y, regionMax.y));
+		const auto end = vec2(Clamp(maxMouse.x, regionMin.x, regionMax.x), Clamp(maxMouse.y, regionMin.y, regionMax.y));
 
 		drawList.AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection));
 		drawList.AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));

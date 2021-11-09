@@ -261,14 +261,14 @@ namespace ImGui
 						RAII::ItemWidth width(-1.0f);
 
 						constexpr bool isFloat = std::is_floating_point<ValueType>::value;
-						const ValueType step = isFloat ? static_cast<ValueType>(dragSpeed) : std::max(static_cast<ValueType>(1), static_cast<ValueType>(dragSpeed));
+						const ValueType step = isFloat ? static_cast<ValueType>(dragSpeed) : Comfy::Max(static_cast<ValueType>(1), static_cast<ValueType>(dragSpeed));
 						const ValueType fastStep = static_cast<ValueType>(step * static_cast<ValueType>(10));
 
 						using Lookup = TypeLookup::DataType<ValueType>;
 						const bool valueChanged = ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, &step, &fastStep, (format != nullptr) ? format : Lookup::Format, Lookup::InputTextFlags);
 
 						if (valueChanged && dragRange.has_value())
-							inOutValue = std::clamp(inOutValue, dragRange->x, dragRange->y);
+							inOutValue = Comfy::Clamp(inOutValue, dragRange->x, dragRange->y);
 
 						return valueChanged;
 					});
@@ -337,7 +337,7 @@ namespace ImGui
 						if (ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue[component], nullptr, nullptr, Lookup::Format, Lookup::InputTextFlags))
 						{
 							if (valueRange.has_value())
-								inOutValue[component] = glm::clamp(inOutValue[component], valueRange->x, valueRange->y);
+								inOutValue[component] = Comfy::Clamp(inOutValue[component], valueRange->x, valueRange->y);
 
 							anyValueChanged = true;
 						}

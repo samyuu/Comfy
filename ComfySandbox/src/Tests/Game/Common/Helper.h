@@ -33,7 +33,7 @@ namespace Comfy::Sandbox::Tests::Game
 	TimeSpan LoopMarkers(const Aet::Layer& layer, TimeSpan inputTime, std::string_view startMarker, std::string_view endMarker)
 	{
 		const auto loopStart = layer.FindMarkerFrame(startMarker).value_or(0.0f);
-		const auto loopEnd = std::max(layer.FindMarkerFrame(endMarker).value_or(loopStart), loopStart);
+		const auto loopEnd = Max(layer.FindMarkerFrame(endMarker).value_or(loopStart), loopStart);
 
 		const auto inputFrame = inputTime.ToFrames();
 		const auto loopedFrame = LoopFrames(inputFrame, loopStart, loopEnd);
@@ -44,9 +44,9 @@ namespace Comfy::Sandbox::Tests::Game
 	TimeSpan ClampMarkers(const Aet::Layer& layer, TimeSpan inputTime, std::string_view startMarker, std::string_view endMarker)
 	{
 		const auto loopStart = layer.FindMarkerFrame(startMarker).value_or(0.0f);
-		const auto loopEnd = std::max(layer.FindMarkerFrame(endMarker).value_or(loopStart), loopStart);
+		const auto loopEnd = Max(layer.FindMarkerFrame(endMarker).value_or(loopStart), loopStart);
 
-		const auto inputFrame = std::min(inputTime.ToFrames(), (loopEnd - loopStart) - 1.0f);
+		const auto inputFrame = Min(inputTime.ToFrames(), (loopEnd - loopStart) - 1.0f);
 		const auto clampedFrame = LoopFrames(inputFrame, loopStart, loopEnd);
 
 		return TimeSpan::FromFrames(clampedFrame);

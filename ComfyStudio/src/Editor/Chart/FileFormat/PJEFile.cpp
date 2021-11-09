@@ -343,7 +343,7 @@ namespace Comfy::Studio::Editor
 
 			pvID = 999;
 			difficulty = static_cast<u8>(sourceChart.Properties.Difficulty.Type);
-			pvLevel = std::clamp(static_cast<u8>(sourceChart.Properties.Difficulty.Level), static_cast<u8>(1), static_cast<u8>(20)) - 1;
+			pvLevel = Clamp(static_cast<u8>(sourceChart.Properties.Difficulty.Level), static_cast<u8>(1), static_cast<u8>(20)) - 1;
 
 			songOffset = sourceChart.SongOffset;
 			videoOffset = sourceChart.MovieOffset;
@@ -351,7 +351,7 @@ namespace Comfy::Studio::Editor
 
 			const auto sourceSongTitle = sourceChart.SongTitleOrDefault();
 			songTitle = {};
-			std::memcpy(songTitle.data(), sourceSongTitle.data(), std::min(sourceSongTitle.size(), songTitle.size() - 1));
+			std::memcpy(songTitle.data(), sourceSongTitle.data(), Min(sourceSongTitle.size(), songTitle.size() - 1));
 
 			bpmChanges.reserve(sourceChart.TempoMap.TempoChangeCount());
 			sigChanges.reserve(sourceChart.TempoMap.TempoChangeCount());

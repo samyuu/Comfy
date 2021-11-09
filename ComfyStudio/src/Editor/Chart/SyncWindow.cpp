@@ -77,16 +77,16 @@ namespace Comfy::Studio::Editor
 				const auto& style = Gui::GetStyle();
 				const f32 buttonWidth = Gui::GetFrameHeight() * 2.0f;
 
-				GuiPropertyRAII::ItemWidth width(std::max(Gui::GetContentRegionAvail().x - style.ItemInnerSpacing.x * 2.0f - buttonWidth, 1.0f));
+				GuiPropertyRAII::ItemWidth width(Max(Gui::GetContentRegionAvail().x - style.ItemInnerSpacing.x * 2.0f - buttonWidth, 1.0f));
 				bool result = Gui::InputFormattedTimeSpan(GuiProperty::Detail::DummyLabel, &duration, {}, ImGuiInputTextFlags_AutoSelectAll);
 
 				Gui::SameLine(0.0f, style.ItemInnerSpacing.x);
-				if (Gui::Button("Set##Cursor", vec2(std::max(Gui::GetContentRegionAvail().x, buttonWidth), 0.0f))) { duration = timeline.GetCursorTime(); result = true; }
+				if (Gui::Button("Set##Cursor", vec2(Max(Gui::GetContentRegionAvail().x, buttonWidth), 0.0f))) { duration = timeline.GetCursorTime(); result = true; }
 
 				return result;
 			}))
 			{
-				duration = std::max(duration, TimeSpan::FromSeconds(1.0));
+				duration = Max(duration, TimeSpan::FromSeconds(1.0));
 				undoManager.Execute<ChangeSongDuration>(chart, duration);
 			}
 		});
@@ -128,10 +128,10 @@ namespace Comfy::Studio::Editor
 			if (GuiProperty::Input("Tempo##SyncWindow", newTempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 				executeAddOrUpdate();
 
-			f32 flyingTimeFactor = (newFlyingTime.Factor * 100.0f);
-			if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, vec2(FlyingTimeFactor::Min * 100.0f, FlyingTimeFactor::Max * 100.0f), "%.2f %%"))
+			f32 flyingTimeFactor = ToPercent(newFlyingTime.Factor);
+			if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, ToPercent(vec2(FlyingTimeFactor::Min, FlyingTimeFactor::Max)), "%.2f %%"))
 			{
-				newFlyingTime.Factor = (flyingTimeFactor * 0.01f);
+				newFlyingTime.Factor = FromPercent(flyingTimeFactor);
 				executeAddOrUpdate();
 			}
 

@@ -235,8 +235,8 @@ namespace Comfy::Studio::Editor
 		endIndex = CeilIndexToSyncPairEnd(endIndex);
 
 		std::sort(
-			std::clamp(targets.begin() + startIndex, targets.begin(), targets.end()),
-			std::clamp(targets.begin() + endIndex, targets.begin(), targets.end()),
+			Clamp(targets.begin() + startIndex, targets.begin(), targets.end()),
+			Clamp(targets.begin() + endIndex, targets.begin(), targets.end()),
 			[&](auto& a, auto& b) { return GetTargetSortWeight(a) < GetTargetSortWeight(b); });
 
 		for (i32 i = startIndex; i <= endIndex; i++)

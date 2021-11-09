@@ -20,14 +20,14 @@ namespace Comfy::Audio
 		const i64 scrollPixelOffset = static_cast<i64>(glm::round(scrollOffset));
 
 		const i64 waveformPixelCount = static_cast<i64>(waveform.GetPixelCount());
-		const i64 remainingVisibleWaveformPixels = std::clamp((waveformPixelCount - scrollPixelOffset), 0i64, static_cast<i64>(MaxSupportedRenderWidth));
+		const i64 remainingVisibleWaveformPixels = Clamp((waveformPixelCount - scrollPixelOffset), 0i64, static_cast<i64>(MaxSupportedRenderWidth));
 
-		const f32 renderWidth = std::clamp((screenBR.x - screenTL.x), 0.0f, static_cast<f32>(remainingVisibleWaveformPixels));
+		const f32 renderWidth = Clamp((screenBR.x - screenTL.x), 0.0f, static_cast<f32>(remainingVisibleWaveformPixels));
 		const f32 renderHeight = (screenBR.y - screenTL.y);
 		const f32 renderHeightHalf = (renderHeight * 0.5f);
 
 		const f32 screenTopY = screenTL.y + renderHeightHalf - (renderHeightHalf * heightFactor);
-		const f32 screenBotY = std::max(screenTL.y + renderHeightHalf + (renderHeightHalf * heightFactor), screenTopY + 1.0f);
+		const f32 screenBotY = Max(screenTL.y + renderHeightHalf + (renderHeightHalf * heightFactor), screenTopY + 1.0f);
 
 		bool firstIteration = true;
 		for (i64 xOffset = 0; xOffset < static_cast<i64>(renderWidth); xOffset += PixelsPerChunk)
@@ -43,8 +43,8 @@ namespace Comfy::Audio
 				firstIteration = false;
 			}
 
-			const f32 chunkVisibleStart = std::clamp(static_cast<f32>(xOffset), 0.0f, renderWidth);
-			const f32 chunkVisibleEnd = std::clamp(static_cast<f32>(xOffset + PixelsPerChunk), 0.0f, renderWidth);
+			const f32 chunkVisibleStart = Clamp(static_cast<f32>(xOffset), 0.0f, renderWidth);
+			const f32 chunkVisibleEnd = Clamp(static_cast<f32>(xOffset + PixelsPerChunk), 0.0f, renderWidth);
 
 			const f32 texCoordScale = (chunkVisibleEnd - chunkVisibleStart) / static_cast<f32>(PixelsPerChunk);
 			const f32 texCoordOffset = (chunkVisibleStart - xOffset) / PixelsPerChunk;
@@ -162,7 +162,7 @@ namespace Comfy::Audio
 			i32 amplitudePixels = static_cast<i32>(amplitude * static_cast<f32>(TextureResolution));
 
 			if constexpr (MinAmplitudePixels > 0)
-				amplitudePixels = std::max(amplitudePixels, MinAmplitudePixels);
+				amplitudePixels = Max(amplitudePixels, MinAmplitudePixels);
 
 			for (size_t x = 0; x < amplitudePixels; x++)
 			{

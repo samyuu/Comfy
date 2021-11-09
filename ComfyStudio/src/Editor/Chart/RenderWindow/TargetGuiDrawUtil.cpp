@@ -63,12 +63,12 @@ namespace Comfy::Studio::Editor
 		const auto backgroundColor = Gui::ColorConvertFloat4ToU32(ArrowSettings.BackgroundColor * Gui::ColorConvertU32ToFloat4(color));
 
 		const auto startEndDistance = (properties.Distance <= 0.0f) ? 0.0f : glm::distance(start, end);
-		const auto headCount = std::max(1, static_cast<i32>(glm::floor(startEndDistance / headSpacing)));
+		const auto headCount = Max(1, static_cast<i32>(glm::floor(startEndDistance / headSpacing)));
 
 		for (i32 head = 0; head < headCount; head++)
 		{
 			const auto headDistance = ((head + 0) * headSpacing) + (headSpacing * ArrowSettings.HeadEndSpacingFactor) + (thickness / 2.0f);
-			const auto headDistanceNext = ((head + 1) == headCount) ? startEndDistance : glm::min(startEndDistance, ((head + 1) * headSpacing));
+			const auto headDistanceNext = ((head + 1) == headCount) ? startEndDistance : Min(startEndDistance, ((head + 1) * headSpacing));
 
 			const auto headStart = start + (headDistance * angleDirection);
 			const auto headEnd = start + (headDistanceNext * angleDirection);

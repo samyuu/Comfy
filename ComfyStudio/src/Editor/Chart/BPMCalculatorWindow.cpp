@@ -132,7 +132,7 @@ namespace Comfy::Studio::Editor
 
 		undoManager.Execute<UpdateTempoChange>(chart, TempoChange(
 			tempoChange.Tick,
-			std::clamp(updatedTempo.BeatsPerMinute, Tempo::MinBPM, Tempo::MaxBPM),
+			Clamp(updatedTempo.BeatsPerMinute, Tempo::MinBPM, Tempo::MaxBPM),
 			tempoChange.Signature));
 	}
 }

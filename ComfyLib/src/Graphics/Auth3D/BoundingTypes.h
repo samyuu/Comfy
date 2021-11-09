@@ -41,7 +41,7 @@ namespace Comfy::Graphics
 		inline void Transform(const mat4& transform, const vec3& scale)
 		{
 			Center = transform * vec4(Center, 1.0f);
-			Radius *= glm::max(scale.x, glm::max(scale.y, scale.z));
+			Radius *= Max(scale.x, Max(scale.y, scale.z));
 		}
 
 		inline bool Contains(const vec3& point) const

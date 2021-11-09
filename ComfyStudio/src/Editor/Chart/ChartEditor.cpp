@@ -1194,7 +1194,7 @@ namespace Comfy::Studio::Editor
 		timelineScrollXOnPlaytestStart = timeline->GetScrollX();
 
 		parentApplication.SetExclusiveFullscreenGui(true);
-		const auto cursorTime = std::max(timeline->TickToTime(timeline->TimeToTick(playbackTimeOnPlaytestStart) - BeatTick::FromBars(1)), TimeSpan::Zero());
+		const auto cursorTime = Max(timeline->TickToTime(timeline->TimeToTick(playbackTimeOnPlaytestStart) - BeatTick::FromBars(1)), TimeSpan::Zero());
 
 		auto& playTestWindow = GetOrCreatePlayTestWindow();
 		playTestWindow.Restart(startFromCursor ? cursorTime : TimeSpan::Zero());

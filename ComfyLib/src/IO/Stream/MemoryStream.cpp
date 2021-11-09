@@ -32,7 +32,7 @@ namespace Comfy::IO
 	void MemoryStream::Seek(FileAddr position)
 	{
 		this->position = position;
-		this->position = std::min(position, GetLength());
+		this->position = Min(position, GetLength());
 	}
 
 	FileAddr MemoryStream::GetPosition() const
@@ -70,7 +70,7 @@ namespace Comfy::IO
 		assert(dataVectorPtr != nullptr);
 
 		const auto remainingSize = (GetLength() - GetPosition());
-		const i64 bytesRead = std::min(static_cast<i64>(size), static_cast<i64>(remainingSize));
+		const i64 bytesRead = Min(static_cast<i64>(size), static_cast<i64>(remainingSize));
 
 		void* source = &(*dataVectorPtr)[static_cast<size_t>(position)];
 		std::memcpy(buffer, source, bytesRead);

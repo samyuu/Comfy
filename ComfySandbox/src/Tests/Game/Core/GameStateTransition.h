@@ -27,11 +27,11 @@ namespace Comfy::Sandbox::Tests::Game
 			const auto fadeAlpha = [&]
 			{
 				if (currentState == FadeState::In)
-					return std::clamp(static_cast<f32>(elapsedFadeTime.TotalSeconds() / fadeInDuration.TotalSeconds()), 0.0f, 1.0f);
+					return Clamp(static_cast<f32>(elapsedFadeTime.TotalSeconds() / fadeInDuration.TotalSeconds()), 0.0f, 1.0f);
 				if (currentState == FadeState::Loop)
 					return 1.0f;
 				if (currentState == FadeState::Out)
-					return std::clamp(1.0f - static_cast<f32>(elapsedFadeTime.TotalSeconds() / fadeOutDuration.TotalSeconds()), 0.0f, 1.0f);
+					return Clamp(1.0f - static_cast<f32>(elapsedFadeTime.TotalSeconds() / fadeOutDuration.TotalSeconds()), 0.0f, 1.0f);
 				return 0.0f;
 			}();
 

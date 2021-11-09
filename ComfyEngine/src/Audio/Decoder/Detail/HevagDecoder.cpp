@@ -81,7 +81,7 @@ namespace Comfy::Audio
 						((sample & 1 ? HighNibbleI32(adpcmBlock.SoundData[sample / 2]) : LowNibbleI32(adpcmBlock.SoundData[sample / 2])) << shiftFactor)) >> 8;
 				}
 
-				outSamples[sample] = std::clamp<i32>(decodedSample, std::numeric_limits<i16>::min(), std::numeric_limits<i16>::max());
+				outSamples[sample] = Clamp<i32>(decodedSample, std::numeric_limits<i16>::min(), std::numeric_limits<i16>::max());
 
 				inOutADPCMHistory[3] = inOutADPCMHistory[2];
 				inOutADPCMHistory[2] = inOutADPCMHistory[1];
@@ -132,7 +132,7 @@ namespace Comfy::Audio
 		const auto sampleRate = Util::ByteSwapU32(*reinterpret_cast<const u32*>(fileStream)); fileStream += sizeof(u32);
 		const auto loopEnd = Util::ByteSwapU32(*reinterpret_cast<const u32*>(fileStream)); fileStream += sizeof(u32);
 		fileStream += sizeof(u8) * 6;
-		const auto channelCount = std::clamp<u8>(*reinterpret_cast<const u8*>(fileStream), MinHevagChannelCount, MaxHevagChannelCount); fileStream += sizeof(u8);
+		const auto channelCount = Clamp<u8>(*reinterpret_cast<const u8*>(fileStream), MinHevagChannelCount, MaxHevagChannelCount); fileStream += sizeof(u8);
 		fileStream += sizeof(u8) * 1;
 		char waveformDataName[16];
 		memcpy(waveformDataName, fileStream, sizeof(waveformDataName)); fileStream += sizeof(waveformDataName);

@@ -23,7 +23,7 @@ namespace Comfy::Studio::Editor
 	{
 		const vec2 worldSpace = camera.ScreenToWorldSpace(origin);
 
-		camera.Zoom = std::clamp(newZoom, ZoomMin, ZoomMax);
+		camera.Zoom = Clamp(newZoom, ZoomMin, ZoomMax);
 		camera.UpdateMatrices();
 
 		const vec2 postWorldSpace = camera.ScreenToWorldSpace(origin);

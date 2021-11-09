@@ -216,7 +216,7 @@ namespace Comfy::Graphics
 		const auto& textureIDs = objSet.TextureIDs;
 		assert(textureIDs.size() <= Textures.size());
 
-		const auto textureCount = std::min(Textures.size(), textureIDs.size());
+		const auto textureCount = Min(Textures.size(), textureIDs.size());
 		for (size_t i = 0; i < textureCount; i++)
 			Textures[i]->ID = textureIDs[i];
 	}

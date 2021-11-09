@@ -68,9 +68,9 @@ namespace Comfy::Render::Detail
 			headPositions[0] = headPositions[1];
 		}
 
-		const double result = 1.0f / std::clamp(
-			std::max(glm::tan(glm::radians(fieldOfView * 0.5f)) * 5.0f, 0.25f) *
-			std::max(RootMeanSquare(viewPoint - ((RootMeanSquare(interest - headPosition) > 1.25f) ? headPositions[0] : interest)), 0.25f),
+		const double result = 1.0f / Clamp(
+			Max(glm::tan(glm::radians(fieldOfView * 0.5f)) * 5.0f, 0.25f) *
+			Max(RootMeanSquare(viewPoint - ((RootMeanSquare(interest - headPosition) > 1.25f) ? headPositions[0] : interest)), 0.25f),
 			0.25f, 100.0f);
 
 		return result;

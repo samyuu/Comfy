@@ -120,7 +120,7 @@ namespace Comfy::Studio::Editor
 			if (backgroundTint.a > 0.0f)
 				scriptBuilder.Add(TimeSpan::Zero(), PVCommandLayout::SceneFade(TimeSpan::Zero(), backgroundTint.a, backgroundTint.a, vec3(backgroundTint)));
 
-			const auto clampedSongOffsetCommandTime = std::max(-chart.SongOffset, TimeSpan::Zero());
+			const auto clampedSongOffsetCommandTime = Max(-chart.SongOffset, TimeSpan::Zero());
 			if (!chart.SongFileName.empty())
 				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MusicPlay());
 
@@ -131,7 +131,7 @@ namespace Comfy::Studio::Editor
 				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MovieDisp(true));
 			}
 
-			const TimeSpan targetTimeDelay = std::max(chart.SongOffset, TimeSpan::Zero());
+			const TimeSpan targetTimeDelay = Max(chart.SongOffset, TimeSpan::Zero());
 			i32 lastFlyingTimeMS = {};
 
 			for (const auto& target : chart.Targets)
@@ -591,7 +591,7 @@ namespace Comfy::Studio::Editor
 			bool changesMade = false;
 
 			Gui::PushID(&inOutPath);
-			Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+			Gui::PushItemWidth(Max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 			changesMade |= Gui::PathInputTextWithHint("##PathTextInput", hintText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly);
 			Gui::PopItemWidth();
 
@@ -726,15 +726,15 @@ namespace Comfy::Studio::Editor
 				{
 					Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
 					if (i32 step = 1, stepFast = 100; Gui::InputScalar("##PVID", ImGuiDataType_S32, &param.OutPVID, &step, &stepFast, "%03d", ImGuiInputTextFlags_None))
-						param.OutPVID = std::clamp(param.OutPVID, 1, 999);
+						param.OutPVID = Clamp(param.OutPVID, 1, 999);
 					Gui::PopItemWidth();
 				}
 				Gui::Separator();
 
 				guiHeaderLabel("Background Dim");
 				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
-				if (auto v = param.PVScriptBackgroundTint.a * 100.0f; Gui::SliderFloat("##BackgroundDim", &v, 0.0f, 100.0f, "%.0f%%"))
-					param.PVScriptBackgroundTint.a = v / 100.0f;
+				if (auto v = ToPercent(param.PVScriptBackgroundTint.a); Gui::SliderFloat("##BackgroundDim", &v, 0.0f, 100.0f, "%.0f%%"))
+					param.PVScriptBackgroundTint.a = FromPercent(v);
 				Gui::PopItemWidth();
 				Gui::Separator();
 

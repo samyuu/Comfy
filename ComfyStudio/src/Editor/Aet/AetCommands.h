@@ -82,7 +82,7 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void OffsetKeyFrames(frame_t increment) { if (reference->LayerVideo != nullptr) Graphics::Aet::Util::OffsetAllKeyFrames(reference->LayerVideo->Transform, increment); }
-		frame_t ClampValue(frame_t value) { return glm::min(value, reference->EndFrame - 1.0f); }
+		frame_t ClampValue(frame_t value) { return Min(value, reference->EndFrame - 1.0f); }
 
 	private:
 		std::shared_ptr<Graphics::Aet::Layer> reference;
@@ -121,7 +121,7 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Layer End Frame Change"; }
 
 	private:
-		frame_t ClampValue(frame_t value) { return glm::max(value, reference->StartFrame + 1.0f); }
+		frame_t ClampValue(frame_t value) { return Max(value, reference->StartFrame + 1.0f); }
 
 	private:
 		std::shared_ptr<Graphics::Aet::Layer> reference;
@@ -155,7 +155,7 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "New Layer Marker"; }
 
 	private:
-		frame_t ClampValue(frame_t value) { return glm::max(value, reference->StartFrame + 1.0f); }
+		frame_t ClampValue(frame_t value) { return Max(value, reference->StartFrame + 1.0f); }
 
 	private:
 		std::shared_ptr<Graphics::Aet::Layer> reference;
@@ -190,7 +190,7 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Delete Layer Marker"; }
 
 	private:
-		frame_t ClampValue(frame_t value) { return glm::max(value, reference->StartFrame + 1.0f); }
+		frame_t ClampValue(frame_t value) { return Max(value, reference->StartFrame + 1.0f); }
 
 	private:
 		std::shared_ptr<Graphics::Aet::Layer> reference;
@@ -225,7 +225,7 @@ namespace Comfy::Studio::Editor
 		std::string_view GetName() const override { return "Move Layer Marker"; }
 
 	private:
-		frame_t ClampValue(frame_t value) { return glm::max(value, reference->StartFrame + 1.0f); }
+		frame_t ClampValue(frame_t value) { return Max(value, reference->StartFrame + 1.0f); }
 
 	private:
 		std::shared_ptr<Graphics::Aet::Layer> reference;

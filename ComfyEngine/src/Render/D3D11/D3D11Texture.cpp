@@ -498,7 +498,7 @@ namespace Comfy::Render
 		SamplerDesc.AddressU = addressModeU;
 		SamplerDesc.AddressV = addressModeV;
 		SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-		SamplerDesc.MipLODBias = std::clamp(mipMapBias, D3D11_MIP_LOD_BIAS_MIN, D3D11_MIP_LOD_BIAS_MAX);
+		SamplerDesc.MipLODBias = Clamp(mipMapBias, D3D11_MIP_LOD_BIAS_MIN, D3D11_MIP_LOD_BIAS_MAX);
 		SamplerDesc.MaxAnisotropy = anisotropicFiltering;
 		SamplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 		SamplerDesc.BorderColor[0] = transparentBorderColor[0];
@@ -662,8 +662,8 @@ namespace Comfy::Render
 
 	void D3D11RenderTargetAndView::RecreateWithNewSizeIfDifferent(D3D11& d3d11, ivec2 newSize)
 	{
-		newSize.x = std::clamp<i32>(newSize.x, D3D11MinTexture2DSize.x, D3D11MaxTexture2DSize.x);
-		newSize.y = std::clamp<i32>(newSize.y, D3D11MinTexture2DSize.y, D3D11MaxTexture2DSize.y);
+		newSize.x = Clamp<i32>(newSize.x, D3D11MinTexture2DSize.x, D3D11MaxTexture2DSize.x);
+		newSize.y = Clamp<i32>(newSize.y, D3D11MinTexture2DSize.y, D3D11MaxTexture2DSize.y);
 		if (newSize == GetSize())
 			return;
 
@@ -721,7 +721,7 @@ namespace Comfy::Render
 
 	void D3D11RenderTargetAndView::RecreateWithNewMultiSampleCountIfDifferent(D3D11& d3d11, u32 newMultiSampleCount)
 	{
-		newMultiSampleCount = std::clamp<u32>(newMultiSampleCount, 1, D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT);
+		newMultiSampleCount = Clamp<u32>(newMultiSampleCount, 1, D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT);
 		if (newMultiSampleCount == GetMultiSampleCount())
 			return;
 

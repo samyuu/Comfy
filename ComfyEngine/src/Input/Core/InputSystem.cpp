@@ -341,10 +341,10 @@ namespace Comfy::Input
 			{
 				constexpr f32 heldThreshold = 0.5f;
 
-				for (size_t i = 0; i < std::min<size_t>(std::size(controllerData.ThisFrameState.Simplified.Buttons), controllerData.Capabilities.dwButtons); i++)
+				for (size_t i = 0; i < Min<size_t>(std::size(controllerData.ThisFrameState.Simplified.Buttons), controllerData.Capabilities.dwButtons); i++)
 					controllerData.ThisFrameState.Simplified.Buttons[i] = controllerData.ThisFrameState.NativeJoy.rgbButtons[i];
 
-				for (size_t i = 0; i < std::min<size_t>(std::size(controllerData.ThisFrameState.Simplified.DPads), controllerData.Capabilities.dwPOVs); i++)
+				for (size_t i = 0; i < Min<size_t>(std::size(controllerData.ThisFrameState.Simplified.DPads), controllerData.Capabilities.dwPOVs); i++)
 				{
 					const auto nativePovValue = controllerData.ThisFrameState.NativeJoy.rgdwPOV[i];
 					auto& simplifiedDPad = controllerData.ThisFrameState.Simplified.DPads[i];
@@ -378,7 +378,7 @@ namespace Comfy::Input
 				};
 
 				assert(std::size(controllerData.ThisFrameState.Simplified.Axes) == std::size(nativeAxes));
-				for (size_t i = 0; i < std::min<size_t>(std::size(controllerData.ThisFrameState.Simplified.Axes), controllerData.Capabilities.dwAxes); i++)
+				for (size_t i = 0; i < Min<size_t>(std::size(controllerData.ThisFrameState.Simplified.Axes), controllerData.Capabilities.dwAxes); i++)
 				{
 					auto& simplifiedAxes = controllerData.ThisFrameState.Simplified.Axes[i];
 					simplifiedAxes.NormalizedAbsolute = static_cast<f32>(nativeAxes[i]) / std::numeric_limits<u16>::max();
@@ -599,7 +599,7 @@ namespace Comfy::Input
 	ControllerID ControllerIDFromString(std::string_view string)
 	{
 		wchar_t wideBuffer[FormatBufferSize] = {};
-		for (size_t i = 0; i < std::min(FormatBufferSize - 1, string.size()); i++)
+		for (size_t i = 0; i < Min(FormatBufferSize - 1, string.size()); i++)
 			wideBuffer[i] = string[i];
 
 		GUID outGUID = {};

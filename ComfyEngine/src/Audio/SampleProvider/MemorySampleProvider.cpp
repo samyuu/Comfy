@@ -27,8 +27,8 @@ namespace Comfy::Audio
 
 			std::copy(
 				sampleData.get(),
-				std::min<i16*>(sampleData.get() + nonSilentSamples, sampleData.get() + sampleCount),
-				std::min<i16*>(nonSilentBuffer, bufferToFill + (framesToRead * channelCount)));
+				Min<i16*>(sampleData.get() + nonSilentSamples, sampleData.get() + sampleCount),
+				Min<i16*>(nonSilentBuffer, bufferToFill + (framesToRead * channelCount)));
 		}
 		else
 		{

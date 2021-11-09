@@ -59,7 +59,7 @@ namespace Comfy::Studio::Editor
 			);
 
 			static constexpr f32 min = 0.0f, max = 90.0f, step = 1.0f, stepFast = 5.0f;
-			auto clampIncrementStep = [](f32& inOut) { inOut = std::clamp(inOut, min, max); };
+			auto clampIncrementStep = [](f32& inOut) { inOut = Clamp(inOut, min, max); };
 
 			if (angleIncrement.UseFixedStepIncrement)
 			{

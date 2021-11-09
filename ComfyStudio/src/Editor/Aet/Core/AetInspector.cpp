@@ -14,7 +14,7 @@ namespace Comfy::Studio::Editor
 	{
 		void CopyStringIntoBuffer(std::string_view string, char* buffer, size_t bufferSize)
 		{
-			size_t copySize = std::min(string.size(), bufferSize - 1);
+			size_t copySize = Min(string.size(), bufferSize - 1);
 			string.copy(buffer, copySize);
 			buffer[copySize] = '\0';
 		}
@@ -130,7 +130,7 @@ namespace Comfy::Studio::Editor
 
 			float frameRate = scene->FrameRate;
 			if (Gui::ComfyFloatTextWidget("Frame Rate", &frameRate, 1.0f, 10.0f, 0.0f, 0.0f, "%.2f"))
-				undoManager.ExecuteEndOfFrame<SceneChangeFrameRate>(scene, glm::clamp(frameRate, 1.0f, 1000.0f));
+				undoManager.ExecuteEndOfFrame<SceneChangeFrameRate>(scene, Clamp(frameRate, 1.0f, 1000.0f));
 
 			ivec2 resolution = scene->Resolution;
 			if (Gui::ComfyInt2TextWidget("Resolution", glm::value_ptr(resolution)))
@@ -238,11 +238,10 @@ namespace Comfy::Studio::Editor
 
 			if (layer->ItemType != ItemType::Audio)
 			{
-				constexpr float percentageFactor = 100.0f;
-				float timeScale = layer->TimeScale * percentageFactor;
+				float timeScale = ToPercent(layer->TimeScale);
 
 				if (Gui::ComfyFloatTextWidget("Playback Speed", &timeScale, 1.0f, 10.0f, 0.0f, 0.0f, "%.0f%%"))
-					undoManager.ExecuteEndOfFrame<LayerChangeTimeScale>(layer, timeScale / percentageFactor);
+					undoManager.ExecuteEndOfFrame<LayerChangeTimeScale>(layer, FromPercent(timeScale));
 			}
 
 			PopDisableItemFlagIfPlayback();
@@ -376,7 +375,7 @@ namespace Comfy::Studio::Editor
 				if (Gui::ComfyBeginCombo("Blend Mode", GetBlendModeName(animationData->TransferMode.BlendMode), ImGuiComboFlags_HeightLarge))
 				{
 					// NOTE: Increase the count in case of invalid blend modes
-					size_t blendModeCount = glm::max(static_cast<size_t>(animationData->TransferMode.BlendMode), EnumCount<AetBlendMode>());
+					size_t blendModeCount = Max(static_cast<size_t>(animationData->TransferMode.BlendMode), EnumCount<AetBlendMode>());
 
 					for (i32 blendModeIndex = 0; blendModeIndex < blendModeCount; blendModeIndex++)
 					{
@@ -448,8 +447,6 @@ namespace Comfy::Studio::Editor
 
 	void AetInspector::DrawInspectorAnimationDataProperty(const std::shared_ptr<Layer>& layer, const char* label, frame_t frame, float& value, Transform2DField field)
 	{
-		constexpr float percentFactor = 100.0f;
-
 		assert(layer->LayerVideo.get() != nullptr);
 		const auto& animationData = layer->LayerVideo;
 
@@ -469,14 +466,14 @@ namespace Comfy::Studio::Editor
 
 		if (isOpacity)
 		{
-			value *= percentFactor;
-			max = 1.0f * percentFactor;
+			value = ToPercent(value);
+			max = ToPercent(1.0f);
 		}
 
 		if (Gui::ComfyFloatTextWidget(label, &value, 1.0f, 10.0f, min, max, formatString, ImGuiInputTextFlags_None, (keyFrame == nullptr)))
 		{
 			if (isOpacity)
-				value = glm::clamp(value * (1.0f / percentFactor), 0.0f, 1.0f);
+				value = Clamp(FromPercent(value), 0.0f, 1.0f);
 
 			auto tuple = std::make_tuple(static_cast<Transform2DField_Enum>(field), frame, value);
 			undoManager.ExecuteEndOfFrame<AnimationDataChangeKeyFrameValue>(layer, tuple);
@@ -487,8 +484,6 @@ namespace Comfy::Studio::Editor
 
 	void AetInspector::DrawInspectorAnimationDataPropertyVec2(const std::shared_ptr<Layer>& layer, const char* label, frame_t frame, vec2& value, Transform2DField fieldX, Transform2DField fieldY)
 	{
-		constexpr float percentFactor = 100.0f;
-
 		assert(layer->LayerVideo.get() != nullptr);
 		const auto& animationData = layer->LayerVideo;
 
@@ -506,7 +501,7 @@ namespace Comfy::Studio::Editor
 
 		vec2 previousValue = value;
 		if (isScale)
-			value *= percentFactor;
+			value = ToPercent(value);
 
 		bool disabledText[2] =
 		{
@@ -517,7 +512,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::ComfyFloat2TextWidget(label, glm::value_ptr(value), 1.0f, 0.0f, 0.0f, formatString, ImGuiInputTextFlags_None, disabledText))
 		{
 			if (isScale)
-				value *= (1.0f / percentFactor);
+				value = FromPercent(value);
 
 			// NOTE: Should this check for a value change or should this always be adding X and Y KeyFrames at once? 
 			//		 The Transform and Move tool will already add two add once so this seems fine

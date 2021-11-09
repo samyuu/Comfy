@@ -98,7 +98,7 @@ namespace Comfy::Studio::Editor
 
 			const TimeSpan startTime = timeline->GetTimelineTime(timeline->GetLoopStartFrame());
 			const TimeSpan endTime = timeline->GetTimelineTime(timeline->GetLoopEndFrame());
-			newCursorTime = std::clamp(newCursorTime, startTime, endTime);
+			newCursorTime = Clamp(newCursorTime, startTime, endTime);
 
 			updateCursorTime = true;
 		}

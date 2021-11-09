@@ -160,7 +160,7 @@ namespace Comfy::Studio::Editor
 				const bool isLoading = asyncImage.IsAsyncLoading();
 				Gui::PushItemDisabledAndTextColorIf(isLoading);
 
-				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+				Gui::PushItemWidth(Max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
 				if (isLoading)
 				{
@@ -233,7 +233,7 @@ namespace Comfy::Studio::Editor
 				const bool songIsLoading = chartEditor.IsSongAsyncLoading();
 				Gui::PushItemDisabledAndTextColorIf(songIsLoading);
 
-				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+				Gui::PushItemWidth(Max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
 				if (songIsLoading)
 				{
@@ -268,7 +268,7 @@ namespace Comfy::Studio::Editor
 				const bool movieIsLoading = chartEditor.IsMovieAsyncLoading();
 				Gui::PushItemDisabledAndTextColorIf(movieIsLoading);
 
-				Gui::PushItemWidth(std::max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
+				Gui::PushItemWidth(Max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
 				if (movieIsLoading)
 				{
@@ -342,7 +342,7 @@ namespace Comfy::Studio::Editor
 					auto timeWidget = [](const char* label, TimeSpan& inOutTime, TimeSpan min, TimeSpan max)
 					{
 						if (Gui::InputFormattedTimeSpan(label, &inOutTime, {}, ImGuiInputTextFlags_AutoSelectAll))
-							inOutTime = std::clamp(inOutTime, min, max);
+							inOutTime = Clamp(inOutTime, min, max);
 					};
 
 					auto songDuration = chartEditor.GetSongVoice().GetDuration();
@@ -377,9 +377,9 @@ namespace Comfy::Studio::Editor
 								songDuration = chart.DurationOrDefault();
 
 							if (index == 0)
-								chart.Properties.SongPreview.StartTime = std::clamp(songPosition, TimeSpan::Zero(), songDuration);
+								chart.Properties.SongPreview.StartTime = Clamp(songPosition, TimeSpan::Zero(), songDuration);
 							else
-								chart.Properties.SongPreview.Duration = std::clamp(songPosition - chart.Properties.SongPreview.StartTime, TimeSpan::Zero(), songDuration);
+								chart.Properties.SongPreview.Duration = Clamp(songPosition - chart.Properties.SongPreview.StartTime, TimeSpan::Zero(), songDuration);
 						}
 					};
 

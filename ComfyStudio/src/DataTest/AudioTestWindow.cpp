@@ -58,8 +58,8 @@ namespace Comfy::Studio::DataTest
 			{
 				GuiPropertyRAII::PropertyValueColumns columns;
 
-				static constexpr auto greenColor = vec4(0.14f, 0.78f, 0.21f, 1.00f);
-				static constexpr auto redColor = vec4(0.95f, 0.12f, 0.12f, 1.00f);
+				static constexpr vec4 greenColor = vec4(0.14f, 0.78f, 0.21f, 1.00f);
+				static constexpr vec4 redColor = vec4(0.95f, 0.12f, 0.12f, 1.00f);
 
 				GuiProperty::TreeNode("Audio Engine", ImGuiTreeNodeFlags_DefaultOpen, [&]
 				{
@@ -67,9 +67,9 @@ namespace Comfy::Studio::DataTest
 					{
 						GuiPropertyRAII::ItemWidth width(-1.0f);
 
-						auto v = engine.GetMasterVolume() * 100.0f;
-						if (Gui::SliderFloat("##MasterVolumeSlider", &v, AudioEngine::MinVolume * 100.0f, AudioEngine::MaxVolume * 100.0f, "%.0f%%"))
-							engine.SetMasterVolume(v / 100.0f);
+						f32 v = ToPercent(engine.GetMasterVolume());
+						if (Gui::SliderFloat("##MasterVolumeSlider", &v, ToPercent(AudioEngine::MinVolume), ToPercent(AudioEngine::MaxVolume), "%.0f%%"))
+							engine.SetMasterVolume(FromPercent(v));
 
 						return false;
 					});
@@ -95,11 +95,11 @@ namespace Comfy::Studio::DataTest
 						return false;
 					});
 
-					auto audioBackendIndex = static_cast<int>(engine.GetAudioBackend());
+					i32 audioBackendIndex = static_cast<i32>(engine.GetAudioBackend());
 					if (GuiProperty::Combo("Audio Backend", audioBackendIndex, AudioBackendNames))
 						engine.SetAudioBackend(static_cast<AudioBackend>(audioBackendIndex));
 
-					auto mixingBehaviorIndex = static_cast<int>(engine.GetChannelMixer().GetMixingBehavior());
+					i32 mixingBehaviorIndex = static_cast<i32>(engine.GetChannelMixer().GetMixingBehavior());
 					if (GuiProperty::Combo("Channel Mixing", mixingBehaviorIndex, ChannelMixer::MixingBehaviorNames))
 						engine.GetChannelMixer().SetMixingBehavior(static_cast<ChannelMixer::MixingBehavior>(mixingBehaviorIndex));
 
@@ -134,7 +134,7 @@ namespace Comfy::Studio::DataTest
 							Gui::PopItemDisabledAndTextColor();
 
 							Gui::InputScalar("##NewBufferSize", ImGuiDataType_U32, &newBufferFrameCount, &slowStep, &fastStep, "%u Frames (Request)");
-							newBufferFrameCount = std::clamp(newBufferFrameCount, AudioEngine::MinBufferFrameCount, AudioEngine::MaxBufferFrameCount);
+							newBufferFrameCount = Clamp(newBufferFrameCount, AudioEngine::MinBufferFrameCount, AudioEngine::MaxBufferFrameCount);
 
 							if (Gui::Button("Request Resize", vec2(Gui::CalcItemWidth(), 0.0f)))
 								engine.SetBufferFrameSize(newBufferFrameCount);
@@ -291,8 +291,8 @@ namespace Comfy::Studio::DataTest
 					voice.GetPosition().FormatTime().data(),
 					voice.GetPositionSmooth().FormatTime().data(),
 					voice.GetDuration().FormatTime().data(),
-					voice.GetVolume() * 100.0f,
-					voice.GetPlaybackSpeed() * 100.0f,
+					ToPercent(voice.GetVolume()),
+					ToPercent(voice.GetPlaybackSpeed()),
 					static_cast<HandleBaseType>(voice.Handle),
 					static_cast<HandleBaseType>(voice.GetSource())
 				);
@@ -391,7 +391,7 @@ namespace Comfy::Studio::DataTest
 							sourcePreviewVoice.SetPosition((sourcePreviewVoice.GetDuration() * hoverProgress));
 					}
 
-					const auto previewProgress = std::clamp(static_cast<f32>(sourcePreviewVoice.GetPosition() / sourcePreviewVoice.GetDuration()), 0.0f, 1.0f);
+					const auto previewProgress = Clamp(static_cast<f32>(sourcePreviewVoice.GetPosition() / sourcePreviewVoice.GetDuration()), 0.0f, 1.0f);
 					Gui::GetWindowDrawList()->AddRectFilled(
 						vec2(selectableRect.Min.x, selectableRect.Min.y),
 						vec2(selectableRect.Min.x + (nameColumnWidth * previewProgress), selectableRect.Max.y),
@@ -408,7 +408,7 @@ namespace Comfy::Studio::DataTest
 				Gui::NextColumn();
 
 				const auto baseVolume = engine.GetSourceBaseVolume(sourceHandle);
-				Gui::Text("%.2f%%", baseVolume * 100.0f);
+				Gui::Text("%.2f%%", ToPercent(baseVolume));
 				Gui::NextColumn();
 
 				if (pushTextColor) Gui::PopStyleColor();

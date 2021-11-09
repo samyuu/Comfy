@@ -277,7 +277,7 @@ namespace Comfy::Studio::Editor
 		case ButtonSoundType::ChainSlideFailure:
 			return soundEffectManager.GetChainSlideSound(buttonIDs.ChainSlide)[3];
 		case ButtonSoundType::SlideTouch:
-			return soundEffectManager.GetSliderTouchSound(buttonIDs.SliderTouch)[std::clamp(sliderTouchIndex, 0, 31)];
+			return soundEffectManager.GetSliderTouchSound(buttonIDs.SliderTouch)[Clamp(sliderTouchIndex, 0, 31)];
 		}
 
 		return Audio::SourceHandle::Invalid;
@@ -300,7 +300,7 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: All of this is far from perfect
 		const auto delta = static_cast<f32>(timeSinceMS / thresholdMS);
-		const auto factor = std::clamp((delta * delta), 0.0f, 1.0f);
+		const auto factor = Clamp((delta * delta), 0.0f, 1.0f);
 
 		return factor;
 	}

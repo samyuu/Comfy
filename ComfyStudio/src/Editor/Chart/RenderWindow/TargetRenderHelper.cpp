@@ -595,8 +595,8 @@ namespace Comfy::Studio::Editor
 			TryDrawLayerLooped(renderer, layers.PracticeGaugeBase, playbackFrame);
 			DrawHUDPracitceTime(renderer, hud.PlaybackTime);
 
-			const auto progress = std::clamp(static_cast<f32>(hud.PlaybackTime / hud.Duration), 0.0f, 1.0f);
-			const auto restartProgress = std::clamp(static_cast<f32>(hud.RestartTime / hud.Duration), 0.0f, 1.0f);
+			const f32 progress = Clamp(static_cast<f32>(hud.PlaybackTime / hud.Duration), 0.0f, 1.0f);
+			const f32 restartProgress = Clamp(static_cast<f32>(hud.RestartTime / hud.Duration), 0.0f, 1.0f);
 
 			TryDrawLayer(renderer, layers.PracticeGaugeTime, progress * 100.0f);
 			TryDrawLayer(renderer, layers.PracticeGaugeBorderRestart, restartProgress * 100.0f);
@@ -649,7 +649,7 @@ namespace Comfy::Studio::Editor
 				return;
 
 			char decimalString[16] = {};
-			const auto decimalStringLen = sprintf_s(decimalString, "+%d", std::clamp(data.HoldScore, 0, 999999));
+			const auto decimalStringLen = sprintf_s(decimalString, "+%d", Clamp(data.HoldScore, 0, 999999));
 
 			const auto& compItem = *syncInfoLayer->GetCompItem();
 			for (auto& layer : compItem.GetLayers())
@@ -710,7 +710,7 @@ namespace Comfy::Studio::Editor
 				return;
 
 			char decimalString[16] = {};
-			const auto decimalStringLen = sprintf_s(decimalString, "+%d", std::clamp(data.HoldScore, 0, 999999));
+			const auto decimalStringLen = sprintf_s(decimalString, "+%d", Clamp(data.HoldScore, 0, 999999));
 
 			const auto& compItem = *syncInfoMaxLayer->GetCompItem();
 			for (auto& layer : compItem.GetLayers())
@@ -906,7 +906,7 @@ namespace Comfy::Studio::Editor
 			else if (const auto* layer = getComboLayer(data).get(); layer != nullptr)
 			{
 				char decimalString[8] = {};
-				sprintf_s(decimalString, "%04d", std::clamp(data.ComboCount, 0, 9999));
+				sprintf_s(decimalString, "%04d", Clamp(data.ComboCount, 0, 9999));
 
 				std::array<i8, 4> decimalDigits = { 0, 0, 0, 0 };
 				for (i32 i = static_cast<i32>(decimalDigits.size()) - 1; i >= 0; i--)
@@ -957,7 +957,7 @@ namespace Comfy::Studio::Editor
 				Aet::Util::CombineTransforms(inputPositionTransform, baseLayerTransform);
 
 				char decimalString[8] = {};
-				sprintf_s(decimalString, "+%d", std::clamp(data.Points, 0, 99999));
+				sprintf_s(decimalString, "+%d", Clamp(data.Points, 0, 99999));
 
 				std::array<i8, 8> decimalDigits = {};
 				for (i32 i = static_cast<i32>(decimalDigits.size()) - 1; i >= 0; i--)
@@ -1131,7 +1131,7 @@ namespace Comfy::Studio::Editor
 
 			std::array<vec2, segmentCount> segmentPositions;
 			for (i32 i = 0; i < segmentCount; i++)
-				segmentPositions[i] = GetButtonPathSinePoint(glm::min(data.ProgressStart + (static_cast<f32>(i) * progressPerSegment), data.ProgressMax), data.Properties);
+				segmentPositions[i] = GetButtonPathSinePoint(Min(data.ProgressStart + (static_cast<f32>(i) * progressPerSegment), data.ProgressMax), data.Properties);
 
 			for (i32 segment = 0, vertex = 0; segment < segmentCount; segment++)
 			{
@@ -1290,7 +1290,7 @@ namespace Comfy::Studio::Editor
 			const auto playbackTimeRound = TimeSpan::RoundToMilliseconds(playbackTime);
 			const auto totalSeconds = playbackTimeRound.TotalSeconds();
 			const auto adjustedTime = (glm::isnan(totalSeconds) || glm::isinf(totalSeconds)) ? minValidTime : playbackTimeRound;
-			const auto clampedSeconds = std::clamp(adjustedTime, minValidTime, maxValidTime).TotalSeconds();
+			const auto clampedSeconds = Clamp(adjustedTime, minValidTime, maxValidTime).TotalSeconds();
 
 			const auto fractionMin = glm::floor(glm::mod(clampedSeconds, 3600.0) / 60.0);
 			const auto fractionSec = glm::mod(clampedSeconds, 60.0);

@@ -19,8 +19,8 @@ namespace Comfy::Studio::Editor
 				tapStopwatch.Restart();
 
 			bpmOnLastTap = CalculateBPMElapsedTaps(++tapCount, tapStopwatch.GetElapsed());
-			bpmOnLastTapMin = (tapCount <= 2) ? bpmOnLastTap : std::min(bpmOnLastTap, bpmOnLastTapMin);
-			bpmOnLastTapMax = (tapCount <= 2) ? bpmOnLastTap : std::max(bpmOnLastTap, bpmOnLastTapMax);
+			bpmOnLastTapMin = (tapCount <= 2) ? bpmOnLastTap : Min(bpmOnLastTap, bpmOnLastTapMin);
+			bpmOnLastTapMax = (tapCount <= 2) ? bpmOnLastTap : Max(bpmOnLastTap, bpmOnLastTapMax);
 		}
 
 		inline void Reset()

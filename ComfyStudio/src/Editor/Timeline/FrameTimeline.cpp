@@ -57,7 +57,7 @@ namespace Comfy::Studio::Editor
 
 	TimelineFrame FrameTimeline::GetTimelineFrameAtMouseX() const
 	{
-		const f32 mouseX = glm::max(regions.InfoColumnContent.Max.x, Gui::GetMousePos().x);
+		const f32 mouseX = Max(regions.InfoColumnContent.Max.x, Gui::GetMousePos().x);
 		return RoundToGrid(GetTimelineFrame(ScreenToTimelinePosition(mouseX)));
 	}
 

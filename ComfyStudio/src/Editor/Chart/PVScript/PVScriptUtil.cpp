@@ -100,7 +100,7 @@ namespace Comfy::Studio::Editor
 
 		std::string songPath = IO::Path::Normalize(romDirectory);
 		songPath += "/sound/song/";
-		songPath += fileNameNoExtension.substr(0, std::min(fileNameNoExtension.size(), std::string_view("pv_xxx").size()));
+		songPath += fileNameNoExtension.substr(0, Min(fileNameNoExtension.size(), std::string_view("pv_xxx").size()));
 		songPath += ".ogg";
 		return songPath;
 	}

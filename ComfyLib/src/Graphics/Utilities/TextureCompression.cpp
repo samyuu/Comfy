@@ -204,7 +204,7 @@ namespace Comfy::Graphics::Utilities
 		case TextureFormat::DXT5:
 		case TextureFormat::RGTC1:
 		case TextureFormat::RGTC2:
-			return glm::max(1, (size.x + 3) / 4) * glm::max(1, (size.y + 3) / 4) * TextureFormatBlockSize(format);
+			return Max(1, (size.x + 3) / 4) * Max(1, (size.y + 3) / 4) * TextureFormatBlockSize(format);
 
 		default:
 			assert(false);
@@ -328,7 +328,7 @@ namespace Comfy::Graphics::Utilities
 		constexpr u8 PixelF32ToU8(float pixel)
 		{
 			constexpr auto factor = static_cast<float>(std::numeric_limits<u8>::max());
-			return static_cast<u8>(std::clamp(pixel, 0.0f, 1.0f) * factor);
+			return static_cast<u8>(Clamp(pixel, 0.0f, 1.0f) * factor);
 		}
 
 		constexpr u32 PackU8RGBA(u8 r, u8 g, u8 b, u8 a)

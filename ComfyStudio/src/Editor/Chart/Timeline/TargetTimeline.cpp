@@ -109,7 +109,7 @@ namespace Comfy::Studio::Editor
 		const auto gridAdjusted = floorToGrid ? FloorTickToGrid(tickAtMousePosition) : tickAtMousePosition;
 
 		// NOTE: There should never be a need to click before the start of the timeline
-		const auto clamped = std::max(BeatTick::Zero(), gridAdjusted);
+		const auto clamped = Max(BeatTick::Zero(), gridAdjusted);
 
 		return clamped;
 	}
@@ -176,7 +176,7 @@ namespace Comfy::Studio::Editor
 		if (elapsedTime >= buttonSoundThresholdAtWhichPlayingSoundsMakesNoSense)
 			return;
 
-		const auto futureOffset = (buttonSoundFutureOffset * glm::min(chartEditor.GetSongVoice().GetPlaybackSpeed(), 1.0f));
+		const auto futureOffset = (buttonSoundFutureOffset * Min(chartEditor.GetSongVoice().GetPlaybackSpeed(), 1.0f));
 
 		if (metronomeEnabled)
 		{
@@ -203,7 +203,7 @@ namespace Comfy::Studio::Editor
 			{
 				// NOTE: Don't wanna cause any audio cutoffs. If this happens the future threshold is either set too low for the current frame time
 				//		 or playback was started on top of an existing target
-				const auto startTime = std::min((thisFrameButtonSoundCursorTime - buttonTime), TimeSpan::Zero());
+				const auto startTime = Min((thisFrameButtonSoundCursorTime - buttonTime), TimeSpan::Zero());
 				const auto externalClock = buttonTime;
 
 				if (target.Flags.IsChain)
@@ -486,7 +486,7 @@ namespace Comfy::Studio::Editor
 			Gui::PushStyleColor(ImGuiCol_FrameBg, infoColumnTimeInput.WidgetActiveLastFrame ? Gui::GetColorU32(ImGuiCol_ButtonHovered) : 0);
 			if (Gui::InputFormattedTimeSpan("##TimeInput", &timeInputTime, vec2(timeInputWidth, 0.0f), inputTextFlags))
 			{
-				const auto newTime = std::clamp(timeInputTime, TimeSpan::Zero(), workingChart->DurationOrDefault());
+				const auto newTime = Clamp(timeInputTime, TimeSpan::Zero(), workingChart->DurationOrDefault());
 				const auto newTimeTickSnapped = TickToTime(TimeToTick(newTime));
 
 				// HACK: Same as used by the sync window to prevent issues for when the focus is lost on the same frame that the cursor was moved via a mouse click
@@ -508,7 +508,7 @@ namespace Comfy::Studio::Editor
 			infoColumnTimeInput.WidgetActiveLastFrame = (Gui::IsItemHovered() || Gui::IsItemActive());
 
 			char playbackSpeedText[64];
-			sprintf_s(playbackSpeedText, "%.0f%%", chartEditor.GetSongVoice().GetPlaybackSpeed() * 100.0f);
+			sprintf_s(playbackSpeedText, "%.0f%%", ToPercent(chartEditor.GetSongVoice().GetPlaybackSpeed()));
 
 			Gui::SameLine(0.0f, 0.0f);
 			if (Gui::ButtonEx(playbackSpeedText, vec2(speedButtonWidth, 0.0f), ImGuiButtonFlags_PressedOnClick))
@@ -619,7 +619,7 @@ namespace Comfy::Studio::Editor
 
 		for (i64 screenPixel = leftMostVisiblePixel; screenPixel < waveformPixelCount && screenPixel < rightMostVisiblePixel; screenPixel++)
 		{
-			const i64 timelinePixel = std::min(static_cast<i64>(glm::round(screenPixel + scrollXSongOffset)), static_cast<i64>(waveformPixelCount - 1));
+			const i64 timelinePixel = Min(static_cast<i64>(glm::round(screenPixel + scrollXSongOffset)), static_cast<i64>(waveformPixelCount - 1));
 			if (timelinePixel < 0)
 				continue;
 
@@ -682,7 +682,7 @@ namespace Comfy::Studio::Editor
 			if (displayFlyingTime)
 			{
 #if 0 // NOTE: Maybe more readable but takes up too much space..?
-				char b[32]; sprintf_s(b, " %.2f %%", tempoChange.FlyingTime.Factor * 100.0f);
+				char b[32]; sprintf_s(b, " %.2f %%", ToPercent(tempoChange.FlyingTime.Factor));
 #else
 				char b[32]; sprintf_s(b, " %.3gx", tempoChange.FlyingTime.Factor);
 #endif
@@ -714,7 +714,7 @@ namespace Comfy::Studio::Editor
 
 					// NOTE: Appear above the TempoChange on the TempoMap to not block the timeline content region
 					tempoPopupWindowStartPosition = buttonPosition - vec2(0.0f, 8.0f);
-					tempoPopupWindowStartPosition.x = glm::clamp(tempoPopupWindowStartPosition.x,
+					tempoPopupWindowStartPosition.x = Clamp(tempoPopupWindowStartPosition.x,
 						regions.TempoMap.Min.x + (tempoPopupWindowStartSize.x * tempoPopupWindowStartPivot.x),
 						regions.TempoMap.Max.x - (tempoPopupWindowStartSize.x * (1.0f - tempoPopupWindowStartPivot.x)));
 				}
@@ -760,8 +760,8 @@ namespace Comfy::Studio::Editor
 
 				const bool tempoChangeCanBeMoved = (tempoPopupIndex > 0 && prevTempoChange != nullptr);
 				const BeatTick minTickBetweenTempoChanges = GridDivisionTick();
-				const BeatTick prevTempoChangeTickMin = (prevTempoChange != nullptr) ? std::min((prevTempoChange->Tick + minTickBetweenTempoChanges), thisTempoChange.Tick) : minTickBetweenTempoChanges;
-				const BeatTick nextTempoChangeTickMax = (nextTempoChange != nullptr) ? std::max((nextTempoChange->Tick - minTickBetweenTempoChanges), thisTempoChange.Tick) : BeatTick::FromTicks(std::numeric_limits<i32>::max());
+				const BeatTick prevTempoChangeTickMin = (prevTempoChange != nullptr) ? Min((prevTempoChange->Tick + minTickBetweenTempoChanges), thisTempoChange.Tick) : minTickBetweenTempoChanges;
+				const BeatTick nextTempoChangeTickMax = (nextTempoChange != nullptr) ? Max((nextTempoChange->Tick - minTickBetweenTempoChanges), thisTempoChange.Tick) : BeatTick::FromTicks(std::numeric_limits<i32>::max());
 
 				// TODO: Also be able to move tempo changes using the mouse similarly to targets (?) although then the "left click to jump" behavior would have to change (?)
 				// TODO: Maybe the timeline should automatically be scrolled while moving a tempo change (?) or at least if the tempo change is moved off-screen
@@ -781,7 +781,7 @@ namespace Comfy::Studio::Editor
 
 						if (GuiProperty::Detail::DragTextT<i32>("Time and Beat", ticksInGridUnits, dragSpeed, &ticksMinInGridUnits, &ticksMaxInGridUnits, 0.0f))
 						{
-							const BeatTick ticksInGridUnitsBackToTick = std::clamp(BeatTick::FromTicks(ticksInGridUnits * gridDivisionTicks), prevTempoChangeTickMin, nextTempoChangeTickMax);
+							const BeatTick ticksInGridUnitsBackToTick = Clamp(BeatTick::FromTicks(ticksInGridUnits * gridDivisionTicks), prevTempoChangeTickMin, nextTempoChangeTickMax);
 							if (tempoChangeCanBeMoved && ticksInGridUnitsBackToTick != thisTempoChange.Tick)
 								undoManager.Execute<ChangeTempoChangeTick>(*workingChart, tempoPopupIndex, ticksInGridUnitsBackToTick);
 						}
@@ -799,7 +799,7 @@ namespace Comfy::Studio::Editor
 						TimeSpan tempoChangeTime = TickToTime(thisTempoChange.Tick);
 						if (Gui::InputFormattedTimeSpan("##Time", &tempoChangeTime, vec2(Gui::GetContentRegionAvail().x * 0.5f, 0.0f)))
 						{
-							const BeatTick newTempoChangeTick = std::clamp(TimeToTick(tempoChangeTime), prevTempoChangeTickMin, nextTempoChangeTickMax);
+							const BeatTick newTempoChangeTick = Clamp(TimeToTick(tempoChangeTime), prevTempoChangeTickMin, nextTempoChangeTickMax);
 							if (tempoChangeCanBeMoved && newTempoChangeTick != thisTempoChange.Tick)
 								undoManager.Execute<ChangeTempoChangeTick>(*workingChart, tempoPopupIndex, newTempoChangeTick);
 						}
@@ -821,14 +821,14 @@ namespace Comfy::Studio::Editor
 				f32 bpm = thisTempoChange.Tempo.BeatsPerMinute;
 				if (GuiProperty::Input("Tempo", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 				{
-					updatedTempoChange.Tempo = std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM);
+					updatedTempoChange.Tempo = Clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM);
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
 				}
 
-				f32 flyingTimeFactor = (thisTempoChange.FlyingTime.Factor * 100.0f);
-				if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, vec2(FlyingTimeFactor::Min * 100.0f, FlyingTimeFactor::Max * 100.0f), "%.2f %%"))
+				f32 flyingTimeFactor = ToPercent(thisTempoChange.FlyingTime.Factor);
+				if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, ToPercent(vec2(FlyingTimeFactor::Min, FlyingTimeFactor::Max)), "%.2f %%"))
 				{
-					updatedTempoChange.FlyingTime.Factor = (flyingTimeFactor * 0.01f);
+					updatedTempoChange.FlyingTime.Factor = FromPercent(flyingTimeFactor);
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
 				}
 
@@ -986,8 +986,8 @@ namespace Comfy::Studio::Editor
 		const f32 minY = regions.Content.GetTL().y;
 		const f32 maxY = regions.Content.GetBR().y;
 
-		const vec2 start = vec2(regions.Content.GetTL().x + startScreenX, glm::clamp(boxSelection.StartMouse.y, minY, maxY));
-		const vec2 end = vec2(regions.Content.GetTL().x + endScreenX, glm::clamp(boxSelection.EndMouse.y, minY, maxY));
+		const vec2 start = vec2(regions.Content.GetTL().x + startScreenX, Clamp(boxSelection.StartMouse.y, minY, maxY));
+		const vec2 end = vec2(regions.Content.GetTL().x + endScreenX, Clamp(boxSelection.EndMouse.y, minY, maxY));
 
 		baseWindowDrawList->AddRectFilled(start, end, GetColor(EditorColor_TimelineSelection));
 		baseWindowDrawList->AddRect(start, end, GetColor(EditorColor_TimelineSelectionBorder));
@@ -1112,9 +1112,9 @@ namespace Comfy::Studio::Editor
 		{
 			auto songVoice = chartEditor.GetSongVoice();
 			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DecreasePlaybackSpeed, true))
-				songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+				songVoice.SetPlaybackSpeed(Clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_IncreasePlaybackSpeed, true))
-				songVoice.SetPlaybackSpeed(std::clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+				songVoice.SetPlaybackSpeed(Clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 		}
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ToggleMetronome, false))
@@ -1136,7 +1136,7 @@ namespace Comfy::Studio::Editor
 				(target.Flags.IsHold) ? std::array { ButtonType::Triangle, ButtonType::Circle } :
 				std::array { ButtonType::Triangle, ButtonType::SlideR };
 
-			return static_cast<ButtonType>(std::clamp(static_cast<i32>(target.Type) + incrementDirection, static_cast<i32>(min), static_cast<i32>(max)));
+			return static_cast<ButtonType>(Clamp(static_cast<i32>(target.Type) + incrementDirection, static_cast<i32>(min), static_cast<i32>(max)));
 		}
 
 		const TimelineTarget* RecursiveFindBlockingTargetForChangedType(const SortedTargetList& targets, BeatTick tick, ButtonType type, i32 incrementDirection, const TimelineTarget* syncPairBaseTarget)
@@ -1234,7 +1234,7 @@ namespace Comfy::Studio::Editor
 			if (selectionDrag.ChangeType)
 			{
 				const f32 heightPerType = (rowHeight - 2.0f);
-				const i32 typeIncrementDirection = std::clamp(static_cast<i32>(selectionDrag.VerticalDistanceMovedSoFar / heightPerType), -1, +1);
+				const i32 typeIncrementDirection = Clamp(static_cast<i32>(selectionDrag.VerticalDistanceMovedSoFar / heightPerType), -1, +1);
 				selectionDrag.VerticalDistanceMovedSoFar -= (typeIncrementDirection * heightPerType);
 
 				if (typeIncrementDirection != 0)
@@ -1487,7 +1487,7 @@ namespace Comfy::Studio::Editor
 
 				for (const auto presetSpeed : { 1.00f, 0.75f, 0.50f, 0.25f, })
 				{
-					char b[64]; sprintf_s(b, "Set %3.0f%%", presetSpeed * 100.0f);
+					char b[64]; sprintf_s(b, "Set %3.0f%%", ToPercent(presetSpeed));
 
 					if (Gui::MenuItem(b, nullptr, (presetSpeed == songPlaybackSpeed), (presetSpeed != songPlaybackSpeed)))
 						songVoice.SetPlaybackSpeed(presetSpeed);
@@ -1495,8 +1495,8 @@ namespace Comfy::Studio::Editor
 
 				if (Gui::BeginMenu("Set Exact"))
 				{
-					if (auto s = (songPlaybackSpeed * 100.0f); Gui::SliderFloat("##PlaybackSpeedSlider", &s, 10.0f, 200.0f, "%.0f%% Playback Speed"))
-						songVoice.SetPlaybackSpeed(s / 100.0f);
+					if (auto s = ToPercent(songPlaybackSpeed); Gui::SliderFloat("##PlaybackSpeedSlider", &s, 10.0f, 200.0f, "%.0f%% Playback Speed"))
+						songVoice.SetPlaybackSpeed(FromPercent(s));
 					Gui::EndMenu();
 				}
 
@@ -1622,11 +1622,11 @@ namespace Comfy::Studio::Editor
 		{
 			if (boxSelection.IsSufficientlyLarge)
 			{
-				const f32 minY = std::min(boxSelection.StartMouse.y, boxSelection.EndMouse.y);
-				const f32 maxY = std::max(boxSelection.StartMouse.y, boxSelection.EndMouse.y);
+				const f32 minY = Min(boxSelection.StartMouse.y, boxSelection.EndMouse.y);
+				const f32 maxY = Max(boxSelection.StartMouse.y, boxSelection.EndMouse.y);
 
-				const auto minTick = std::min(boxSelection.StartTick, boxSelection.EndTick);
-				const auto maxTick = std::max(boxSelection.StartTick, boxSelection.EndTick);
+				const auto minTick = Min(boxSelection.StartTick, boxSelection.EndTick);
+				const auto maxTick = Max(boxSelection.StartTick, boxSelection.EndTick);
 
 				auto isTargetInSelectionRange = [&](const auto& target)
 				{
@@ -1873,8 +1873,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::FillInRangeSelectionTargets(Undo::UndoManager& undoManager, Chart& chart, ButtonType type)
 	{
-		const auto startTick = RoundTickToGrid(std::min(rangeSelection.StartTick, rangeSelection.EndTick));
-		const auto endTick = RoundTickToGrid(std::max(rangeSelection.StartTick, rangeSelection.EndTick));
+		const auto startTick = RoundTickToGrid(Min(rangeSelection.StartTick, rangeSelection.EndTick));
+		const auto endTick = RoundTickToGrid(Max(rangeSelection.StartTick, rangeSelection.EndTick));
 
 		// TODO: Come up with better chain placement controls, maybe shift + direction to place chain start, move cursor then press again to "confirm" end placement (?)
 		const bool placeChain = IsSlideButtonType(type);
@@ -2172,7 +2172,7 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::SelectNextPresetGridDivision(i32 direction)
 	{
 		const i32 index = FindGridDivisionPresetIndex();
-		const i32 nextIndex = std::clamp(index + direction, 0, static_cast<i32>(PresetBarGridDivisions.size()) - 1);
+		const i32 nextIndex = Clamp(index + direction, 0, static_cast<i32>(PresetBarGridDivisions.size()) - 1);
 
 		activeBarGridDivision = PresetBarGridDivisions[nextIndex].BarDivision;
 	}
@@ -2183,9 +2183,9 @@ namespace Comfy::Studio::Editor
 		const f32 songPlaybackSpeed = songVoice.GetPlaybackSpeed();
 
 		if (direction < 0)
-			songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+			songVoice.SetPlaybackSpeed(Clamp(songPlaybackSpeed - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 		else
-			songVoice.SetPlaybackSpeed(std::clamp(songPlaybackSpeed + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+			songVoice.SetPlaybackSpeed(Clamp(songPlaybackSpeed + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 	}
 
 	void TargetTimeline::AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep, i32 distanceFactor)
@@ -2193,10 +2193,10 @@ namespace Comfy::Studio::Editor
 		const auto beatIncrement = BeatTick::FromBeats(1);
 		const auto gridIncrement = GridDivisionTick();
 
-		const auto stepDistance = (beatStep ? std::max(beatIncrement, gridIncrement) : gridIncrement) * distanceFactor;
+		const auto stepDistance = (beatStep ? Max(beatIncrement, gridIncrement) : gridIncrement) * distanceFactor;
 
 		const auto newCursorTick = RoundTickToGrid(GetCursorTick()) + (stepDistance * direction);
-		const auto clampedCursorTick = std::max(newCursorTick, BeatTick::Zero());
+		const auto clampedCursorTick = Max(newCursorTick, BeatTick::Zero());
 
 		const f32 preCursorX = GetCursorTimelinePosition();
 
@@ -2254,8 +2254,8 @@ namespace Comfy::Studio::Editor
 		const auto beatIncrement = BeatTick::FromBeats(1);
 		const auto gridIncrement = GridDivisionTick();
 
-		const auto scrollTickIncrement = (io.KeyShift ? std::max(beatIncrement, gridIncrement) : gridIncrement) * static_cast<i32>(io.MouseWheel);
-		const auto newCursorTick = std::max(BeatTick::Zero(), GetCursorTick() + scrollTickIncrement);
+		const auto scrollTickIncrement = (io.KeyShift ? Max(beatIncrement, gridIncrement) : gridIncrement) * static_cast<i32>(io.MouseWheel);
+		const auto newCursorTick = Max(BeatTick::Zero(), GetCursorTick() + scrollTickIncrement);
 
 		if (const bool seekThroughSong = GetIsPlayback(); seekThroughSong)
 		{

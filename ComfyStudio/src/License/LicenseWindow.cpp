@@ -90,7 +90,7 @@ namespace Comfy::Studio
 
 		size_t largestFileSize = 0;
 		for (size_t i = 0; i < licenseDirectoryEntry->EntryCount; i++)
-			largestFileSize = std::max(largestFileSize, licenseDirectoryEntry->Entries[i].Size);
+			largestFileSize = Max(largestFileSize, licenseDirectoryEntry->Entries[i].Size);
 		auto fileContentBuffer = std::make_unique<char[]>(largestFileSize + 1);
 
 		for (size_t i = 0; i < licenseDirectoryEntry->EntryCount; i++)

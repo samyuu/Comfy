@@ -221,17 +221,17 @@ namespace Comfy::Render
 		for (auto& sphere : spheres)
 		{
 			const float radius = sphere.Radius;
-			min.x = std::min(min.x, sphere.Center.x - radius);
-			min.y = std::min(min.y, sphere.Center.y - radius);
-			min.z = std::min(min.z, sphere.Center.z - radius);
+			min.x = Min(min.x, sphere.Center.x - radius);
+			min.y = Min(min.y, sphere.Center.y - radius);
+			min.z = Min(min.z, sphere.Center.z - radius);
 
-			max.x = std::max(max.x, sphere.Center.x + radius);
-			max.y = std::max(max.y, sphere.Center.y + radius);
-			max.z = std::max(max.z, sphere.Center.z + radius);
+			max.x = Max(max.x, sphere.Center.x + radius);
+			max.y = Max(max.y, sphere.Center.y + radius);
+			max.z = Max(max.z, sphere.Center.z + radius);
 		}
 
 		const vec3 halfSpan = (max - min) / 2.0f;
-		return Sphere { (min + halfSpan), (std::max(halfSpan.x, std::max(halfSpan.y, halfSpan.z))) };
+		return Sphere { (min + halfSpan), (Max(halfSpan.x, Max(halfSpan.y, halfSpan.z))) };
 	}
 
 	using RenderFlags = u32;
@@ -1887,13 +1887,13 @@ namespace Comfy::Render
 				}
 				else
 				{
-					min.x = std::min(min.x, boundingSphere.Center.x - boundingSphere.Radius);
-					min.y = std::min(min.y, boundingSphere.Center.y - boundingSphere.Radius);
-					min.z = std::min(min.z, boundingSphere.Center.z - boundingSphere.Radius);
+					min.x = Min(min.x, boundingSphere.Center.x - boundingSphere.Radius);
+					min.y = Min(min.y, boundingSphere.Center.y - boundingSphere.Radius);
+					min.z = Min(min.z, boundingSphere.Center.z - boundingSphere.Radius);
 
-					max.x = std::max(max.x, boundingSphere.Center.x + boundingSphere.Radius);
-					max.y = std::max(max.y, boundingSphere.Center.y + boundingSphere.Radius);
-					max.z = std::max(max.z, boundingSphere.Center.z + boundingSphere.Radius);
+					max.x = Max(max.x, boundingSphere.Center.x + boundingSphere.Radius);
+					max.y = Max(max.y, boundingSphere.Center.y + boundingSphere.Radius);
+					max.z = Max(max.z, boundingSphere.Center.z + boundingSphere.Radius);
 				}
 			};
 
@@ -1925,7 +1925,7 @@ namespace Comfy::Render
 			constexpr float radiusPadding = 0.05f;
 			const vec3 size = (max - min) / 2.0f;
 
-			return Sphere { (min + size), (std::max(size.x, std::max(size.y, size.z))) + radiusPadding };
+			return Sphere { (min + size), (Max(size.x, Max(size.y, size.z))) + radiusPadding };
 		}
 
 		bool IntersectsCameraFrustum(const ObjRenderCommand& command) const

@@ -47,7 +47,7 @@ namespace Comfy::Studio::Editor
 		const f32 dynamicChildHeight = (DynamicSyncButtonHeight + PresetButtonSpacing.y) * 3.0f + (style.WindowPadding.y * 2.0f) - PresetButtonSpacing.y;
 		const f32 addChildHeight = (StaticSyncButtonHeight + PresetButtonSpacing.y + style.WindowPadding.y);
 		const f32 minStaticChildHeight = ((StaticSyncButtonHeight + PresetButtonSpacing.y) * 2.5f);
-		const f32 staticChildHeight = std::max(addChildHeight + dynamicChildHeight + minStaticChildHeight + (style.WindowPadding.y * 2.0f), Gui::GetContentRegionAvail().y) - addChildHeight - dynamicChildHeight - (style.WindowPadding.y * 2.0f);
+		const f32 staticChildHeight = Max(addChildHeight + dynamicChildHeight + minStaticChildHeight + (style.WindowPadding.y * 2.0f), Gui::GetContentRegionAvail().y) - addChildHeight - dynamicChildHeight - (style.WindowPadding.y * 2.0f);
 
 		Gui::BeginChild("DynamicSyncPresetsChild", vec2(0.0f, dynamicChildHeight), true);
 		{
@@ -426,7 +426,7 @@ namespace Comfy::Studio::Editor
 				return max;
 
 			const f32 hoverMS = static_cast<f32>(hovered.HoverDurationStopwatch.GetElapsed().TotalMilliseconds());
-			return std::clamp(ConvertRange<f32>(0.0f, HoverFadeInMS, 0.0f, max, hoverMS), 0.0f, max);
+			return Clamp(ConvertRange<f32>(0.0f, HoverFadeInMS, 0.0f, max, hoverMS), 0.0f, max);
 		}
 		else
 		{
@@ -434,14 +434,14 @@ namespace Comfy::Studio::Editor
 				return 0.0f;
 
 			const f32 sinceHoverMS = static_cast<f32>(hovered.LastHoverStopwatch.GetElapsed().TotalMilliseconds());
-			return std::clamp(ConvertRange<f32>(0.0f, HoverFadeOutMS, max, 0.0f, sinceHoverMS), 0.0f, max);
+			return Clamp(ConvertRange<f32>(0.0f, HoverFadeOutMS, max, 0.0f, sinceHoverMS), 0.0f, max);
 		}
 	}
 
 	f32 PresetWindow::GetHoverFadeInPreviewOpacity() const
 	{
 		const f32 hoverMS = static_cast<f32>(hovered.HoverDurationStopwatch.GetElapsed().TotalMilliseconds());
-		const f32 opacity = std::clamp<f32>(ConvertRange<f32>(0.0f, HoverFadeInMS, 0.0f, 1.0f, hoverMS), 0.0f, 1.0f);
+		const f32 opacity = Clamp<f32>(ConvertRange<f32>(0.0f, HoverFadeInMS, 0.0f, 1.0f, hoverMS), 0.0f, 1.0f);
 		return (opacity * opacity);
 	}
 

@@ -74,7 +74,7 @@ namespace Comfy::Studio::Editor
 				if (lastPlayedBeatTime == beatTime)
 					return true;
 
-				const auto startTime = std::min((timeThisFrame - beatTime), TimeSpan::Zero());
+				const auto startTime = Min((timeThisFrame - beatTime), TimeSpan::Zero());
 
 				PlayTickSound(startTime, isBar);
 				lastPlayedBeatTime = beatTime;

@@ -28,8 +28,8 @@ namespace Comfy::Graphics::Utilities
 	COMFY_NODISCARD constexpr ivec2 RoundToNearestPowerOfTwo(ivec2 input)
 	{
 		return ivec2(
-			static_cast<i32>(RoundToNearestPowerOfTwo(static_cast<u32>(std::max(input.x, 1)))),
-			static_cast<i32>(RoundToNearestPowerOfTwo(static_cast<u32>(std::max(input.y, 1)))));
+			static_cast<i32>(RoundToNearestPowerOfTwo(static_cast<u32>(Max(input.x, 1)))),
+			static_cast<i32>(RoundToNearestPowerOfTwo(static_cast<u32>(Max(input.y, 1)))));
 	}
 
 	COMFY_NODISCARD size_t TextureFormatBlockSize(TextureFormat format);

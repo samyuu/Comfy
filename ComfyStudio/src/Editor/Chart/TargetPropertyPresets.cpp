@@ -231,7 +231,7 @@ namespace Comfy::Studio::Editor
 
 				const auto masterCorner = typeToCorner[static_cast<size_t>(masterTarget.Type)];
 				const vec2 masterCornerPosition = AngleCornerTypeToSquarePlacementAreaCorner(masterCorner, settings);
-				const vec2 masterCornerDistance = glm::min(glm::abs(masterCornerPosition - masterProperties.Position), minCornerDistance);
+				const vec2 masterCornerDistance = Min(glm::abs(masterCornerPosition - masterProperties.Position), minCornerDistance);
 
 				for (i32 i = 0; i < pairCount; i++)
 				{
@@ -433,7 +433,7 @@ namespace Comfy::Studio::Editor
 			if (firstTargetOfPair.Flags.IsSync && IsAnyTargetWithinSyncPairSelected(&firstTargetOfPair, firstTargetOfPair.Flags.SyncPairCount))
 			{
 				std::array<ApplySyncPreset::Data, Rules::MaxSyncPairCount> tempProperties;
-				const auto syncPairCount = std::min<i32>(firstTargetOfPair.Flags.SyncPairCount, Rules::MaxSyncPairCount);
+				const auto syncPairCount = Min<i32>(firstTargetOfPair.Flags.SyncPairCount, Rules::MaxSyncPairCount);
 
 				for (i32 j = 0; j < syncPairCount; j++)
 				{

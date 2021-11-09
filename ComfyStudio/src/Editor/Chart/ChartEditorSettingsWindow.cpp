@@ -84,15 +84,15 @@ namespace Comfy::Studio::Editor
 
 			bool result = false;
 #if 0
-			if (f32 v = inOutValue * 100.0f; result = Gui::SliderFloat("##SettingsVolumeSlider", &v, 0.0f, extendedRange ? 125.0f : 100.0f, "%.0f%%"))
-				inOutValue = v / 100.0f;
+			if (f32 v = ToPercent(inOutValue); result = Gui::SliderFloat("##SettingsVolumeSlider", &v, 0.0f, extendedRange ? 125.0f : 100.0f, "%.0f%%"))
+				inOutValue = FromPercent(v);
 #elif 0
 			constexpr f32 minDB = -60.0f, maxDB = 0.0f;
 			if (f32 dB = Audio::LinearVolumeToDecibel(inOutValue); result = Gui::SliderFloat("##SettingsVolumeSlider", &dB, minDB, maxDB, "%.2f dB"))
 				inOutValue = (dB <= minDB) ? 0.0f : Audio::DecibelToLinearVolume(dB);
 #else
-			if (f32 s = Audio::LinearVolumeToSquare(inOutValue) * 100.0f; result = Gui::SliderFloat("##SettingsVolumeSlider", &s, 0.0f, extendedRange ? 115.0f : 100.0f, "%.0f%%"))
-				inOutValue = Audio::SquareToLinearVolume(s / 100.0f);
+			if (f32 s = ToPercent(Audio::LinearVolumeToSquare(inOutValue)); result = Gui::SliderFloat("##SettingsVolumeSlider", &s, 0.0f, extendedRange ? 115.0f : 100.0f, "%.0f%%"))
+				inOutValue = Audio::SquareToLinearVolume(FromPercent(s));
 #endif
 
 			Gui::PopItemWidth();
@@ -231,7 +231,7 @@ namespace Comfy::Studio::Editor
 			constexpr f32 blinkFrequency = static_cast<f32>(timeoutThreshold.TotalSeconds() * 1.2);
 			constexpr f32 blinkLow = 0.25f, blinkHigh = 1.45f;
 			constexpr f32 blinkMin = 0.25f, blinkMax = 1.00f;
-			auto getSinBlinkOpacity = [&](TimeSpan elapsed) { return std::clamp(ConvertRange(-1.0f, +1.0f, blinkLow, blinkHigh, glm::sin(static_cast<f32>(elapsed.TotalSeconds() * blinkFrequency) + 1.0f)), blinkMin, blinkMax); };
+			auto getSinBlinkOpacity = [&](TimeSpan elapsed) { return Clamp(ConvertRange(-1.0f, +1.0f, blinkLow, blinkHigh, glm::sin(static_cast<f32>(elapsed.TotalSeconds() * blinkFrequency) + 1.0f)), blinkMin, blinkMax); };
 
 			auto requestAsignmentForNewBinding = [&](Binding* bindingToRequestAsignmentFor)
 			{
@@ -632,9 +632,9 @@ namespace Comfy::Studio::Editor
 			Gui::PushItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
 			pendingChanges |= GuiSettingsCheckbox("Show Target Grid", userData.TargetPreview.ShowGrid);
 			pendingChanges |= GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
-			if (auto v = userData.TargetPreview.BackgroundDim * 100.0f;
+			if (auto v = ToPercent(userData.TargetPreview.BackgroundDim);
 				pendingChanges |= GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%"))
-				userData.TargetPreview.BackgroundDim = (v / 100.0f);
+				userData.TargetPreview.BackgroundDim = FromPercent(v);
 			Gui::PopItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
 
 			GuiEndSettingsColumns();
@@ -1424,9 +1424,9 @@ namespace Comfy::Studio::Editor
 		};
 
 		Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(0.0f, style.ItemSpacing.y));
-		const i32 clampedButtonCount = std::clamp(controllerInfo.ButtonCount, 0, static_cast<i32>(NativeButton::ButtonCount));
-		const i32 clampedDPadCount = std::clamp(controllerInfo.DPadCount, 0, static_cast<i32>(NativeButton::DPadCount));
-		const i32 clampedAxisCount = std::clamp(controllerInfo.AxisCount, 0, static_cast<i32>(NativeButton::AxisCount));
+		const i32 clampedButtonCount = Clamp(controllerInfo.ButtonCount, 0, static_cast<i32>(NativeButton::ButtonCount));
+		const i32 clampedDPadCount = Clamp(controllerInfo.DPadCount, 0, static_cast<i32>(NativeButton::DPadCount));
+		const i32 clampedAxisCount = Clamp(controllerInfo.AxisCount, 0, static_cast<i32>(NativeButton::AxisCount));
 		{
 			if (clampedDPadCount > 0)
 			{

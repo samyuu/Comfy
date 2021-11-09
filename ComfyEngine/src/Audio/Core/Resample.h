@@ -57,7 +57,7 @@ namespace Comfy::Audio
 		const auto normalizedEnd = static_cast<f64>(endValue / maxFloatSampleValue);
 
 		const auto normalizedResult = InterpolationType::template Interpolate(normalizedStart, normalizedEnd, inbetween);
-		const auto clampedResult = std::clamp(normalizedResult, -1.0, 1.0);
+		const auto clampedResult = Clamp(normalizedResult, -1.0, 1.0);
 
 		const auto sampleTypeResult = static_cast<SampleType>(clampedResult * maxFloatSampleValue);
 		return sampleTypeResult;

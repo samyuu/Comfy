@@ -132,7 +132,7 @@ namespace ImGui::PropertyEditor::Widgets
 			}
 
 			if (valueChanged && param.DragRange.has_value())
-				param.InOutValue = std::clamp(param.InOutValue, param.DragRange->x, param.DragRange->y);
+				param.InOutValue = Comfy::Clamp(param.InOutValue, param.DragRange->x, param.DragRange->y);
 
 			return valueChanged;
 		});

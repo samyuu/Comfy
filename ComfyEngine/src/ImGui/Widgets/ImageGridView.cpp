@@ -32,7 +32,7 @@ namespace ImGui
 		}
 		else
 		{
-			perItemSpacing = glm::floor(glm::max(0.0f, (availableSize.x - (itemsPerRow * imageBoundingBoxSize.x)) / itemsPerRow));
+			perItemSpacing = glm::floor(Comfy::Max(0.0f, (availableSize.x - (itemsPerRow * imageBoundingBoxSize.x)) / itemsPerRow));
 			firstItemOffset = glm::floor(perItemSpacing * 0.5f);
 
 			SetCursorPosX(GetCursorPosX() + firstItemOffset - perItemSpacing);

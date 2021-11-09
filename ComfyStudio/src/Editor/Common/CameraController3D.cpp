@@ -32,7 +32,7 @@ namespace Comfy::Studio::Editor
 				{
 					FirstPersonData.TargetYaw += io.MouseDelta.x * Settings.MouseSensitivity;
 					FirstPersonData.TargetPitch += io.MouseDelta.y * Settings.MouseSensitivity;
-					FirstPersonData.TargetPitch = glm::clamp(FirstPersonData.TargetPitch, YawDegreesMin, YawDegreesMax);
+					FirstPersonData.TargetPitch = Clamp(FirstPersonData.TargetPitch, YawDegreesMin, YawDegreesMax);
 				}
 
 				if (Gui::IsWindowHovered())
@@ -68,13 +68,13 @@ namespace Comfy::Studio::Editor
 				{
 					OrbitData.TargetRotation.x += io.MouseDelta.x * Settings.MouseSensitivity;
 					OrbitData.TargetRotation.y += io.MouseDelta.y * Settings.MouseSensitivity;
-					OrbitData.TargetRotation.y = glm::clamp(OrbitData.TargetRotation.y, YawDegreesMin, YawDegreesMax);
+					OrbitData.TargetRotation.y = Clamp(OrbitData.TargetRotation.y, YawDegreesMin, YawDegreesMax);
 				}
 
 				if (Settings.OrbitMouseScrollDistance && Gui::IsWindowHovered())
 				{
 					if (io.MouseWheel != 0.0f)
-						OrbitData.Distance = glm::clamp(OrbitData.Distance - (scrollStep * io.MouseWheel), OrbitData.MinDistance, OrbitData.MaxDistance);
+						OrbitData.Distance = Clamp(OrbitData.Distance - (scrollStep * io.MouseWheel), OrbitData.MinDistance, OrbitData.MaxDistance);
 				}
 
 				UpdateKeyboardInput(camera.Interest, frontDirection, cameraSpeed);

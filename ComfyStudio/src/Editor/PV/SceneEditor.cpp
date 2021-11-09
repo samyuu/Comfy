@@ -464,7 +464,7 @@ namespace Comfy::Studio::Editor
 		{
 			auto resolutionGui = [&](const char* label, const char* contextMenu, ivec2& inOutResolution)
 			{
-				auto clampValidTextureSize = [](ivec2 size) { return glm::clamp(size, Render::RenderTargetMinSize, Render::RenderTargetMaxSize); };
+				auto clampValidTextureSize = [](ivec2 size) { return Clamp(size, Render::RenderTargetMinSize, Render::RenderTargetMaxSize); };
 
 				if (GuiProperty::Input(label, inOutResolution))
 					inOutResolution = clampValidTextureSize(inOutResolution);
@@ -512,10 +512,10 @@ namespace Comfy::Studio::Editor
 				resolutionGui("Reflection", "ReflectionResolutionContextMenu", renderParam.ReflectionRenderResolution);
 
 				if (GuiProperty::Input("Multi Sample Count", renderParam.MultiSampleCount))
-					renderParam.MultiSampleCount = std::clamp(renderParam.MultiSampleCount, 1u, 16u);
+					renderParam.MultiSampleCount = Clamp(renderParam.MultiSampleCount, 1u, 16u);
 
 				if (GuiProperty::Input("Anistropic Filtering", renderParam.AnistropicFiltering))
-					renderParam.AnistropicFiltering = std::clamp(renderParam.AnistropicFiltering, Render::AnistropicFilteringMin, Render::AnistropicFilteringMax);
+					renderParam.AnistropicFiltering = Clamp(renderParam.AnistropicFiltering, Render::AnistropicFilteringMin, Render::AnistropicFilteringMax);
 
 				GuiProperty::ColorEdit("Clear Color", renderParam.ClearColor);
 				GuiProperty::Checkbox("Clear", renderParam.Clear);
@@ -534,7 +534,7 @@ namespace Comfy::Studio::Editor
 				resolutionGui("Resolution", "ShadowMapResolutionContextMenu", renderParam.ShadowMapResolution);
 
 				if (GuiProperty::Input("Blur Passes", renderParam.ShadowBlurPasses))
-					renderParam.ShadowBlurPasses = std::clamp(renderParam.ShadowBlurPasses, 0u, 10u);
+					renderParam.ShadowBlurPasses = Clamp(renderParam.ShadowBlurPasses, 0u, 10u);
 			});
 
 			GuiProperty::TreeNode("Render Passes", ImGuiTreeNodeFlags_DefaultOpen, [&]
@@ -754,7 +754,7 @@ namespace Comfy::Studio::Editor
 				{
 					constexpr vec2 cubeMapDisplaySize = vec2(96.0f, 96.0f);
 
-					const f32 width = std::clamp(Gui::GetContentRegionAvail().x, 1.0f, cubeMapDisplaySize.x);
+					const f32 width = Clamp(Gui::GetContentRegionAvail().x, 1.0f, cubeMapDisplaySize.x);
 					const vec2 size = vec2(width, width * (3.0f / 4.0f));
 
 					ImTextureID textureID = lightMap;
@@ -940,8 +940,8 @@ namespace Comfy::Studio::Editor
 		{
 			auto load = [&]()
 			{
-				stageTypeData.ID = std::clamp(stageTypeData.ID, stageTypeData.MinID, stageTypeData.MaxID);
-				stageTypeData.SubID = std::clamp(stageTypeData.SubID, 1, 39);
+				stageTypeData.ID = Clamp(stageTypeData.ID, stageTypeData.MinID, stageTypeData.MaxID);
+				stageTypeData.SubID = Clamp(stageTypeData.SubID, 1, 39);
 
 				if (stageTestData.Settings.LoadObj)
 				{
@@ -1335,7 +1335,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		if (Gui::InputInt("STGEFF Index", &debug.StageEffIndex))
-			debug.StageEffIndex = std::clamp(debug.StageEffIndex, -1, static_cast<int>(debug.StageEffA3Ds.size()));
+			debug.StageEffIndex = Clamp(debug.StageEffIndex, -1, static_cast<int>(debug.StageEffA3Ds.size()));
 		if (Gui::IsItemHovered())
 		{
 			Gui::BeginTooltip();
@@ -1344,7 +1344,7 @@ namespace Comfy::Studio::Editor
 		}
 
 		if (Gui::InputInt("CAMPV Index", &debug.CamPVIndex))
-			debug.CamPVIndex = std::clamp(debug.CamPVIndex, -1, static_cast<int>(debug.CamPVA3Ds.size()));
+			debug.CamPVIndex = Clamp(debug.CamPVIndex, -1, static_cast<int>(debug.CamPVA3Ds.size()));
 		if (Gui::IsItemHovered())
 		{
 			Gui::BeginTooltip();
@@ -1367,8 +1367,8 @@ namespace Comfy::Studio::Editor
 		if (debug.SetLongestDuration)
 		{
 			debug.Duration = 0.0f;
-			iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
-			iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { debug.Duration = std::max(debug.Duration, a3d.PlayControl.Duration); });
+			iterateA3Ds(debug.StageEffA3Ds, debug.StageEffIndex, [&](auto& a3d) { debug.Duration = Max(debug.Duration, a3d.PlayControl.Duration); });
+			iterateA3Ds(debug.CamPVA3Ds, debug.CamPVIndex, [&](auto& a3d) { debug.Duration = Max(debug.Duration, a3d.PlayControl.Duration); });
 		}
 
 		if (debug.Playback)
@@ -1376,7 +1376,7 @@ namespace Comfy::Studio::Editor
 			debug.Frame += 1.0f * (Gui::GetIO().DeltaTime * debug.FrameRate);
 			if (debug.Repeat && debug.Frame >= debug.Duration)
 				debug.Frame = 0.0f;
-			debug.Frame = std::clamp(debug.Frame, 0.0f, debug.Duration);
+			debug.Frame = Clamp(debug.Frame, 0.0f, debug.Duration);
 		}
 
 		if (debug.ApplyStageAuth)

@@ -27,7 +27,7 @@ namespace Comfy::Audio
 
 		void CopyStringIntoBuffer(char* outputBuffer, const size_t bufferSize, const std::string_view stringToCopy)
 		{
-			const auto copyLength = std::min(stringToCopy.size() + 1, bufferSize) - 1;
+			const auto copyLength = Min(stringToCopy.size() + 1, bufferSize) - 1;
 
 			std::copy(stringToCopy.data(), stringToCopy.data() + copyLength, outputBuffer);
 			outputBuffer[copyLength] = '\0';
@@ -487,7 +487,7 @@ namespace Comfy::Audio
 		{
 			auto stopwatch = Stopwatch::StartNew();
 
-			const auto bufferFrameCount = std::min<u32>(bufferFrameCountTarget, static_cast<u32>(MaxBufferFrameCount));
+			const auto bufferFrameCount = Min<u32>(bufferFrameCountTarget, static_cast<u32>(MaxBufferFrameCount));
 			const auto bufferSampleCount = (bufferFrameCount * OutputChannelCount);
 			assert(bufferFrameCountTarget <= MaxBufferFrameCount);
 
@@ -825,7 +825,7 @@ namespace Comfy::Audio
 
 	void AudioEngine::SetMasterVolume(f32 value)
 	{
-		impl->MasterVolume = std::clamp(value, MinVolume, MaxVolume);
+		impl->MasterVolume = Clamp(value, MinVolume, MaxVolume);
 	}
 
 	u32 AudioEngine::GetChannelCount() const
@@ -845,7 +845,7 @@ namespace Comfy::Audio
 
 	void AudioEngine::SetBufferFrameSize(u32 bufferFrameCount)
 	{
-		bufferFrameCount = std::clamp(bufferFrameCount, MinBufferFrameCount, MaxBufferFrameCount);
+		bufferFrameCount = Clamp(bufferFrameCount, MinBufferFrameCount, MaxBufferFrameCount);
 
 		if (bufferFrameCount == impl->CurrentBufferFrameSize)
 			return;

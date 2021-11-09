@@ -73,7 +73,7 @@ namespace Comfy::IO
 			stream.Seek(entry.Offset);
 
 			// NOTE: Since the farc file size is only stored in a 32bit integer, decompressing it as a single block should be safe enough (?)
-			const auto paddedSize = std::min(FArcEncryption::GetPaddedSize(entry.CompressedSize, alignment) + 16, static_cast<size_t>(stream.GetLength()));
+			const auto paddedSize = Min(FArcEncryption::GetPaddedSize(entry.CompressedSize, alignment) + 16, static_cast<size_t>(stream.GetLength()));
 
 			std::unique_ptr<u8[]> encryptedData = nullptr;
 			std::unique_ptr<u8[]> compressedData = std::make_unique<u8[]>(paddedSize);

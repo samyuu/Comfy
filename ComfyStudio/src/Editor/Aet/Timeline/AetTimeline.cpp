@@ -201,14 +201,12 @@ namespace Comfy::Studio::Editor
 		// NOTE: Settings popup
 		if (Gui::WideBeginPopup(settingsPopupName))
 		{
-			constexpr f32 percentageFactor = 100.0f;
-
 			// TODO: Come up with a neat comfy layout
 			Gui::Text("TODO:");
 
-			f32 playbackSpeedPercentage = playbackSpeedFactor * percentageFactor;
-			if (Gui::SliderFloat("Playback Speed", &playbackSpeedPercentage, (playbackSpeedMin * percentageFactor), (playbackSpeedMax * percentageFactor), "%.2f %%"))
-				playbackSpeedFactor = playbackSpeedPercentage * (1.0f / percentageFactor);
+			f32 playbackSpeedPercentage = ToPercent(playbackSpeedFactor);
+			if (Gui::SliderFloat("Playback Speed", &playbackSpeedPercentage, ToPercent(playbackSpeedMin ), ToPercent(playbackSpeedMax), "%.2f %%"))
+				playbackSpeedFactor = FromPercent(playbackSpeedPercentage);
 
 			Gui::Checkbox("Loop Animation", &loopPlayback);
 
@@ -404,7 +402,7 @@ namespace Comfy::Studio::Editor
 			f32 cursorFrame = GetCursorFrame().Frames();
 			if (Gui::ComfyDragText("TimeDragText::AetTimeline", cursorTime.FormatTime().data(), &cursorFrame, 1.0f, 0.0f, 0.0f, timeDragTextWidth))
 			{
-				cursorTime = GetTimelineTime(std::clamp(TimelineFrame(cursorFrame), loopStartFrame, loopEndFrame));
+				cursorTime = GetTimelineTime(Clamp(TimelineFrame(cursorFrame), loopStartFrame, loopEndFrame));
 				RoundCursorTimeToNearestFrame();
 			}
 
@@ -459,7 +457,7 @@ namespace Comfy::Studio::Editor
 			else if (itemType == AetItemType::Video)
 			{
 				loopStartFrame = 0.0f;
-				loopEndFrame = glm::max(0.0f, static_cast<f32>(selectedAetItem.Ptrs.Video->Sources.size()) - 1.0f);
+				loopEndFrame = Max(0.0f, static_cast<f32>(selectedAetItem.Ptrs.Video->Sources.size()) - 1.0f);
 			}
 			else if (const Composition* workingComp = GetWorkingComposition(); itemType == AetItemType::Composition || itemType == AetItemType::Layer && workingComp != nullptr)
 			{
@@ -613,6 +611,6 @@ namespace Comfy::Studio::Editor
 
 	i32 AetTimeline::GetRowIndexFromScreenY(f32 screenY) const
 	{
-		return glm::max(0, static_cast<i32>(glm::floor((screenY - regions.Content.Min.y + GetScrollY()) / rowItemHeight)));
+		return Max(0, static_cast<i32>(glm::floor((screenY - regions.Content.Min.y + GetScrollY()) / rowItemHeight)));
 	}
 }

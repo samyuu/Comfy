@@ -27,7 +27,7 @@ namespace Comfy::IO
 
 			while (remainingSize > 0)
 			{
-				const size_t chunkSize = std::min(remainingSize, chunkStepSize);
+				const size_t chunkSize = Min(remainingSize, chunkStepSize);
 
 				zStream.avail_in = static_cast<uInt>(chunkSize);
 				zStream.next_in = reinterpret_cast<const Bytef*>(inDataReadHeader);

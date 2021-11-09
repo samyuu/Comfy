@@ -249,7 +249,7 @@ namespace Comfy
 			const auto originalStartupRegion = ivec4(Window.Position, Window.Size);
 
 			auto windowStartupRegion = ClientToWindowArea(Window.Position, Window.Size);
-			windowStartupRegion.y = std::max(windowStartupRegion.y, 0);
+			windowStartupRegion.y = Max(windowStartupRegion.y, 0);
 
 			Window.Handle = ::CreateWindowExW(
 				NULL,

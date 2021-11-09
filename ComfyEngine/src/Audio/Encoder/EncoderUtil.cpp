@@ -98,7 +98,7 @@ namespace Comfy::Audio
 
 		while (!eos)
 		{
-			const i64 framesToProcess = std::min<i64>(EncoderBufferFrames, input.TotalFrameCount - totalFramesReadSoFar);
+			const i64 framesToProcess = Min<i64>(EncoderBufferFrames, input.TotalFrameCount - totalFramesReadSoFar);
 
 			if (framesToProcess <= 0)
 			{
