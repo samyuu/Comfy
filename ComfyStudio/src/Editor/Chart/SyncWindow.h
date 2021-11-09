@@ -21,6 +21,7 @@ namespace Comfy::Studio::Editor
 		BeatTick thisFrameCursorTick, lastFrameCursorTick;
 
 		Tempo newTempo = TempoChange::DefaultTempo;
+		FlyingTimeFactor newFlyingTime = TempoChange::DefaultFlyingTimeFactor;
 		TimeSignature newSignature = TempoChange::DefaultSignature;
 	};
 }

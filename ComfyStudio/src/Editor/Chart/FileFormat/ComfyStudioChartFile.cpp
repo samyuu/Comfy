@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	namespace ChartFileFormat
 	{
 		// NOTE: Increment major version for breaking changes and minor version for backwards and forward compatible additions
-		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 6, };
+		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 7, };
 		enum class Endianness : u16 { Little = 'L', Big = 'B' };
 		enum class PointerSize : u16 { Bit32 = 32, Bit64 = 64 };
 		enum class HeaderFlags : u32 { None = 0xFFFFFFFF };
@@ -123,11 +123,12 @@ namespace Comfy::Studio::Editor
 			void(*WriteFunc)(IO::StreamWriter&, const TempoChange&);
 		};
 
-		constexpr std::array<TempoField, 3> TempoMapFields =
+		constexpr std::array<TempoField, 4> TempoMapFields =
 		{
 			TempoField { "Tick", sizeof(i32), [](IO::StreamReader& r, TempoChange& t) { t.Tick = BeatTick(r.ReadI32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteI32(t.Tick.Ticks()); } },
-			TempoField { "Tempo", sizeof(f32), [](IO::StreamReader& r, TempoChange& t) { t.Tempo = Tempo(r.ReadF32()); },[](IO::StreamWriter& w, const TempoChange& t) { w.WriteF32(t.Tempo.BeatsPerMinute); } },
-			TempoField { "Time Signature", sizeof(i16) * 2, [](IO::StreamReader& r, TempoChange& t) { t.Signature.Numerator = r.ReadI16(); t.Signature.Denominator = r.ReadI16(); },[](IO::StreamWriter& w, const TempoChange& t) { w.WriteI16(t.Signature.Numerator); w.WriteI16(t.Signature.Denominator); } },
+			TempoField { "Tempo", sizeof(f32), [](IO::StreamReader& r, TempoChange& t) { t.Tempo = Tempo(r.ReadF32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteF32(t.Tempo.BeatsPerMinute); } },
+			TempoField { "Flying Time Factor", sizeof(f32), [](IO::StreamReader& r, TempoChange& t) { t.FlyingTime = FlyingTimeFactor(r.ReadF32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteF32(t.FlyingTime.Factor); } },
+			TempoField { "Time Signature", sizeof(i16) * 2, [](IO::StreamReader& r, TempoChange& t) { t.Signature.Numerator = r.ReadI16(); t.Signature.Denominator = r.ReadI16(); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteI16(t.Signature.Numerator); w.WriteI16(t.Signature.Denominator); } },
 		};
 	}
 
@@ -173,8 +174,14 @@ namespace Comfy::Studio::Editor
 		outChart->Properties.SongPreview.StartTime = chart.Time.SongPreviewStart;
 		outChart->Properties.SongPreview.Duration = chart.Time.SongPreviewDuration;
 
-		outChart->TempoMap = std::move(chart.TempoMap);
 		outChart->Targets = std::move(chart.Targets);
+		
+		for (auto& tempoChange : chart.TempoMap)
+		{
+			if (tempoChange.FlyingTime.Factor <= 0.0f)
+				tempoChange.FlyingTime = 1.0f;
+		}
+		outChart->TempoMap = std::move(chart.TempoMap);
 
 		outChart->Properties.ButtonSound.ButtonID = chart.ButtonSound.ButtonID;
 		outChart->Properties.ButtonSound.SlideID = chart.ButtonSound.SlideID;

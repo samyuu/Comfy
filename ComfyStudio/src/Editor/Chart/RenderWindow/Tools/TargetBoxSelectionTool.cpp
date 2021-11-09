@@ -44,13 +44,14 @@ namespace Comfy::Studio::Editor
 		{
 			if (data.IsSufficientlyLarge)
 			{
-				const auto minTargetSpace = vec2(std::min(data.StartTargetSpace.x, data.EndTargetSpace.x), std::min(data.StartTargetSpace.y, data.EndTargetSpace.y));
-				const auto maxTargetSpace = vec2(std::max(data.StartTargetSpace.x, data.EndTargetSpace.x), std::max(data.StartTargetSpace.y, data.EndTargetSpace.y));
+				const vec2 minTargetSpace = vec2(std::min(data.StartTargetSpace.x, data.EndTargetSpace.x), std::min(data.StartTargetSpace.y, data.EndTargetSpace.y));
+				const vec2 maxTargetSpace = vec2(std::max(data.StartTargetSpace.x, data.EndTargetSpace.x), std::max(data.StartTargetSpace.y, data.EndTargetSpace.y));
 
 				auto isTargetInSelectionRange = [&](const TimelineTarget& target) -> bool
 				{
-					const auto targetTick = target.Tick - BeatTick::FromBars(1);
-					const auto endTick = target.Tick + postHitLingerDuration;
+					const auto spawnTimes = chart.TempoMap.GetTargetSpawnTimes(target);
+					const BeatTick targetTick = spawnTimes.TargetTick;
+					const BeatTick endTick = target.Tick + postHitLingerDuration;
 					if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))
 					{
 						const auto position = Rules::TryGetProperties(target).Position;

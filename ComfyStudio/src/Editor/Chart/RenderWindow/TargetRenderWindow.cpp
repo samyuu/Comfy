@@ -507,14 +507,10 @@ namespace Comfy::Studio::Editor
 
 		for (const auto& target : targets)
 		{
-			const auto buttonTick = target.Tick;
-			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(buttonTick);
+			auto[targetTime, buttonTime, targetTick, buttonTick, flyingTime] = workingChart->TempoMap.GetTargetSpawnTimes(target);
 
 			const auto endTick = buttonTick + GlobalUserData.TargetPreview.PostHitLingerDuration;
-			const auto endTime = workingChart->TimelineMap.GetTimeAt(endTick);
-
-			const auto targetTick = target.Tick - BeatTick::FromBars(1);
-			const auto targetTime = workingChart->TimelineMap.GetTimeAt(targetTick);
+			const auto endTime = workingChart->TempoMap.TickToTime(endTick);
 
 			if (target.IsSelected || (cursorTick >= targetTick && cursorTick <= endTick))
 			{

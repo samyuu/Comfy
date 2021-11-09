@@ -128,7 +128,7 @@ namespace Comfy::Studio::Editor
 
 	void BPMCalculatorWindow::ExecuteUpdateTempoChangeBPM(Chart& chart, TimeSpan cursorBPMTime, Tempo updatedTempo) const
 	{
-		const auto& tempoChange = chart.TempoMap.FindTempoChangeAtTick(chart.TimelineMap.GetTickAt(cursorBPMTime));
+		const auto& tempoChange = chart.TempoMap.FindTempoChangeAtTick(chart.TempoMap.TimeToTick(cursorBPMTime));
 
 		undoManager.Execute<UpdateTempoChange>(chart, TempoChange(
 			tempoChange.Tick,

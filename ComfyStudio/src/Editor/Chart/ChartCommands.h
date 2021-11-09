@@ -708,13 +708,13 @@ namespace Comfy::Studio::Editor
 		void Undo() override
 		{
 			chart.TempoMap.RemoveTempoChange(newValue.Tick);
-			chart.UpdateMapTimes();
+			chart.TempoMap.RebuildAccelerationStructure();
 		}
 
 		void Redo() override
 		{
-			chart.TempoMap.SetTempoChange(newValue.Tick, newValue.Tempo, newValue.Signature);
-			chart.UpdateMapTimes();
+			chart.TempoMap.SetTempoChange(newValue);
+			chart.TempoMap.RebuildAccelerationStructure();
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override { return Undo::MergeResult::Failed; }
@@ -737,14 +737,14 @@ namespace Comfy::Studio::Editor
 	public:
 		void Undo() override
 		{
-			chart.TempoMap.SetTempoChange(oldValue.Tick, oldValue.Tempo, oldValue.Signature);
-			chart.UpdateMapTimes();
+			chart.TempoMap.SetTempoChange(oldValue);
+			chart.TempoMap.RebuildAccelerationStructure();
 		}
 
 		void Redo() override
 		{
 			chart.TempoMap.RemoveTempoChange(oldValue.Tick);
-			chart.UpdateMapTimes();
+			chart.TempoMap.RebuildAccelerationStructure();
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -771,14 +771,14 @@ namespace Comfy::Studio::Editor
 	public:
 		void Undo() override
 		{
-			chart.TempoMap.SetTempoChange(oldValue.Tick, oldValue.Tempo, oldValue.Signature);
-			chart.UpdateMapTimes();
+			chart.TempoMap.SetTempoChange(oldValue);
+			chart.TempoMap.RebuildAccelerationStructure();
 		}
 
 		void Redo() override
 		{
-			chart.TempoMap.SetTempoChange(newValue.Tick, newValue.Tempo, newValue.Signature);
-			chart.UpdateMapTimes();
+			chart.TempoMap.SetTempoChange(newValue);
+			chart.TempoMap.RebuildAccelerationStructure();
 		}
 
 		Undo::MergeResult TryMerge(Command& commandToMerge) override
@@ -796,5 +796,45 @@ namespace Comfy::Studio::Editor
 	private:
 		Chart& chart;
 		TempoChange newValue, oldValue;
+	};
+
+	class ChangeTempoChangeTick : public Undo::Command
+	{
+	public:
+		ChangeTempoChangeTick(Chart& chart, i32 tempoChangeIndex, BeatTick newTick)
+			: chart(chart), tempoChangeIndex(tempoChangeIndex), newTick(newTick)
+		{
+			oldTick = chart.TempoMap.GetTempoChangeAt(tempoChangeIndex).Tick;
+		}
+
+	public:
+		void Undo() override
+		{
+			chart.TempoMap.UpdateTempoChangeTick(tempoChangeIndex, oldTick);
+			chart.TempoMap.RebuildAccelerationStructure();
+		}
+
+		void Redo() override
+		{
+			chart.TempoMap.UpdateTempoChangeTick(tempoChangeIndex, newTick);
+			chart.TempoMap.RebuildAccelerationStructure();
+		}
+
+		Undo::MergeResult TryMerge(Command& commandToMerge) override
+		{
+			auto* other = static_cast<decltype(this)>(&commandToMerge);
+			if (&other->chart != &chart || other->tempoChangeIndex != tempoChangeIndex)
+				return Undo::MergeResult::Failed;
+
+			newTick = other->newTick;
+			return Undo::MergeResult::ValueUpdated;
+		}
+
+		std::string_view GetName() const override { return "Move Tempo Change"; }
+
+	private:
+		Chart& chart;
+		i32 tempoChangeIndex;
+		BeatTick newTick, oldTick;
 	};
 }

@@ -11,10 +11,10 @@ namespace Comfy::Studio::Editor
 
 	namespace
 	{
-		void CreateTempoMapApproximationFromPVCommands(const DecomposedPVScriptChartData& decomposedScript, SortedTempoMap& outTempoMap, TimelineMap& outTimelineMap, const PVScriptImportWindow::ImportSettings& settings)
+		void CreateTempoMapApproximationFromPVCommands(const DecomposedPVScriptChartData& decomposedScript, SortedTempoMap& outTempoMap, const PVScriptImportWindow::ImportSettings& settings)
 		{
 			outTempoMap.Clear();
-			outTimelineMap.CalculateMapTimes(outTempoMap);
+			outTempoMap.RebuildAccelerationStructure();
 
 			const f32 flyingTimeFactor = (settings.FlyingTimeFactor <= 0.001f) ? 1.0f : settings.FlyingTimeFactor;
 
@@ -22,15 +22,15 @@ namespace Comfy::Studio::Editor
 			{
 				const bool isFirst = (&flyingTimeCommand == &decomposedScript.FlyingTimeCommands[0]);
 
-				outTempoMap.SetTempoChange(
-					isFirst ? BeatTick::Zero() : outTimelineMap.GetTickAt(flyingTimeCommand.CommandTime + settings.TargetOffset),
+				outTempoMap.SetTempoChange(TempoChange(
+					isFirst ? BeatTick::Zero() : outTempoMap.TimeToTick(flyingTimeCommand.CommandTime + settings.TargetOffset),
 					Tempo(flyingTimeCommand.FlyingTempo.BeatsPerMinute * flyingTimeFactor),
-					flyingTimeCommand.Signature);
-				outTimelineMap.CalculateMapTimes(outTempoMap);
+					flyingTimeCommand.Signature));
+				outTempoMap.RebuildAccelerationStructure();
 			}
 		}
 
-		void CreateTargetListApproximationFromPVCommands(const DecomposedPVScriptChartData& decomposedScript, const TimelineMap& inTimelineMap, SortedTargetList& outTargetList, const PVScriptImportWindow::ImportSettings& settings)
+		void CreateTargetListApproximationFromPVCommands(const DecomposedPVScriptChartData& decomposedScript, SortedTempoMap& inTempoMap, SortedTargetList& outTargetList, const PVScriptImportWindow::ImportSettings& settings)
 		{
 			outTargetList.Clear();
 			std::vector<TimelineTarget> outTargets;
@@ -38,7 +38,7 @@ namespace Comfy::Studio::Editor
 			for (const auto& targetCommand : decomposedScript.TargetCommands)
 			{
 				auto& outTarget = outTargets.emplace_back();
-				outTarget.Tick = inTimelineMap.GetTickAt(targetCommand.ButtonTime + settings.TargetOffset);
+				outTarget.Tick = inTempoMap.TimeToTick(targetCommand.ButtonTime + settings.TargetOffset);
 				outTarget.Flags.HasProperties = true;
 
 				auto& outType = outTarget.Type;
@@ -102,8 +102,8 @@ namespace Comfy::Studio::Editor
 
 			outChart->Duration = decomposedScript.PVEndCommandTime + settings.TargetOffset;
 
-			CreateTempoMapApproximationFromPVCommands(decomposedScript, outChart->TempoMap, outChart->TimelineMap, settings);
-			CreateTargetListApproximationFromPVCommands(decomposedScript, outChart->TimelineMap, outChart->Targets, settings);
+			CreateTempoMapApproximationFromPVCommands(decomposedScript, outChart->TempoMap, settings);
+			CreateTargetListApproximationFromPVCommands(decomposedScript, outChart->TempoMap, outChart->Targets, settings);
 			return outChart;
 		}
 
@@ -120,8 +120,8 @@ namespace Comfy::Studio::Editor
 
 			const auto& firstTarget = chart.Targets[0];
 
-			const TimeSpan firstTargetButtonTime = chart.TimelineMap.GetTimeAt(firstTarget.Tick);
-			const TimeSpan firstTargetButtonTimeBeatRounded = chart.TimelineMap.GetTimeAt(roundTickToBeat(firstTarget.Tick));
+			const TimeSpan firstTargetButtonTime = chart.TempoMap.TickToTime(firstTarget.Tick);
+			const TimeSpan firstTargetButtonTimeBeatRounded = chart.TempoMap.TickToTime(roundTickToBeat(firstTarget.Tick));
 
 			return (firstTargetButtonTimeBeatRounded - firstTargetButtonTime);
 		}
@@ -141,11 +141,10 @@ namespace Comfy::Studio::Editor
 				const TimeSpan sourceButtonTime = sourceTargetCommand.ButtonTime + settings.TargetOffset;
 				const TimeSpan sourceTargetTime = sourceTargetCommand.TargetTime + settings.TargetOffset;
 
-				const TimeSpan convertedButtonTime = importedChart.TimelineMap.GetTimeAt(convertedTarget.Tick);
-				const TimeSpan convertedTargetTime = importedChart.TimelineMap.GetTimeAt(convertedTarget.Tick - BeatTick::FromBars(1));
+				const auto convertedSpawnTimes = importedChart.TempoMap.GetTargetSpawnTimes(convertedTarget);
 
-				const TimeSpan buttonTimeDifference = sourceButtonTime - convertedButtonTime;
-				const TimeSpan targetTimeDifference = sourceTargetTime - convertedTargetTime;
+				const TimeSpan buttonTimeDifference = sourceButtonTime - convertedSpawnTimes.ButtonTime;
+				const TimeSpan targetTimeDifference = sourceTargetTime - convertedSpawnTimes.TargetTime;
 
 				if (i == 0)
 				{

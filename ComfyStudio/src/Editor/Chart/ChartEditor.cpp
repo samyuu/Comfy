@@ -33,7 +33,7 @@ namespace Comfy::Studio::Editor
 	ChartEditor::ChartEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
 		chart = std::make_unique<Chart>();
-		chart->UpdateMapTimes();
+		chart->TempoMap.RebuildAccelerationStructure();
 		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
 
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor SongVoice", false, 1.0f, true);
@@ -453,7 +453,7 @@ namespace Comfy::Studio::Editor
 	{
 		undoManager.ClearAll();
 		chart = std::make_unique<Chart>();
-		chart->UpdateMapTimes();
+		chart->TempoMap.RebuildAccelerationStructure();
 		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
 		UnloadSong();
 		UnloadMovie(true);
@@ -482,7 +482,7 @@ namespace Comfy::Studio::Editor
 		const auto chartFile = IO::File::Load<ComfyStudioChartFile>(filePath);
 
 		chart = (chartFile != nullptr) ? chartFile->MoveToChart() : std::make_unique<Chart>();
-		chart->UpdateMapTimes();
+		chart->TempoMap.RebuildAccelerationStructure();
 		chart->ChartFilePath = std::string(filePath);
 
 		// NOTE: Always load the audio before the video to try and avoid exclusive mode MoviePlayer issues
@@ -595,7 +595,7 @@ namespace Comfy::Studio::Editor
 		const auto pjeFile = IO::File::Load<Legacy::PJEFile>(filePath);
 
 		chart = (pjeFile != nullptr) ? pjeFile->ToChart() : std::make_unique<Chart>();
-		chart->UpdateMapTimes();
+		chart->TempoMap.RebuildAccelerationStructure();
 
 		// NOTE: Unable to use relative file path because imported chart data don't and shouldn't set a working directory
 		LoadSongAsync((pjeFile != nullptr) ? pjeFile->TryFindSongFilePath(filePath) : "");
@@ -1003,7 +1003,7 @@ namespace Comfy::Studio::Editor
 				if (auto importedChart = pvScriptImportPopup.Window.TryMoveImportedChartBeforeClosing(); importedChart != nullptr)
 				{
 					chart = std::move(importedChart);
-					chart->UpdateMapTimes();
+					chart->TempoMap.RebuildAccelerationStructure();
 
 					if (!chart->SongFileName.empty())
 						LoadSongAsync(chart->SongFileName);

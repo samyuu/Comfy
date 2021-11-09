@@ -174,15 +174,15 @@ namespace Comfy::Studio::Editor
 			return std::string_view(buffer.data(), sprintf_s(buffer.data(), buffer.size(),
 				"(%zu selected : %s)",
 				selectedTargets.size(),
-				chart.TimelineMap.GetTimeAt(selectedTargets.front()->Tick).FormatTime().data()));
+				chart.TempoMap.TickToTime(selectedTargets.front()->Tick).FormatTime().data()));
 		}
 		else
 		{
 			return std::string_view(buffer.data(), sprintf_s(buffer.data(), buffer.size(),
 				"(%zu selected : %s - %s)",
 				selectedTargets.size(),
-				chart.TimelineMap.GetTimeAt(selectedTargets.front()->Tick).FormatTime().data(),
-				chart.TimelineMap.GetTimeAt(selectedTargets.back()->Tick).FormatTime().data()));
+				chart.TempoMap.TickToTime(selectedTargets.front()->Tick).FormatTime().data(),
+				chart.TempoMap.TickToTime(selectedTargets.back()->Tick).FormatTime().data()));
 		}
 	}
 

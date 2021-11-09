@@ -207,7 +207,6 @@
     <ClCompile Include="src\Editor\Chart\RenderWindow\TargetRenderWindow.cpp" />
     <ClCompile Include="src\Editor\Chart\SortedTempoMap.cpp" />
     <ClCompile Include="src\Editor\Chart\Timeline\TargetTimeline.cpp" />
-    <ClCompile Include="src\Editor\Chart\Timeline\TimelineMap.cpp" />
     <ClCompile Include="src\Editor\Common\ButtonSoundController.cpp" />
     <ClCompile Include="src\Editor\Common\CameraController2D.cpp" />
     <ClCompile Include="src\Editor\Common\RecentFilesList.cpp" />
@@ -294,7 +293,6 @@
     <ClInclude Include="src\Editor\Chart\TempoChange.h" />
     <ClInclude Include="src\Editor\Chart\SortedTempoMap.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TargetTimeline.h" />
-    <ClInclude Include="src\Editor\Chart\Timeline\TimelineMap.h" />
     <ClInclude Include="src\Editor\Chart\BeatTick.h" />
     <ClInclude Include="src\Editor\Common\ButtonSoundController.h" />
     <ClInclude Include="src\Editor\Common\CameraController2D.h" />

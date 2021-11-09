@@ -132,13 +132,14 @@ namespace Comfy::Studio::Editor
 			}
 
 			const TimeSpan targetTimeDelay = std::max(chart.SongOffset, TimeSpan::Zero());
-			i32 lastFlyDurationMS = {};
+			i32 lastFlyingTimeMS = {};
 
 			for (const auto& target : chart.Targets)
 			{
-				const TimeSpan targetTime = chart.TimelineMap.GetTimeAt(target.Tick - BeatTick::FromBars(1)) + targetTimeDelay;
-				const TimeSpan buttonTime = chart.TimelineMap.GetTimeAt(target.Tick) + targetTimeDelay;
-				const i32 flyDurationMS = static_cast<i32>(glm::round((buttonTime - targetTime).TotalMilliseconds()));
+				const auto spawnTimes = chart.TempoMap.GetTargetSpawnTimes(target);
+				const TimeSpan targetTime = spawnTimes.TargetTime;
+				const TimeSpan buttonTime = spawnTimes.ButtonTime;
+				const i32 flyingTimeMS = static_cast<i32>(glm::round(spawnTimes.FlyingTime.TotalMilliseconds()));
 
 				auto targetProperties = Rules::TryGetProperties(target);
 				if (target.Flags.IsChain && !target.Flags.IsChainStart)
@@ -153,10 +154,10 @@ namespace Comfy::Studio::Editor
 				targetCommand.Amplitude = static_cast<i32>(targetProperties.Amplitude);
 				targetCommand.Frequency = static_cast<i32>(targetProperties.Frequency);
 
-				if (flyDurationMS != lastFlyDurationMS)
+				if (flyingTimeMS != lastFlyingTimeMS)
 				{
-					scriptBuilder.Add(targetTime, PVCommandLayout::TargetFlyingTime(flyDurationMS));
-					lastFlyDurationMS = flyDurationMS;
+					scriptBuilder.Add(targetTime, PVCommandLayout::TargetFlyingTime(flyingTimeMS));
+					lastFlyingTimeMS = flyingTimeMS;
 				}
 
 				scriptBuilder.Add(targetTime, targetCommand);

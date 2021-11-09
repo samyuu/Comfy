@@ -3,7 +3,6 @@
 #include "SortedTargetList.h"
 #include "SortedTempoMap.h"
 #include "Editor/Common/AsyncLoadedImageFile.h"
-#include "Timeline/TimelineMap.h"
 #include "Time/TimeSpan.h"
 
 namespace Comfy::Studio::Editor
@@ -138,15 +137,11 @@ namespace Comfy::Studio::Editor
 		TimeSpan MovieOffset = TimeSpan::Zero();
 		TimeSpan Duration = TimeSpan::Zero();
 
-		SortedTempoMap TempoMap;
-		TimelineMap TimelineMap;
-
 		SortedTargetList Targets;
+		SortedTempoMap TempoMap;
 
 	public:
 		inline std::string_view SongTitleOrDefault() const { return Properties.Song.Title.empty() ? FallbackSongTitle : Properties.Song.Title; }
 		inline TimeSpan DurationOrDefault() const { return (Duration <= TimeSpan::Zero()) ? FallbackDuration : Duration; }
-
-		inline void UpdateMapTimes() { TimelineMap.CalculateMapTimes(TempoMap); }
 	};
 }

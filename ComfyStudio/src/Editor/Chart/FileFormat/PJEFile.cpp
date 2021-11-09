@@ -82,11 +82,12 @@ namespace Comfy::Studio::Editor
 				newTarget.Properties.Distance = pjeTarget.Distance;
 			}
 
-			chart->TempoMap = std::move(newTempoChanges);
 			chart->Targets = std::move(newTargets);
-
-			chart->UpdateMapTimes();
-			chart->Duration = chart->TimelineMap.GetTimeAt(BeatTick(songEnd));
+			
+			chart->TempoMap = std::move(newTempoChanges);
+			chart->TempoMap.RebuildAccelerationStructure();
+			
+			chart->Duration = chart->TempoMap.TickToTime(BeatTick(songEnd));
 
 			return chart;
 		}
@@ -346,7 +347,7 @@ namespace Comfy::Studio::Editor
 
 			songOffset = sourceChart.SongOffset;
 			videoOffset = sourceChart.MovieOffset;
-			songEnd = sourceChart.TimelineMap.GetTickAt(sourceChart.DurationOrDefault());
+			songEnd = sourceChart.TempoMap.TimeToTick(sourceChart.DurationOrDefault());
 
 			const auto sourceSongTitle = sourceChart.SongTitleOrDefault();
 			songTitle = {};
@@ -378,7 +379,11 @@ namespace Comfy::Studio::Editor
 				newTarget.Frequency = properties.Frequency;
 				newTarget.Amplitude = properties.Amplitude;
 				newTarget.Distance = properties.Distance;
-				newTarget.FlyTime = static_cast<f32>((sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick) - sourceChart.TimelineMap.GetTimeAt(sourceTarget.Tick - BeatTick::FromBars(1))).TotalMilliseconds());
+#if 0 // NOTE: Not like it really matters as the FlyTime here is never actually used by UPDC
+				newTarget.FlyTime = static_cast<f32>((sourceChart.TempoMap.TickToTime(sourceTarget.Tick) - sourceChart.TempoMap.TickToTime(sourceTarget.Tick - BeatTick::FromBars(1))).TotalMilliseconds());
+#else
+				newTarget.FlyTime = static_cast<f32>(sourceChart.TempoMap.GetTargetSpawnTimes(sourceTarget).FlyingTime.TotalMilliseconds());
+#endif
 			}
 		}
 

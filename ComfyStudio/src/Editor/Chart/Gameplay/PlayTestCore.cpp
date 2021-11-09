@@ -41,7 +41,7 @@ namespace Comfy::Studio::Editor
 
 			TimeSpan TargetTime;
 			TimeSpan ButtonTime;
-			TimeSpan FlyDuration;
+			TimeSpan FlyingTime;
 
 			vec2 PositionCenter;
 		};
@@ -218,9 +218,10 @@ namespace Comfy::Studio::Editor
 					}
 				}
 
-				newPair.TargetTime = std::max(chart.TimelineMap.GetTimeAt(frontPairSourceTarget.Tick - BeatTick::FromBars(1)), TimeSpan::Zero());
-				newPair.ButtonTime = chart.TimelineMap.GetTimeAt(frontPairSourceTarget.Tick);
-				newPair.FlyDuration = (newPair.ButtonTime - newPair.TargetTime);
+				const auto spawnTimes = chart.TempoMap.GetTargetSpawnTimes(frontPairSourceTarget);
+				newPair.TargetTime = std::max(spawnTimes.TargetTime, TimeSpan::Zero());
+				newPair.ButtonTime = spawnTimes.ButtonTime;
+				newPair.FlyingTime = spawnTimes.FlyingTime;
 
 				for (size_t i = 0; i < newPair.TargetCount; i++)
 					newPair.PositionCenter += newPair.Targets[i].Properties.Position;
@@ -767,7 +768,7 @@ namespace Comfy::Studio::Editor
 					if (!onScreenTarget.Flags.IsSync && !onScreenTarget.HasBeenHit)
 					{
 						auto& trailData = context.RenderHelperEx.EmplaceButtonTrail();
-						context.RenderHelperEx.ConstructButtonTrail(trailData, onScreenTarget.Type, progressUnbound, progressUnbound, properties, onScreenPair.FlyDuration);
+						context.RenderHelperEx.ConstructButtonTrail(trailData, onScreenTarget.Type, progressUnbound, progressUnbound, properties, onScreenPair.FlyingTime);
 						trailData.ProgressMax = std::numeric_limits<f32>::max();
 						trailData.Opacity = hitMissProgress;
 					}

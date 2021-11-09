@@ -85,12 +85,7 @@ namespace Comfy::Studio::Editor
 
 	BeatTick TargetTimeline::TimeToTick(TimeSpan time) const
 	{
-		return workingChart->TimelineMap.GetTickAt(time);
-	}
-
-	BeatTick TargetTimeline::TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const
-	{
-		return workingChart->TimelineMap.GetTickAtFixedTempo(time, tempo);
+		return workingChart->TempoMap.TimeToTick(time);
 	}
 
 	BeatTick TargetTimeline::GetBeatTick(f32 position) const
@@ -100,7 +95,7 @@ namespace Comfy::Studio::Editor
 
 	TimeSpan TargetTimeline::TickToTime(BeatTick tick) const
 	{
-		return workingChart->TimelineMap.GetTimeAt(tick);
+		return workingChart->TempoMap.TickToTime(tick);
 	}
 
 	TimeSpan TargetTimeline::GetTimelineTime(f32 position) const
@@ -201,7 +196,7 @@ namespace Comfy::Studio::Editor
 			if (target.Flags.IsChain && !target.Flags.IsChainStart && !target.Flags.IsChainEnd)
 				continue;
 
-			const auto buttonTime = workingChart->TimelineMap.GetTimeAt(target.Tick);
+			const auto buttonTime = TickToTime(target.Tick);
 			const auto offsetButtonTime = buttonTime - futureOffset;
 
 			if (offsetButtonTime >= lastFrameButtonSoundCursorTime && offsetButtonTime < thisFrameButtonSoundCursorTime)
@@ -461,7 +456,7 @@ namespace Comfy::Studio::Editor
 			const vec2 end = regions.Content.GetBL() + vec2(screenX, 0.0f);
 			baseWindowDrawList->AddLine(start, end, barColor);
 			baseWindowDrawList->AddText(nullptr, 14.0f, start + vec2(3.0f, -4.0f), barTextColor, buffer, buffer + sprintf_s(buffer, "%zu", barIndex));
-			baseWindowDrawList->AddText(nullptr, 13.0f, start + vec2(3.0f, -4.0f + 9.0f), barTimeColor, workingChart->TimelineMap.GetTimeAt(barTick).FormatTime().data());
+			baseWindowDrawList->AddText(nullptr, 13.0f, start + vec2(3.0f, -4.0f + 9.0f), barTimeColor, TickToTime(barTick).FormatTime().data());
 			return false;
 		});
 	}
@@ -651,11 +646,16 @@ namespace Comfy::Studio::Editor
 		const auto& tempoMap = workingChart->TempoMap;
 
 		constexpr const char* tempoChangePopupName = "##TempoChangePopup";
+		vec2 tempoPopupWindowStartPosition = {};
+		vec2 tempoPopupWindowStartPivot = vec2(0.5f, 1.0f);
+		vec2 tempoPopupWindowStartSize = vec2(280.0f, 0.0f);
+
 		f32 lastDrawnTimelineX = 0.0f;
 
 		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 		{
 			const auto& tempoChange = tempoMap.GetTempoChangeAt(i);
+			const auto& lastTempoChange = tempoMap.GetTempoChangeAt((i == 0) ? i : (i - 1));
 
 			const f32 timelineX = GetTimelinePosition(tempoChange.Tick);
 			const f32 screenX = glm::round(timelineX - GetScrollX());
@@ -666,17 +666,31 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				break;
 
-			const bool displaySignature = (i == 0 || tempoChange.Signature != tempoMap.GetTempoChangeAt(i - 1).Signature);
 			const bool shortenText = (zoomLevel < 1.0f);
 
-			char tempoBuffer[64];
-			sprintf_s(tempoBuffer,
-				displaySignature ? (shortenText ? "%.0f BPM %d/%d" : "%.2f BPM %d/%d") : (shortenText ? "%.0f BPM" : "%.2f BPM"),
-				tempoChange.Tempo.BeatsPerMinute,
-				tempoChange.Signature.Numerator, tempoChange.Signature.Denominator);
+			char tempoChangeTextBuffer[64];
+			sprintf_s(tempoChangeTextBuffer, shortenText ? "%.0f BPM" : "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
+
+			const bool displaySignature = (i == 0 || tempoChange.Signature != lastTempoChange.Signature);
+			if (displaySignature)
+			{
+				char b[32]; sprintf_s(b, " %d/%d", tempoChange.Signature.Numerator, tempoChange.Signature.Denominator);
+				strcat_s(tempoChangeTextBuffer, b);
+			}
+
+			const bool displayFlyingTime = (i == 0 || tempoChange.FlyingTime != lastTempoChange.FlyingTime);
+			if (displayFlyingTime)
+			{
+#if 0 // NOTE: Maybe more readable but takes up too much space..?
+				char b[32]; sprintf_s(b, " %.2f %%", tempoChange.FlyingTime.Factor * 100.0f);
+#else
+				char b[32]; sprintf_s(b, " %.3gx", tempoChange.FlyingTime.Factor);
+#endif
+				strcat_s(tempoChangeTextBuffer, b);
+			}
 
 			const vec2 buttonPosition = regions.TempoMap.GetTL() + vec2(screenX + 1.0f, 0.0f);
-			const vec2 buttonSize = vec2(Gui::CalcTextSize(tempoBuffer).x, tempoMapHeight);
+			const vec2 buttonSize = vec2(Gui::CalcTextSize(tempoChangeTextBuffer).x, tempoMapHeight);
 
 			Gui::SetCursorScreenPos(buttonPosition);
 
@@ -697,6 +711,12 @@ namespace Comfy::Studio::Editor
 				{
 					Gui::OpenPopup(tempoChangePopupName);
 					tempoPopupIndex = static_cast<i32>(i);
+
+					// NOTE: Appear above the TempoChange on the TempoMap to not block the timeline content region
+					tempoPopupWindowStartPosition = buttonPosition - vec2(0.0f, 8.0f);
+					tempoPopupWindowStartPosition.x = glm::clamp(tempoPopupWindowStartPosition.x,
+						regions.TempoMap.Min.x + (tempoPopupWindowStartSize.x * tempoPopupWindowStartPivot.x),
+						regions.TempoMap.Max.x - (tempoPopupWindowStartSize.x * (1.0f - tempoPopupWindowStartPivot.x)));
 				}
 			}
 
@@ -706,72 +726,141 @@ namespace Comfy::Studio::Editor
 			// NOTE: Just like with the bar / beat division culling this is far from perfect 
 			//		 but at least crudely prevents any unreadable overlapping text until zoomed in close enough
 			if (const f32 lastDrawnDistance = (timelineX - lastDrawnTimelineX); lastDrawnDistance >= 0.0f)
-				baseWindowDrawList->AddText(Gui::GetFont(), tempoMapFontSize, (buttonPosition + tempoMapFontOffset), tempoColor, tempoBuffer);
+				baseWindowDrawList->AddText(Gui::GetFont(), tempoMapFontSize, (buttonPosition + tempoMapFontOffset), tempoColor, tempoChangeTextBuffer);
 			lastDrawnTimelineX = timelineX + buttonSize.x;
 		}
 
 		if (tempoPopupIndex >= 0)
-			Gui::SetNextWindowSize(vec2(280.0f, 0.0f), ImGuiCond_Always);
+		{
+			Gui::SetNextWindowPos(tempoPopupWindowStartPosition, ImGuiCond_Appearing, tempoPopupWindowStartPivot);
+			Gui::SetNextWindowSize(tempoPopupWindowStartSize, ImGuiCond_Always);
+		}
 
 		if (Gui::WideBeginPopup(tempoChangePopupName))
 		{
-			Gui::Text("Tempo Change:");
+			const f32 closeButtonSize = Gui::GetFontSize();
+			const ImRect windowBB = { Gui::GetWindowPos(), Gui::GetWindowPos() + Gui::GetWindowSize() };
 
-			GuiPropertyRAII::PropertyValueColumns columns;
+			Gui::Text("Edit Tempo Change");
+			if (Gui::CloseButton(Gui::GetID("TempoChangePopupCloseButton"), vec2(windowBB.Max.x - Gui::GetStyle().FramePadding.x * 2.0f - closeButtonSize, windowBB.Min.y)))
+				Gui::CloseCurrentPopup();
+
+			// HACK: Raw old columns API usage here just to quickly disable resizing
+			// GuiPropertyRAII::PropertyValueColumns columns;
+			Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
 
 			if (tempoPopupIndex >= 0)
 			{
-				const auto& tempoChange = tempoMap.GetTempoChangeAt(tempoPopupIndex);
+				const auto& thisTempoChange = tempoMap.GetTempoChangeAt(tempoPopupIndex);
+				const auto* prevTempoChange = (tempoPopupIndex > 0 && tempoPopupIndex < tempoMap.TempoChangeCount()) ? &tempoMap.GetTempoChangeAt(tempoPopupIndex - 1) : nullptr;
+				const auto* nextTempoChange = (tempoPopupIndex + 1 < tempoMap.TempoChangeCount()) ? &tempoMap.GetTempoChangeAt(tempoPopupIndex + 1) : nullptr;
 
-				// TODO: Be able to move non-first tempo changes within the bounds of the previous and the next
-				GuiProperty::PropertyLabelValueFunc("Time", [&]
-				{
-					Gui::TextDisabled("%s (Ticks: %d)", TickToTime(tempoChange.Tick).FormatTime().data(), tempoChange.Tick.Ticks());
-					return false;
-				});
+				Gui::PushID(&thisTempoChange);
+				auto updatedTempoChange = thisTempoChange;
 
-				f32 bpm = tempoChange.Tempo.BeatsPerMinute;
-				if (GuiProperty::Input("Tempo##TempoChange", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
-					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
+				const bool tempoChangeCanBeMoved = (tempoPopupIndex > 0 && prevTempoChange != nullptr);
+				const BeatTick minTickBetweenTempoChanges = GridDivisionTick();
+				const BeatTick prevTempoChangeTickMin = (prevTempoChange != nullptr) ? std::min((prevTempoChange->Tick + minTickBetweenTempoChanges), thisTempoChange.Tick) : minTickBetweenTempoChanges;
+				const BeatTick nextTempoChangeTickMax = (nextTempoChange != nullptr) ? std::max((nextTempoChange->Tick - minTickBetweenTempoChanges), thisTempoChange.Tick) : BeatTick::FromTicks(std::numeric_limits<i32>::max());
 
-				ivec2 sig = { tempoChange.Signature.Numerator, tempoChange.Signature.Denominator };
-				if (GuiProperty::InputFraction("Time Signature", sig, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
-					undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, tempoChange.Tempo, TimeSignature(sig[0], sig[1])));
-
-				GuiProperty::PropertyLabelValueFunc("", [&]
-				{
-					const auto& style = Gui::GetStyle();
-					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-					const f32 buttonWidth = (Gui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2.0f;
-
-					if (Gui::Button("x0.5", vec2(buttonWidth, 0.0f)))
-						undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm * 0.5f, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
-					Gui::SameLine();
-					if (Gui::Button("x2.0", vec2(buttonWidth, 0.0f)))
-						undoManager.Execute<UpdateTempoChange>(*workingChart, TempoChange(tempoChange.Tick, std::clamp(bpm * 2.0f, Tempo::MinBPM, Tempo::MaxBPM), tempoChange.Signature));
-					Gui::PopStyleVar();
-
-					return false;
-				});
-
+				// TODO: Also be able to move tempo changes using the mouse similarly to targets (?) although then the "left click to jump" behavior would have to change (?)
+				// TODO: Maybe the timeline should automatically be scrolled while moving a tempo change (?) or at least if the tempo change is moved off-screen
 				GuiProperty::PropertyFuncValueFunc([&]
 				{
-					Gui::PushItemDisabledAndTextColorIf(tempoPopupIndex == 0);
-					if (Gui::Button("Remove##TempoChange", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
+					if (tempoChangeCanBeMoved)
 					{
-						undoManager.ExecuteEndOfFrame<RemoveTempoChange>(*workingChart, tempoChange.Tick);
-						Gui::CloseCurrentPopup();
+						const i32 gridDivisionTicks = GridDivisionTick().Ticks();
+						i32 ticksInGridUnits = (thisTempoChange.Tick.Ticks() / gridDivisionTicks);
+						i32 ticksMinInGridUnits = (prevTempoChangeTickMin.Ticks() / gridDivisionTicks);
+						i32 ticksMaxInGridUnits = (nextTempoChangeTickMax.Ticks() / gridDivisionTicks);
+
+						// NOTE: Scale with grid division so that the apparent drag speed always stays the same 
+						//		 and with BPM+Zoom so that the rate of change roughly matches that of the mouse cursor in screenspace
+						const f32 prevBPM = ((prevTempoChange != nullptr) ? prevTempoChange->Tempo : thisTempoChange.Tempo).BeatsPerMinute;
+						const f32 dragSpeed = (1.0f / (static_cast<f32>(gridDivisionTicks) / static_cast<f32>(BeatTick::TicksPerBeat))) * (1.0f / 37.5f) * (prevBPM / 240.0f) / zoomLevel;
+
+						if (GuiProperty::Detail::DragTextT<i32>("Time and Beat", ticksInGridUnits, dragSpeed, &ticksMinInGridUnits, &ticksMaxInGridUnits, 0.0f))
+						{
+							const BeatTick ticksInGridUnitsBackToTick = std::clamp(BeatTick::FromTicks(ticksInGridUnits * gridDivisionTicks), prevTempoChangeTickMin, nextTempoChangeTickMax);
+							if (tempoChangeCanBeMoved && ticksInGridUnitsBackToTick != thisTempoChange.Tick)
+								undoManager.Execute<ChangeTempoChangeTick>(*workingChart, tempoPopupIndex, ticksInGridUnitsBackToTick);
+						}
 					}
-					Gui::PopItemDisabledAndTextColorIf(tempoPopupIndex == 0);
+					else
+					{
+						Gui::TextDisabled("Time and Beat");
+					}
+
 					return false;
 				}, [&]
 				{
-					if (Gui::Button("Close##TempoChange", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
-						Gui::CloseCurrentPopup();
+					Gui::PushItemDisabledAndTextColorIf(!tempoChangeCanBeMoved);
+					{
+						TimeSpan tempoChangeTime = TickToTime(thisTempoChange.Tick);
+						if (Gui::InputFormattedTimeSpan("##Time", &tempoChangeTime, vec2(Gui::GetContentRegionAvail().x * 0.5f, 0.0f)))
+						{
+							const BeatTick newTempoChangeTick = std::clamp(TimeToTick(tempoChangeTime), prevTempoChangeTickMin, nextTempoChangeTickMax);
+							if (tempoChangeCanBeMoved && newTempoChangeTick != thisTempoChange.Tick)
+								undoManager.Execute<ChangeTempoChangeTick>(*workingChart, tempoPopupIndex, newTempoChangeTick);
+						}
+					}
+					Gui::PopItemDisabledAndTextColorIf(!tempoChangeCanBeMoved);
+					Gui::SameLine();
+					Gui::PushItemDisabledAndTextColor();
+					{
+						char textBuffer[64];
+						sprintf_s(textBuffer, "%.4g", thisTempoChange.Tick.BeatsFraction());
+						Gui::SetNextItemWidth(-1.0f);
+						Gui::InputText("##Beat", textBuffer, sizeof(textBuffer), ImGuiInputTextFlags_ReadOnly);
+					}
+					Gui::PopItemDisabledAndTextColor();
+
 					return false;
 				});
+
+				f32 bpm = thisTempoChange.Tempo.BeatsPerMinute;
+				if (GuiProperty::Input("Tempo", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+				{
+					updatedTempoChange.Tempo = std::clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM);
+					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
+				}
+
+				f32 flyingTimeFactor = (thisTempoChange.FlyingTime.Factor * 100.0f);
+				if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, vec2(FlyingTimeFactor::Min * 100.0f, FlyingTimeFactor::Max * 100.0f), "%.2f %%"))
+				{
+					updatedTempoChange.FlyingTime.Factor = (flyingTimeFactor * 0.01f);
+					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
+				}
+
+				ivec2 sig = { thisTempoChange.Signature.Numerator, thisTempoChange.Signature.Denominator };
+				if (GuiProperty::InputFraction("Time Signature", sig, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
+				{
+					updatedTempoChange.Signature = TimeSignature(sig[0], sig[1]);
+					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
+				}
+
+				GuiProperty::PropertyFuncValueFunc([&]
+				{
+					return false;
+				}, [&]
+				{
+					Gui::PushStyleColor(ImGuiCol_Text, GetColor(EditorColor_RedText, 0.75f));
+					Gui::PushItemDisabledAndTextColorIf(tempoPopupIndex == 0);
+					if (Gui::Button("Remove", vec2(Gui::GetContentRegionAvail().x, 0.0f)))
+					{
+						undoManager.ExecuteEndOfFrame<RemoveTempoChange>(*workingChart, thisTempoChange.Tick);
+						Gui::CloseCurrentPopup();
+					}
+					Gui::PopItemDisabledAndTextColorIf(tempoPopupIndex == 0);
+					Gui::PopStyleColor();
+
+					return false;
+				});
+
+				Gui::PopID();
 			}
 
+			Gui::EndColumns();
 			Gui::EndPopup();
 		}
 		else

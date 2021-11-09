@@ -46,7 +46,6 @@ namespace Comfy::Studio::Editor
 		f32 GetTimelinePosition(BeatTick tick) const;
 
 		BeatTick TimeToTick(TimeSpan time) const;
-		BeatTick TimeToTickFixedTempo(TimeSpan time, Tempo tempo) const;
 
 		BeatTick GetBeatTick(f32 position) const;
 

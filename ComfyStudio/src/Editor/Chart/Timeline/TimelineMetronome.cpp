@@ -57,7 +57,7 @@ namespace Comfy::Studio::Editor
 			lastPlayedBeatTime = TimeSpan::FromSeconds(std::numeric_limits<f64>::min());
 		lastProvidedFrameTime = timeThisFrame;
 
-		const auto cursorTick = chart.TimelineMap.GetTickAt(timeThisFrame);
+		const auto cursorTick = chart.TempoMap.TimeToTick(timeThisFrame);
 		const auto cursorEndTick = cursorTick + BeatTick::FromBars(1);
 
 		chart.TempoMap.ForEachBeatBar([&](const BeatTick beatTick, const size_t barIndex, const bool isBar)
@@ -65,7 +65,7 @@ namespace Comfy::Studio::Editor
 			if (beatTick >= cursorEndTick)
 				return true;
 
-			const auto beatTime = chart.TimelineMap.GetTimeAt(beatTick);
+			const auto beatTime = chart.TempoMap.TickToTime(beatTick);
 			const auto offsetBeatTime = (beatTime - futureOffset);
 
 			if (offsetBeatTime >= timeLastFrame && offsetBeatTime <= timeThisFrame)

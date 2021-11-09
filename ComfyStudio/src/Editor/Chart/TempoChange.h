@@ -45,13 +45,32 @@ namespace Comfy::Studio::Editor
 		return result;
 	}
 
+	// NOTE: The factor that gets applied to a Tempo while calculating the final flying time.
+	//		 A factor of 0.5f means "half BPM" and therefore a longer flying time
+	//		 and a factor of 2.0f means "double BPM" and therefore a shorter flying time
+	struct FlyingTimeFactor
+	{
+		static constexpr f32 Min = 0.5f;
+		static constexpr f32 Max = 4.0f;
+
+		constexpr FlyingTimeFactor() = default;
+		constexpr FlyingTimeFactor(f32 factor) : Factor(factor) {}
+
+		constexpr bool operator==(const FlyingTimeFactor& other) const { return (Factor == other.Factor); }
+		constexpr bool operator!=(const FlyingTimeFactor& other) const { return (Factor != other.Factor); }
+
+		f32 Factor = 1.0f;
+	};
+
 	struct TempoChange
 	{
 		static constexpr auto DefaultTempo = Tempo(160.0f);
 		static constexpr auto DefaultSignature = TimeSignature(4, 4);
+		static constexpr auto DefaultFlyingTimeFactor = FlyingTimeFactor(1.0f);
 
-		TempoChange() = default;
-		TempoChange(BeatTick tick, Tempo tempo, TimeSignature signature) : Tick(tick), Tempo(tempo), Signature(signature) {}
+		constexpr TempoChange() = default;
+		constexpr TempoChange(BeatTick tick, Tempo tempo, TimeSignature signature) : Tick(tick), Tempo(tempo), Signature(signature) {}
+		constexpr TempoChange(BeatTick tick, Tempo tempo, FlyingTimeFactor flyingTimeFactor, TimeSignature signature) : Tick(tick), Tempo(tempo), FlyingTime(flyingTimeFactor), Signature(signature) {}
 
 		constexpr bool operator==(const TempoChange& other) const { return (Tick == other.Tick); }
 		constexpr bool operator!=(const TempoChange& other) const { return (Tick != other.Tick); }
@@ -60,6 +79,7 @@ namespace Comfy::Studio::Editor
 
 		BeatTick Tick = {};
 		Tempo Tempo = DefaultTempo;
+		FlyingTimeFactor FlyingTime = DefaultFlyingTimeFactor;
 		TimeSignature Signature = DefaultSignature;
 	};
 }

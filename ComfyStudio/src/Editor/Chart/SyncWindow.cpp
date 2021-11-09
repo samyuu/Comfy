@@ -116,16 +116,24 @@ namespace Comfy::Studio::Editor
 					return;
 
 				if (cursorSitsOnTempoChange)
-					undoManager.Execute<UpdateTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newSignature));
+					undoManager.Execute<UpdateTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newFlyingTime, newSignature));
 				else
-					undoManager.Execute<AddTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newSignature));
+					undoManager.Execute<AddTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newFlyingTime, newSignature));
 			};
 
 			newTempo = tempoChangeAtCursor.Tempo;
+			newFlyingTime = tempoChangeAtCursor.FlyingTime;
 			newSignature = tempoChangeAtCursor.Signature;
 
 			if (GuiProperty::Input("Tempo##SyncWindow", newTempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 				executeAddOrUpdate();
+
+			f32 flyingTimeFactor = (newFlyingTime.Factor * 100.0f);
+			if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, vec2(FlyingTimeFactor::Min * 100.0f, FlyingTimeFactor::Max * 100.0f), "%.2f %%"))
+			{
+				newFlyingTime.Factor = (flyingTimeFactor * 0.01f);
+				executeAddOrUpdate();
+			}
 
 			ivec2 sig = { newSignature.Numerator, newSignature.Denominator };
 			if (GuiProperty::InputFraction("Time Signature", sig, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
