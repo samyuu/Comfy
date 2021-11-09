@@ -40,26 +40,26 @@ using bvec2 = glm::vec<2, bool, glm::defaultp>;
 using bvec3 = glm::vec<3, bool, glm::defaultp>;
 using bvec4 = glm::vec<4, bool, glm::defaultp>;
 
-using ivec2 = glm::vec<2, int, glm::defaultp>;
-using ivec3 = glm::vec<3, int, glm::defaultp>;
-using ivec4 = glm::vec<4, int, glm::defaultp>;
+using ivec2 = glm::vec<2, i32, glm::defaultp>;
+using ivec3 = glm::vec<3, i32, glm::defaultp>;
+using ivec4 = glm::vec<4, i32, glm::defaultp>;
 
-using uvec2 = glm::vec<2, unsigned int, glm::defaultp>;
-using uvec3 = glm::vec<3, unsigned int, glm::defaultp>;
-using uvec4 = glm::vec<4, unsigned int, glm::defaultp>;
+using uvec2 = glm::vec<2, u32, glm::defaultp>;
+using uvec3 = glm::vec<3, u32, glm::defaultp>;
+using uvec4 = glm::vec<4, u32, glm::defaultp>;
 
-using vec2 = glm::vec<2, float, glm::defaultp>;
-using vec3 = glm::vec<3, float, glm::defaultp>;
-using vec4 = glm::vec<4, float, glm::defaultp>;
+using vec2 = glm::vec<2, f32, glm::defaultp>;
+using vec3 = glm::vec<3, f32, glm::defaultp>;
+using vec4 = glm::vec<4, f32, glm::defaultp>;
 
-using dvec2 = glm::vec<2, double, glm::defaultp>;
-using dvec3 = glm::vec<3, double, glm::defaultp>;
-using dvec4 = glm::vec<4, double, glm::defaultp>;
+using dvec2 = glm::vec<2, f64, glm::defaultp>;
+using dvec3 = glm::vec<3, f64, glm::defaultp>;
+using dvec4 = glm::vec<4, f64, glm::defaultp>;
 
-using mat3 = glm::mat<3, 3, float, glm::defaultp>;
-using mat4 = glm::mat<4, 4, float, glm::defaultp>;
+using mat3 = glm::mat<3, 3, f32, glm::defaultp>;
+using mat4 = glm::mat<4, 4, f32, glm::defaultp>;
 
-using quat = glm::qua<float, glm::defaultp>;
+using quat = glm::qua<f32, glm::defaultp>;
 
 // NOTE: Any address, offset or pointer in file space
 enum class FileAddr : i64 { NullPtr = 0 };
@@ -88,6 +88,24 @@ struct NonCopyable
 	NonCopyable(const NonCopyable&) = delete;
 	NonCopyable& operator=(const NonCopyable&) = delete;
 };
+
+#if 0 // TODO:
+constexpr f32 PI = 3.14159265358979323846f;
+constexpr f32 DegreesToRadians = 0.01745329251994329577f;
+constexpr f32 RadiansToDegrees = 57.2957795130823208768f;
+
+struct Angle
+{
+	f32 Radians;
+
+	constexpr f32 ToRadians() const { return Radians; }
+	constexpr f32 ToDegrees() const { return Radians * RadiansToDegrees; }
+	static constexpr Angle FromRadians(f32 radians) { return Angle { radians }; }
+	static constexpr Angle FromDegrees(f32 degrees) { return Angle { degrees * DegreesToRadians }; }
+};
+
+static_assert(sizeof(Angle) == sizeof(f32) && std::is_trivial_v<Angle>);
+#endif
 
 #if defined(COMFY_DEBUG)
 #define COMFY_DEBUG_ONLY(expression) expression
@@ -132,7 +150,7 @@ namespace Comfy
 	}
 
 	template <typename IndexType, typename ArrayType>
-	COMFY_NODISCARD constexpr __forceinline auto InBounds(const IndexType& index, const ArrayType& array) -> bool
+	COMFY_NODISCARD constexpr __forceinline bool InBounds(const IndexType& index, const ArrayType& array)
 	{
 		static_assert(std::is_integral_v<IndexType>);
 		using SizeType = decltype(array.size());
@@ -144,13 +162,13 @@ namespace Comfy
 	}
 
 	template <typename IndexType, typename ArrayType, typename DefaultType>
-	COMFY_NODISCARD constexpr __forceinline auto IndexOr(const IndexType& index, ArrayType& array, DefaultType defaultValue) -> auto&
+	COMFY_NODISCARD constexpr __forceinline auto IndexOr(const IndexType& index, ArrayType& array, DefaultType defaultValue)
 	{
 		return InBounds(index, array) ? array[index] : defaultValue;
 	}
 
 	template <typename IndexType, typename ArrayType>
-	COMFY_NODISCARD constexpr __forceinline auto IndexOrNull(const IndexType& index, ArrayType& array) -> auto*
+	COMFY_NODISCARD constexpr __forceinline auto* IndexOrNull(const IndexType& index, ArrayType& array)
 	{
 		return InBounds(index, array) ? &array[index] : nullptr;
 	}
@@ -178,7 +196,7 @@ namespace Comfy
 	}
 
 	template <typename CollectionType, typename Func>
-	COMFY_NODISCARD auto FindIndexOf(CollectionType& collection, Func predicate) -> size_t
+	COMFY_NODISCARD size_t FindIndexOf(CollectionType& collection, Func predicate)
 	{
 		size_t index = 0;
 		for (auto it = std::begin(collection); it != std::end(collection); it++)
@@ -191,7 +209,7 @@ namespace Comfy
 	}
 
 	template <typename CollectionType, typename Func>
-	COMFY_NODISCARD auto FindLastIndexOf(CollectionType& collection, Func predicate) -> size_t
+	COMFY_NODISCARD size_t FindLastIndexOf(CollectionType& collection, Func predicate)
 	{
 		size_t index = std::size(collection) - 1;
 		for (auto it = std::rbegin(collection); it != std::rend(collection); it++)
@@ -203,34 +221,40 @@ namespace Comfy
 		return index;
 	}
 
-	template <typename T>
-	COMFY_NODISCARD constexpr auto Min(T x, T y) -> T
-	{
-		return (y < x) ? y : x;
-	}
+	COMFY_NODISCARD constexpr f32 ToPercent(f32 value) { return (value * 100.0f); }
+	COMFY_NODISCARD constexpr vec2 ToPercent(vec2 value) { return { ToPercent(value.x), ToPercent(value.y) }; }
+
+	COMFY_NODISCARD constexpr f32 FromPercent(f32 percent) { return (percent * 0.01f); }
+	COMFY_NODISCARD constexpr vec2 FromPercent(vec2 percent) { return { FromPercent(percent.x), FromPercent(percent.y) }; }
+
+	template <typename T> COMFY_NODISCARD constexpr T Min(T x, T y) { return (y < x) ? y : x; }
+	template <> COMFY_NODISCARD constexpr ivec2 Min<ivec2>(ivec2 x, ivec2 y) { return { Min(x.x, y.x), Min(x.y, y.y) }; }
+	template <> COMFY_NODISCARD constexpr ivec3 Min<ivec3>(ivec3 x, ivec3 y) { return { Min(x.x, y.x), Min(x.y, y.y), Min(x.z, y.z) }; }
+	template <> COMFY_NODISCARD constexpr ivec4 Min<ivec4>(ivec4 x, ivec4 y) { return { Min(x.x, y.x), Min(x.y, y.y), Min(x.z, y.z), Min(x.w, y.w) }; }
+	template <> COMFY_NODISCARD constexpr vec2 Min<vec2>(vec2 x, vec2 y) { return { Min(x.x, y.x), Min(x.y, y.y) }; }
+	template <> COMFY_NODISCARD constexpr vec3 Min<vec3>(vec3 x, vec3 y) { return { Min(x.x, y.x), Min(x.y, y.y), Min(x.z, y.z) }; }
+	template <> COMFY_NODISCARD constexpr vec4 Min<vec4>(vec4 x, vec4 y) { return { Min(x.x, y.x), Min(x.y, y.y), Min(x.z, y.z), Min(x.w, y.w) }; }
+
+	template <typename T> COMFY_NODISCARD constexpr T Max(T x, T y) { return (x < y) ? y : x; }
+	template <> COMFY_NODISCARD constexpr ivec2 Max<ivec2>(ivec2 x, ivec2 y) { return { Max(x.x, y.x), Max(x.y, y.y) }; }
+	template <> COMFY_NODISCARD constexpr ivec3 Max<ivec3>(ivec3 x, ivec3 y) { return { Max(x.x, y.x), Max(x.y, y.y), Max(x.z, y.z) }; }
+	template <> COMFY_NODISCARD constexpr ivec4 Max<ivec4>(ivec4 x, ivec4 y) { return { Max(x.x, y.x), Max(x.y, y.y), Max(x.z, y.z), Max(x.w, y.w) }; }
+	template <> COMFY_NODISCARD constexpr vec2 Max<vec2>(vec2 x, vec2 y) { return { Max(x.x, y.x), Max(x.y, y.y) }; }
+	template <> COMFY_NODISCARD constexpr vec3 Max<vec3>(vec3 x, vec3 y) { return { Max(x.x, y.x), Max(x.y, y.y), Max(x.z, y.z) }; }
+	template <> COMFY_NODISCARD constexpr vec4 Max<vec4>(vec4 x, vec4 y) { return { Max(x.x, y.x), Max(x.y, y.y), Max(x.z, y.z), Max(x.w, y.w) }; }
+
+	template <typename T> COMFY_NODISCARD constexpr T Clamp(T value, T min, T max) { return Min<T>(Max<T>(value, min), max); }
 
 	template <typename T>
-	COMFY_NODISCARD constexpr auto Max(T x, T y) -> T
+	COMFY_NODISCARD constexpr T ConvertRange(T originalStart, T originalEnd, T newStart, T newEnd, T value)
 	{
-		return (x < y) ? y : x;
-	}
-
-	template <typename T>
-	COMFY_NODISCARD constexpr auto Clamp(T value, T min, T max) -> T
-	{
-		return Min<T>(Max<T>(value, min), max);
-	}
-
-	template <typename FloatType>
-	COMFY_NODISCARD constexpr auto ConvertRange(FloatType originalStart, FloatType originalEnd, FloatType newStart, FloatType newEnd, FloatType value) -> FloatType
-	{
-		static_assert(std::is_floating_point_v<FloatType>);
+		static_assert(std::is_floating_point_v<T>);
 		return (newStart + ((value - originalStart) * (newEnd - newStart) / (originalEnd - originalStart)));
 	}
 
-	template <typename FloatType>
-	COMFY_NODISCARD constexpr auto ConvertRangeClamped(FloatType originalStart, FloatType originalEnd, FloatType newStart, FloatType newEnd, FloatType value) -> FloatType
+	template <typename T>
+	COMFY_NODISCARD constexpr T ConvertRangeClamped(T originalStart, T originalEnd, T newStart, T newEnd, T value)
 	{
-		return Clamp<FloatType>(ConvertRange<FloatType>(originalStart, originalEnd, newStart, newEnd, value), newStart, newEnd);
+		return Clamp<T>(ConvertRange<T>(originalStart, originalEnd, newStart, newEnd, value), newStart, newEnd);
 	}
 }
