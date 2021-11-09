@@ -297,7 +297,7 @@ namespace Comfy::Studio::Editor
 	bool ChartEditor::OpenLoadMovieFileDialog()
 	{
 		IO::Shell::FileDialog fileDialog;
-		fileDialog.Title = "Open Movie File";
+		fileDialog.Title = "Open Video File";
 		fileDialog.FileName;
 		fileDialog.DefaultExtension;
 		fileDialog.Filters =
@@ -550,28 +550,58 @@ namespace Comfy::Studio::Editor
 		fileDialog.DefaultExtension = ComfyStudioChartFile::Extension;
 		fileDialog.Filters = { { std::string(ComfyStudioChartFile::FilterName), std::string(ComfyStudioChartFile::FilterSpec) }, };
 
+		const bool songAndMoveAreTheSame = (!chart->MovieFileName.empty() && chart->SongFileName == chart->MovieFileName);
 		const bool songFileIsAbsolute = (!chart->SongFileName.empty() && !IO::Path::IsRelative(chart->SongFileName));
-		const bool copySongFileDefaultValue = false;
+		const bool movieFileIsAbsolute = (!chart->MovieFileName.empty() && !IO::Path::IsRelative(chart->MovieFileName));
 
-		bool copySongFile = copySongFileDefaultValue;
-		fileDialog.CustomizeItems = { { IO::Shell::Custom::ItemType::Checkbox, "Copy Song to Directory", songFileIsAbsolute ? &copySongFile : nullptr } };
+		constexpr bool copyLinkedFilesDefaultValue = false;
+		bool copySongFile = copyLinkedFilesDefaultValue;
+		bool copyMovieFile = copyLinkedFilesDefaultValue;
+
+		fileDialog.CustomizeItems =
+		{
+			{ IO::Shell::Custom::ItemType::Checkbox, "Copy Song to Directory", songFileIsAbsolute ? &copySongFile : nullptr },
+			{ IO::Shell::Custom::ItemType::Checkbox, "Copy Movie to Directory", (movieFileIsAbsolute && !songAndMoveAreTheSame) ? &copyMovieFile : nullptr },
+		};
 
 		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 		if (!fileDialog.OpenSave())
 			return false;
 
-		if (copySongFile && songFileIsAbsolute)
+		auto copyLinkedFileToOutputDirectory = [&fileDialog](std::string& inOutFileName, std::string& outFilePathAbsolute)
 		{
-			const auto relativeSongFileName = IO::Path::GetFileName(chart->SongFileName);
+			const auto relativeFileName = IO::Path::GetFileName(inOutFileName);
 			const auto newChartDirectory = IO::Path::GetDirectoryName(fileDialog.OutFilePath);
-			const auto newAbsoulteSongPath = IO::Path::Combine(newChartDirectory, relativeSongFileName);
+			const auto newAbsoultePath = IO::Path::Combine(newChartDirectory, relativeFileName);
 
-			if (IO::File::Copy(chart->SongFileName, newAbsoulteSongPath))
+			if (IO::File::Exists(newAbsoultePath) || IO::File::Copy(inOutFileName, newAbsoultePath))
 			{
-				chart->SongFileName = relativeSongFileName;
-				songSourceFilePathAbsolute = newAbsoulteSongPath;
+				inOutFileName = relativeFileName;
+				outFilePathAbsolute = newAbsoultePath;
+				return true;
 			}
+			else
+			{
+				return false;
+			}
+		};
+
+		if (songAndMoveAreTheSame)
+		{
+			if (copySongFile && songFileIsAbsolute && copyLinkedFileToOutputDirectory(chart->SongFileName, songSourceFilePathAbsolute))
+			{
+				chart->MovieFileName = chart->SongFileName;
+				movieFilePathAbsolute = songSourceFilePathAbsolute;
+			}
+		}
+		else
+		{
+			if (copySongFile && songFileIsAbsolute)
+				copyLinkedFileToOutputDirectory(chart->SongFileName, songSourceFilePathAbsolute);
+
+			if (copyMovieFile && movieFileIsAbsolute)
+				copyLinkedFileToOutputDirectory(chart->MovieFileName, movieFilePathAbsolute);
 		}
 
 		SaveNativeChartFileAsync(fileDialog.OutFilePath);
