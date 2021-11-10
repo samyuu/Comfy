@@ -308,7 +308,7 @@ namespace Comfy::Studio::Editor
 		}
 		else if (GlobalUserData.TargetPreview.ShowGrid)
 		{
-			RenderTargetGrid(renderer);
+			RenderTargetGrid(renderer, GlobalUserData.TargetPreview.ShowGridHorizontalSyncMarkers);
 		}
 	}
 

@@ -630,7 +630,11 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCheckbox("Display Practice Background", userData.TargetPreview.DisplayPracticeBackground);
 
 			Gui::PushItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
-			pendingChanges |= GuiSettingsCheckbox("Show Target Grid", userData.TargetPreview.ShowGrid);
+			pendingChanges |= GuiSettingsCheckbox("Show Placement Grid", userData.TargetPreview.ShowGrid);
+			Gui::PushItemDisabledAndTextColorIf(!userData.TargetPreview.ShowGrid);
+			pendingChanges |= GuiSettingsCheckbox("Show Placement Grid Sync Markers", userData.TargetPreview.ShowGridHorizontalSyncMarkers);
+			Gui::PopItemDisabledAndTextColorIf(!userData.TargetPreview.ShowGrid);
+
 			pendingChanges |= GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
 			if (auto v = ToPercent(userData.TargetPreview.BackgroundDim);
 				pendingChanges |= GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%"))

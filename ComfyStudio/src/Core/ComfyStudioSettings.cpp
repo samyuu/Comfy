@@ -429,6 +429,7 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetPreview = "target_preview";
 		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
 		constexpr std::string_view TargetPreview_ShowGrid = "show_grid";
+		constexpr std::string_view TargetPreview_ShowGridHorizontalSyncMarkers = "show_grid_horizontal_sync_markers";
 		constexpr std::string_view TargetPreview_ShowHoldInfo = "show_hold_info";
 		constexpr std::string_view TargetPreview_ShowBackgroundCheckerboard = "show_background_checkerboard";
 		constexpr std::string_view TargetPreview_BackgroundDim = "background_dim";
@@ -719,6 +720,7 @@ namespace Comfy::Studio
 		{
 			TryAssign(TargetPreview.ShowButtons, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)));
 			TryAssign(TargetPreview.ShowGrid, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)));
+			TryAssign(TargetPreview.ShowGridHorizontalSyncMarkers, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowGridHorizontalSyncMarkers)));
 			TryAssign(TargetPreview.ShowHoldInfo, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowHoldInfo)));
 			TryAssign(TargetPreview.ShowBackgroundCheckerboard, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)));
 			TryAssign(TargetPreview.BackgroundDim, TryGetF32(Find(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDim)));
@@ -975,6 +977,7 @@ namespace Comfy::Studio
 			{
 				writer.MemberBool(UserIDs::TargetPreview_ShowButtons, TargetPreview.ShowButtons);
 				writer.MemberBool(UserIDs::TargetPreview_ShowGrid, TargetPreview.ShowGrid);
+				writer.MemberBool(UserIDs::TargetPreview_ShowGridHorizontalSyncMarkers, TargetPreview.ShowGridHorizontalSyncMarkers);
 				writer.MemberBool(UserIDs::TargetPreview_ShowHoldInfo, TargetPreview.ShowHoldInfo);
 				writer.MemberBool(UserIDs::TargetPreview_ShowBackgroundCheckerboard, TargetPreview.ShowBackgroundCheckerboard);
 				writer.MemberF32(UserIDs::TargetPreview_BackgroundDim, TargetPreview.BackgroundDim);
@@ -1307,6 +1310,7 @@ namespace Comfy::Studio
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;
+		TargetPreview.ShowGridHorizontalSyncMarkers = true;
 		TargetPreview.ShowHoldInfo = true;
 		TargetPreview.ShowBackgroundCheckerboard = true;
 		TargetPreview.BackgroundDim = 0.35f;
