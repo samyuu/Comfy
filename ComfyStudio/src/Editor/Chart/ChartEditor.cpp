@@ -936,6 +936,12 @@ namespace Comfy::Studio::Editor
 		}
 
 		SetPlaybackTime(oldPlaybackTime);
+
+		// HACK: Can't load a video while exclusive mode is active and "Exclusive Mode Priority" isn't also enabled
+		const bool audioWouldInterfereWithMoviePlayer = (Audio::AudioEngine::GetInstance().GetAudioBackend() == Audio::AudioBackend::WASAPIExclusive && IsMovieAsyncLoading());
+		if (!audioWouldInterfereWithMoviePlayer)
+			Audio::AudioEngine::GetInstance().EnsureStreamRunning();
+
 		timeline->OnSongLoaded();
 	}
 
@@ -1266,6 +1272,7 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::ResumePlayback()
 	{
 		playbackTimeOnPlaybackStart = GetPlaybackTimeAsync();
+		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
 
 		isPlaying = true;
 		songVoice.SetIsPlaying(true);

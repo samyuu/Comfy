@@ -235,7 +235,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnPlaybackResumed()
 	{
-		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
 	}
 
 	void TargetTimeline::OnPlaybackPaused()
@@ -259,8 +258,6 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnSongLoaded()
 	{
-		Audio::AudioEngine::GetInstance().EnsureStreamRunning();
-
 		if (const auto sampleProvider = Audio::AudioEngine::GetInstance().GetSharedSource(chartEditor.GetSongSource()); sampleProvider != nullptr)
 			songWaveform.SetSource(sampleProvider);
 		else
