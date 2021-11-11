@@ -1,10 +1,17 @@
 #include "IO/File.h"
 #include "IO/Directory.h"
+#include "IO/Archive/FArc.h"
+#include "IO/Archive/FArcPacker.h"
+#include "Graphics/Auth2D/SprSet.h"
+#include "Graphics/Utilities/SpritePacker.h"
+#include "Graphics/Utilities/SpriteExtraction.h"
+#include "Graphics/Utilities/TextureCompression.h"
 #include "IO/Archive/ComfyArchive.h"
 #include "IO/Stream/FileStream.h"
 #include "IO/Stream/Manipulator/StreamWriter.h"
 #include "Core/Logger.h"
 #include "Misc/StringUtil.h"
+#include "Misc/ImageHelper.h"
 #include <filesystem>
 #include <random>
 #include <time.h>
@@ -15,7 +22,7 @@ using namespace Comfy::IO;
 namespace
 {
 	ComfyArchiveFlags ArchiveFlags = {};
-	
+
 	void EncryptString(std::string& string)
 	{
 		if (!ArchiveFlags.EncryptedStrings)
@@ -349,22 +356,90 @@ namespace
 	}
 }
 
+namespace
+{
+	int BuildSprSetFArc(std::string_view inputImageSourceDirectory, std::string_view outputSprSetDirectory)
+	{
+		std::vector<Graphics::Utilities::SprMarkup> markups;
+		std::vector<std::unique_ptr<u8[]>> owningPixels;
+
+		IO::Directory::IterateFiles(inputImageSourceDirectory, [&](const auto& path)
+		{
+			auto& markup = markups.emplace_back();
+			Util::ReadImage(path, markup.Size, owningPixels.emplace_back());
+			markup.Name = Util::ToUpperCopy(std::string(IO::Path::GetFileName(path, false)));
+			markup.RGBAPixels = owningPixels.back().get();
+			markup.ScreenMode = Graphics::ScreenMode::HDTV1080;
+			markup.Flags = Graphics::Utilities::SprMarkupFlags_None;
+		});
+
+		Graphics::Utilities::SpritePacker spritePacker = {};
+		spritePacker.Settings.AllowYCbCrTextures = false;
+		spritePacker.Settings.FlipTexturesY = true;
+		// HACK: No need for extra padding in this specific case as the source assets happen to already be surrounded by transparency
+		// spritePacker.Settings.SpritePadding = ivec2(2, 2);
+		spritePacker.Settings.SpritePadding = ivec2(0, 0);
+		spritePacker.Settings.MaxTextureSize = ivec2(512, 2048);
+		spritePacker.Settings.PowerOfTwoTextures = false;
+		// TODO: This optional generally isn't a good idea and should probably be removed altogether
+		// spritePacker.Settings.TransparencyColor = 0x00FFFFFF;
+		const auto spritePackerSprSet = spritePacker.Create(markups);
+
+		const std::string sprSetBaseName { Path::GetFileName(inputImageSourceDirectory) };
+		const std::string fullSprSetOutputPath { Path::Combine(outputSprSetDirectory, sprSetBaseName + ".bin") };
+
+		const bool successfull = IO::File::Save(fullSprSetOutputPath, *spritePackerSprSet);
+		return successfull ? EXIT_SUCCESS : EXIT_FAILURE;
+	}
+}
+
 int wmain(int argc, const wchar_t* argv[])
 {
-	if (argc < 3)
+	const std::string programName = UTF8::Narrow(argv[0]);
+	const std::string command = UTF8::Narrow(argv[1]);
+
+	if (command == "-build_comfy_data")
 	{
-		Logger::LogErrorLine("Insufficient number of arguments");
+		if (argc != 4)
+		{
+			Logger::LogErrorLine("Incorrect number of arguments");
+			return EXIT_FAILURE;
+		}
+
+		const std::string inputDirectoryPath = UTF8::Narrow(argv[2]);
+		const std::string outputArchivePath = UTF8::Narrow(argv[3]);
+
+		if (!IO::Directory::Exists(inputDirectoryPath))
+		{
+			Logger::LogErrorLine("Invalid directory input path: '%s'", inputDirectoryPath.c_str());
+			return EXIT_FAILURE;
+		}
+
+		return BuildArchive(inputDirectoryPath, outputArchivePath);
+	}
+	else if (command == "-build_sprset")
+	{
+		if (argc != 4)
+		{
+			Logger::LogErrorLine("Incorrect number of arguments");
+			return EXIT_FAILURE;
+		}
+
+		const std::string inputImageSourceDirectory = UTF8::Narrow(argv[2]);
+		const std::string outputSprSetDirectory = UTF8::Narrow(argv[3]);
+
+		if (!IO::Directory::Exists(inputImageSourceDirectory))
+		{
+			Logger::LogErrorLine("Invalid SprSet image source directory: '%s'", inputImageSourceDirectory.c_str());
+			return EXIT_FAILURE;
+		}
+
+		return BuildSprSetFArc(inputImageSourceDirectory, outputSprSetDirectory);
+	}
+	else
+	{
+		Logger::LogErrorLine("Unknown command: '%s'", command.c_str());
 		return EXIT_FAILURE;
 	}
 
-	const auto inputDirectoryPath = UTF8::Narrow(argv[1]);
-	const auto outputArchivePath = UTF8::Narrow(argv[2]);
-
-	if (!IO::Directory::Exists(inputDirectoryPath))
-	{
-		Logger::LogErrorLine("Invalid directory input path");
-		return EXIT_FAILURE;
-	}
-
-	return BuildArchive(inputDirectoryPath, outputArchivePath);
 }

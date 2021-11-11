@@ -1,0 +1,3 @@
+build.bat - Called automatically by Visual Studio as a build step to pack "data-src" into "ComfyData.dat"
+build_manual.bat - Same as build.bat but can be run manually outside of Visual Studio, mostly for testing
+build_manual_sprset.bat - Can be run manually to pack "data-src-sprset" into "data-src/sprite" SprSet bin file(s) prior to building "ComfyData.dat". This should be done every time the source images have been edited

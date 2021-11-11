@@ -530,6 +530,7 @@ namespace Comfy::Graphics::Utilities
 				CopySprIntoTex(texMarkup, texData.get(), sprBox);
 		}
 
+		// TODO: Remove this as it can easily causes sampling artifacts (?)
 		if (Settings.TransparencyColor.has_value())
 			SetPixelsUniformTransparency(texMarkup.Size, texData.get(), Settings.TransparencyColor.value());
 
