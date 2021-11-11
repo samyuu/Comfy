@@ -50,6 +50,11 @@ namespace Comfy
 			ivec2 Position = DefaultStartupWindowPosition;
 			ivec2 Size = DefaultStartupWindowSize;
 
+			bool RequestChangePosition = false;
+			bool RequestChangeSize = false;
+			ivec2 RequestedTargetPosition = DefaultStartupWindowPosition;
+			ivec2 RequestedTargetSize = DefaultStartupWindowSize;
+
 			ivec4 RestoreRegion = { DefaultStartupWindowPosition, DefaultStartupWindowSize };
 
 			bool UseDefaultPosition = false;
@@ -151,7 +156,8 @@ namespace Comfy
 
 		void ProgramLoopTick()
 		{
-			// NOTE: Delay fullscreen requests until start of the (next) frame to avoid messing up any mid-farme rendering
+			// NOTE: Delay window altering requests until the start of the (next) frame to avoid messing up any mid-farme rendering
+			UpdateWindowPositionAndSizeRequests();
 			UpdateFullscreenRequests();
 
 			PreUpdateFrameChangeState();
@@ -420,6 +426,19 @@ namespace Comfy
 		}
 
 	public:
+		void UpdateWindowPositionAndSizeRequests()
+		{
+			if (!Window.RequestChangePosition && !Window.RequestChangeSize)
+				return;
+
+			Window.Position = (Window.RequestChangePosition) ? Window.RequestedTargetPosition : Window.Position;
+			Window.Size = (Window.RequestChangeSize) ? Window.RequestedTargetSize : Window.Size;
+			InternalApplyWindowPositionAndSize();
+
+			Window.RequestChangePosition = false;
+			Window.RequestChangeSize = false;
+		}
+
 		void UpdateFullscreenRequests()
 		{
 			if (Window.IsFullscreen == Window.IsFullscreenRequested)
@@ -907,8 +926,8 @@ namespace Comfy
 		if (impl->Window.Position == value)
 			return;
 
-		impl->Window.Position = value;
-		impl->InternalApplyWindowPositionAndSize();
+		impl->Window.RequestChangePosition = true;
+		impl->Window.RequestedTargetPosition = value;
 	}
 
 	ivec2 ApplicationHost::GetWindowSize() const
@@ -921,8 +940,8 @@ namespace Comfy
 		if (impl->Window.Size == value)
 			return;
 
-		impl->Window.Size = value;
-		impl->InternalApplyWindowPositionAndSize();
+		impl->Window.RequestChangeSize = true;
+		impl->Window.RequestedTargetSize = value;
 	}
 
 	ivec4 ApplicationHost::GetWindowRestoreRegion()
