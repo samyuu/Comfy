@@ -320,6 +320,31 @@ namespace Comfy::Studio
 				Gui::EndMenu();
 			}
 
+			// NOTE: Mostly useful for debugging, probably not so much for the end user
+			if (Gui::BeginMenu("Resize"))
+			{
+				static constexpr std::pair<ivec2, const char*> commonResolutions[] =
+				{
+					{ { 1280,  720 }, "HD" },
+					{ { 1366,  768 }, "FWXGA" },
+					{ { 1600,  900 }, "HD+" },
+					{ { 1920, 1080 }, "FHD" },
+					{ { 2560, 1440 }, "QHD" },
+				};
+
+				const ivec2 currentSize = host->GetWindowSize();
+				for (auto[resolution, name] : commonResolutions)
+				{
+					char buffer[64];
+					sprintf_s(buffer, "Resize to %dx%d", resolution.x, resolution.y);
+
+					if (Gui::MenuItem(buffer, name, (resolution == currentSize)))
+						host->SetWindowSize(resolution);
+				}
+
+				Gui::EndMenu();
+			}
+
 			// TODO: Reset to default layout menu option
 
 			Gui::EndMenu();
