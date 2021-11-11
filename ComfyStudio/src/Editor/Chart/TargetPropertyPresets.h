@@ -17,6 +17,16 @@ namespace Comfy::Studio::Editor
 		Count
 	};
 
+	constexpr std::array<const char*, EnumCount<DynamicSyncPreset>()> DynamicSyncPresetNames =
+	{
+		"Vertical Left",
+		"Vertical Right",
+		"Horizontal Up",
+		"Horizontal Down",
+		"Square",
+		"Triangle",
+	};
+
 	struct DynamicSyncPresetSettings
 	{
 		// NOTE: Vertical and Horizontal

@@ -58,8 +58,13 @@ namespace Comfy::Studio::Editor
 
 			auto dynamicSyncPresetButton = [&](DynamicSyncPreset preset)
 			{
-				Gui::PushID(static_cast<int>(preset));
-				if (Gui::ButtonEx("##DynamicSyncPresetButton", vec2(halfWidth, DynamicSyncButtonHeight)))
+				const i32 presetIndex = static_cast<i32>(preset);
+				Gui::PushID(presetIndex);
+				
+				// NOTE: Only render the actual text as a fallback in case the icons failed to load
+				const char* buttonLabel = (sprites.DynamicSyncPresetIcons[presetIndex] != nullptr) ? "##DynamicSyncPresetButton" : DynamicSyncPresetNames[presetIndex];
+
+				if (Gui::ButtonEx(buttonLabel, vec2(halfWidth, DynamicSyncButtonHeight)))
 					ApplyDynamicSyncPresetToSelectedTargets(undoManager, chart, preset, dynamicSyncPresetSettings);
 				Gui::PopID();
 
@@ -83,8 +88,8 @@ namespace Comfy::Studio::Editor
 				// NOTE: Delay icon rendering to optimize texture batching
 				for (size_t i = 0; i < EnumCount<DynamicSyncPreset>(); i++)
 				{
-					const auto iconRect = presetIconRectsToDraw[i];
-					const auto iconSpr = IndexOr(i, sprites.DynamicSyncPresetIcons, nullptr);
+					const ImRect iconRect = presetIconRectsToDraw[i];
+					const auto* iconSpr = sprites.DynamicSyncPresetIcons[i];
 
 					if (iconSpr != nullptr)
 						Gui::AddSprite(Gui::GetWindowDrawList(), *editorSprites, *iconSpr, iconRect.GetTL(), iconRect.GetBR(), Gui::GetColorU32(ImGuiCol_Text));
