@@ -149,8 +149,8 @@ namespace ImGui
 			return;
 
 		const auto& tex = sprSet.TexSet.Textures[spr.TextureIndex];
-		const auto uv0 = vec2(spr.TexelRegion.x, 1.0f - spr.TexelRegion.y);
-		const auto uv1 = vec2(spr.TexelRegion.x + spr.TexelRegion.z, 1.0f - (spr.TexelRegion.y + spr.TexelRegion.w));
+		const vec2 uv0 = vec2(spr.TexelRegion.x, 1.0f - spr.TexelRegion.y);
+		const vec2 uv1 = vec2(spr.TexelRegion.z, 1.0f - spr.TexelRegion.w);
 
 		drawList->AddImage(*tex, topLeft, bottomRight, uv0, uv1, color);
 	}
