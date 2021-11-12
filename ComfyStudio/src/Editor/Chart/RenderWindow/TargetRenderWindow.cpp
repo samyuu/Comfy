@@ -509,6 +509,10 @@ namespace Comfy::Studio::Editor
 		{
 			auto[targetTime, buttonTime, targetTick, buttonTick, flyingTime] = workingChart->TempoMap.GetTargetSpawnTimes(target);
 
+			// NOTE: To match the behavior during play testing and after exporting.
+			//		 This happens when a target is placed within the (first_bar / flying_time_factor)
+			targetTime = Max(TimeSpan::Zero(), targetTime);
+
 			const auto endTick = buttonTick + GlobalUserData.TargetPreview.PostHitLingerDuration;
 			const auto endTime = workingChart->TempoMap.TickToTime(endTick);
 
