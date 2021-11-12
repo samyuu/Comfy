@@ -34,6 +34,8 @@ namespace Comfy::Studio::Editor
 		ImRect Content;
 	};
 
+	constexpr vec2 TimelineDefaultSmoothScrollTimeSec = vec2(0.0215f);
+
 	class TimelineBase : public NonCopyable
 	{
 	public:
@@ -175,12 +177,14 @@ namespace Comfy::Studio::Editor
 			TimelineScrollbar verticalScrollbar = { ImGuiAxis_Y, scrollbarSize };
 		};
 
+		// NOTE: Set to <= 0.0f to disable smooth scrolling
+		vec2 smoothScrollTimeSec = TimelineDefaultSmoothScrollTimeSec;
+
 	private:
+		vec2 smoothScrollVelocity = vec2(0.0f);
+
 		vec2 scroll = vec2(0.0f, 0.0f);
 		vec2 scrollTarget = scroll;
 		vec2 scrollMax = vec2(0.0f, 0.0f);
-
-		vec2 smoothScrollTimeSec = vec2(0.0215f);
-		vec2 smoothScrollVelocity = vec2(0.0f);
 	};
 }

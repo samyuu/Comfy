@@ -1,5 +1,4 @@
 #include "ChartEditorSettingsWindow.h"
-#include "Core/ComfyStudioDiscord.h"
 #include "Input/Input.h"
 #include "Audio/Audio.h"
 #include <FontIcons.h>
@@ -59,14 +58,14 @@ namespace Comfy::Studio::Editor
 			return result;
 		}
 
-		bool GuiSettingsSliderF32(std::string_view label, f32& inOutValue, f32 minValue, f32 maxValue, const char* format = "%.3f")
+		bool GuiSettingsSliderF32(std::string_view label, f32& inOutValue, f32 minValue, f32 maxValue, const char* format = "%.3f", ImGuiSliderFlags flags = ImGuiSliderFlags_None)
 		{
 			GuiSettingsRightAlignedLabel(label);
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
 			Gui::PushItemWidth(GuiSettingsItemWidth);
-			const bool result = Gui::SliderFloat("##SettingsSlider", &inOutValue, minValue, maxValue, format);
+			const bool result = Gui::SliderFloat("##SettingsSlider", &inOutValue, minValue, maxValue, format, flags);
 			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
@@ -74,7 +73,7 @@ namespace Comfy::Studio::Editor
 			return result;
 		}
 
-		bool GuiSettingsVolumeSlider(std::string_view label, f32& inOutValue, bool extendedRange = false)
+		bool GuiSettingsVolumeSlider(std::string_view label, f32& inOutValue, ImGuiSliderFlags flags = ImGuiSliderFlags_None, bool extendedRange = false)
 		{
 			GuiSettingsRightAlignedLabel(label);
 			Gui::NextColumn();
@@ -84,14 +83,14 @@ namespace Comfy::Studio::Editor
 
 			bool result = false;
 #if 0
-			if (f32 v = ToPercent(inOutValue); result = Gui::SliderFloat("##SettingsVolumeSlider", &v, 0.0f, extendedRange ? 125.0f : 100.0f, "%.0f%%"))
+			if (f32 v = ToPercent(inOutValue); result = Gui::SliderFloat("##SettingsVolumeSlider", &v, 0.0f, extendedRange ? 125.0f : 100.0f, "%.0f%%", flags))
 				inOutValue = FromPercent(v);
 #elif 0
 			constexpr f32 minDB = -60.0f, maxDB = 0.0f;
-			if (f32 dB = Audio::LinearVolumeToDecibel(inOutValue); result = Gui::SliderFloat("##SettingsVolumeSlider", &dB, minDB, maxDB, "%.2f dB"))
+			if (f32 dB = Audio::LinearVolumeToDecibel(inOutValue); result = Gui::SliderFloat("##SettingsVolumeSlider", &dB, minDB, maxDB, "%.2f dB", flags))
 				inOutValue = (dB <= minDB) ? 0.0f : Audio::DecibelToLinearVolume(dB);
 #else
-			if (f32 s = ToPercent(Audio::LinearVolumeToSquare(inOutValue)); result = Gui::SliderFloat("##SettingsVolumeSlider", &s, 0.0f, extendedRange ? 115.0f : 100.0f, "%.0f%%"))
+			if (f32 s = ToPercent(Audio::LinearVolumeToSquare(inOutValue)); result = Gui::SliderFloat("##SettingsVolumeSlider", &s, 0.0f, extendedRange ? 115.0f : 100.0f, "%.0f%%", flags))
 				inOutValue = Audio::SquareToLinearVolume(FromPercent(s));
 #endif
 
@@ -603,19 +602,51 @@ namespace Comfy::Studio::Editor
 			GuiEndSettingsColumns();
 		}
 
-#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
-		if (Gui::CollapsingHeader("Discord Integration", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Target Timeline", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			pendingChanges |= GuiSettingsCheckbox("Enaled Discord Rich Presence", userData.System.Discord.EnableRichPresence);
 
-			Gui::PushItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
-			pendingChanges |= GuiSettingsCheckbox("Share Elapsed Time", userData.System.Discord.ShareElapsedTime);
-			Gui::PopItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
+#if COMFY_DEBUG && 0 // TODO: Not sure how to best present this yet...
+			if (auto v = static_cast<f32>(TimeSpan::FromSeconds(userData.TargetTimeline.SmoothScrollTimeSec).TotalMilliseconds());
+				pendingChanges |= GuiSettingsInputF32("Smooth Scroll Time", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+				userData.TargetTimeline.SmoothScrollTimeSec = static_cast<f32>(TimeSpan::FromMilliseconds(v).TotalSeconds());
+#endif
+
+			pendingChanges |= GuiSettingsCombo("Scaling Behavior", userData.TargetTimeline.ScalingBehavior, TargetTimelineScalingBehaviorNames);
+			if (userData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
+			{
+				f32& userDataMinRowHeight = userData.TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight;
+				f32& userDataMaxRowHeight = userData.TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight;
+
+				if (auto v = userDataMinRowHeight;
+					pendingChanges |= GuiSettingsInputF32("Min Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
+				{
+					userDataMinRowHeight = Clamp(v, TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
+					userDataMaxRowHeight = Clamp(userDataMaxRowHeight, userDataMinRowHeight, TargetTimelineMaxRowHeight);
+				}
+
+				if (auto v = userDataMaxRowHeight;
+					pendingChanges |= GuiSettingsInputF32("Max Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
+				{
+					userDataMaxRowHeight = Clamp(v, TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
+					userDataMinRowHeight = Clamp(userDataMinRowHeight, TargetTimelineMinRowHeight, userDataMaxRowHeight);
+				}
+			}
+			else if (userData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::FixedSize)
+			{
+				if (auto v = ToPercent(userData.TargetTimeline.ScalingBehaviorFixedSize.IconScale);
+					pendingChanges |= GuiSettingsSliderF32("Icon Scale", v, ToPercent(TargetTimelineMinIconScale), ToPercent(TargetTimelineMaxIconScale), "%.2f%%", ImGuiSliderFlags_AlwaysClamp))
+					userData.TargetTimeline.ScalingBehaviorFixedSize.IconScale = FromPercent(v);
+
+				if (auto v = userData.TargetTimeline.ScalingBehaviorFixedSize.RowHeight;
+					pendingChanges |= GuiSettingsInputF32("Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
+					userData.TargetTimeline.ScalingBehaviorFixedSize.RowHeight = Clamp(v, TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
+			}
+
+			// TODO: "Preset" buttons for selecting common "fixed" values (?)
 
 			GuiEndSettingsColumns();
 		}
-#endif
 
 		if (Gui::CollapsingHeader("Target Preview", ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -637,7 +668,7 @@ namespace Comfy::Studio::Editor
 
 			pendingChanges |= GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
 			if (auto v = ToPercent(userData.TargetPreview.BackgroundDim);
-				pendingChanges |= GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%"))
+				pendingChanges |= GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
 				userData.TargetPreview.BackgroundDim = FromPercent(v);
 			Gui::PopItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
 
@@ -869,15 +900,34 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+	void ChartEditorSettingsWindow::GuiTabDiscord(ComfyStudioUserSettings& userData)
+	{
+		// NOTE: A single header with so few options looks a bit empty 
+		//		 but it's fundementally different from the other "General" options so separating it seems to make sense
+		if (Gui::CollapsingHeader("Discord Integration", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+			pendingChanges |= GuiSettingsCheckbox("Enaled Discord Rich Presence", userData.System.Discord.EnableRichPresence);
+
+			Gui::PushItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
+			pendingChanges |= GuiSettingsCheckbox("Share Elapsed Time", userData.System.Discord.ShareElapsedTime);
+			Gui::PopItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
+
+			GuiEndSettingsColumns();
+		}
+	}
+#endif
+
 	void ChartEditorSettingsWindow::GuiTabAudio(ComfyStudioUserSettings& userData)
 	{
 		if (Gui::CollapsingHeader("Volume Levels", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			pendingChanges |= GuiSettingsVolumeSlider("Song Volume", userData.System.Audio.SongVolume);
-			pendingChanges |= GuiSettingsVolumeSlider("Button Sound Volume", userData.System.Audio.ButtonSoundVolume);
-			pendingChanges |= GuiSettingsVolumeSlider("Sound Effect Volume", userData.System.Audio.SoundEffectVolume);
-			pendingChanges |= GuiSettingsVolumeSlider("Metronome Volume", userData.System.Audio.MetronomeVolume, true);
+			pendingChanges |= GuiSettingsVolumeSlider("Song Volume", userData.System.Audio.SongVolume, ImGuiSliderFlags_AlwaysClamp);
+			pendingChanges |= GuiSettingsVolumeSlider("Button Sound Volume", userData.System.Audio.ButtonSoundVolume, ImGuiSliderFlags_AlwaysClamp);
+			pendingChanges |= GuiSettingsVolumeSlider("Sound Effect Volume", userData.System.Audio.SoundEffectVolume, ImGuiSliderFlags_AlwaysClamp);
+			pendingChanges |= GuiSettingsVolumeSlider("Metronome Volume", userData.System.Audio.MetronomeVolume, ImGuiSliderFlags_AlwaysClamp, true);
 			GuiEndSettingsColumns();
 		}
 

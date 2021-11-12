@@ -4,6 +4,7 @@
 #include "Editor/Common/RecentFilesList.h"
 #include "Editor/Chart/TargetPropertyPresets.h"
 #include "Editor/Chart/BPMCalculatorWindow.h"
+#include "Editor/Chart/Timeline/TargetTimeline.h"
 #include "Editor/Chart/Gameplay/PlayTestCore.h"
 #include "Input/Input.h"
 
@@ -54,7 +55,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 18, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 19, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -213,6 +214,23 @@ namespace Comfy::Studio
 			// bool AutoSaveEnabled;
 			// TimeSpan AutoSaveInterval;
 		} SaveAndLoad;
+
+		struct
+		{
+			f32 SmoothScrollTimeSec;
+			
+			Editor::TargetTimelineScalingBehavior ScalingBehavior;
+			struct
+			{
+				f32 MinRowHeight;
+				f32 MaxRowHeight;
+			} ScalingBehaviorAutoFit;
+			struct
+			{
+				f32 IconScale;
+				f32 RowHeight;
+			} ScalingBehaviorFixedSize;
+		} TargetTimeline;
 
 		struct
 		{

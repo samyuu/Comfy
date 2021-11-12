@@ -426,6 +426,15 @@ namespace Comfy::Studio
 		constexpr std::string_view Input_Bindings = "bindings";
 		constexpr std::string_view Input_PlaytestBindings = "playtest_bindings";
 
+		constexpr std::string_view TargetTimeline = "target_timeline";
+		constexpr std::string_view TargetTimeline_SmoothScrollTimeSec = "smooth_scroll_time_sec";
+		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit = "scaling_behavior_auto_fit";
+		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit_MinRowHeight = "min_row_height";
+		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit_MaxRowHeight = "max_row_height";
+		constexpr std::string_view TargetTimeline_ScalingBehaviorFixedSize = "scaling_behavior_fixed_size";
+		constexpr std::string_view TargetTimeline_ScalingBehaviorFixedSize_IconScale = "icon_scale";
+		constexpr std::string_view TargetTimeline_ScalingBehaviorFixedSize_RowHeight = "row_height";
+
 		constexpr std::string_view TargetPreview = "target_preview";
 		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
 		constexpr std::string_view TargetPreview_ShowGrid = "show_grid";
@@ -716,6 +725,23 @@ namespace Comfy::Studio
 			}
 		}
 
+		if (const Value* targetTimelineJson = Find(rootJson, UserIDs::TargetTimeline))
+		{
+			TryAssign(TargetTimeline.SmoothScrollTimeSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_SmoothScrollTimeSec)));
+			if (const Value* scalingAutoFitJson = Find(*targetTimelineJson, UserIDs::TargetTimeline_ScalingBehaviorAutoFit))
+			{
+				TargetTimeline.ScalingBehavior = TargetTimelineScalingBehavior::AutoFit;
+				TryAssign(TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight, TryGetF32(Find(*scalingAutoFitJson, UserIDs::TargetTimeline_ScalingBehaviorAutoFit_MinRowHeight)));
+				TryAssign(TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight, TryGetF32(Find(*scalingAutoFitJson, UserIDs::TargetTimeline_ScalingBehaviorAutoFit_MaxRowHeight)));
+			}
+			if (const Value* scalingFixedSizeJson = Find(*targetTimelineJson, UserIDs::TargetTimeline_ScalingBehaviorFixedSize))
+			{
+				TargetTimeline.ScalingBehavior = TargetTimelineScalingBehavior::FixedSize;
+				TryAssign(TargetTimeline.ScalingBehaviorFixedSize.IconScale, TryGetF32(Find(*scalingFixedSizeJson, UserIDs::TargetTimeline_ScalingBehaviorFixedSize_IconScale)));
+				TryAssign(TargetTimeline.ScalingBehaviorFixedSize.RowHeight, TryGetF32(Find(*scalingFixedSizeJson, UserIDs::TargetTimeline_ScalingBehaviorFixedSize_RowHeight)));
+			}
+		}
+
 		if (const Value* targetPreviewJson = Find(rootJson, UserIDs::TargetPreview))
 		{
 			TryAssign(TargetPreview.ShowButtons, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)));
@@ -970,6 +996,30 @@ namespace Comfy::Studio
 				writer.MemberArrayEnd();
 
 
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::TargetTimeline);
+			{
+				writer.MemberF32(UserIDs::TargetTimeline_SmoothScrollTimeSec, TargetTimeline.SmoothScrollTimeSec);
+				if (TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
+				{
+					writer.MemberObjectBegin(UserIDs::TargetTimeline_ScalingBehaviorAutoFit);
+					{
+						writer.MemberF32(UserIDs::TargetTimeline_ScalingBehaviorAutoFit_MinRowHeight, TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight);
+						writer.MemberF32(UserIDs::TargetTimeline_ScalingBehaviorAutoFit_MaxRowHeight, TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight);
+					}
+					writer.ObjectEnd();
+				}
+				else if (TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::FixedSize)
+				{
+					writer.MemberObjectBegin(UserIDs::TargetTimeline_ScalingBehaviorFixedSize);
+					{
+						writer.MemberF32(UserIDs::TargetTimeline_ScalingBehaviorFixedSize_IconScale, TargetTimeline.ScalingBehaviorFixedSize.IconScale);
+						writer.MemberF32(UserIDs::TargetTimeline_ScalingBehaviorFixedSize_RowHeight, TargetTimeline.ScalingBehaviorFixedSize.RowHeight);
+					}
+					writer.ObjectEnd();
+				}
 			}
 			writer.MemberObjectEnd();
 
@@ -1307,6 +1357,13 @@ namespace Comfy::Studio
 				PlayTestInputBinding { ButtonTypeFlags_NormalAll, PlayTestSlidePositionType::None, Input::Button::RightTrigger },
 			};
 		}
+
+		TargetTimeline.SmoothScrollTimeSec = TimelineDefaultSmoothScrollTimeSec.x;
+		TargetTimeline.ScalingBehavior = TargetTimelineScalingBehavior::AutoFit;
+		TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight = TargetTimelineMinRowHeight;
+		TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight = TargetTimelineDefaultRowHeight;
+		TargetTimeline.ScalingBehaviorFixedSize.IconScale = TargetTimelineDefaultIconScale;
+		TargetTimeline.ScalingBehaviorFixedSize.RowHeight = TargetTimelineDefaultRowHeight;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

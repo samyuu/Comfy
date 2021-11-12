@@ -18,6 +18,30 @@ namespace Comfy::Studio::Editor
 {
 	class ChartEditor;
 
+	enum class TargetTimelineScalingBehavior : u8
+	{
+		AutoFit,
+		FixedSize,
+		Count,
+	};
+
+	constexpr std::array<const char*, EnumCount<TargetTimelineScalingBehavior>()> TargetTimelineScalingBehaviorNames =
+	{
+		"Auto Fit",
+		"Fixed Size",
+	};
+
+	constexpr f32 TargetTimelineDefaultIconScale = 1.0f;
+	constexpr f32 TargetTimelineMinIconScale = 0.5f;
+	constexpr f32 TargetTimelineMaxIconScale = 2.0f;
+	
+	constexpr f32 TargetTimelineDefaultRowHeight = 36.0f;
+	constexpr f32 TargetTimelineMinRowHeight = (TargetTimelineDefaultRowHeight * TargetTimelineMinIconScale);
+	constexpr f32 TargetTimelineMaxRowHeight = (TargetTimelineDefaultRowHeight * TargetTimelineMaxIconScale);
+
+	// NOTE: Subtracted from RowHeight to get final hitbox size
+	constexpr f32 TargetTimelineRowHeightHitboxOffset = 2.0f;
+
 	class TargetTimeline final : public TimelineBase
 	{
 	public:
@@ -228,9 +252,9 @@ namespace Comfy::Studio::Editor
 		f32 playbackSpeedStep = 0.25f;
 
 	private:
-		const f32 iconScale = 1.0f;
-		const f32 rowHeight = 36.0f;
-		const f32 iconHitboxSize = 34.0f;
+		f32 iconScale = TargetTimelineDefaultIconScale;
+		f32 rowHeight = TargetTimelineDefaultRowHeight;
+		f32 iconHitboxSize = (TargetTimelineDefaultRowHeight - TargetTimelineRowHeightHitboxOffset);
 
 		std::vector<vec2> tempSelectedTargetPositionBuffer;
 

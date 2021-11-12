@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Core/ComfyStudioSettings.h"
+#include "Core/ComfyStudioDiscord.h"
 #include "ImGui/Gui.h"
 
 namespace Comfy::Studio::Editor
@@ -28,6 +29,9 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void GuiTabGeneral(ComfyStudioUserSettings& userData);
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+		void GuiTabDiscord(ComfyStudioUserSettings& userData);
+#endif
 		void GuiTabAudio(ComfyStudioUserSettings& userData);
 		void GuiTabControllerLayout(ComfyStudioUserSettings& userData);
 		void GuiTabEditorBindings(ComfyStudioUserSettings& userData);
@@ -68,6 +72,9 @@ namespace Comfy::Studio::Editor
 		static constexpr NamedTab namedTabs[] =
 		{
 			{ "General", &GuiTabGeneral },
+#if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
+			{ "Discord", &GuiTabDiscord },
+#endif
 			{ "Audio", &GuiTabAudio },
 			{ "Controller Layout", &GuiTabControllerLayout },
 			// TODO: Only problem is that this also includes things like "Playtest Pause" so not really exclusive to "Editor"...

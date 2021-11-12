@@ -141,6 +141,33 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdate()
 	{
+		smoothScrollTimeSec.x = GlobalUserData.TargetTimeline.SmoothScrollTimeSec;
+
+		if (GlobalUserData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
+		{
+			const f32 minRowHeight = GlobalUserData.TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight;
+			const f32 maxRowHeight = GlobalUserData.TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight;
+
+			const f32 currentHeight = regions.Content.GetHeight();
+			const f32 maxHeight = (maxRowHeight * static_cast<f32>(EnumCount<ButtonType>()));
+
+			// NOTE: Floor to multiple of two to avoid half-pixel hitboxes
+			const f32 scaledRowHeightFlooredToMultipleOfTwo = glm::floor((maxRowHeight * (currentHeight / maxHeight)) / 2.0f) * 2.0f;
+			rowHeight = Clamp(scaledRowHeightFlooredToMultipleOfTwo, minRowHeight, maxRowHeight);
+			iconScale = (rowHeight / TargetTimelineDefaultRowHeight);
+			iconHitboxSize = (rowHeight - TargetTimelineRowHeightHitboxOffset);
+		}
+		else if (GlobalUserData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::FixedSize)
+		{
+			iconScale = GlobalUserData.TargetTimeline.ScalingBehaviorFixedSize.IconScale;
+			rowHeight = GlobalUserData.TargetTimeline.ScalingBehaviorFixedSize.RowHeight;
+			iconHitboxSize = (rowHeight - TargetTimelineRowHeightHitboxOffset);
+		}
+		else
+		{
+			assert(false);
+		}
+
 		UpdateOffsetChangeCursorTimeAdjustment();
 
 		if (GetIsPlayback())
