@@ -479,13 +479,8 @@ namespace Comfy::Render
 
 		HRESULT InitializeGlobalD3D11StateOnce(D3D11& d3d11)
 		{
-			if (!global.MediaFoundationInitialized)
-			{
-				// BUG: Calling CoInitializeEx() here makes IFileDialog::Show() lock up..?
-				global.CoInitializeResult = ::CoInitialize(nullptr);
-				global.MFStartupResult = ::MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
-				global.MediaFoundationInitialized = true;
-			}
+			Win32ThreadLocalCoInitializeOnce();
+			Win32ThreadLocalMFStartupOnce();
 
 			HRESULT hr = S_OK;
 
@@ -1113,10 +1108,6 @@ namespace Comfy::Render
 	private:
 		static inline struct GlobalData
 		{
-			HRESULT CoInitializeResult = {};
-			HRESULT MFStartupResult = {};
-			bool MediaFoundationInitialized = false;
-
 			bool D3D11DeviceInitialized = false;
 			UINT DXGIDeviceManagerID = 0;
 			ComPtr<IMFDXGIDeviceManager> DXGIDeviceManager = nullptr;

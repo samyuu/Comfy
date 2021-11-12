@@ -129,11 +129,9 @@ namespace Comfy::Audio
 	DecoderResult DecoderFactory::TryDecodeAndParseFileUsingMediaFoundation(std::string_view filePath, DecoderOutputData& outputData)
 	{
 		HRESULT hr = S_OK;
-
-		// TODO: threadlocal com and MF initializer helper (?)
-		hr = ::CoInitialize(nullptr);
-		hr = ::MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
-
+		Win32ThreadLocalCoInitializeOnce();
+		Win32ThreadLocalMFStartupOnce();
+		
 		constexpr auto audioStreamIndex = MF_SOURCE_READER_FIRST_AUDIO_STREAM;
 
 		ComPtr<IMFSourceReader> sourceReader = nullptr;

@@ -88,6 +88,7 @@
   <ItemGroup>
     <ClCompile Include="src\Core\Logger.cpp" />
     <ClCompile Include="src\Core\SemanticVersion.cpp" />
+    <ClCompile Include="src\Core\Win32LeanWindowsHeader.cpp" />
     <ClCompile Include="src\Database\Game\GmBtnSfxDB.cpp" />
     <ClCompile Include="src\Database\Game\GmPvListDB.cpp" />
     <ClCompile Include="src\Database\Game\PvDB.cpp" />

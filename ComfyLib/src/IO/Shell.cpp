@@ -3,9 +3,12 @@
 #include "Path.h"
 #include "Misc/StringUtil.h"
 #include "Misc/UTF8.h"
+#include "Time/Stopwatch.h"
 #include <shlwapi.h>
 #include <shobjidl.h>
 #include <wrl.h>
+
+#include "Core/Win32LeanWindowsHeader.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -13,6 +16,43 @@ namespace Comfy::IO
 {
 	namespace Shell
 	{
+		namespace
+		{
+			// HACK: Run inside a separate thread with a timeout so that worst case the program at least won't freeze indefinitely.
+			//		 Only to be used for "heavy" operations for which the overhead of creating a thread isn't a big deal
+			template <typename Func>
+			void CreateRunAndWaitOnComThreadWithTimeout(Func threadFunc, TimeSpan timeoutDuration = TimeSpan::FromSeconds(6.0))
+			{
+				std::atomic<bool> threadIsFinished = false;
+				auto comThread = std::thread([&]()
+				{
+					Win32ThreadLocalCoInitializeOnce();
+					threadFunc();
+					Win32ThreadLocalCoUnInitializeIfLast();
+					threadIsFinished = true;
+				});
+
+				auto timeoutStopwatch = Stopwatch::StartNew();
+				while (true)
+				{
+					if (threadIsFinished && comThread.joinable())
+					{
+						comThread.join();
+						break;
+					}
+					else if (timeoutStopwatch.GetElapsed() >= timeoutDuration)
+					{
+						// NOTE: In this case just let thread leak as *anything* is probably still much better 
+						//		 than locking up the entire program indefinitely and potentially lossing unsaved progress
+						assert(false);
+						if (comThread.joinable())
+							comThread.detach();
+						break;
+					}
+				}
+			}
+		}
+
 		bool IsFileLink(std::string filePath)
 		{
 			const auto extension = Path::GetExtension(filePath);
@@ -21,20 +61,15 @@ namespace Comfy::IO
 
 		std::string ResolveFileLink(std::string_view lnkFilePath)
 		{
-#if 0
-			::CoInitialize(nullptr);
-			defer { ::CoUninitialize(); }
-#endif
+			Win32ThreadLocalCoInitializeOnce();
 
-			IShellLinkW* shellLink;
-			if (FAILED(::CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, reinterpret_cast<LPVOID*>(&shellLink))))
+			ComPtr<IShellLinkW> shellLink = nullptr;
+			if (FAILED(::CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, __uuidof(shellLink), &shellLink)))
 				return "";
-			defer { shellLink->Release(); };
 
-			IPersistFile* persistFile;
-			if (FAILED(shellLink->QueryInterface(IID_IPersistFile, reinterpret_cast<LPVOID*>(&persistFile))))
+			ComPtr<IPersistFile> persistFile = nullptr;
+			if (FAILED(shellLink->QueryInterface(__uuidof(persistFile), &persistFile)))
 				return "";
-			defer { persistFile->Release(); };
 
 			if (FAILED(persistFile->Load(UTF8::WideArg(lnkFilePath).c_str(), STGM_READ)))
 				return "";
@@ -42,9 +77,8 @@ namespace Comfy::IO
 			if (FAILED(shellLink->Resolve(NULL, 0)))
 				return "";
 
-			WCHAR pathBuffer[MAX_PATH];
-			WIN32_FIND_DATAW findData;
-
+			WCHAR pathBuffer[MAX_PATH] = {};
+			WIN32_FIND_DATAW findData = {};
 			if (SUCCEEDED(shellLink->GetPath(pathBuffer, MAX_PATH, &findData, SLGP_SHORTPATH)))
 				return UTF8::Narrow(pathBuffer);
 
@@ -53,41 +87,54 @@ namespace Comfy::IO
 
 		void OpenInExplorer(std::string_view filePath)
 		{
-			if (Path::IsRelative(filePath))
+			// HACK: Just to be sure...
+			CreateRunAndWaitOnComThreadWithTimeout([path = std::string(filePath)]()
 			{
-				const auto absolutePath = Path::Combine(Directory::GetWorkingDirectory(), filePath);
-				::ShellExecuteW(NULL, L"open", UTF8::WideArg(absolutePath).c_str(), NULL, NULL, SW_SHOWDEFAULT);
-			}
-			else
-			{
-				::ShellExecuteW(NULL, L"open", UTF8::WideArg(filePath).c_str(), NULL, NULL, SW_SHOWDEFAULT);
-			}
+				if (Path::IsRelative(path))
+				{
+					const auto absolutePath = Path::Combine(Directory::GetWorkingDirectory(), path);
+					::ShellExecuteW(NULL, L"open", UTF8::WideArg(absolutePath).c_str(), NULL, NULL, SW_SHOWDEFAULT);
+				}
+				else
+				{
+					::ShellExecuteW(NULL, L"open", UTF8::WideArg(path).c_str(), NULL, NULL, SW_SHOWDEFAULT);
+				}
+			});
 		}
 
 		void OpenExplorerProperties(std::string_view filePath)
 		{
-			const auto filePathArg = UTF8::WideArg(filePath);
+			// HACK: Just to be sure...
+			CreateRunAndWaitOnComThreadWithTimeout([path = std::string(filePath)]()
+			{
+				const auto filePathArg = UTF8::WideArg(path);
 
-			SHELLEXECUTEINFOW info = {};
-			info.cbSize = sizeof(info);
-			info.lpFile = filePathArg.c_str();
-			info.nShow = SW_SHOW;
-			info.fMask = SEE_MASK_INVOKEIDLIST;
-			info.lpVerb = L"properties";
-			::ShellExecuteExW(&info);
+				SHELLEXECUTEINFOW info = {};
+				info.cbSize = sizeof(info);
+				info.lpFile = filePathArg.c_str();
+				info.nShow = SW_SHOW;
+				info.fMask = SEE_MASK_INVOKEIDLIST;
+				info.lpVerb = L"properties";
+				::ShellExecuteExW(&info);
+			});
 		}
 
 		void OpenWithDefaultProgram(std::string_view filePath)
 		{
-			if (Path::IsRelative(filePath))
+			// BUG: Can't reliably reproduce it but under certain conditions it seems if this is called after the MoviePlayer has been initialized
+			//		then these can completely lock up the program. Probably related to multi threading / COM threading apartment...
+			CreateRunAndWaitOnComThreadWithTimeout([path = std::string(filePath)]()
 			{
-				const auto absolutePath = Path::Combine(Directory::GetWorkingDirectory(), filePath);
-				::ShellExecuteW(NULL, L"open", UTF8::WideArg(absolutePath).c_str(), NULL, NULL, SW_SHOW);
-			}
-			else
-			{
-				::ShellExecuteW(NULL, L"open", UTF8::WideArg(filePath).c_str(), NULL, NULL, SW_SHOW);
-			}
+				if (Path::IsRelative(path))
+				{
+					const auto absolutePath = Path::Combine(Directory::GetWorkingDirectory(), path);
+					::ShellExecuteW(NULL, L"open", UTF8::WideArg(absolutePath).c_str(), NULL, NULL, SW_SHOW);
+				}
+				else
+				{
+					::ShellExecuteW(NULL, L"open", UTF8::WideArg(path).c_str(), NULL, NULL, SW_SHOW);
+				}
+			});
 		}
 
 		namespace
@@ -238,13 +285,13 @@ namespace Comfy::IO
 			return InternalCreateAndShowDialog(false, true);
 		}
 
+		// NOTE: Can't use CreateRunAndWaitOnComThreadWithTimeout() here because the parent window still needs to respond to window messages (?) 
 		bool FileDialog::InternalCreateAndShowDialog(bool save, bool selectFolder)
 		{
 			HRESULT hr = S_OK;
 			ComPtr<IFileDialog> fileDialog = nullptr;
 
-			// hr = ::CoInitialize(nullptr);
-
+			hr = Win32ThreadLocalCoInitializeOnce();
 			if (hr = ::CoCreateInstance(save ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, __uuidof(fileDialog), &fileDialog); !SUCCEEDED(hr))
 				return false;
 

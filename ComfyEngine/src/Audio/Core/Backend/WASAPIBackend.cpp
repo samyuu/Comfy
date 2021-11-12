@@ -9,6 +9,8 @@
 #include <wrl.h>
 #include <avrt.h>
 
+#include "Core/Win32LeanWindowsHeader.h"
+
 #pragma comment(lib, "avrt.lib")
 
 using Microsoft::WRL::ComPtr;
@@ -27,8 +29,8 @@ namespace Comfy::Audio
 			renderCallback = std::move(callback);
 
 			HRESULT error = S_OK;
-			error = ::CoInitialize(nullptr);
-
+			error = Win32ThreadLocalCoInitializeOnce();
+			
 			error = ::CoCreateInstance(__uuidof(::MMDeviceEnumerator), nullptr, CLSCTX_ALL, __uuidof(::IMMDeviceEnumerator), &deviceEnumerator);
 			if (FAILED(error))
 			{
@@ -198,7 +200,8 @@ namespace Comfy::Audio
 			}
 
 			HRESULT error = S_OK;
-			error = ::CoInitialize(nullptr);
+			error = Win32ThreadLocalCoInitializeOnce();
+			defer { Win32ThreadLocalCoUnInitializeIfLast(); };
 
 			error = audioClient->GetBufferSize(&bufferFrameCount);
 			if (FAILED(error))

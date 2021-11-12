@@ -389,5 +389,8 @@
     <ClCompile Include="src\Core\SemanticVersion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\Win32LeanWindowsHeader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

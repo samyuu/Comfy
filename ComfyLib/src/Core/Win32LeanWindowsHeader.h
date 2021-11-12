@@ -85,3 +85,9 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <Windows.h>
+
+HRESULT Win32ThreadLocalCoInitializeOnce();
+HRESULT Win32ThreadLocalCoUnInitializeIfLast();
+
+HRESULT Win32ThreadLocalMFStartupOnce();
+HRESULT Win32ThreadLocalMFShutdownIfLast();
