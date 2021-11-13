@@ -90,6 +90,7 @@ namespace Comfy::Studio::Editor
 		UpdateAsyncSongSourceLoading();
 
 		GuiChildWindows();
+		GuiPlaytestFullscreenFadeOutAnimation();
 
 		GuiSettingsPopup();
 		GuiPVScriptImportPopup();
@@ -982,6 +983,45 @@ namespace Comfy::Studio::Editor
 		Gui::End();
 	}
 
+	void ChartEditor::GuiPlaytestFullscreenFadeOutAnimation()
+	{
+		if (!guiFrameCountOnPlaytestExit.has_value())
+			return;
+
+		const i32 frameCountOnExit = guiFrameCountOnPlaytestExit.value();
+		const i32 frameCountNow = Gui::GetFrameCount();
+		const i32 elapsedFramesSinceExit = (frameCountNow - frameCountOnExit);
+
+		auto drawBlackFullscreenQuadForEachViewport = [](f32 alpha)
+		{
+			for (auto* viewport : Gui::GetCurrentContext()->Viewports)
+				Gui::GetForegroundDrawList(viewport)->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size, ImColor(0.0f, 0.0f, 0.0f, alpha));
+		};
+
+		// NOTE: Delay the fade out for a few fixed frames so that the ImGui layout can adjust itself without being visible to the user
+		constexpr i32 fadeOutFrameDelay = 3;
+		constexpr TimeSpan fadeOutDuration = TimeSpan::FromSeconds(0.12);
+
+		if (elapsedFramesSinceExit <= fadeOutFrameDelay && !playtestFadeOutStopwatch.IsRunning())
+		{
+			drawBlackFullscreenQuadForEachViewport(1.0f);
+		}
+		else
+		{
+			if (!playtestFadeOutStopwatch.IsRunning())
+				playtestFadeOutStopwatch.Start();
+
+			const TimeSpan elapsed = playtestFadeOutStopwatch.GetElapsed();
+			drawBlackFullscreenQuadForEachViewport(static_cast<f32>(ConvertRangeClamped<f64>(fadeOutDuration.TotalSeconds(), 0.0, 0.0, 1.0, elapsed.TotalSeconds())));
+
+			if (elapsed >= fadeOutDuration)
+			{
+				playtestFadeOutStopwatch.Stop();
+				guiFrameCountOnPlaytestExit = {};
+			}
+		}
+	}
+
 	void ChartEditor::GuiSettingsPopup()
 	{
 		constexpr const char* settingsWindowID = "Settings";
@@ -1262,6 +1302,9 @@ namespace Comfy::Studio::Editor
 		if (GlobalUserData.Playtest.EnterFullscreenOnMaximizedStart && exitFullscreenOnPlaytestEnd && parentApplication.GetHost().GetIsFullscreen())
 			parentApplication.GetHost().SetIsFullscreen(false);
 		exitFullscreenOnPlaytestEnd = false;
+
+		guiFrameCountOnPlaytestExit = Gui::GetFrameCount();
+		playtestFadeOutStopwatch = {};
 	}
 
 	bool ChartEditor::GetIsPlayback() const

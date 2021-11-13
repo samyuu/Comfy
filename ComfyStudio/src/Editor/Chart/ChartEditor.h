@@ -107,6 +107,7 @@ namespace Comfy::Studio::Editor
 		void UpdateAsyncSongSourceLoading();
 
 		void GuiChildWindows();
+		void GuiPlaytestFullscreenFadeOutAnimation();
 
 		void GuiSettingsPopup();
 		void GuiPVScriptImportPopup();
@@ -134,6 +135,8 @@ namespace Comfy::Studio::Editor
 
 		std::unique_ptr<PlayTestWindow> playTestWindow = nullptr;
 		bool exitFullscreenOnPlaytestEnd = false;
+		std::optional<i32> guiFrameCountOnPlaytestExit = {};
+		Stopwatch playtestFadeOutStopwatch = {};
 
 	private:
 		Undo::UndoManager undoManager = {};
