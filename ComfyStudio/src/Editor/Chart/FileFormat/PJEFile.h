@@ -11,7 +11,7 @@ namespace Comfy::Studio::Editor
 		{
 		public:
 			static constexpr std::string_view Extension = ".pje";
-			static constexpr std::string_view FilterName = "UPDC Chart (*.pje)";
+			static constexpr std::string_view FilterName = "UPDC Chart";
 			static constexpr std::string_view FilterSpec = "*.pje";
 
 		public:

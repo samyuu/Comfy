@@ -282,8 +282,8 @@ namespace Comfy::Studio::Editor
 		fileDialog.DefaultExtension;
 		fileDialog.Filters =
 		{
-			{ "Audio Files (*.flac;*.ogg;*.mp3;*.wav)", "*.flac;*.ogg;*.mp3;*.wav" },
-			{ "Video Files (.mp4;.mkv;.mov;.webm;.wmv;.avi)", ".mp4;.mkv;.mov;.webm;.wmv;.avi" },
+			{ "Audio Files", "*.flac;*.ogg;*.mp3;*.wav" },
+			{ "Video Files", "*.mp4;*.mkv;*.mov;*.webm;*.wmv;*.avi" },
 			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
 		};
 		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
@@ -303,7 +303,7 @@ namespace Comfy::Studio::Editor
 		fileDialog.DefaultExtension;
 		fileDialog.Filters =
 		{
-			{ "Video Files (.mp4;.mkv;.mov;.webm;.wmv;.avi)", ".mp4;.mkv;.mov;.webm;.wmv;.avi" },
+			{ "Video Files", "*.mp4;*.mkv;*.mov;*.webm;*.wmv;*.avi" },
 			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
 		};
 		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
@@ -738,11 +738,11 @@ namespace Comfy::Studio::Editor
 		fileDialog.DefaultExtension = ".png";
 		fileDialog.Filters =
 		{
-			{ "Image Files (*.png;*.jpg;*.jpeg;.bmp;.gif)", "*.png;*.jpg;*.jpeg;.bmp;.gif" },
-			{ "PNG Files (*.png)", "*.png" },
-			{ "JPEG Files (*.jpg;*.jpeg)", "*.jpg;*.jpeg" },
-			{ "BMP Files (*.bmp)", "*.bmp" },
-			{ "GIF Files (*.gif)", "*.gif" },
+			{ "Image Files", "*.png;*.jpg;*.jpeg;.bmp;.gif" },
+			{ "PNG Files", "*.png" },
+			{ "JPEG Files", "*.jpg;*.jpeg" },
+			{ "BMP Files", "*.bmp" },
+			{ "GIF Files", "*.gif" },
 			{ std::string(IO::Shell::FileDialog::AllFilesFilterName), std::string(IO::Shell::FileDialog::AllFilesFilterSpec) },
 		};
 		fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();

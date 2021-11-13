@@ -41,13 +41,15 @@ namespace Comfy::IO
 		class FileDialog
 		{
 		public:
-			static constexpr std::string_view AllFilesFilterName = "All Files (*.*)";
+			static constexpr std::string_view AllFilesFilterName = "All Files";
 			static constexpr std::string_view AllFilesFilterSpec = "*.*";
 
 		public:
 			struct FileFilter
 			{
+				// NOTE: In the format "File Type Name" without spec prefix
 				std::string Name;
+				// NOTE: In the format "*.ext" for a single format and "*.ext;*.ext;*.ext" for a list
 				std::string Spec;
 			};
 

@@ -288,6 +288,14 @@ namespace Comfy::IO
 		// NOTE: Can't use CreateRunAndWaitOnComThreadWithTimeout() here because the parent window still needs to respond to window messages (?) 
 		bool FileDialog::InternalCreateAndShowDialog(bool save, bool selectFolder)
 		{
+			for (auto& filter : Filters)
+			{
+				// NOTE: Shouldn't have a file spec suffix
+				assert(!filter.Name.empty() && filter.Name.back() != ')');
+				// NOTE: Don't forget the "*." prefix
+				assert(!filter.Spec.empty() && filter.Spec[0] == '*' && filter.Spec[1] == '.' && filter.Spec.back() != ';');
+			}
+
 			HRESULT hr = S_OK;
 			ComPtr<IFileDialog> fileDialog = nullptr;
 
@@ -321,17 +329,25 @@ namespace Comfy::IO
 
 					if (!selectFolder && !Filters.empty())
 					{
+						// NOTE: Important to reserve so the c_str()s won't get invalidated
 						std::vector<std::wstring> owningWideStrings;
 						owningWideStrings.reserve(Filters.size() * 2);
 
 						std::vector<COMDLG_FILTERSPEC> convertedFilters;
 						convertedFilters.reserve(Filters.size());
 
+						std::string nameWithSpecSuffix;
 						for (const auto& inputFilter : Filters)
 						{
+							nameWithSpecSuffix.clear();
+							nameWithSpecSuffix += inputFilter.Name;
+							nameWithSpecSuffix += " (";
+							nameWithSpecSuffix += inputFilter.Spec;
+							nameWithSpecSuffix += ')';
+
 							convertedFilters.push_back(COMDLG_FILTERSPEC
 								{
-									owningWideStrings.emplace_back(std::move(UTF8::Widen(inputFilter.Name))).c_str(),
+									owningWideStrings.emplace_back(std::move(UTF8::Widen(nameWithSpecSuffix))).c_str(),
 									owningWideStrings.emplace_back(std::move(UTF8::Widen(inputFilter.Spec))).c_str(),
 								});
 						}

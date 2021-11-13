@@ -105,7 +105,7 @@ namespace Comfy::Studio::Editor
 				IO::Shell::FileDialog fileDialog;
 				fileDialog.FileName = aetSet->Name;
 				fileDialog.DefaultExtension = ".bin";
-				fileDialog.Filters = { { "Project DIVA AetSet (*.bin)", "*.bin" }, };
+				fileDialog.Filters = { { "Project DIVA AetSet", "*.bin" }, };
 				fileDialog.ParentWindowHandle = ComfyStudioApplication::GetGlobalWindowFocusHandle();
 
 				if (fileDialog.OpenSave())

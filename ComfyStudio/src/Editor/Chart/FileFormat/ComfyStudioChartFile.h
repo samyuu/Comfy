@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	public:
 		// NOTE: Comfy Studio •ˆ–Ê (Fumen)
 		static constexpr std::string_view Extension = ".csfm";
-		static constexpr std::string_view FilterName = "Comfy Studio Chart (*.csfm)";
+		static constexpr std::string_view FilterName = "Comfy Studio Chart";
 		static constexpr std::string_view FilterSpec = "*.csfm";
 
 	public:
