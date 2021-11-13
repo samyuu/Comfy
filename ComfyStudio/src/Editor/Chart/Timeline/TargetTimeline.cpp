@@ -577,8 +577,10 @@ namespace Comfy::Studio::Editor
 		{
 			if (const bool waveformLoadedForNewSong = (songWaveform.GetPixelCount() <= 0); waveformLoadedForNewSong)
 			{
-				waveformFadeInStopwatch.Restart();
-				waveformExpandStopwatch.Restart();
+				// HACK: Delay the start of the stopwatch by a few fixed frames so that the entire animation won't be skipped
+				//		 in case a single in-between frame lags for too long (mostly due to extended font range loading or audio backend initialization)
+				deferredWaveformFadeInStopwatchGuiStartFrame = (Gui::GetFrameCount() + 2);
+				waveformFadeInStopwatch.Stop();
 			}
 
 			const TimeSpan timePerPixel = GetTimelineTime(2.0f) - GetTimelineTime(1.0f);
@@ -607,14 +609,21 @@ namespace Comfy::Studio::Editor
 		if (waveformUpdatePending)
 			return;
 
-		const f32 timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
-		const f32 scrollXSongOffset = GetScrollX() + GetTimelinePosition(workingChart->SongOffset);
+		if (deferredWaveformFadeInStopwatchGuiStartFrame.has_value() && (Gui::GetFrameCount() >= deferredWaveformFadeInStopwatchGuiStartFrame.value()))
+		{
+			deferredWaveformFadeInStopwatchGuiStartFrame = {};
+			waveformFadeInStopwatch.Restart();
+		}
 
-		const f32 fadeInProgress = static_cast<f32>(ConvertRangeClamped<f64>(0.0, waveformFadeInDuration.TotalSeconds(), 0.0, 1.0, waveformFadeInStopwatch.GetElapsed().TotalSeconds()));
-		const f32 expandProgress = static_cast<f32>(ConvertRangeClamped<f64>(0.0, waveformExpandDuration.TotalSeconds(), 0.0, 1.0, waveformExpandStopwatch.GetElapsed().TotalSeconds()));
+		const TimeSpan elapsed = waveformFadeInStopwatch.GetElapsed();
+		const f32 fadeInProgress = static_cast<f32>(ConvertRangeClamped<f64>(0.0, waveformFadeInDuration.TotalSeconds(), 0.0, 1.0, elapsed.TotalSeconds()));
+		const f32 expandProgress = static_cast<f32>(ConvertRangeClamped<f64>(0.0, waveformExpandDuration.TotalSeconds(), 0.0, 1.0, elapsed.TotalSeconds()));
 
 		const vec4 waveformTint = { 1.0f, 1.0f, 1.0f, fadeInProgress };
 		const f32 waveformHeightFactor = expandProgress;
+
+		const f32 timelineHeight = (static_cast<f32>(ButtonType::Count) * rowHeight);
+		const f32 scrollXSongOffset = GetScrollX() + GetTimelinePosition(workingChart->SongOffset);
 
 		songTextureCachedWaveform.Draw(baseWindowDrawList,
 			regions.Content.GetTL(),

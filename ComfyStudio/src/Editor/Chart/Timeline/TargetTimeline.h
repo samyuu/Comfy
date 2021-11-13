@@ -241,8 +241,8 @@ namespace Comfy::Studio::Editor
 
 		const TimeSpan waveformFadeInDuration = TimeSpan::FromMilliseconds(240.0f);
 		const TimeSpan waveformExpandDuration = TimeSpan::FromMilliseconds(120.0f);
+		std::optional<i32> deferredWaveformFadeInStopwatchGuiStartFrame = {};
 		Stopwatch waveformFadeInStopwatch = {};
-		Stopwatch waveformExpandStopwatch = {};
 
 	private:
 		i32 activeBarGridDivision = 16;
