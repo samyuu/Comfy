@@ -141,6 +141,12 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdate()
 	{
+		if (guiFrameCountAfterWhichToFocusWindow.has_value() && (Gui::GetFrameCount() >= guiFrameCountAfterWhichToFocusWindow.value()))
+		{
+			Gui::SetWindowFocus();
+			guiFrameCountAfterWhichToFocusWindow = {};
+		}
+
 		smoothScrollTimeSec.x = GlobalUserData.TargetTimeline.SmoothScrollTimeSec;
 
 		if (GlobalUserData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
@@ -2189,6 +2195,11 @@ namespace Comfy::Studio::Editor
 	TimelineMetronome& TargetTimeline::GetMetronome()
 	{
 		return metronome;
+	}
+
+	void TargetTimeline::SetWindowFocusNextFrame(std::optional<i32> frameOffset)
+	{
+		guiFrameCountAfterWhichToFocusWindow = (Gui::GetFrameCount() + frameOffset.value_or(1));
 	}
 
 	i32 TargetTimeline::FindGridDivisionPresetIndex() const

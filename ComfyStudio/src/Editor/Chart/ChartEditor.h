@@ -100,6 +100,8 @@ namespace Comfy::Studio::Editor
 		ComfyStudioApplication& GetParentApplication();
 
 	private:
+		std::unique_ptr<Chart> MakeNewChartWithDefaults() const;
+
 		void UpdateApplicationClosingRequest();
 		void UpdateGlobalControlInput();
 		void UpdateApplicationWindowTitle();

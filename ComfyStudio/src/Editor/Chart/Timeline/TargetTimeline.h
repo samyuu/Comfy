@@ -93,6 +93,8 @@ namespace Comfy::Studio::Editor
 		void ResetScrollAndZoom();
 		TimelineMetronome& GetMetronome();
 
+		void SetWindowFocusNextFrame(std::optional<i32> frameOffset = {});
+
 	public:
 		i32 FindGridDivisionPresetIndex() const;
 		void SelectNextPresetGridDivision(i32 direction);
@@ -197,6 +199,7 @@ namespace Comfy::Studio::Editor
 
 		ClipboardHelper clipboardHelper = {};
 
+		std::optional<i32> guiFrameCountAfterWhichToFocusWindow = {};
 		bool isCursorScrubbing = false;
 
 		// NOTE: Store cursor time as BeatTick while paused to avoid floating point precision issues,

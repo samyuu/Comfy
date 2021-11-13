@@ -28,19 +28,24 @@ namespace Comfy::Studio::Editor
 
 			return IO::Path::TrimExtension(FallbackChartFileName);
 		}
+
+		void DrawBlackFullscreenQuadForEachViewport(f32 alpha)
+		{
+			for (auto* viewport : Gui::GetCurrentContext()->Viewports)
+				Gui::GetForegroundDrawList(viewport)->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size, ImColor(0.0f, 0.0f, 0.0f, alpha));
+		}
 	}
 
 	ChartEditor::ChartEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-		chart = std::make_unique<Chart>();
-		chart->TempoMap.RebuildAccelerationStructure();
-		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
-
+		chart = MakeNewChartWithDefaults();
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor SongVoice", false, 1.0f, true);
 		buttonSoundController = std::make_unique<ButtonSoundController>(soundEffectManager);
 
 		renderer = std::make_unique<Render::Renderer2D>();
 		timeline = std::make_unique<TargetTimeline>(*this, undoManager, *buttonSoundController);
+		// NOTE: Since this is probably the "most important" window when starting up
+		timeline->SetWindowFocusNextFrame();
 
 		renderWindow = std::make_unique<TargetRenderWindow>(*this, *timeline, undoManager, *renderer);
 		renderWindow->RegisterRenderCallback([this](auto& renderWindow, auto& renderer) { presetWindow.OnRenderWindowRender(*chart, renderWindow, renderer); });
@@ -453,9 +458,7 @@ namespace Comfy::Studio::Editor
 	void ChartEditor::CreateNewChart()
 	{
 		undoManager.ClearAll();
-		chart = std::make_unique<Chart>();
-		chart->TempoMap.RebuildAccelerationStructure();
-		chart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
+		chart = MakeNewChartWithDefaults();
 		UnloadSong();
 		UnloadMovie(true);
 
@@ -465,8 +468,11 @@ namespace Comfy::Studio::Editor
 			timeline->StopPlayback();
 
 		songVoice.SetPlaybackSpeed(1.0f);
+
+		// NOTE: Restore the default focus as well since the resetting scroll/zoom already visual draw attention to the timeline
 		timeline->SetCursorTime(TimeSpan::Zero());
 		timeline->ResetScrollAndZoom();
+		timeline->SetWindowFocusNextFrame();
 
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
 		unixTimeOnChartBegin = Discord::GlobalGetCurrentUnixTime();
@@ -799,6 +805,15 @@ namespace Comfy::Studio::Editor
 		return parentApplication;
 	}
 
+	std::unique_ptr<Chart> ChartEditor::MakeNewChartWithDefaults() const
+	{
+		std::unique_ptr<Chart> newChart = nullptr;
+		newChart = std::make_unique<Chart>();
+		newChart->TempoMap.RebuildAccelerationStructure();
+		newChart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
+		return newChart;
+	}
+
 	void ChartEditor::UpdateApplicationClosingRequest()
 	{
 		if (!applicationExitRequested)
@@ -992,19 +1007,13 @@ namespace Comfy::Studio::Editor
 		const i32 frameCountNow = Gui::GetFrameCount();
 		const i32 elapsedFramesSinceExit = (frameCountNow - frameCountOnExit);
 
-		auto drawBlackFullscreenQuadForEachViewport = [](f32 alpha)
-		{
-			for (auto* viewport : Gui::GetCurrentContext()->Viewports)
-				Gui::GetForegroundDrawList(viewport)->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size, ImColor(0.0f, 0.0f, 0.0f, alpha));
-		};
-
 		// NOTE: Delay the fade out for a few fixed frames so that the ImGui layout can adjust itself without being visible to the user
 		constexpr i32 fadeOutFrameDelay = 3;
 		constexpr TimeSpan fadeOutDuration = TimeSpan::FromSeconds(0.12);
 
 		if (elapsedFramesSinceExit <= fadeOutFrameDelay && !playtestFadeOutStopwatch.IsRunning())
 		{
-			drawBlackFullscreenQuadForEachViewport(1.0f);
+			DrawBlackFullscreenQuadForEachViewport(1.0f);
 		}
 		else
 		{
@@ -1012,7 +1021,7 @@ namespace Comfy::Studio::Editor
 				playtestFadeOutStopwatch.Start();
 
 			const TimeSpan elapsed = playtestFadeOutStopwatch.GetElapsed();
-			drawBlackFullscreenQuadForEachViewport(static_cast<f32>(ConvertRangeClamped<f64>(fadeOutDuration.TotalSeconds(), 0.0, 0.0, 1.0, elapsed.TotalSeconds())));
+			DrawBlackFullscreenQuadForEachViewport(static_cast<f32>(ConvertRangeClamped<f64>(fadeOutDuration.TotalSeconds(), 0.0, 0.0, 1.0, elapsed.TotalSeconds())));
 
 			if (elapsed >= fadeOutDuration)
 			{
@@ -1302,6 +1311,9 @@ namespace Comfy::Studio::Editor
 		if (GlobalUserData.Playtest.EnterFullscreenOnMaximizedStart && exitFullscreenOnPlaytestEnd && parentApplication.GetHost().GetIsFullscreen())
 			parentApplication.GetHost().SetIsFullscreen(false);
 		exitFullscreenOnPlaytestEnd = false;
+
+		// NOTE: Delay focus by a few frames beacuse of the exclusive fullscreen transition
+		timeline->SetWindowFocusNextFrame(3);
 
 		guiFrameCountOnPlaytestExit = Gui::GetFrameCount();
 		playtestFadeOutStopwatch = {};
