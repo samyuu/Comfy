@@ -21,7 +21,7 @@ namespace ImGui
 		{
 			struct ID : NonCopyable
 			{
-				ID(int intID) { PushID(intID); }
+				ID(i32 intID) { PushID(intID); }
 				ID(const void* ptrID) { PushID(ptrID); }
 				ID(std::string_view strID) { PushID(StringViewStart(strID), StringViewEnd(strID)); }
 				~ID() { PopID(); }
@@ -29,13 +29,14 @@ namespace ImGui
 
 			struct ItemWidth : NonCopyable
 			{
-				ItemWidth(float width) { PushItemWidth(width); }
+				ItemWidth(f32 width) { PushItemWidth(width); }
 				~ItemWidth() { PopItemWidth(); }
 			};
 
+			// TODO: This all needs to be reworked, frame padding is all fucked up with the old columns. Hopefully this can be fixed using Tables 
 			struct Columns : NonCopyable
 			{
-				Columns(int columnsCount, const char* id, bool border)
+				Columns(i32 columnsCount, const char* id, bool border)
 				{
 					if (auto previousColumns = GetCurrentWindow()->DC.CurrentColumns; previousColumns == nullptr)
 						Previous = { nullptr, 1, false };
@@ -51,7 +52,7 @@ namespace ImGui
 				struct ColumnData
 				{
 					const char* ID;
-					int Count;
+					i32 Count;
 					bool Border;
 				} Previous;
 			};
@@ -160,7 +161,7 @@ namespace ImGui
 					{
 					};
 					template<>
-					struct DataType<int>
+					struct DataType<i32>
 					{
 						static constexpr const char* Format = nullptr;
 						static constexpr ImGuiDataType TypeEnum = ImGuiDataType_S32;
@@ -174,7 +175,7 @@ namespace ImGui
 						static constexpr ImGuiInputTextFlags InputTextFlags = ImGuiInputTextFlags_None;
 					};
 					template<>
-					struct DataType<float>
+					struct DataType<f32>
 					{
 						static constexpr const char* Format = "%.3f";
 						static constexpr ImGuiDataType TypeEnum = ImGuiDataType_Float;
@@ -195,7 +196,7 @@ namespace ImGui
 				}
 
 				template <typename T>
-				bool DragTextT(std::string_view label, T& inOutValue, float speed, T* min, T* max, float width)
+				bool DragTextT(std::string_view label, T& inOutValue, f32 speed, T* min, T* max, f32 width)
 				{
 					ImGuiWindow* window = GetCurrentWindow();
 					const ImGuiID id = window->GetID(&inOutValue);
@@ -247,7 +248,25 @@ namespace ImGui
 				}
 
 				template <typename ValueType>
-				bool InputVec1DragBase(std::string_view label, ValueType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, const char* format = nullptr)
+				bool InputVec1DragBaseValueFunc(ValueType& inOutValue, f32 dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, const char* format = nullptr)
+				{
+					RAII::ItemWidth width(-1.0f);
+
+					constexpr bool isFloat = std::is_floating_point<ValueType>::value;
+					const ValueType step = isFloat ? static_cast<ValueType>(dragSpeed) : Comfy::Max(static_cast<ValueType>(1), static_cast<ValueType>(dragSpeed));
+					const ValueType fastStep = static_cast<ValueType>(step * static_cast<ValueType>(10));
+
+					using Lookup = TypeLookup::DataType<ValueType>;
+					const bool valueChanged = ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, &step, &fastStep, (format != nullptr) ? format : Lookup::Format, Lookup::InputTextFlags);
+
+					if (valueChanged && dragRange.has_value())
+						inOutValue = Comfy::Clamp(inOutValue, dragRange->x, dragRange->y);
+
+					return valueChanged;
+				}
+
+				template <typename ValueType>
+				bool InputVec1DragBase(std::string_view label, ValueType& inOutValue, f32 dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, const char* format = nullptr)
 				{
 					RAII::ID id(label);
 					return PropertyFuncValueFunc([&]
@@ -258,29 +277,17 @@ namespace ImGui
 							0.0f);
 					}, [&]
 					{
-						RAII::ItemWidth width(-1.0f);
-
-						constexpr bool isFloat = std::is_floating_point<ValueType>::value;
-						const ValueType step = isFloat ? static_cast<ValueType>(dragSpeed) : Comfy::Max(static_cast<ValueType>(1), static_cast<ValueType>(dragSpeed));
-						const ValueType fastStep = static_cast<ValueType>(step * static_cast<ValueType>(10));
-
-						using Lookup = TypeLookup::DataType<ValueType>;
-						const bool valueChanged = ImGui::InputScalar(Detail::DummyLabel, Lookup::TypeEnum, &inOutValue, &step, &fastStep, (format != nullptr) ? format : Lookup::Format, Lookup::InputTextFlags);
-
-						if (valueChanged && dragRange.has_value())
-							inOutValue = Comfy::Clamp(inOutValue, dragRange->x, dragRange->y);
-
-						return valueChanged;
+						return InputVec1DragBaseValueFunc(inOutValue, dragSpeed, dragRange, format);
 					});
 				}
 
 				template <typename VecType, typename ValueType>
-				bool InputVecNDragPropertyBase(VecType& inOutValue, float dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, ComponentFlags disabledComponents)
+				bool InputVecNDragPropertyBase(VecType& inOutValue, f32 dragSpeed, std::optional<glm::vec<2, ValueType>> dragRange, ComponentFlags disabledComponents)
 				{
 					static constexpr std::array<std::string_view, 4> componentLabels = { "  X  ", "  Y  ", "  Z  ", "  W  " };
 
-					const float componentLabelWidth = CalcTextSize(StringViewStart(componentLabels.front()), StringViewEnd(componentLabels.front())).x;
-					const float perComponentInputFloatWidth = glm::round((GetContentRegionAvail().x / static_cast<float>(VecType::length())) - componentLabelWidth);
+					const f32 componentLabelWidth = CalcTextSize(StringViewStart(componentLabels.front()), StringViewEnd(componentLabels.front())).x;
+					const f32 perComponentInputFloatWidth = glm::round((GetContentRegionAvail().x / static_cast<f32>(VecType::length())) - componentLabelWidth);
 
 					bool anyValueChanged = false;
 					for (auto component = 0; component < VecType::length(); component++)
@@ -318,8 +325,8 @@ namespace ImGui
 					using ValueType = ivec2::value_type;
 
 					constexpr std::string_view divisionLabel = " / ";
-					const float divisionLabelWidth = CalcTextSize(StringViewStart(divisionLabel), StringViewEnd(divisionLabel)).x;
-					const float perComponentInputFloatWidth = glm::floor(((GetContentRegionAvail().x - divisionLabelWidth) / static_cast<float>(VecType::length())));
+					const f32 divisionLabelWidth = CalcTextSize(StringViewStart(divisionLabel), StringViewEnd(divisionLabel)).x;
+					const f32 perComponentInputFloatWidth = glm::floor(((GetContentRegionAvail().x - divisionLabelWidth) / static_cast<f32>(VecType::length())));
 
 					bool anyValueChanged = false;
 					for (auto component = 0; component < VecType::length(); component++)
@@ -356,32 +363,32 @@ namespace ImGui
 				}
 			}
 
-			inline bool Input(std::string_view label, float& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, const char* format = nullptr)
+			inline bool Input(std::string_view label, f32& inOutValue, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, const char* format = nullptr)
 			{
 				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange, format);
 			}
 
-			inline bool Input(std::string_view label, vec2& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
+			inline bool Input(std::string_view label, vec2& inOutValue, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
 			{
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputVecNDragPropertyBase<vec2, vec2::value_type>(inOutValue, dragSpeed, dragRange, disabledComponents); });
 			}
 
-			inline bool Input(std::string_view label, vec3& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
+			inline bool Input(std::string_view label, vec3& inOutValue, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
 			{
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputVecNDragPropertyBase<vec3, vec3::value_type>(inOutValue, dragSpeed, dragRange, disabledComponents); });
 			}
 
-			inline bool Input(std::string_view label, vec4& inOutValue, float dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
+			inline bool Input(std::string_view label, vec4& inOutValue, f32 dragSpeed = 1.0f, std::optional<vec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
 			{
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputVecNDragPropertyBase<vec4, vec4::value_type>(inOutValue, dragSpeed, dragRange, disabledComponents); });
 			}
 
-			inline bool Input(std::string_view label, int& inOutValue, float dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, const char* format = nullptr)
+			inline bool Input(std::string_view label, i32& inOutValue, f32 dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, const char* format = nullptr)
 			{
 				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange, format);
 			}
 
-			inline bool Input(std::string_view label, u32& inOutValue, float dragSpeed = 1.0f, std::optional<uvec2> dragRange = {}, const char* format = nullptr)
+			inline bool Input(std::string_view label, u32& inOutValue, f32 dragSpeed = 1.0f, std::optional<uvec2> dragRange = {}, const char* format = nullptr)
 			{
 				return Detail::InputVec1DragBase(label, inOutValue, dragSpeed, dragRange, format);
 			}
@@ -407,17 +414,17 @@ namespace ImGui
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputFractionBase(inOutValue, valueRange, disabledComponents); });
 			}
 
-			inline bool Input(std::string_view label, ivec2& inOutValue, float dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
+			inline bool Input(std::string_view label, ivec2& inOutValue, f32 dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
 			{
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputVecNDragPropertyBase<ivec2, ivec2::value_type>(inOutValue, dragSpeed, dragRange, disabledComponents); });
 			}
 
-			inline bool Input(std::string_view label, ivec3& inOutValue, float dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
+			inline bool Input(std::string_view label, ivec3& inOutValue, f32 dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
 			{
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputVecNDragPropertyBase<ivec3, ivec3::value_type>(inOutValue, dragSpeed, dragRange, disabledComponents); });
 			}
 
-			inline bool Input(std::string_view label, ivec4& inOutValue, float dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
+			inline bool Input(std::string_view label, ivec4& inOutValue, f32 dragSpeed = 1.0f, std::optional<ivec2> dragRange = {}, ComponentFlags disabledComponents = ComponentFlags_None)
 			{
 				return PropertyLabelValueFunc(label, [&] { return Detail::InputVecNDragPropertyBase<ivec4, ivec4::value_type>(inOutValue, dragSpeed, dragRange, disabledComponents); });
 			}
@@ -470,20 +477,20 @@ namespace ImGui
 
 			struct ComboResult
 			{
-				int HoveredIndex;
+				i32 HoveredIndex;
 				bool IsOpen;
 				bool ValueChanged;
 			};
 
 			// NOTE: IndexToStringFunc should handle index validation itself (range checking for arrays), nullptr returns will be skipped
 			template <typename IndexToStringFunc>
-			bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, ImGuiComboFlags flags, IndexToStringFunc indexToString, ComboResult* outResult = nullptr)
+			bool Combo(std::string_view label, i32& inOutIndex, i32 startRange, i32 endRange, ImGuiComboFlags flags, IndexToStringFunc indexToString, ComboResult* outResult = nullptr)
 			{
 				return PropertyLabelValueFunc(label, [&]
 				{
 					bool valueChanged = false;
 					const char* previewValue = indexToString(inOutIndex);
-					
+
 					SetNextItemWidth(GetContentRegionAvail().x);
 					if (ImGui::BeginCombo(Detail::DummyLabel, (previewValue == nullptr) ? "" : previewValue, flags))
 					{
@@ -493,7 +500,7 @@ namespace ImGui
 							outResult->HoveredIndex = -1;
 						}
 
-						for (int i = startRange; i < endRange; i++)
+						for (i32 i = startRange; i < endRange; i++)
 						{
 							if (const char* itemLabel = indexToString(i); itemLabel != nullptr)
 							{
@@ -524,18 +531,18 @@ namespace ImGui
 			}
 
 			template <typename IndexToStringFunc>
-			bool Combo(std::string_view label, int& inOutIndex, int startRange, int endRange, IndexToStringFunc indexToString)
+			bool Combo(std::string_view label, i32& inOutIndex, i32 startRange, i32 endRange, IndexToStringFunc indexToString)
 			{
 				return Combo(label, inOutIndex, startRange, endRange, ImGuiComboFlags_None, indexToString);
 			}
 
 			template <typename EnumType, size_t ArraySize>
-			bool Combo(std::string_view label, EnumType& inOutEnum, const std::array<const char*, ArraySize>& nameLookup, ImGuiComboFlags flags = ImGuiComboFlags_None, int startRange = -1, int endRange = -1)
+			bool Combo(std::string_view label, EnumType& inOutEnum, const std::array<const char*, ArraySize>& nameLookup, ImGuiComboFlags flags = ImGuiComboFlags_None, i32 startRange = -1, i32 endRange = -1)
 			{
-				static_assert(sizeof(EnumType) <= sizeof(int));
+				static_assert(sizeof(EnumType) <= sizeof(i32));
 
-				int tempIndex = static_cast<int>(inOutEnum);
-				if (Combo(label, tempIndex, (startRange < 0) ? 0 : startRange, (endRange < 0) ? static_cast<int>(ArraySize) : endRange, flags, [&](int index) { return Comfy::IndexOr(index, nameLookup, nullptr); }))
+				i32 tempIndex = static_cast<i32>(inOutEnum);
+				if (Combo(label, tempIndex, (startRange < 0) ? 0 : startRange, (endRange < 0) ? static_cast<i32>(ArraySize) : endRange, flags, [&](i32 index) { return Comfy::IndexOr(index, nameLookup, nullptr); }))
 				{
 					inOutEnum = static_cast<EnumType>(tempIndex);
 					return true;
@@ -599,14 +606,14 @@ namespace GuiPropertyRAII = ImGui::PropertyEditor::RAII;
 
 #define GuiPropertyBitFieldInputInt(name, bitFieldMember) \
 { 														  \
-	int temp = bitFieldMember; 							  \
+	i32 temp = bitFieldMember; 							  \
 	if (GuiProperty::Input(name, temp)) 				  \
 		bitFieldMember = temp;							  \
 }
 
 #define GuiPropertyBitFieldComboEnum(name, bitfieldMember, enumNames) \
 { 																	  \
-	int temp = static_cast<int>(bitfieldMember); 					  \
+	i32 temp = static_cast<i32>(bitfieldMember); 					  \
 	if (GuiProperty::Combo(name, temp, enumNames)) 					  \
 		bitfieldMember = static_cast<decltype(bitfieldMember)>(temp); \
 }
