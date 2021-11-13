@@ -57,9 +57,34 @@ namespace Comfy::Studio::Editor
 				return false;
 			});
 
+#if 0
 			f32 movieOffsetMS = static_cast<f32>(chart.MovieOffset.TotalMilliseconds());
 			if (GuiProperty::Input("Movie Offset##SyncWindow", movieOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
 				undoManager.Execute<ChangeMovieOffset>(chart, TimeSpan::FromMilliseconds(movieOffsetMS));
+#else
+			// HACK: Manual GuiProperty::Detail accesses here to be able to change ValueFunc only text color
+			{
+				constexpr std::string_view movieOffsetLabel = "Movie Offset##SyncWindow";
+				Gui::PushID(Gui::StringViewStart(movieOffsetLabel), Gui::StringViewEnd(movieOffsetLabel));
+
+				f32 movieOffsetMS = static_cast<f32>(chart.MovieOffset.TotalMilliseconds());
+				const bool movieOffsetChanged = GuiProperty::PropertyFuncValueFunc([&]
+				{
+					return GuiProperty::Detail::DragTextT<f32>(movieOffsetLabel, movieOffsetMS, offsetDragSpeed, nullptr, nullptr, 0.0f);
+				}, [&]
+				{
+					if (chart.MovieFileName.empty()) Gui::PushStyleColor(ImGuiCol_Text, Gui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+					const bool valueChanged = GuiProperty::Detail::InputVec1DragBaseValueFunc(movieOffsetMS, offsetDragSpeed, {}, "%.2f ms");
+					if (chart.MovieFileName.empty()) Gui::PopStyleColor();
+					return valueChanged;
+				});
+
+				if (movieOffsetChanged)
+					undoManager.Execute<ChangeMovieOffset>(chart, TimeSpan::FromMilliseconds(movieOffsetMS));
+
+				Gui::PopID();
+			}
+#endif
 
 			auto duration = chart.DurationOrDefault();
 			if (GuiProperty::PropertyFuncValueFunc([&]
