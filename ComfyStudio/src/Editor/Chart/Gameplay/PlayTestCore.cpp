@@ -411,7 +411,7 @@ namespace Comfy::Studio::Editor
 	private:
 		void UpdateUserInput()
 		{
-			if (!Gui::IsWindowFocused())
+			if (!Gui::IsWindowFocused() || fadeInOut.OutExitStopwatch.IsRunning())
 				return;
 
 			if (Input::IsAnyPressed(GlobalUserData.Input.Playtest_ReturnToEditorCurrent, false))
@@ -1500,7 +1500,7 @@ namespace Comfy::Studio::Editor
 		TimeSpan GetPlaybackTime() const
 		{
 			const auto currentAudioBackend = Audio::AudioEngine::GetInstance().GetAudioBackend();
-			const TimeSpan userOffset = 
+			const TimeSpan userOffset =
 				(currentAudioBackend == Audio::AudioBackend::WASAPIShared) ? GlobalUserData.Playtest.SongOffsetWasapiShared :
 				(currentAudioBackend == Audio::AudioBackend::WASAPIExclusive) ? GlobalUserData.Playtest.SongOffsetWasapiExclusive : TimeSpan::Zero();
 
