@@ -427,13 +427,24 @@ namespace Comfy::Studio
 		constexpr std::string_view Input_PlaytestBindings = "playtest_bindings";
 
 		constexpr std::string_view TargetTimeline = "target_timeline";
-		constexpr std::string_view TargetTimeline_SmoothScrollTimeSec = "smooth_scroll_time_sec";
+		constexpr std::string_view TargetTimeline_MouseWheelScrollDirection = "mouse_wheel_scroll_direction";
+		constexpr std::string_view TargetTimeline_MouseWheelScrollSpeed = "mouse_wheel_scroll_speed";
+		constexpr std::string_view TargetTimeline_MouseWheelScrollSpeedShift = "mouse_wheel_scroll_speed_shift";
+		constexpr std::string_view TargetTimeline_PlaybackMouseWheelScrollFactor = "playback_mouse_wheel_scroll_factor";
+		constexpr std::string_view TargetTimeline_PlaybackMouseWheelScrollFactorShift = "playback_mouse_wheel_scroll_factor_shift";
+		constexpr std::string_view TargetTimeline_PlaybackAutoScrollCursorPositionFactor = "playback_auto_scroll_cursor_position_factor";
+		constexpr std::string_view TargetTimeline_SmoothScrollSpeedSec = "smooth_scroll_speed_sec";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit = "scaling_behavior_auto_fit";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit_MinRowHeight = "min_row_height";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit_MaxRowHeight = "max_row_height";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorFixedSize = "scaling_behavior_fixed_size";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorFixedSize_IconScale = "icon_scale";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorFixedSize_RowHeight = "row_height";
+		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdFixedSize = "cursor_scrubbing_edge_auto_scroll_threshold_fixed_size";
+		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdFixedSize_Pixels = "pixels";
+		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional = "cursor_scrubbing_edge_auto_scroll_threshold_proportional";
+		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional_Factor = "factor";
+		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = "cursor_scrubbing_edge_auto_scroll_smooth_scroll_speed_sec";
 
 		constexpr std::string_view TargetPreview = "target_preview";
 		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
@@ -727,7 +738,15 @@ namespace Comfy::Studio
 
 		if (const Value* targetTimelineJson = Find(rootJson, UserIDs::TargetTimeline))
 		{
-			TryAssign(TargetTimeline.SmoothScrollTimeSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_SmoothScrollTimeSec)));
+			TryAssign(TargetTimeline.MouseWheelScrollDirection, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_MouseWheelScrollDirection)));
+			TryAssign(TargetTimeline.MouseWheelScrollSpeed, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_MouseWheelScrollSpeed)));
+			TryAssign(TargetTimeline.MouseWheelScrollSpeedShift, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_MouseWheelScrollSpeedShift)));
+			TryAssign(TargetTimeline.PlaybackMouseWheelScrollFactor, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackMouseWheelScrollFactor)));
+			TryAssign(TargetTimeline.PlaybackMouseWheelScrollFactorShift, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackMouseWheelScrollFactorShift)));
+
+			TryAssign(TargetTimeline.PlaybackAutoScrollCursorPositionFactor, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackAutoScrollCursorPositionFactor)));
+			TryAssign(TargetTimeline.SmoothScrollSpeedSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_SmoothScrollSpeedSec)));
+
 			if (const Value* scalingAutoFitJson = Find(*targetTimelineJson, UserIDs::TargetTimeline_ScalingBehaviorAutoFit))
 			{
 				TargetTimeline.ScalingBehavior = TargetTimelineScalingBehavior::AutoFit;
@@ -740,6 +759,19 @@ namespace Comfy::Studio
 				TryAssign(TargetTimeline.ScalingBehaviorFixedSize.IconScale, TryGetF32(Find(*scalingFixedSizeJson, UserIDs::TargetTimeline_ScalingBehaviorFixedSize_IconScale)));
 				TryAssign(TargetTimeline.ScalingBehaviorFixedSize.RowHeight, TryGetF32(Find(*scalingFixedSizeJson, UserIDs::TargetTimeline_ScalingBehaviorFixedSize_RowHeight)));
 			}
+
+			if (const Value* thresholdFixedSizeJson = Find(*targetTimelineJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdFixedSize))
+			{
+				TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold = TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::FixedSize;
+				TryAssign(TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels, TryGetF32(Find(*thresholdFixedSizeJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdFixedSize_Pixels)));
+			}
+			if (const Value* thresholdProportionalJson = Find(*targetTimelineJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional))
+			{
+				TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold = TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::Proportional;
+				TryAssign(TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor, TryGetF32(Find(*thresholdProportionalJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional_Factor)));
+			}
+
+			TryAssign(TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec)));
 		}
 
 		if (const Value* targetPreviewJson = Find(rootJson, UserIDs::TargetPreview))
@@ -1001,7 +1033,15 @@ namespace Comfy::Studio
 
 			writer.MemberObjectBegin(UserIDs::TargetTimeline);
 			{
-				writer.MemberF32(UserIDs::TargetTimeline_SmoothScrollTimeSec, TargetTimeline.SmoothScrollTimeSec);
+				writer.MemberF32(UserIDs::TargetTimeline_MouseWheelScrollDirection, TargetTimeline.MouseWheelScrollDirection);
+				writer.MemberF32(UserIDs::TargetTimeline_MouseWheelScrollSpeed, TargetTimeline.MouseWheelScrollSpeed);
+				writer.MemberF32(UserIDs::TargetTimeline_MouseWheelScrollSpeedShift, TargetTimeline.MouseWheelScrollSpeedShift);
+				writer.MemberF32(UserIDs::TargetTimeline_PlaybackMouseWheelScrollFactor, TargetTimeline.PlaybackMouseWheelScrollFactor);
+				writer.MemberF32(UserIDs::TargetTimeline_PlaybackMouseWheelScrollFactorShift, TargetTimeline.PlaybackMouseWheelScrollFactorShift);
+
+				writer.MemberF32(UserIDs::TargetTimeline_PlaybackAutoScrollCursorPositionFactor, TargetTimeline.PlaybackAutoScrollCursorPositionFactor);
+				writer.MemberF32(UserIDs::TargetTimeline_SmoothScrollSpeedSec, TargetTimeline.SmoothScrollSpeedSec);
+
 				if (TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
 				{
 					writer.MemberObjectBegin(UserIDs::TargetTimeline_ScalingBehaviorAutoFit);
@@ -1020,6 +1060,25 @@ namespace Comfy::Studio
 					}
 					writer.ObjectEnd();
 				}
+
+				if (TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::FixedSize)
+				{
+					writer.MemberObjectBegin(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdFixedSize);
+					{
+						writer.MemberF32(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdFixedSize_Pixels, TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels);
+					}
+					writer.ObjectEnd();
+				}
+				else if (TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::Proportional)
+				{
+					writer.MemberObjectBegin(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional);
+					{
+						writer.MemberF32(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional_Factor, TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor);
+					}
+					writer.ObjectEnd();
+				}
+
+				writer.MemberF32(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec);
 			}
 			writer.MemberObjectEnd();
 
@@ -1358,12 +1417,22 @@ namespace Comfy::Studio
 			};
 		}
 
-		TargetTimeline.SmoothScrollTimeSec = TimelineDefaultSmoothScrollTimeSec.x;
+		TargetTimeline.MouseWheelScrollDirection = +1.0f;
+		TargetTimeline.MouseWheelScrollSpeed = TargetTimelineDefaultMouseWheelScrollSpeed;
+		TargetTimeline.MouseWheelScrollSpeedShift = TargetTimelineDefaultMouseWheelScrollSpeedShift;
+		TargetTimeline.PlaybackMouseWheelScrollFactor = 1.0f;
+		TargetTimeline.PlaybackMouseWheelScrollFactorShift = 1.0f;
+		TargetTimeline.PlaybackAutoScrollCursorPositionFactor = TargetTimelineDefaultPlaybackAutoScrollCursorPositionFactor;
+		TargetTimeline.SmoothScrollSpeedSec = TimelineDefaultSmoothScrollSpeedSec.x;
 		TargetTimeline.ScalingBehavior = TargetTimelineScalingBehavior::AutoFit;
 		TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight = TargetTimelineMinRowHeight;
 		TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight = TargetTimelineDefaultRowHeight;
 		TargetTimeline.ScalingBehaviorFixedSize.IconScale = TargetTimelineDefaultIconScale;
 		TargetTimeline.ScalingBehaviorFixedSize.RowHeight = TargetTimelineDefaultRowHeight;
+		TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold = TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::FixedSize;
+		TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollProportionalFactorFixedSizePixels;
+		TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollProportionalFactor;
+		TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

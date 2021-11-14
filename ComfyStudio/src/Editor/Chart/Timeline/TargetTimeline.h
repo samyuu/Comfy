@@ -31,10 +31,36 @@ namespace Comfy::Studio::Editor
 		"Fixed Size",
 	};
 
+	enum class TargetTimelineCursorScrubbingEdgeAutoScrollThreshold : u8
+	{
+		Disabled,
+		FixedSize,
+		Proportional,
+		Count,
+	};
+
+	constexpr std::array<const char*, EnumCount<TargetTimelineCursorScrubbingEdgeAutoScrollThreshold>()> TargetTimelineCursorScrubbingEdgeAutoScrollThresholdNames =
+	{
+		"Disabled",
+		"Fixed Size",
+		"Proportional",
+	};
+
+	constexpr f32 TargetTimelineDefaultMouseWheelScrollSpeed = 2.5f;
+	constexpr f32 TargetTimelineDefaultMouseWheelScrollSpeedShift = 5.5f;
+
+	constexpr f32 TargetTimelineDefaultCursorScrubbingEdgeAutoScrollProportionalFactorFixedSizePixels = 96.0f;
+	constexpr f32 TargetTimelineDefaultCursorScrubbingEdgeAutoScrollProportionalFactor = 0.1f;
+	constexpr f32 TargetTimelineMinCursorScrubEdgeAutoScrollWidthFactor = 0.01f;
+	constexpr f32 TargetTimelineMaxCursorScrubEdgeAutoScrollWidthFactor = 0.35f;
+
+	constexpr f32 TargetTimelineDefaultPlaybackAutoScrollCursorPositionFactor = 0.35f;
+	constexpr f32 TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = 0.02f;
+
 	constexpr f32 TargetTimelineDefaultIconScale = 1.0f;
 	constexpr f32 TargetTimelineMinIconScale = 0.5f;
 	constexpr f32 TargetTimelineMaxIconScale = 2.0f;
-	
+
 	constexpr f32 TargetTimelineDefaultRowHeight = 36.0f;
 	constexpr f32 TargetTimelineMinRowHeight = (TargetTimelineDefaultRowHeight * TargetTimelineMinIconScale);
 	constexpr f32 TargetTimelineMaxRowHeight = (TargetTimelineDefaultRowHeight * TargetTimelineMaxIconScale);
@@ -188,6 +214,8 @@ namespace Comfy::Studio::Editor
 		f32 GetTimelineSize() const override;
 		void OnTimelineBaseScroll() override;
 
+		std::optional<vec2> GetSmoothScrollSpeedSecOverride() const override;
+
 		f32 GetButtonEdgeFadeOpacity(f32 screenX) const;
 
 	private:
@@ -201,6 +229,7 @@ namespace Comfy::Studio::Editor
 
 		std::optional<i32> guiFrameCountAfterWhichToFocusWindow = {};
 		bool isCursorScrubbing = false;
+		bool isCursorScrubbingAndPastEdgeAutoScrollThreshold = false;
 
 		// NOTE: Store cursor time as BeatTick while paused to avoid floating point precision issues,
 		//		 automatically move the cursor while editing the tempo map and to make sure 

@@ -55,7 +55,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 19, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 20, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -217,8 +217,15 @@ namespace Comfy::Studio
 
 		struct
 		{
-			f32 SmoothScrollTimeSec;
+			f32 MouseWheelScrollDirection;
+			f32 MouseWheelScrollSpeed;
+			f32 MouseWheelScrollSpeedShift;
+			f32 PlaybackMouseWheelScrollFactor;
+			f32 PlaybackMouseWheelScrollFactorShift;
 			
+			f32 PlaybackAutoScrollCursorPositionFactor;
+			f32 SmoothScrollSpeedSec;
+
 			Editor::TargetTimelineScalingBehavior ScalingBehavior;
 			struct
 			{
@@ -230,6 +237,17 @@ namespace Comfy::Studio
 				f32 IconScale;
 				f32 RowHeight;
 			} ScalingBehaviorFixedSize;
+			
+			Editor::TargetTimelineCursorScrubbingEdgeAutoScrollThreshold CursorScrubbingEdgeAutoScrollThreshold;
+			struct
+			{
+				f32 Pixels;
+			} CursorScrubbingEdgeAutoScrollThresholdFixedSize;
+			struct
+			{
+				f32 Factor;
+			} CursorScrubbingEdgeAutoScrollThresholdProportional;
+			f32 CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec;
 		} TargetTimeline;
 
 		struct

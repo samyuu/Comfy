@@ -44,9 +44,9 @@ namespace Comfy::Studio::Editor
 	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager, ButtonSoundController& buttonSoundController)
 		: chartEditor(parent), undoManager(undoManager), buttonSoundController(buttonSoundController)
 	{
-		mouseScrollSpeed = 2.5f;
-		mouseScrollSpeedFast = 5.5f;
-		autoScrollCursorOffsetPercentage = 0.35f;
+		mouseScrollSpeed = TargetTimelineDefaultMouseWheelScrollSpeed;
+		mouseScrollSpeedShift = TargetTimelineDefaultMouseWheelScrollSpeedShift;
+		playbackAutoScrollCursorPositionFactor = TargetTimelineDefaultPlaybackAutoScrollCursorPositionFactor;
 		infoColumnWidth = 180.0f;
 	}
 
@@ -147,7 +147,10 @@ namespace Comfy::Studio::Editor
 			guiFrameCountAfterWhichToFocusWindow = {};
 		}
 
-		smoothScrollTimeSec.x = GlobalUserData.TargetTimeline.SmoothScrollTimeSec;
+		mouseScrollSpeed = GlobalUserData.TargetTimeline.MouseWheelScrollSpeed * GlobalUserData.TargetTimeline.MouseWheelScrollDirection;
+		mouseScrollSpeedShift = GlobalUserData.TargetTimeline.MouseWheelScrollSpeedShift * GlobalUserData.TargetTimeline.MouseWheelScrollDirection;
+		smoothScrollSpeedSec.x = GlobalUserData.TargetTimeline.SmoothScrollSpeedSec;
+		playbackAutoScrollCursorPositionFactor = GlobalUserData.TargetTimeline.PlaybackAutoScrollCursorPositionFactor;
 
 		if (GlobalUserData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
 		{
@@ -1413,6 +1416,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputCursorScrubbing()
 	{
+		isCursorScrubbingAndPastEdgeAutoScrollThreshold = false;
 		if (Gui::IsMouseReleased(ImGuiMouseButton_Left) || !Gui::IsWindowFocused())
 			isCursorScrubbing = false;
 
@@ -1433,12 +1437,39 @@ namespace Comfy::Studio::Editor
 				isCursorScrubbing = false;
 
 			const bool floorToGrid = Gui::GetIO().KeyAlt;
-			const auto oldCursorTick = GetCursorTick();
-			const auto newMouseTick = GetCursorMouseXTick(floorToGrid);
+			const BeatTick oldCursorTick = GetCursorTick();
+			const BeatTick newMouseTick = GetCursorMouseXTick(floorToGrid);
 
 			SetCursorTick(newMouseTick);
 			if (!isPlayback && (newMouseTick != oldCursorTick))
 				PlayCursorButtonSoundsAndAnimation(newMouseTick);
+
+			const auto& userData = GlobalUserData.TargetTimeline;
+			const auto edgeScrollBehavior = userData.CursorScrubbingEdgeAutoScrollThreshold;
+			if (edgeScrollBehavior != TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::Disabled)
+			{
+				const f32 timelineWidth = regions.Content.GetWidth();
+				const f32 edgeThreshold = Clamp((
+					(edgeScrollBehavior == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::FixedSize) ? userData.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels :
+					(edgeScrollBehavior == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::Proportional) ? (userData.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor * timelineWidth) :
+					0.0f), (timelineWidth * TargetTimelineMinCursorScrubEdgeAutoScrollWidthFactor), (timelineWidth * TargetTimelineMaxCursorScrubEdgeAutoScrollWidthFactor));
+
+				const BeatTick clampedMouseTick = Clamp(newMouseTick, BeatTick::Zero(), TimeToTick(workingChart->DurationOrDefault()));
+				const f32 cursorScreenX = (GetTimelinePosition(clampedMouseTick) - GetScrollX());
+				const f32 leftEdge = (edgeThreshold);
+				const f32 rightEdge = (timelineWidth - edgeThreshold);
+
+				if (cursorScreenX < leftEdge)
+				{
+					isCursorScrubbingAndPastEdgeAutoScrollThreshold = true;
+					SetScrollTargetX(GetScrollX() - (leftEdge - cursorScreenX));
+				}
+				else if (cursorScreenX > rightEdge)
+				{
+					isCursorScrubbingAndPastEdgeAutoScrollThreshold = true;
+					SetScrollTargetX(GetScrollX() + (cursorScreenX - rightEdge));
+				}
+			}
 		}
 	}
 
@@ -2293,16 +2324,20 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnTimelineBaseScroll()
 	{
-		const auto& io = Gui::GetIO();
-
-		const auto beatIncrement = BeatTick::FromBeats(1);
-		const auto gridIncrement = GridDivisionTick();
-
-		const auto scrollTickIncrement = (io.KeyShift ? Max(beatIncrement, gridIncrement) : gridIncrement) * static_cast<i32>(io.MouseWheel);
-		const auto newCursorTick = Max(BeatTick::Zero(), GetCursorTick() + scrollTickIncrement);
-
 		if (const bool seekThroughSong = GetIsPlayback(); seekThroughSong)
 		{
+			const auto& io = Gui::GetIO();
+			const auto& userData = GlobalUserData.TargetTimeline;
+
+			const BeatTick beatIncrement = BeatTick::FromBeats(1);
+			const BeatTick gridIncrement = GridDivisionTick();
+
+			const f32 mouseWheelScrollFactor = (io.KeyShift ? userData.PlaybackMouseWheelScrollFactorShift : userData.PlaybackMouseWheelScrollFactor) * userData.MouseWheelScrollDirection;
+			const f32 scrollIncrementF32 = static_cast<f32>((io.KeyShift ? Max(beatIncrement, gridIncrement) : gridIncrement).Ticks()) * (io.MouseWheel * mouseWheelScrollFactor);
+
+			const BeatTick scrollTickIncrement = BeatTick::FromTicks(static_cast<i32>(glm::round(scrollIncrementF32)));
+			const BeatTick newCursorTick = Max(BeatTick::Zero(), GetCursorTick() + scrollTickIncrement);
+
 			const f32 preCursorX = GetCursorTimelinePosition();
 
 			// NOTE: Pause and resume to reset the on-playback start-time
@@ -2315,19 +2350,17 @@ namespace Comfy::Studio::Editor
 			// NOTE: Keep the cursor at the same relative screen position to prevent potential disorientation
 			SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
 		}
-		else if (const bool seekingScroll = false; seekingScroll)
-		{
-			// DEBUG: Neat idea but in practice very disorientating
-			const f32 preCursorX = GetCursorTimelinePosition();
-			{
-				SetCursorTick(newCursorTick);
-				PlayCursorButtonSoundsAndAnimation(newCursorTick);
-			}
-			SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
-		}
 		else
 		{
 			TimelineBase::OnTimelineBaseScroll();
 		}
+	}
+
+	std::optional<vec2> TargetTimeline::GetSmoothScrollSpeedSecOverride() const
+	{
+		if (isCursorScrubbing && isCursorScrubbingAndPastEdgeAutoScrollThreshold)
+			return vec2(GlobalUserData.TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, smoothScrollSpeedSec.y);
+
+		return {};
 	}
 }
