@@ -8,6 +8,7 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
+		// TODO: Move to a different public header
 		constexpr f32 SmoothDamp(const f32 current, const f32 target, f32& inOutVelocity, const f32 smoothTime, const f32 deltaTime)
 		{
 			const f32 omega = 2.0f / Max(0.0001f, smoothTime);
@@ -33,6 +34,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
+		// TODO: Move to a different public header
 		constexpr bool ApproxmiatelySame(const f32 a, const f32 b, const f32 threshold)
 		{
 			return glm::abs(a - b) < threshold;
@@ -96,16 +98,21 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::DrawTimelineCursor()
 	{
-		const ImU32 outterColor = GetColor(EditorColor_Cursor);
-		const ImU32 innerColor = GetColor(EditorColor_CursorInner);
+		ImU32 outterColor = GetColor(EditorColor_Cursor);
+		ImU32 innerColor = GetColor(EditorColor_CursorInner);
+		if (drawCursorAtAutoScrollPosition && debugVisualizeDrawCursorAtAutoScrollPosition)
+		{
+			outterColor = GetColor(EditorColor_GreenText);
+			innerColor = GetColor(EditorColor_RedText);
+		}
 
 		const f32 scrollX = GetScrollX();
 		const f32 cursorX = GetCursorTimelinePosition();
 		f32 cursorScreenX = cursorX - scrollX;
 
-		// NOTE: Ensure smooth cursor scrolling
-		if (autoScrollCursorEnabled)
-			cursorScreenX = regions.Content.GetWidth() - (regions.Content.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
+		const f32 autoScrollCursorX = regions.Content.GetWidth() - (regions.Content.GetWidth() * (1.0f - playbackAutoScrollCursorPositionFactor));
+		if (drawCursorAtAutoScrollPosition)
+			cursorScreenX = autoScrollCursorX;
 
 		cursorScreenX = glm::round(cursorScreenX);
 
@@ -123,6 +130,12 @@ namespace Comfy::Studio::Editor
 		};
 		baseWindowDrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
 		baseWindowDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
+
+		if (debugVisualizeAutoScrollCursorPosition)
+		{
+			const u32 debugColor = ImColor(0.74f, 0.40f, 0.13f, 0.75f);
+			baseWindowDrawList->AddLine(regions.Content.GetTL() + vec2(autoScrollCursorX, 0.0f), regions.Content.GetBL() + vec2(autoScrollCursorX, 0.0f), debugColor);
+		}
 	}
 
 	void TimelineBase::SetZoomCenteredAroundCursor(f32 newZoom)
@@ -149,7 +162,7 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::CenterCursor(std::optional<f32> widthFactor)
 	{
-		const f32 centerScrollX = GetCursorTimelinePosition() - (regions.Content.GetWidth() * widthFactor.value_or(autoScrollCursorOffsetPercentage));
+		const f32 centerScrollX = GetCursorTimelinePosition() - (regions.Content.GetWidth() * widthFactor.value_or(playbackAutoScrollCursorPositionFactor));
 		scrollTarget.x = centerScrollX;
 	}
 
@@ -268,21 +281,27 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void TimelineBase::UpdateCursorAutoScroll()
+	f32 TimelineBase::UpdateCursorAutoScrollX()
 	{
-		const f32 cursorPos = (GetCursorTimelinePosition());
-		const f32 endPos = (ScreenToTimelinePosition(regions.Content.GetBR().x));
+#if 0
+		auto screenToTimelinePosition = [this](f32 screenPosition) { return ScreenToTimelinePosition(screenPosition); };
+#else			
+		auto screenToTimelinePosition = [this](f32 screenPosition) { return (screenPosition - regions.Content.Min.x + scrollTarget.x); };
+#endif
 
-		const f32 autoScrollOffset = (regions.Content.GetWidth() * (1.0f - autoScrollCursorOffsetPercentage));
-		if (cursorPos >= endPos - autoScrollOffset)
-		{
-			const f32 increment = (cursorPos - endPos + autoScrollOffset);
-			scrollTarget.x = (GetScrollX() + increment);
+		const f32 cursorX = (GetCursorTimelinePosition());
+		const f32 endX = (screenToTimelinePosition(regions.Content.GetBR().x));
 
-			// NOTE: Allow the cursor to go offscreen
-			if (GetMaxScrollX() - GetScrollX() > autoScrollOffset)
-				autoScrollCursorEnabled = true;
-		}
+		const f32 smoothScrollSpeedOffset = ((smoothScrollSpeedSec.x > 0.0f) ? GetTimelinePosition(TimeSpan::FromSeconds(smoothScrollSpeedSec.x)) : 0.0f);
+		const f32 autoScrollTargetX = (regions.Content.GetWidth() * (1.0f - playbackAutoScrollCursorPositionFactor)) + smoothScrollSpeedOffset;
+
+		if (cursorX >= (endX - autoScrollTargetX))
+			scrollTarget.x += (cursorX - endX + autoScrollTargetX);
+
+		const f32 cursorScreenX = GetCursorTimelinePosition() - scroll.x;
+		const f32 autoScrollCursorScreenX = regions.Content.GetWidth() - (regions.Content.GetWidth() * (1.0f - playbackAutoScrollCursorPositionFactor));
+		const f32 outCursorAutoScrollDifference = (cursorScreenX - autoScrollCursorScreenX) / zoomLevel;
+		return outCursorAutoScrollDifference;
 	}
 
 	void TimelineBase::UpdateAllInput()
@@ -290,17 +309,6 @@ namespace Comfy::Studio::Editor
 		UpdateInputTimelineScroll();
 		UpdateInputPlaybackToggle();
 		OnUpdateInput();
-	}
-
-	void TimelineBase::UpdateTimelineBase()
-	{
-		cursorTime = GetCursorTime();
-		autoScrollCursorEnabled = false;
-
-		if (GetIsPlayback())
-		{
-			UpdateCursorAutoScroll();
-		}
 	}
 
 	void TimelineBase::OnInfoColumnScroll()
@@ -314,7 +322,7 @@ namespace Comfy::Studio::Editor
 		const auto& io = Gui::GetIO();
 
 		const f32 maxStep = (scrollMax.x + baseWindow->WindowPadding.x * 2.0f) * 0.67f;
-		const f32 speed = io.KeyShift ? mouseScrollSpeedFast : mouseScrollSpeed;
+		const f32 speed = io.KeyShift ? mouseScrollSpeedShift : mouseScrollSpeed;
 		const f32 scrollStep = glm::floor(Min(2.0f * baseWindow->CalcFontSize(), maxStep)) * speed;
 
 		scrollTarget.x = (scrollTarget.x + io.MouseWheel * scrollStep);
@@ -420,12 +428,26 @@ namespace Comfy::Studio::Editor
 
 		OnUpdate();
 
-		UpdateTimelineBase();
+		cursorTime = GetCursorTime();
+
 		UpdateAllInput();
 
-		// NOTE: Make sure to always update *after* user input (?)
-		scroll.x = (smoothScrollTimeSec.x <= 0.0f) ? scrollTarget.x : SmoothDamp(scroll.x, scrollTarget.x, smoothScrollVelocity.x, smoothScrollTimeSec.x, Gui::GetIO().DeltaTime);
-		scroll.y = (smoothScrollTimeSec.y <= 0.0f) ? scrollTarget.y : SmoothDamp(scroll.y, scrollTarget.y, smoothScrollVelocity.y, smoothScrollTimeSec.y, Gui::GetIO().DeltaTime);
+		drawCursorAtAutoScrollPosition = false;
+		if (GetIsPlayback())
+		{
+			const f32 autoScrollDifference = UpdateCursorAutoScrollX();
+
+			// NOTE: Scale with framerate as longer frame times means more distance traversed per frame
+			const f32 snapThreshold = Max(1.5f, (3.0f * (Gui::GetIO().DeltaTime / (1.0f / 60.0f))));
+
+			// NOTE: Snap to the auto scroll position to ensure the cursor always stays at the *exact* same screen position without ever "jiggling around"
+			drawCursorAtAutoScrollPosition = (autoScrollDifference < +snapThreshold && autoScrollDifference >= -snapThreshold);
+		}
+
+		// NOTE: Make sure to always update this *after* user input (?)
+		const vec2 scrollSpeed = GetSmoothScrollSpeedSecOverride().value_or(smoothScrollSpeedSec);
+		scroll.x = (scrollSpeed.x <= 0.0f) ? scrollTarget.x : SmoothDamp(scroll.x, scrollTarget.x, smoothScrollVelocity.x, scrollSpeed.x, Gui::GetIO().DeltaTime);
+		scroll.y = (scrollSpeed.y <= 0.0f) ? scrollTarget.y : SmoothDamp(scroll.y, scrollTarget.y, smoothScrollVelocity.y, scrollSpeed.y, Gui::GetIO().DeltaTime);
 
 		constexpr f32 snapThreshold = 0.01f;
 		if (scroll.x != scrollTarget.x && ApproxmiatelySame(scroll.x, scrollTarget.x, snapThreshold)) scroll.x = scrollTarget.x;

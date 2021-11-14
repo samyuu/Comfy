@@ -34,7 +34,10 @@ namespace Comfy::Studio::Editor
 		ImRect Content;
 	};
 
-	constexpr vec2 TimelineDefaultSmoothScrollTimeSec = vec2(0.0215f);
+	constexpr f32 TimelineDefaultMouseWheelScrollSpeed = 2.0f;
+	constexpr f32 TimelineDefaultMouseWheelScrollSpeedShift = 4.5f;
+	constexpr f32 TimelineDefaultPlaybackAutoScrollCursorPositionFactor = 0.75f;
+	constexpr vec2 TimelineDefaultSmoothScrollSpeedSec = vec2(0.0215f);
 
 	class TimelineBase : public NonCopyable
 	{
@@ -100,7 +103,6 @@ namespace Comfy::Studio::Editor
 
 		void UpdateInfoColumnInput();
 
-		virtual void UpdateTimelineBase();
 		virtual void OnUpdate() = 0;
 		virtual void OnUpdateInput() = 0;
 		virtual void OnDrawTimelineContents() = 0;
@@ -113,10 +115,12 @@ namespace Comfy::Studio::Editor
 		virtual void OnInfoColumnScroll();
 		virtual void OnTimelineBaseScroll();
 
-		virtual void UpdateCursorAutoScroll();
+		f32 UpdateCursorAutoScrollX();
 
 		virtual f32 GetTimelineSize() const = 0;
 		virtual f32 GetTimelineHeight() const { return 0.0f; }
+
+		virtual std::optional<vec2> GetSmoothScrollSpeedSecOverride() const { return {}; }
 
 	private:
 		void UpdateAllInput();
@@ -128,9 +132,9 @@ namespace Comfy::Studio::Editor
 
 		// NOTE: Anything outside this range just isn't feasable to handle properly nor does it make sense to ever use
 		static constexpr f32 hardZoomLevelMin = 0.01f;
-		static constexpr f32 hardZoomLevelMax = 1000.0f;
+		static constexpr f32 hardZoomLevelMax = 15.0f;
 		static constexpr f32 zoomSliderMin = 0.5f;
-		static constexpr f32 zoomSliderMax = 10.0f;
+		static constexpr f32 zoomSliderMax = 5.0f;
 
 		static constexpr f32 cursorHeadWidth = 17.0f;
 		static constexpr f32 cursorHeadHeight = 8.0f;
@@ -165,20 +169,25 @@ namespace Comfy::Studio::Editor
 		struct /* TimelineScrollData */
 		{
 			// NOTE: Percentage of the timeline width at which the timeline starts scrolling to keep the cursor at the same screen position
-			f32 autoScrollCursorOffsetPercentage = 0.75f;
+			f32 playbackAutoScrollCursorPositionFactor = TimelineDefaultPlaybackAutoScrollCursorPositionFactor;
+			bool drawCursorAtAutoScrollPosition = false;
 
-			bool autoScrollCursorEnabled = false;
+			// DEBUG: To confirm that auto scroll (together with smooth scroll) is working as intended
+			bool debugVisualizeAutoScrollCursorPosition = false;
+			// DEBUG: To confirm that auto scroll cursor snapping is working as intended
+			bool debugVisualizeDrawCursorAtAutoScrollPosition = false;
+
 			bool isMouseScrollGrabbing = false;
 
-			f32 mouseScrollSpeed = 2.0f;
-			f32 mouseScrollSpeedFast = 4.5f;
+			f32 mouseScrollSpeed = TimelineDefaultMouseWheelScrollSpeed;
+			f32 mouseScrollSpeedShift = TimelineDefaultMouseWheelScrollSpeedShift;
 
 			TimelineScrollbar horizontalScrollbar = { ImGuiAxis_X, scrollbarSize };
 			TimelineScrollbar verticalScrollbar = { ImGuiAxis_Y, scrollbarSize };
 		};
 
-		// NOTE: Set to <= 0.0f to disable smooth scrolling
-		vec2 smoothScrollTimeSec = TimelineDefaultSmoothScrollTimeSec;
+		// NOTE: Time in seconds it takes to reach the current scroll target. Set to <= 0.0f to disable smooth scrolling
+		vec2 smoothScrollSpeedSec = TimelineDefaultSmoothScrollSpeedSec;
 
 	private:
 		vec2 smoothScrollVelocity = vec2(0.0f);
