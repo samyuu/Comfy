@@ -29,6 +29,10 @@ namespace Comfy::Studio::Editor
 
 	private:
 		void GuiTabGeneral(ComfyStudioUserSettings& userData);
+		void GuiTabTimeline(ComfyStudioUserSettings& userData);
+		void GuiTabTools(ComfyStudioUserSettings& userData);
+		void GuiTabAutoSave(ComfyStudioUserSettings& userData);
+		void GuiTabPlaytest(ComfyStudioUserSettings& userData);
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
 		void GuiTabDiscord(ComfyStudioUserSettings& userData);
 #endif
@@ -46,11 +50,14 @@ namespace Comfy::Studio::Editor
 		bool closeWindowThisFrame = false;
 		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
 
+		bool alwaysShowVerticalScrollBar = false;
 		bool showRarelyUsedSettings = false;
 		bool pendingChanges = false;
 
 		i32 selectedTabIndex = {};
 		ComfyStudioUserSettings userDataPreEditCopy = {};
+
+		f32 targetTimelineSmoothScrollSpeedPreDisable = TimelineDefaultSmoothScrollSpeedSec.x;
 
 		std::array<i32, TargetPropertyType_Count> inspectorDropdownItemIndices = {};
 		std::array<bool, TargetPropertyType_Count> inspectorDropdownScrollToBottomOnNextFrames = {};
@@ -72,6 +79,10 @@ namespace Comfy::Studio::Editor
 		static constexpr NamedTab namedTabs[] =
 		{
 			{ "General", &GuiTabGeneral },
+			{ "Timeline", &GuiTabTimeline },
+			{ "Tools", &GuiTabTools },
+			{ "Playtest", &GuiTabPlaytest },
+			{ "Auto Save", &GuiTabAutoSave },
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
 			{ "Discord", &GuiTabDiscord },
 #endif

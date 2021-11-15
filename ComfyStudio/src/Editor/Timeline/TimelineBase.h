@@ -37,7 +37,10 @@ namespace Comfy::Studio::Editor
 	constexpr f32 TimelineDefaultMouseWheelScrollSpeed = 2.0f;
 	constexpr f32 TimelineDefaultMouseWheelScrollSpeedShift = 4.5f;
 	constexpr f32 TimelineDefaultPlaybackAutoScrollCursorPositionFactor = 0.75f;
+
 	constexpr vec2 TimelineDefaultSmoothScrollSpeedSec = vec2(0.0215f);
+	constexpr vec2 TimelineMinSmoothScrollSpeedSec = vec2(0.01f);
+	constexpr vec2 TimelineMaxSmoothScrollSpeedSec = vec2(0.15f);
 
 	class TimelineBase : public NonCopyable
 	{

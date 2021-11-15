@@ -467,7 +467,9 @@ namespace Comfy::Studio::Editor
 
 		Gui::SameLine(0.0f, 4.0f);
 
-		Gui::BeginChild("TabContentChild", vec2(tabContentWidth, windowHeight), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+		// TODO: Implement box (at the bottom?) to display a discription about the last hovered settings item
+		//		 or easier, just tooltips
+		Gui::BeginChild("TabContentChild", vec2(tabContentWidth, windowHeight), false, alwaysShowVerticalScrollBar ? ImGuiWindowFlags_AlwaysVerticalScrollbar : ImGuiWindowFlags_None);
 		{
 			Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemSpacing.x, 3.0f));
 			if (selectedTabIndex < std::size(namedTabs))
@@ -599,51 +601,8 @@ namespace Comfy::Studio::Editor
 		{
 			GuiBeginSettingsColumns();
 			pendingChanges |= GuiSettingsInputText("Chart Creator Default Name", userData.ChartProperties.ChartCreatorDefaultName, "n/a");
-			GuiEndSettingsColumns();
-		}
 
-		if (Gui::CollapsingHeader("Target Timeline", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			GuiBeginSettingsColumns();
-
-#if COMFY_DEBUG && 0 // TODO: Not sure how to best present this yet...
-			if (auto v = static_cast<f32>(TimeSpan::FromSeconds(userData.TargetTimeline.SmoothScrollTimeSec).TotalMilliseconds());
-				pendingChanges |= GuiSettingsInputF32("Smooth Scroll Time", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
-				userData.TargetTimeline.SmoothScrollTimeSec = static_cast<f32>(TimeSpan::FromMilliseconds(v).TotalSeconds());
-#endif
-
-			pendingChanges |= GuiSettingsCombo("Scaling Behavior", userData.TargetTimeline.ScalingBehavior, TargetTimelineScalingBehaviorNames);
-			if (userData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
-			{
-				f32& userDataMinRowHeight = userData.TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight;
-				f32& userDataMaxRowHeight = userData.TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight;
-
-				if (auto v = userDataMinRowHeight;
-					pendingChanges |= GuiSettingsInputF32("Min Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
-				{
-					userDataMinRowHeight = Clamp(v, TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
-					userDataMaxRowHeight = Clamp(userDataMaxRowHeight, userDataMinRowHeight, TargetTimelineMaxRowHeight);
-				}
-
-				if (auto v = userDataMaxRowHeight;
-					pendingChanges |= GuiSettingsInputF32("Max Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
-				{
-					userDataMaxRowHeight = Clamp(v, TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
-					userDataMinRowHeight = Clamp(userDataMinRowHeight, TargetTimelineMinRowHeight, userDataMaxRowHeight);
-				}
-			}
-			else if (userData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::FixedSize)
-			{
-				if (auto v = ToPercent(userData.TargetTimeline.ScalingBehaviorFixedSize.IconScale);
-					pendingChanges |= GuiSettingsSliderF32("Icon Scale", v, ToPercent(TargetTimelineMinIconScale), ToPercent(TargetTimelineMaxIconScale), "%.2f%%", ImGuiSliderFlags_AlwaysClamp))
-					userData.TargetTimeline.ScalingBehaviorFixedSize.IconScale = FromPercent(v);
-
-				if (auto v = userData.TargetTimeline.ScalingBehaviorFixedSize.RowHeight;
-					pendingChanges |= GuiSettingsInputF32("Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
-					userData.TargetTimeline.ScalingBehaviorFixedSize.RowHeight = Clamp(v, TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
-			}
-
-			// TODO: "Preset" buttons for selecting common "fixed" values (?)
+			// TODO: Default button sounds (?)
 
 			GuiEndSettingsColumns();
 		}
@@ -655,8 +614,11 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCheckbox("Show Target Buttons", userData.TargetPreview.ShowButtons);
 			pendingChanges |= GuiSettingsCheckbox("Preview Hold Info", userData.TargetPreview.ShowHoldInfo);
 			if (auto v = userData.TargetPreview.PostHitLingerDuration.Ticks();
-				pendingChanges |= GuiSettingsInputI32("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
+				GuiSettingsInputI32("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
+			{
 				userData.TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v);
+				pendingChanges = true;
+			}
 
 			pendingChanges |= GuiSettingsCheckbox("Display Practice Background", userData.TargetPreview.DisplayPracticeBackground);
 
@@ -668,78 +630,13 @@ namespace Comfy::Studio::Editor
 
 			pendingChanges |= GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
 			if (auto v = ToPercent(userData.TargetPreview.BackgroundDim);
-				pendingChanges |= GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
+				GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
+			{
 				userData.TargetPreview.BackgroundDim = FromPercent(v);
+				pendingChanges = true;
+			}
+
 			Gui::PopItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
-
-			GuiEndSettingsColumns();
-		}
-
-		if (Gui::CollapsingHeader("Position Tool", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			GuiBeginSettingsColumns();
-
-			if (auto v = vec3(userData.PositionTool.PositionMouseSnap, userData.PositionTool.PositionMouseSnapRough, userData.PositionTool.PositionMouseSnapPrecise);
-				pendingChanges |= GuiSettingsInputVec3("Position Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
-			{
-				userData.PositionTool.PositionMouseSnap = v[0];
-				userData.PositionTool.PositionMouseSnapRough = v[1];
-				userData.PositionTool.PositionMouseSnapPrecise = v[2];
-			}
-			pendingChanges |= GuiSettingsInputF32("Position Interpolation Command Snap", userData.PositionTool.PositionInterpolationCommandSnap);
-
-			if (auto v = vec3(userData.PositionTool.PositionKeyMoveStep, userData.PositionTool.PositionKeyMoveStepRough, userData.PositionTool.PositionKeyMoveStepPrecise);
-				pendingChanges |= GuiSettingsInputVec3("Position Key Move Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
-			{
-				userData.PositionTool.PositionKeyMoveStep = v[0];
-				userData.PositionTool.PositionKeyMoveStepRough = v[1];
-				userData.PositionTool.PositionKeyMoveStepPrecise = v[2];
-			}
-
-			if (showRarelyUsedSettings)
-				pendingChanges |= GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold);
-
-			pendingChanges |= GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
-			pendingChanges |= GuiSettingsCheckbox("Show Target Grab Tooltip", userData.PositionTool.ShowTargetGrabTooltip);
-
-			pendingChanges |= GuiSettingsCheckbox("Use Axis Snap Guides", userData.PositionTool.UseAxisSnapGuides);
-			Gui::PushItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
-			pendingChanges |= GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold);
-			Gui::PopItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
-
-			GuiEndSettingsColumns();
-		}
-
-		if (Gui::CollapsingHeader("Path Tool", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			GuiBeginSettingsColumns();
-
-			if (auto v = vec3(userData.PathTool.AngleMouseScrollStep, userData.PathTool.AngleMouseScrollRough, userData.PathTool.AngleMouseScrollPrecise);
-				pendingChanges |= GuiSettingsInputVec3("Angle Scroll Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
-			{
-				userData.PathTool.AngleMouseScrollStep = v[0];
-				userData.PathTool.AngleMouseScrollRough = v[1];
-				userData.PathTool.AngleMouseScrollPrecise = v[2];
-			}
-
-			if (auto v = (userData.PathTool.AngleMouseScrollDirection > 0.0f);
-				pendingChanges |= GuiSettingsCheckbox("Flip Mouse Scroll Direction", v))
-			{
-				userData.PathTool.AngleMouseScrollDirection = (v ? +1.0f : -1.0f);
-			}
-
-			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
-				pendingChanges |= GuiSettingsInputVec3("Angle Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
-			{
-				userData.PathTool.AngleMouseSnap = v[0];
-				userData.PathTool.AngleMouseSnapRough = v[1];
-				userData.PathTool.AngleMouseSnapPrecise = v[2];
-			}
-
-			pendingChanges |= GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold);
-
-			if (showRarelyUsedSettings)
-				pendingChanges |= GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
 
 			GuiEndSettingsColumns();
 		}
@@ -880,21 +777,257 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCheckbox("Apply To Tempo Map", userData.BPMCalculator.ApplyToTempoMap);
 			GuiEndSettingsColumns();
 		}
+	}
 
+	void ChartEditorSettingsWindow::GuiTabTimeline(ComfyStudioUserSettings& userData)
+	{
+		if (Gui::CollapsingHeader("Target Timeline", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			pendingChanges |= GuiSettingsInputF32("Scroll Speed", userData.TargetTimeline.MouseWheelScrollSpeed, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx");
+			pendingChanges |= GuiSettingsInputF32("Scroll Speed (Shift)", userData.TargetTimeline.MouseWheelScrollSpeedShift, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx");
+
+			// NOTE: Having the "x Grid Division" and "x Beat" format strings embeded here feels a bit iffy, in case their behavior ever changes...
+			pendingChanges |= GuiSettingsInputF32("Playback Scroll Factor", userData.TargetTimeline.PlaybackMouseWheelScrollFactor, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx Grid Division");
+			pendingChanges |= GuiSettingsInputF32("Playback Scroll Factor (Shift)", userData.TargetTimeline.PlaybackMouseWheelScrollFactorShift, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx Beat");
+
+			if (auto v = (userData.TargetTimeline.MouseWheelScrollDirection < 0.0f);
+				GuiSettingsCheckbox("Flip Mouse Scroll Direction", v))
+			{
+				userData.TargetTimeline.MouseWheelScrollDirection = (v ? -1.0f : +1.0f);
+				pendingChanges = true;
+			}
+
+			Gui::Separator();
+
+			if (auto v = ToPercent(userData.TargetTimeline.PlaybackAutoScrollCursorPositionFactor);
+				GuiSettingsSliderF32("Playback Auto Scroll Cursor Position", v, 10.0f, 95.0f, "%.2f%% of Timeline", ImGuiSliderFlags_AlwaysClamp))
+			{
+				userData.TargetTimeline.PlaybackAutoScrollCursorPositionFactor = FromPercent(v);
+				pendingChanges = true;
+			}
+
+			auto isSmoothScrollDisabled = [](f32 speedSec) { return (speedSec <= 0.0f); };
+
+			if (auto v = isSmoothScrollDisabled(userData.TargetTimeline.SmoothScrollSpeedSec);
+				GuiSettingsCheckbox("Disable Smooth Scrolling", v))
+			{
+				targetTimelineSmoothScrollSpeedPreDisable = (v ? userData.TargetTimeline.SmoothScrollSpeedSec : targetTimelineSmoothScrollSpeedPreDisable);
+				userData.TargetTimeline.SmoothScrollSpeedSec = (v ? 0.0f : targetTimelineSmoothScrollSpeedPreDisable);
+
+				pendingChanges = true;
+			}
+
+			auto f32SecToMS = [](f32 sec) { return static_cast<f32>(TimeSpan::FromSeconds(sec).TotalMilliseconds()); };
+
+			Gui::PushItemDisabledAndTextColorIf(isSmoothScrollDisabled(userData.TargetTimeline.SmoothScrollSpeedSec));
+			if (auto v = f32SecToMS(userData.TargetTimeline.SmoothScrollSpeedSec);
+				GuiSettingsSliderF32("Smooth Scroll Speed", v, f32SecToMS(TimelineMinSmoothScrollSpeedSec.x), f32SecToMS(TimelineMaxSmoothScrollSpeedSec.x), "%.2f ms", ImGuiSliderFlags_AlwaysClamp))
+			{
+				userData.TargetTimeline.SmoothScrollSpeedSec = static_cast<f32>(TimeSpan::FromMilliseconds(v).TotalSeconds());
+				pendingChanges = true;
+			}
+			Gui::PopItemDisabledAndTextColorIf(isSmoothScrollDisabled(userData.TargetTimeline.SmoothScrollSpeedSec));
+
+			Gui::Separator();
+
+			// NOTE: To avoid half-pixel hitboxes
+			auto floorToMultipleOfTwo = [](f32 rowHeight) { return glm::floor(rowHeight / 2.0f) * 2.0f; };
+
+			// TODO: "Preset" buttons for selecting common "fixed" values (?)
+			pendingChanges |= GuiSettingsCombo("Timeline Scaling Behavior", userData.TargetTimeline.ScalingBehavior, TargetTimelineScalingBehaviorNames);
+			if (userData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
+			{
+				f32& userDataMinRowHeight = userData.TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight;
+				f32& userDataMaxRowHeight = userData.TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight;
+
+				if (auto v = userDataMinRowHeight;
+					GuiSettingsInputF32("Min Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
+				{
+					userDataMinRowHeight = Clamp(floorToMultipleOfTwo(v), TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
+					userDataMaxRowHeight = Clamp(userDataMaxRowHeight, userDataMinRowHeight, TargetTimelineMaxRowHeight);
+					pendingChanges = true;
+				}
+
+				if (auto v = userDataMaxRowHeight;
+					GuiSettingsInputF32("Max Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
+				{
+					userDataMaxRowHeight = Clamp(floorToMultipleOfTwo(v), TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
+					userDataMinRowHeight = Clamp(userDataMinRowHeight, TargetTimelineMinRowHeight, userDataMaxRowHeight);
+					pendingChanges = true;
+				}
+			}
+			else if (userData.TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::FixedSize)
+			{
+				if (auto v = ToPercent(userData.TargetTimeline.ScalingBehaviorFixedSize.IconScale);
+					GuiSettingsSliderF32("Icon Scale", v, ToPercent(TargetTimelineMinIconScale), ToPercent(TargetTimelineMaxIconScale), "%.2f%%", ImGuiSliderFlags_AlwaysClamp))
+				{
+					userData.TargetTimeline.ScalingBehaviorFixedSize.IconScale = FromPercent(v);
+					pendingChanges = true;
+				}
+
+				if (auto v = userData.TargetTimeline.ScalingBehaviorFixedSize.RowHeight;
+					GuiSettingsInputF32("Row Height", v, 2.0f, 8.0f, ImGuiInputTextFlags_None, "%.2f px"))
+				{
+					userData.TargetTimeline.ScalingBehaviorFixedSize.RowHeight = Clamp(floorToMultipleOfTwo(v), TargetTimelineMinRowHeight, TargetTimelineMaxRowHeight);
+					pendingChanges = true;
+				}
+			}
+
+			Gui::Separator();
+
+			pendingChanges |= GuiSettingsCombo("Cursor Scrubbing - Edge Auto Scroll", userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold, TargetTimelineCursorScrubbingEdgeAutoScrollThresholdNames);
+			if (userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::FixedSize)
+			{
+				pendingChanges |= GuiSettingsInputF32("Auto Scroll after", userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f px");
+			}
+			else if (userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::Proportional)
+			{
+				if (auto v = ToPercent(userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor);
+					GuiSettingsSliderF32("Auto Scroll after", v, ToPercent(TargetTimelineMinCursorScrubEdgeAutoScrollWidthFactor), ToPercent(TargetTimelineMaxCursorScrubEdgeAutoScrollWidthFactor),
+						"%.2f%% of Timeline", ImGuiSliderFlags_AlwaysClamp))
+				{
+					userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor = FromPercent(v);
+					pendingChanges = true;
+				}
+			}
+
+			GuiEndSettingsColumns();
+		}
+	}
+
+	void ChartEditorSettingsWindow::GuiTabTools(ComfyStudioUserSettings& userData)
+	{
+		if (Gui::CollapsingHeader("Position Tool", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			if (auto v = vec3(userData.PositionTool.PositionMouseSnap, userData.PositionTool.PositionMouseSnapRough, userData.PositionTool.PositionMouseSnapPrecise);
+				GuiSettingsInputVec3("Position Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+			{
+				userData.PositionTool.PositionMouseSnap = v[0];
+				userData.PositionTool.PositionMouseSnapRough = v[1];
+				userData.PositionTool.PositionMouseSnapPrecise = v[2];
+				pendingChanges = true;
+			}
+			pendingChanges |= GuiSettingsInputF32("Position Interpolation Command Snap", userData.PositionTool.PositionInterpolationCommandSnap);
+
+			if (auto v = vec3(userData.PositionTool.PositionKeyMoveStep, userData.PositionTool.PositionKeyMoveStepRough, userData.PositionTool.PositionKeyMoveStepPrecise);
+				GuiSettingsInputVec3("Position Key Move Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+			{
+				userData.PositionTool.PositionKeyMoveStep = v[0];
+				userData.PositionTool.PositionKeyMoveStepRough = v[1];
+				userData.PositionTool.PositionKeyMoveStepPrecise = v[2];
+				pendingChanges = true;
+			}
+
+			if (showRarelyUsedSettings)
+				pendingChanges |= GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold);
+
+			pendingChanges |= GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
+			pendingChanges |= GuiSettingsCheckbox("Show Target Grab Tooltip", userData.PositionTool.ShowTargetGrabTooltip);
+
+			pendingChanges |= GuiSettingsCheckbox("Use Axis Snap Guides", userData.PositionTool.UseAxisSnapGuides);
+			Gui::PushItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
+			pendingChanges |= GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold);
+			Gui::PopItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
+
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Path Tool", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			if (auto v = vec3(userData.PathTool.AngleMouseScrollStep, userData.PathTool.AngleMouseScrollRough, userData.PathTool.AngleMouseScrollPrecise);
+				GuiSettingsInputVec3("Angle Scroll Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+			{
+				userData.PathTool.AngleMouseScrollStep = v[0];
+				userData.PathTool.AngleMouseScrollRough = v[1];
+				userData.PathTool.AngleMouseScrollPrecise = v[2];
+				pendingChanges = true;
+			}
+
+			if (auto v = (userData.PathTool.AngleMouseScrollDirection > 0.0f); GuiSettingsCheckbox("Flip Mouse Scroll Direction", v))
+			{
+				userData.PathTool.AngleMouseScrollDirection = (v ? +1.0f : -1.0f);
+				pendingChanges = true;
+			}
+
+			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
+				GuiSettingsInputVec3("Angle Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
+			{
+				userData.PathTool.AngleMouseSnap = v[0];
+				userData.PathTool.AngleMouseSnapRough = v[1];
+				userData.PathTool.AngleMouseSnapPrecise = v[2];
+				pendingChanges = true;
+			}
+
+			pendingChanges |= GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold);
+
+			if (showRarelyUsedSettings)
+				pendingChanges |= GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
+
+			GuiEndSettingsColumns();
+		}
+	}
+
+	void ChartEditorSettingsWindow::GuiTabAutoSave(ComfyStudioUserSettings& userData)
+	{
+		if (Gui::CollapsingHeader("Auto Save", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+#if COMFY_DEBUG && 1
+			// TODO: Auto save interval, save location, etc.
+			static bool DEBUG_EnableAutoSave = true;
+			pendingChanges |= GuiSettingsCheckbox("Enable Auto Save", DEBUG_EnableAutoSave);
+#else
+			Gui::TextDisabled("TODO");
+#endif
+
+			GuiEndSettingsColumns();
+		}
+	}
+
+	void ChartEditorSettingsWindow::GuiTabPlaytest(ComfyStudioUserSettings& userData)
+	{
 		if (Gui::CollapsingHeader("Playtest", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
 
 			if (auto v = static_cast<f32>(userData.Playtest.SongOffsetWasapiShared.TotalMilliseconds());
-				pendingChanges |= GuiSettingsInputF32("Shared Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+				GuiSettingsInputF32("Shared Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+			{
 				userData.Playtest.SongOffsetWasapiShared = TimeSpan::FromMilliseconds(v);
+				pendingChanges = true;
+			}
 
 			if (auto v = static_cast<f32>(userData.Playtest.SongOffsetWasapiExclusive.TotalMilliseconds());
-				pendingChanges |= GuiSettingsInputF32("Exclusive Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+				GuiSettingsInputF32("Exclusive Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+			{
 				userData.Playtest.SongOffsetWasapiExclusive = TimeSpan::FromMilliseconds(v);
+				pendingChanges = true;
+			}
 
 			pendingChanges |= GuiSettingsCheckbox("Enter Fullscreen on Maximized Start", userData.Playtest.EnterFullscreenOnMaximizedStart);
 			pendingChanges |= GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
+
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Background", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+#if COMFY_DEBUG && 1
+			// TODO: Background settings for editor, playtest, editor-with-video and playtest-with-video
+			static bool DEBUG_HideNowPrintingPlaceholderImages = true;
+			pendingChanges |= GuiSettingsCheckbox("Hide 'Now Printing' Placeholder Images", DEBUG_HideNowPrintingPlaceholderImages);
+#else
+			Gui::TextDisabled("TODO");
+#endif
 
 			GuiEndSettingsColumns();
 		}
