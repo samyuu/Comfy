@@ -56,6 +56,7 @@ namespace Comfy::Studio::Editor
 
 	constexpr f32 TargetTimelineDefaultPlaybackAutoScrollCursorPositionFactor = 0.35f;
 	constexpr f32 TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = 0.02f;
+	constexpr f32 TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift = 0.01f;
 
 	constexpr f32 TargetTimelineDefaultIconScale = 1.0f;
 	constexpr f32 TargetTimelineMinIconScale = 0.5f;

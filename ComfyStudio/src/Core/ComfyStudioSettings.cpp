@@ -445,6 +445,7 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional = "cursor_scrubbing_edge_auto_scroll_threshold_proportional";
 		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional_Factor = "factor";
 		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = "cursor_scrubbing_edge_auto_scroll_smooth_scroll_speed_sec";
+		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift = "cursor_scrubbing_edge_auto_scroll_smooth_scroll_speed_sec_shift";
 
 		constexpr std::string_view TargetPreview = "target_preview";
 		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
@@ -772,6 +773,7 @@ namespace Comfy::Studio
 			}
 
 			TryAssign(TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec)));
+			TryAssign(TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift)));
 		}
 
 		if (const Value* targetPreviewJson = Find(rootJson, UserIDs::TargetPreview))
@@ -1079,6 +1081,7 @@ namespace Comfy::Studio
 				}
 
 				writer.MemberF32(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec);
+				writer.MemberF32(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift, TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift);
 			}
 			writer.MemberObjectEnd();
 
@@ -1433,6 +1436,7 @@ namespace Comfy::Studio
 		TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollProportionalFactorFixedSizePixels;
 		TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollProportionalFactor;
 		TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec;
+		TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowGrid = true;

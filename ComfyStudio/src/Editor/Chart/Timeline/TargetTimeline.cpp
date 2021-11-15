@@ -2359,7 +2359,12 @@ namespace Comfy::Studio::Editor
 	std::optional<vec2> TargetTimeline::GetSmoothScrollSpeedSecOverride() const
 	{
 		if (isCursorScrubbing && isCursorScrubbingAndPastEdgeAutoScrollThreshold)
-			return vec2(GlobalUserData.TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, smoothScrollSpeedSec.y);
+		{
+			const auto& io = Gui::GetIO();
+			const auto& userData = GlobalUserData.TargetTimeline;
+
+			return vec2(io.KeyShift ? userData.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift : userData.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, smoothScrollSpeedSec.y);
+		}
 
 		return {};
 	}
