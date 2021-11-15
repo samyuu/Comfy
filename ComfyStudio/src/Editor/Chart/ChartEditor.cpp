@@ -455,7 +455,7 @@ namespace Comfy::Studio::Editor
 		moviePlaybackController.OnMovieChange(moviePlayer.get());
 	}
 
-	void ChartEditor::CreateNewChart()
+	void ChartEditor::CreateNewChart(bool focusTimelineAndCloseActivePopup)
 	{
 		undoManager.ClearAll();
 		chart = MakeNewChartWithDefaults();
@@ -472,7 +472,9 @@ namespace Comfy::Studio::Editor
 		// NOTE: Restore the default focus as well since the resetting scroll/zoom already visual draw attention to the timeline
 		timeline->SetCursorTime(TimeSpan::Zero());
 		timeline->ResetScrollAndZoom();
-		timeline->SetWindowFocusNextFrame();
+		// NOTE: Closing the active popup is an unfortunate side effect
+		if (focusTimelineAndCloseActivePopup)
+			timeline->SetWindowFocusNextFrame();
 
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
 		unixTimeOnChartBegin = Discord::GlobalGetCurrentUnixTime();
@@ -682,7 +684,9 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::OpenPVScriptImportWindow(std::string_view filePath)
 	{
-		CreateNewChart();
+		// HACK: Might wanna think about a better solution for avoiding immediately closing the popup
+		constexpr bool focusTimelineAndCloseActivePopup = false;
+		CreateNewChart(focusTimelineAndCloseActivePopup);
 		pvScriptImportPopup.Window.SetScriptFilePath(filePath);
 		pvScriptImportPopup.OpenOnNextFrame = true;
 	}

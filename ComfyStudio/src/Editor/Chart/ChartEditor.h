@@ -52,7 +52,7 @@ namespace Comfy::Studio::Editor
 		void LoadMovieAsync(std::string_view filePath);
 		void UnloadMovie(bool disposeMoviePlayer = false);
 
-		void CreateNewChart();
+		void CreateNewChart(bool focusTimelineAndCloseActivePopup = true);
 		void LoadNativeChartFileSync(std::string_view filePath);
 		void SaveNativeChartFileAsync(std::string_view filePath = "");
 
