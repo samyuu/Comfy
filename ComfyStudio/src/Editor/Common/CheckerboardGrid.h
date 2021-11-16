@@ -4,14 +4,12 @@
 
 namespace Comfy::Studio::Editor
 {
-	class CheckerboardGrid
+	struct CheckerboardGrid
 	{
-	public:
-		static constexpr float DefaultGridSize = 5.0f;
+		static constexpr f32 DefaultGridSize = 5.0f;
 
-	public:
 		// NOTE: Pixels between each cell
-		float GridSize = DefaultGridSize;
+		f32 GridSize = DefaultGridSize;
 
 		// NOTE: Top left start position
 		vec2 Position = vec2(0.0f, 0.0f);
@@ -39,7 +37,5 @@ namespace Comfy::Studio::Editor
 				ColorAlt,
 				renderer.GetCamera().Zoom / GridSize);
 		}
-
-	private:
 	};
 }
