@@ -229,6 +229,11 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::OnRender()
 	{
+		renderTarget->Param.PostProcessingEnabled = GlobalUserData.System.Video.EnableColorCorrectionEditor;
+		renderTarget->Param.PostProcessing.Gamma = GlobalUserData.System.Video.ColorCorrectionParam.Gamma;
+		renderTarget->Param.PostProcessing.Contrast = GlobalUserData.System.Video.ColorCorrectionParam.Contrast;
+		renderTarget->Param.PostProcessing.ColorCoefficientsRGB = GlobalUserData.System.Video.ColorCorrectionParam.ColorCoefficientsRGB;
+
 		UpdateAllInput();
 
 		renderHelper->UpdateAsyncLoading(renderer);

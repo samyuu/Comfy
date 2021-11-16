@@ -398,7 +398,6 @@ namespace Comfy::Studio
 	namespace UserIDs
 	{
 		constexpr std::string_view System = "system";
-		constexpr std::string_view System_Video = "video";
 
 		constexpr std::string_view System_Audio = "audio";
 		constexpr std::string_view System_Audio_SongVolume = "song_volume";
@@ -408,6 +407,14 @@ namespace Comfy::Studio
 		constexpr std::string_view System_Audio_OpenDeviceOnStartup = "open_device_on_startup";
 		constexpr std::string_view System_Audio_CloseDeviceOnIdleFocusLoss = "close_device_on_idle_focus_loss";
 		constexpr std::string_view System_Audio_RequestExclusiveDeviceAccess = "request_exclusive_device_access";
+
+		constexpr std::string_view System_Video = "video";
+		constexpr std::string_view System_Video_EnableColorCorrectionEditor = "enable_color_correction_editor";
+		constexpr std::string_view System_Video_EnableColorCorrectionPlaytest = "enable_color_correction_playtest";
+		constexpr std::string_view System_Video_ColorCorrectionParam = "color_correction_param";
+		constexpr std::string_view System_Video_ColorCorrectionParam_Gamma = "gamma";
+		constexpr std::string_view System_Video_ColorCorrectionParam_Contrast = "contrast";
+		constexpr std::string_view System_Video_ColorCorrectionParam_ColorCoefficients = "color_coefficients";
 
 		constexpr std::string_view System_Gui = "gui";
 		constexpr std::string_view System_Gui_ShowTestMenu = "show_test_menu";
@@ -676,10 +683,6 @@ namespace Comfy::Studio
 
 		if (const Value* systemJson = Find(rootJson, UserIDs::System))
 		{
-			if (const Value* videoJson = Find(*systemJson, UserIDs::System_Video))
-			{
-			}
-
 			if (const Value* audioJson = Find(*systemJson, UserIDs::System_Audio))
 			{
 				TryAssign(System.Audio.SongVolume, TryGetF32(Find(*audioJson, UserIDs::System_Audio_SongVolume)));
@@ -689,6 +692,29 @@ namespace Comfy::Studio
 				TryAssign(System.Audio.OpenDeviceOnStartup, TryGetBool(Find(*audioJson, UserIDs::System_Audio_OpenDeviceOnStartup)));
 				TryAssign(System.Audio.CloseDeviceOnIdleFocusLoss, TryGetBool(Find(*audioJson, UserIDs::System_Audio_CloseDeviceOnIdleFocusLoss)));
 				TryAssign(System.Audio.RequestExclusiveDeviceAccess, TryGetBool(Find(*audioJson, UserIDs::System_Audio_RequestExclusiveDeviceAccess)));
+			}
+
+			if (const Value* videoJson = Find(*systemJson, UserIDs::System_Video))
+			{
+				TryAssign(System.Video.EnableColorCorrectionEditor, TryGetBool(Find(*videoJson, UserIDs::System_Video_EnableColorCorrectionEditor)));
+				TryAssign(System.Video.EnableColorCorrectionPlaytest, TryGetBool(Find(*videoJson, UserIDs::System_Video_EnableColorCorrectionPlaytest)));
+				if (const Value* colorCorrectionJson = Find(*videoJson, UserIDs::System_Video_ColorCorrectionParam))
+				{
+					TryAssign(System.Video.ColorCorrectionParam.Gamma, TryGetF32(Find(*colorCorrectionJson, UserIDs::System_Video_ColorCorrectionParam_Gamma)));
+					TryAssign(System.Video.ColorCorrectionParam.Contrast, TryGetF32(Find(*colorCorrectionJson, UserIDs::System_Video_ColorCorrectionParam_Contrast)));
+					if (const Value* colorCoefficientsJson = Find(*colorCorrectionJson, UserIDs::System_Video_ColorCorrectionParam_ColorCoefficients); colorCoefficientsJson && colorCoefficientsJson->IsArray())
+					{
+						constexpr SizeType userDataFloatCount = (3 * 3);
+						static_assert(sizeof(System.Video.ColorCorrectionParam.ColorCoefficientsRGB) == (userDataFloatCount * sizeof(f32)));
+						f32* userDataFloats = &System.Video.ColorCorrectionParam.ColorCoefficientsRGB[0][0];
+
+						for (SizeType i = 0; i < Min(userDataFloatCount, colorCoefficientsJson->GetArray().Size()); i++)
+						{
+							if (auto v = TryGetF32(&colorCoefficientsJson->GetArray()[static_cast<SizeType>(i)]); v.has_value())
+								userDataFloats[i] = v.value();
+						}
+					}
+				}
 			}
 
 			if (const Value* guiJson = Find(*systemJson, UserIDs::System_Gui))
@@ -1043,6 +1069,29 @@ namespace Comfy::Studio
 				}
 				writer.MemberObjectEnd();
 
+				writer.MemberObjectBegin(UserIDs::System_Video);
+				{
+					writer.MemberBool(UserIDs::System_Video_EnableColorCorrectionEditor, System.Video.EnableColorCorrectionEditor);
+					writer.MemberBool(UserIDs::System_Video_EnableColorCorrectionPlaytest, System.Video.EnableColorCorrectionPlaytest);
+					writer.MemberObjectBegin(UserIDs::System_Video_ColorCorrectionParam);
+					{
+						writer.MemberF32(UserIDs::System_Video_ColorCorrectionParam_Gamma, System.Video.ColorCorrectionParam.Gamma);
+						writer.MemberF32(UserIDs::System_Video_ColorCorrectionParam_Contrast, System.Video.ColorCorrectionParam.Contrast);
+						writer.MemberArrayBegin(UserIDs::System_Video_ColorCorrectionParam_ColorCoefficients);
+						{
+							for (auto& rgbVec3s : System.Video.ColorCorrectionParam.ColorCoefficientsRGB)
+							{
+								writer.F32(rgbVec3s[0]);
+								writer.F32(rgbVec3s[1]);
+								writer.F32(rgbVec3s[2]);
+							}
+						}
+						writer.MemberArrayEnd();
+					}
+					writer.MemberObjectEnd();
+				}
+				writer.MemberObjectEnd();
+
 				writer.MemberObjectBegin(UserIDs::System_Gui);
 				{
 					writer.MemberBool(UserIDs::System_Gui_ShowTestMenu, System.Gui.ShowTestMenu);
@@ -1370,6 +1419,14 @@ namespace Comfy::Studio
 		System.Audio.CloseDeviceOnIdleFocusLoss = true;
 		System.Audio.RequestExclusiveDeviceAccess = true;
 
+		System.Video.EnableColorCorrectionEditor = false;
+		System.Video.EnableColorCorrectionPlaytest = true;
+		System.Video.ColorCorrectionParam.Gamma = 2.8f;
+		System.Video.ColorCorrectionParam.Contrast = 0.455f;
+		System.Video.ColorCorrectionParam.ColorCoefficientsRGB[0] = vec3(1.0f, 0.0f, 0.0f);
+		System.Video.ColorCorrectionParam.ColorCoefficientsRGB[1] = vec3(0.0f, 1.0f, 0.0f);
+		System.Video.ColorCorrectionParam.ColorCoefficientsRGB[2] = vec3(0.0f, 0.0f, 1.0f);
+
 		System.Gui.ShowTestMenu = false;
 		System.Gui.AntiAliasedLines = true;
 		System.Gui.AntiAliasedFill = true;
@@ -1607,7 +1664,7 @@ namespace Comfy::Studio
 		Interface.PracticeBackground.HideCoverImage = false;
 		Interface.PracticeBackground.HideLogoImage = false;
 		Interface.MovieBackground.OverlayColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-		Interface.MovieBackground.OverlayColorGridAndPractice = { 0.0f, 0.0f, 0.0f, 0.35f };
+		Interface.MovieBackground.OverlayColorGridAndPractice = { 0.0f, 0.0f, 0.0f, 0.6f };
 		Interface.MovieBackground.PreStartPostEndColor = { 0.13f, 0.13f, 0.13f, 1.00f };
 	}
 }

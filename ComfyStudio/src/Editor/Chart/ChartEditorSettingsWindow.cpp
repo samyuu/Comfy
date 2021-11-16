@@ -822,6 +822,40 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCheckbox("Apply To Tempo Map", userData.BPMCalculator.ApplyToTempoMap);
 			GuiEndSettingsColumns();
 		}
+
+#if COMFY_DEBUG && 1 // DEBUG: Mostly for internal testing, probably won't need to expose these to the user
+		auto guiSettingsSliderVec3 = [](std::string_view label, vec3& inOutValue, f32 minValue, f32 maxValue, const char* format = "%.3f", ImGuiSliderFlags flags = ImGuiSliderFlags_None)
+		{
+			GuiSettingsRightAlignedLabel(label);
+			Gui::NextColumn();
+
+			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
+			Gui::PushItemWidth(GuiSettingsItemWidth);
+			const bool result = Gui::SliderFloat3("##SettingsSlider", glm::value_ptr(inOutValue), minValue, maxValue, format, flags);
+			Gui::PopItemWidth();
+			Gui::PopID();
+			Gui::NextColumn();
+
+			return result;
+		};
+
+		if (Gui::CollapsingHeader("UserData.System.Video - ColorCorrection", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			GuiSettingsCheckbox("Enabled (Editor)", userData.System.Video.EnableColorCorrectionEditor);
+			GuiSettingsCheckbox("Enabled (Playtest)", userData.System.Video.EnableColorCorrectionPlaytest);
+
+			GuiSettingsSliderF32("Gamma", userData.System.Video.ColorCorrectionParam.Gamma, 2.0f, 3.0f);
+			GuiSettingsSliderF32("Contrast", userData.System.Video.ColorCorrectionParam.Contrast, 0.35f, 0.80f);
+
+			guiSettingsSliderVec3("Coefficients R", userData.System.Video.ColorCorrectionParam.ColorCoefficientsRGB[0], 0.0f, 1.25f);
+			guiSettingsSliderVec3("Coefficients G", userData.System.Video.ColorCorrectionParam.ColorCoefficientsRGB[1], 0.0f, 1.25f);
+			guiSettingsSliderVec3("Coefficients B", userData.System.Video.ColorCorrectionParam.ColorCoefficientsRGB[2], 0.0f, 1.25f);
+
+			GuiEndSettingsColumns();
+		}
+#endif
 	}
 
 	void ChartEditorSettingsWindow::GuiTabTimeline(ComfyStudioUserSettings& userData)

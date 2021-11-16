@@ -61,7 +61,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 22, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 23, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -74,11 +74,6 @@ namespace Comfy::Studio
 		{
 			struct
 			{
-				// Usually render resolution, MSAA settings etc. but that doesn't really make sense for 2D..?
-			} Video;
-
-			struct
-			{
 				f32 SongVolume;
 				f32 ButtonSoundVolume;
 				f32 SoundEffectVolume;
@@ -88,6 +83,18 @@ namespace Comfy::Studio
 				bool CloseDeviceOnIdleFocusLoss;
 				bool RequestExclusiveDeviceAccess;
 			} Audio;
+
+			struct
+			{
+				bool EnableColorCorrectionEditor;
+				bool EnableColorCorrectionPlaytest;
+				struct
+				{
+					f32 Gamma;
+					f32 Contrast;
+					std::array<vec3, 3> ColorCoefficientsRGB;
+				} ColorCorrectionParam;
+			} Video;
 
 			struct
 			{

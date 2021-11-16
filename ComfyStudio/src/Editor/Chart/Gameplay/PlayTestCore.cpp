@@ -299,6 +299,11 @@ namespace Comfy::Studio::Editor
 	public:
 		void UpdateTick()
 		{
+			context.RenderTarget->Param.PostProcessingEnabled = GlobalUserData.System.Video.EnableColorCorrectionPlaytest;
+			context.RenderTarget->Param.PostProcessing.Gamma = GlobalUserData.System.Video.ColorCorrectionParam.Gamma;
+			context.RenderTarget->Param.PostProcessing.Contrast = GlobalUserData.System.Video.ColorCorrectionParam.Contrast;
+			context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB = GlobalUserData.System.Video.ColorCorrectionParam.ColorCoefficientsRGB;
+
 			UpdateUserInput();
 			sharedContext.MoviePlaybackController->OnUpdateTick(GetIsPlayback(), GetPlaybackTime(), sharedContext.Chart->MovieOffset, sharedContext.SongVoice->GetPlaybackSpeed());
 
@@ -349,22 +354,6 @@ namespace Comfy::Studio::Editor
 
 				if (Gui::MenuItem("Return to Editor (Pre Playtest)", Input::ToString(GlobalUserData.Input.Playtest_ReturnToEditorPrePlaytest).data()))
 					FadeOutThenExit(PlayTestExitType::ReturnPrePlayTestTime);
-
-#if COMFY_DEBUG
-				Gui::Separator();
-				if (Gui::BeginMenu("Color Correction"))
-				{
-					Gui::Checkbox("Enabled", &context.RenderTarget->Param.PostProcessingEnabled);
-					Gui::SliderFloat("Gamma", &context.RenderTarget->Param.PostProcessing.Gamma, 2.0f, 3.0f);
-					Gui::SliderFloat("Contrast", &context.RenderTarget->Param.PostProcessing.Contrast, 0.35f, 0.80f);
-
-					Gui::SliderFloat3("Coefficients R", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[0]), 0.0f, 1.25f);
-					Gui::SliderFloat3("Coefficients G", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[1]), 0.0f, 1.25f);
-					Gui::SliderFloat3("Coefficients B", glm::value_ptr(context.RenderTarget->Param.PostProcessing.ColorCoefficientsRGB[2]), 0.0f, 1.25f);
-
-					Gui::EndMenu();
-				}
-#endif
 			});
 
 			if (auto delta = Gui::GetIO().MouseDelta; delta.x != 0.0f || delta.y != 0.0f)
@@ -979,7 +968,7 @@ namespace Comfy::Studio::Editor
 					fadeInOut.OutExitStopwatch.Stop();
 				}
 			}
-		}
+					}
 
 	private:
 		void PlayOneShotSoundEffect(std::string_view name, f32 volume = 1.0f)
@@ -1534,7 +1523,7 @@ namespace Comfy::Studio::Editor
 			Stopwatch LastMovementStopwatch = Stopwatch::StartNew();
 			const TimeSpan AutoHideThreshold = TimeSpan::FromSeconds(2.0);
 		} mouseHide = {};
-	};
+				};
 
 	PlayTestInputBinding PlayTestBindingFromStorageString(std::string_view string)
 	{
@@ -1634,4 +1623,4 @@ namespace Comfy::Studio::Editor
 	{
 		return impl->GetIsPlayback();
 	}
-}
+			}
