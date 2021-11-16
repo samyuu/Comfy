@@ -120,6 +120,46 @@ namespace Comfy::Studio::Editor
 		return moviePlayer->GetCurrentTextureAsTexSprView();
 	}
 
+	Render::TexSprView ChartMoviePlaybackController::GetPlaceholderTexture(vec4 color)
+	{
+		auto& texAndSpr = placeholderTexAndSpr;
+
+		const u32 newColorU32 = Gui::ColorConvertFloat4ToU32(color);
+		if (!texAndSpr.Initialized || texAndSpr.Color != newColorU32)
+		{
+			texAndSpr.Color = newColorU32;
+
+			auto& baseMip = texAndSpr.Tex.MipMapsArray.empty() ? texAndSpr.Tex.MipMapsArray.emplace_back().emplace_back() : texAndSpr.Tex.MipMapsArray[0][0];
+			if (!texAndSpr.Initialized)
+			{
+				texAndSpr.Tex.Name = "MoviePlaceholderTexture";
+				texAndSpr.Tex.GPU_Texture2D.DynamicResource = true;
+
+				baseMip.Size = { 2, 2 };
+				baseMip.Format = Graphics::TextureFormat::RGBA8;
+				baseMip.DataSize = (baseMip.Size.x * baseMip.Size.y) * sizeof(u32);
+				baseMip.Data = std::make_unique<u8[]>(baseMip.DataSize);
+
+				texAndSpr.Spr.TexelRegion = { 0.5f, 0.5f, 0.5f, 0.5f };
+				texAndSpr.Spr.PixelRegion = { 0.5f, 0.5f, 1.0f, 1.0f };
+				texAndSpr.Spr.Extra.ScreenMode = Graphics::ScreenMode::HDTV1080;
+			}
+
+			for (i32 i = 0; i < (baseMip.Size.x * baseMip.Size.y); i++)
+				reinterpret_cast<u32*>(baseMip.Data.get())[i] = newColorU32;
+
+			texAndSpr.Tex.GPU_Texture2D.RequestReupload = true;
+			texAndSpr.Initialized = true;
+		}
+
+		return { &texAndSpr.Tex, &texAndSpr.Spr };
+	}
+
+	bool ChartMoviePlaybackController::IsMovieAsyncLoading() const
+	{
+		return (moviePlayer != nullptr) && moviePlayer->GetIsLoadingFileAsync();
+	}
+
 	bool ChartMoviePlaybackController::IsMoviePlayerValidAndReady() const
 	{
 #if 0 // NOTE: Checking either one *seems* to be working correctly so not sure which one makes more sense here...

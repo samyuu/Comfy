@@ -31,6 +31,7 @@ namespace Comfy::Studio::Editor
 		void GuiTabGeneral(ComfyStudioUserSettings& userData);
 		void GuiTabTimeline(ComfyStudioUserSettings& userData);
 		void GuiTabTools(ComfyStudioUserSettings& userData);
+		void GuiTabInterface(ComfyStudioUserSettings& userData);
 		void GuiTabAutoSave(ComfyStudioUserSettings& userData);
 		void GuiTabPlaytest(ComfyStudioUserSettings& userData);
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
@@ -81,6 +82,7 @@ namespace Comfy::Studio::Editor
 			{ "General", &GuiTabGeneral },
 			{ "Timeline", &GuiTabTimeline },
 			{ "Tools", &GuiTabTools },
+			{ "Interface", &GuiTabInterface },
 			{ "Playtest", &GuiTabPlaytest },
 			{ "Auto Save", &GuiTabAutoSave },
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION

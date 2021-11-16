@@ -9,6 +9,94 @@ namespace Comfy::Studio::Editor
 {
 	using namespace Graphics;
 
+	// TODO: Should probably be declared inside some common header
+	void RenderChartBackgroundForEditorOrPlaytestUsingGlobalUserData(Render::Renderer2D&, TargetRenderHelper&, Chart&, ChartMoviePlaybackController&, TimeSpan cursorTime, bool isEditor);
+
+	void RenderChartBackgroundForEditorOrPlaytestUsingGlobalUserData(Render::Renderer2D& renderer, TargetRenderHelper& renderHelper, Chart& chart, ChartMoviePlaybackController& moviePlaybackController, TimeSpan cursorTime, bool isEditor)
+	{
+		auto drawFullscreenQuad = [](Render::Renderer2D& renderer, vec4 color) { renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, color)); };
+
+		const auto& userData = GlobalUserData.Interface;
+		const bool chartHasMovie = !chart.MovieFileName.empty();
+
+		const ChartBackgroundDisplayType backgroundType = isEditor ?
+			(chartHasMovie ? userData.BackgroundDisplayType.EditorWithMovie : userData.BackgroundDisplayType.Editor) :
+			(chartHasMovie ? userData.BackgroundDisplayType.PlaytestWithMovie : userData.BackgroundDisplayType.Playtest);
+
+		// NOTE: Always draw underneath *everything* in case things haven't loaded in yet or the movie isn't drawn
+		// if (HasChartBackgroundDisplayTypeCheckerboard(backgroundType))
+		{
+			CheckerboardGrid backgroundCheckerboard = {};
+			backgroundCheckerboard.GridSize = static_cast<f32>(userData.CheckerboardBackground.ScreenPixelSize);
+			backgroundCheckerboard.Size = Rules::PlacementAreaSize;
+			backgroundCheckerboard.Color = userData.CheckerboardBackground.PrimaryColor;
+			backgroundCheckerboard.ColorAlt = userData.CheckerboardBackground.SecondaryColor;
+			backgroundCheckerboard.Render(renderer);
+		}
+
+		{
+			TargetRenderHelper::BackgroundData backgroundData = {};
+			backgroundData.DrawGrid = !userData.PracticeBackground.DisableBackgroundGrid;
+			backgroundData.DrawDim = !userData.PracticeBackground.DisableBackgroundDim;
+			backgroundData.DrawCover = !userData.PracticeBackground.HideCoverImage;
+			backgroundData.DrawLogo = !userData.PracticeBackground.HideLogoImage;
+			backgroundData.DrawBackground = true;
+			backgroundData.PlaybackTime = cursorTime;
+			backgroundData.CoverSprite = chart.Properties.Image.Cover.GetTexSprView();
+			backgroundData.LogoSprite = chart.Properties.Image.Logo.GetTexSprView();
+			backgroundData.BackgroundSprite = chart.Properties.Image.Background.GetTexSprView();
+
+			if (userData.PracticeBackground.HideNowPrintingPlaceholderImages)
+			{
+				if (!backgroundData.CoverSprite) backgroundData.DrawCover = false;
+				if (!backgroundData.LogoSprite) backgroundData.DrawLogo = false;
+			}
+
+			if (chartHasMovie && HasChartBackgroundDisplayTypeMovie(backgroundType))
+			{
+				const auto videoFrameTexSprView = moviePlaybackController.GetCurrentTexture(cursorTime);
+
+				const bool drawOverlayColor = videoFrameTexSprView;
+				const vec4 overlayColor = (backgroundType == ChartBackgroundDisplayType::Movie) ? userData.MovieBackground.OverlayColor : userData.MovieBackground.OverlayColorGridAndPractice;
+
+				backgroundData.DrawBackground = true;
+				backgroundData.BackgroundSprite = videoFrameTexSprView ? videoFrameTexSprView : moviePlaybackController.GetPlaceholderTexture(userData.MovieBackground.PreStartPostEndColor);
+
+				if (backgroundType == ChartBackgroundDisplayType::Movie || backgroundType == ChartBackgroundDisplayType::Movie_Grid)
+				{
+					backgroundData.DrawGrid = false;
+					backgroundData.DrawDim = false;
+					backgroundData.DrawCover = false;
+					backgroundData.DrawLogo = false;
+					renderHelper.DrawBackground(renderer, backgroundData);
+
+					if (drawOverlayColor)
+						drawFullscreenQuad(renderer, overlayColor);
+				}
+				else if (backgroundType == ChartBackgroundDisplayType::Movie_Practice)
+				{
+					renderHelper.DrawBackground(renderer, backgroundData);
+
+					// HACK: All of these aet interactions are pretty hacky to beging with but hardcoding the black chip opacity like this definitely isn't ideal...
+					//		 Although probably not like this options will be used frequently anyway nor does this extra bit of dim make that much of a difference
+					const f32 dimAmountAlreadyPartOfAet = backgroundData.DrawDim ? 0.6f : 0.0f;
+
+					if (drawOverlayColor)
+						drawFullscreenQuad(renderer, vec4(vec3(overlayColor), Clamp(overlayColor.a - dimAmountAlreadyPartOfAet, 0.0f, 1.0f)));
+				}
+			}
+			else if (HasChartBackgroundDisplayTypePractice(backgroundType))
+			{
+				renderHelper.DrawBackground(renderer, backgroundData);
+			}
+		}
+
+		if (HasChartBackgroundDisplayTypeGrid(backgroundType))
+		{
+			RenderTargetGrid(renderer, userData.PlacementGrid.ShowHorizontalSyncMarkers);
+		}
+	}
+
 	TargetRenderWindow::TargetRenderWindow(ChartEditor& parent, TargetTimeline& timeline, Undo::UndoManager& undoManager, Render::Renderer2D& renderer)
 		: chartEditor(parent), timeline(timeline), undoManager(undoManager), renderer(renderer), availableTools(TargetTool::CreateAllToolTypes(*this, undoManager))
 	{
@@ -16,10 +104,6 @@ namespace Comfy::Studio::Editor
 
 		SetKeepAspectRatio(true);
 		SetTargetAspectRatio(Rules::PlacementAreaSize.x / Rules::PlacementAreaSize.y);
-
-		backgroundCheckerboard.Size = Rules::PlacementAreaSize;
-		backgroundCheckerboard.Color = vec4(0.20f, 0.20f, 0.20f, 1.0f);
-		backgroundCheckerboard.ColorAlt = vec4(0.26f, 0.26f, 0.26f, 1.0f);
 
 		renderHelper = std::make_unique<TargetRenderHelper>();
 		renderHelper->SetAetSprGetter(renderer);
@@ -266,50 +350,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetRenderWindow::RenderBackground()
 	{
-		// NOTE: Always draw underneath in case the assets haven't been loaded yet
-		if (GlobalUserData.TargetPreview.ShowBackgroundCheckerboard)
-			backgroundCheckerboard.Render(renderer);
-
-		if (GlobalUserData.TargetPreview.BackgroundDim > 0.0f)
-			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, GlobalUserData.TargetPreview.BackgroundDim)));
-
-		// TODO: Make background setting into an enum (?)
-		//		 And have a single checkbox to draw the playtest background inside the editor (?)
-#if 1 // TEMP: Just hacked in for now for some quick testing...
-		if (auto videoFrameTexSprView = chartEditor.GetMoviePlaybackController().GetCurrentTexture(timeline.GetCursorTime()); videoFrameTexSprView)
-		{
-			TargetRenderHelper::BackgroundData backgroundData;
-			backgroundData.DrawGrid = false;
-			backgroundData.DrawDim = true;
-			backgroundData.DrawCover = false;
-			backgroundData.DrawLogo = false;
-			backgroundData.DrawBackground = true;
-			backgroundData.PlaybackTime = timeline.GetCursorTime();
-			backgroundData.CoverSprite = workingChart->Properties.Image.Cover.GetTexSprView();
-			backgroundData.LogoSprite = workingChart->Properties.Image.Logo.GetTexSprView();
-			backgroundData.BackgroundSprite = videoFrameTexSprView;
-			renderHelper->DrawBackground(renderer, backgroundData);
-		}
-#endif
-
-		if (GlobalUserData.TargetPreview.DisplayPracticeBackground)
-		{
-			TargetRenderHelper::BackgroundData backgroundData;
-			backgroundData.DrawGrid = true;
-			backgroundData.DrawDim = true;
-			backgroundData.DrawCover = true;
-			backgroundData.DrawLogo = true;
-			backgroundData.DrawBackground = true;
-			backgroundData.PlaybackTime = timeline.GetCursorTime();
-			backgroundData.CoverSprite = workingChart->Properties.Image.Cover.GetTexSprView();
-			backgroundData.LogoSprite = workingChart->Properties.Image.Logo.GetTexSprView();
-			backgroundData.BackgroundSprite = workingChart->Properties.Image.Background.GetTexSprView();
-			renderHelper->DrawBackground(renderer, backgroundData);
-		}
-		else if (GlobalUserData.TargetPreview.ShowGrid)
-		{
-			RenderTargetGrid(renderer, GlobalUserData.TargetPreview.ShowGridHorizontalSyncMarkers);
-		}
+		RenderChartBackgroundForEditorOrPlaytestUsingGlobalUserData(renderer, *renderHelper, *workingChart, chartEditor.GetMoviePlaybackController(), timeline.GetCursorTime(), true);
 	}
 
 	void TargetRenderWindow::RenderHUDBackground()

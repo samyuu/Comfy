@@ -8,6 +8,12 @@
 #include "Editor/Chart/Gameplay/PlayTestCore.h"
 #include "Input/Input.h"
 
+namespace Comfy::Studio::Editor
+{
+	enum class GameTheme : u8;
+	enum class ChartBackgroundDisplayType : u8;
+}
+
 namespace Comfy::Studio
 {
 	constexpr std::string_view ComfyStudioAppSettingsFilePath = "settings_app.json";
@@ -55,7 +61,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 21, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 22, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -222,7 +228,7 @@ namespace Comfy::Studio
 			f32 MouseWheelScrollSpeedShift;
 			f32 PlaybackMouseWheelScrollFactor;
 			f32 PlaybackMouseWheelScrollFactorShift;
-			
+
 			f32 PlaybackAutoScrollCursorPositionFactor;
 			f32 SmoothScrollSpeedSec;
 
@@ -237,7 +243,7 @@ namespace Comfy::Studio
 				f32 IconScale;
 				f32 RowHeight;
 			} ScalingBehaviorFixedSize;
-			
+
 			Editor::TargetTimelineCursorScrubbingEdgeAutoScrollThreshold CursorScrubbingEdgeAutoScrollThreshold;
 			struct
 			{
@@ -254,13 +260,8 @@ namespace Comfy::Studio
 		struct
 		{
 			bool ShowButtons;
-			bool ShowGrid;
-			bool ShowGridHorizontalSyncMarkers;
 			bool ShowHoldInfo;
-			bool ShowBackgroundCheckerboard;
-			f32 BackgroundDim;
 			Editor::BeatTick PostHitLingerDuration;
-			bool DisplayPracticeBackground;
 		} TargetPreview;
 
 		struct
@@ -328,6 +329,47 @@ namespace Comfy::Studio
 			TimeSpan SongOffsetWasapiShared;
 			TimeSpan SongOffsetWasapiExclusive;
 		} Playtest;
+
+		struct
+		{
+			Editor::GameTheme Theme;
+
+			struct
+			{
+				Editor::ChartBackgroundDisplayType Editor;
+				Editor::ChartBackgroundDisplayType EditorWithMovie;
+				Editor::ChartBackgroundDisplayType Playtest;
+				Editor::ChartBackgroundDisplayType PlaytestWithMovie;
+			} BackgroundDisplayType;
+
+			struct
+			{
+				bool ShowHorizontalSyncMarkers;
+			} PlacementGrid;
+
+			struct
+			{
+				vec4 PrimaryColor;
+				vec4 SecondaryColor;
+				i32 ScreenPixelSize;
+			} CheckerboardBackground;
+
+			struct
+			{
+				bool DisableBackgroundGrid;
+				bool DisableBackgroundDim;
+				bool HideNowPrintingPlaceholderImages;
+				bool HideCoverImage;
+				bool HideLogoImage;
+			} PracticeBackground;
+
+			struct
+			{
+				vec4 OverlayColor;
+				vec4 OverlayColorGridAndPractice;
+				vec4 PreStartPostEndColor;
+			} MovieBackground;
+		} Interface;
 	};
 
 	// NOTE: Changes are always saved so no need for const protection or manual saves

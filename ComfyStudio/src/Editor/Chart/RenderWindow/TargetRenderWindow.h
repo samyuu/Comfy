@@ -85,8 +85,6 @@ namespace Comfy::Studio::Editor
 		TargetRenderWindowOverlayGuiCallback onOverlayGuiCallback;
 
 	private:
-		CheckerboardGrid backgroundCheckerboard;
-
 		TargetBoxSelectionTool boxSelectionTool = { *this };
 
 		std::array<std::unique_ptr<TargetTool>, EnumCount<TargetToolType>()> availableTools;

@@ -24,6 +24,53 @@
 
 namespace Comfy::Studio::Editor
 {
+	// TODO: Implement these and move into a different header (?)
+	enum class GameTheme : u8
+	{
+		PS4FutureTone,
+		PS4FutureSound,
+		PS4ColorfulTone,
+		Count
+	};
+
+	static constexpr std::array<const char*, EnumCount<GameTheme>()> GameThemeNames =
+	{
+		"PS4 Future Tone",
+		"PS4 Future Sound",
+		"PS4 Colorful Tone",
+	};
+
+	enum class ChartBackgroundDisplayType : u8
+	{
+		Checkerboard,
+		Checkerboard_Grid,
+		Practice,
+		Movie,
+		Movie_Grid,
+		Movie_Practice,
+
+		Count,
+		FirstNoMovie = Checkerboard,
+		LastNoMovie = Practice,
+		FirstMovie = Movie,
+		LastMovie = Movie_Practice,
+	};
+
+	static constexpr std::array<const char*, EnumCount<ChartBackgroundDisplayType>()> ChartBackgroundDisplayTypeNames =
+	{
+		"Checkerboard",
+		"Checkerboard + Grid",
+		"Practice",
+		"Movie",
+		"Movie + Grid",
+		"Movie + Practice",
+	};
+
+	constexpr bool HasChartBackgroundDisplayTypeGrid(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Checkerboard_Grid) || (type == ChartBackgroundDisplayType::Movie_Grid); }
+	constexpr bool HasChartBackgroundDisplayTypeCheckerboard(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Checkerboard) || (type == ChartBackgroundDisplayType::Checkerboard_Grid); }
+	constexpr bool HasChartBackgroundDisplayTypePractice(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Practice) || (type == ChartBackgroundDisplayType::Movie_Practice); }
+	constexpr bool HasChartBackgroundDisplayTypeMovie(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Movie) || (type == ChartBackgroundDisplayType::Movie_Grid) || (type == ChartBackgroundDisplayType::Movie_Practice); }
+
 	class ChartEditor : public IEditorComponent
 	{
 	public:

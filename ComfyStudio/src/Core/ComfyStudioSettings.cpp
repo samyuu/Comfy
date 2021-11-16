@@ -1,4 +1,5 @@
 #include "ComfyStudioSettings.h"
+#include "Editor/Chart/ChartEditor.h"
 #include "IO/JSON.h"
 #include "IO/File.h"
 #include "Core/Logger.h"
@@ -449,13 +450,8 @@ namespace Comfy::Studio
 
 		constexpr std::string_view TargetPreview = "target_preview";
 		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
-		constexpr std::string_view TargetPreview_ShowGrid = "show_grid";
-		constexpr std::string_view TargetPreview_ShowGridHorizontalSyncMarkers = "show_grid_horizontal_sync_markers";
 		constexpr std::string_view TargetPreview_ShowHoldInfo = "show_hold_info";
-		constexpr std::string_view TargetPreview_ShowBackgroundCheckerboard = "show_background_checkerboard";
-		constexpr std::string_view TargetPreview_BackgroundDim = "background_dim";
 		constexpr std::string_view TargetPreview_PostHitLingerDurationTicks = "post_hit_linger_duration_ticks";
-		constexpr std::string_view TargetPreview_DisplayPracticeBackground = "display_practice_background";
 
 		constexpr std::string_view PositionTool = "position_tool";
 		constexpr std::string_view PositionTool_ShowDistanceGuides = "show_distance_guides";
@@ -525,6 +521,30 @@ namespace Comfy::Studio
 		constexpr std::string_view Playtest_AutoHideCursor = "auto_hide_cursor";
 		constexpr std::string_view Playtest_SongOffsetSecWasapiShared = "song_offset_sec_wasapi_shared";
 		constexpr std::string_view Playtest_SongOffsetSecWasapiExclusive = "song_offset_sec_wasapi_exclusive";
+
+		constexpr std::string_view Interface = "interface";
+		constexpr std::string_view Interface_Theme = "theme";
+		constexpr std::string_view Interface_BackgroundDisplayType = "background_display_type";
+		constexpr std::string_view Interface_BackgroundDisplayType_Editor = "editor";
+		constexpr std::string_view Interface_BackgroundDisplayType_EditorWithMovie = "editor_with_movie";
+		constexpr std::string_view Interface_BackgroundDisplayType_Playtest = "playtest";
+		constexpr std::string_view Interface_BackgroundDisplayType_PlaytestWithMovie = "playtest_with_movie";
+		constexpr std::string_view Interface_PlacementGrid = "placement_grid";
+		constexpr std::string_view Interface_PlacementGrid_ShowHorizontalSyncMarkers = "show_horizontal_sync_markers";
+		constexpr std::string_view Interface_CheckerboardBackground = "checkerboard_background";
+		constexpr std::string_view Interface_CheckerboardBackground_PrimaryColor = "primary_color";
+		constexpr std::string_view Interface_CheckerboardBackground_SecondaryColor = "secondary_color";
+		constexpr std::string_view Interface_CheckerboardBackground_ScreenPixelSize = "screen_pixel_size";
+		constexpr std::string_view Interface_PracticeBackground = "practice_background";
+		constexpr std::string_view Interface_PracticeBackground_DisableBackgroundGrid = "disable_background_grid";
+		constexpr std::string_view Interface_PracticeBackground_DisableBackgroundDim = "disable_background_dim";
+		constexpr std::string_view Interface_PracticeBackground_HideNowPrintingPlaceholderImages = "hide_now_printing_placeholder_images";
+		constexpr std::string_view Interface_PracticeBackground_HideCoverImage = "hide_cover_image";
+		constexpr std::string_view Interface_PracticeBackground_HideLogoImage = "hide_logo_image";
+		constexpr std::string_view Interface_MovieBackground = "movie_background";
+		constexpr std::string_view Interface_MovieBackground_OverlayColor = "overlay_color";
+		constexpr std::string_view Interface_MovieBackground_OverlayColorGridAndPractice = "overlay_color_grid_and_practice";
+		constexpr std::string_view Interface_MovieBackground_PreStartPostEndColor = "pre_start_post_end_color";
 
 		template <typename Func>
 		void ForEachMultiBindingWithID(/* const */ ComfyStudioUserSettings& userData, Func func)
@@ -779,14 +799,9 @@ namespace Comfy::Studio
 		if (const Value* targetPreviewJson = Find(rootJson, UserIDs::TargetPreview))
 		{
 			TryAssign(TargetPreview.ShowButtons, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowButtons)));
-			TryAssign(TargetPreview.ShowGrid, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowGrid)));
-			TryAssign(TargetPreview.ShowGridHorizontalSyncMarkers, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowGridHorizontalSyncMarkers)));
 			TryAssign(TargetPreview.ShowHoldInfo, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowHoldInfo)));
-			TryAssign(TargetPreview.ShowBackgroundCheckerboard, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_ShowBackgroundCheckerboard)));
-			TryAssign(TargetPreview.BackgroundDim, TryGetF32(Find(*targetPreviewJson, UserIDs::TargetPreview_BackgroundDim)));
 			if (auto v = TryGetI32(Find(*targetPreviewJson, UserIDs::TargetPreview_PostHitLingerDurationTicks)); v.has_value())
 				TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v.value());
-			TryAssign(TargetPreview.DisplayPracticeBackground, TryGetBool(Find(*targetPreviewJson, UserIDs::TargetPreview_DisplayPracticeBackground)));
 		}
 
 		if (const Value* positionToolJson = Find(rootJson, UserIDs::PositionTool))
@@ -933,6 +948,56 @@ namespace Comfy::Studio
 				Playtest.SongOffsetWasapiShared = TimeSpan::FromSeconds(v.value());
 			if (auto v = TryGetF64(Find(*playtestJson, UserIDs::Playtest_SongOffsetSecWasapiExclusive)); v.has_value())
 				Playtest.SongOffsetWasapiExclusive = TimeSpan::FromSeconds(v.value());
+		}
+
+		if (const Value* interfaceJson = Find(rootJson, UserIDs::Interface))
+		{
+			// TODO: Json enum string helper functions
+			if (auto v = TryGetI32(Find(*interfaceJson, UserIDs::Interface_Theme)); v.has_value())
+				Interface.Theme = static_cast<GameTheme>(v.value());
+
+			if (const Value* displayTypeJson = Find(*interfaceJson, UserIDs::Interface_BackgroundDisplayType))
+			{
+				auto tryAsignEnum = [interfaceJson](ChartBackgroundDisplayType& outEnum, std::string_view key)
+				{
+					// TODO: Json enum string helper functions
+					if (auto v = TryGetI32(Find(*interfaceJson, key)); v.has_value())
+						outEnum = static_cast<ChartBackgroundDisplayType>(v.value());
+				};
+
+				tryAsignEnum(Interface.BackgroundDisplayType.Editor, UserIDs::Interface_BackgroundDisplayType_Editor);
+				tryAsignEnum(Interface.BackgroundDisplayType.EditorWithMovie, UserIDs::Interface_BackgroundDisplayType_EditorWithMovie);
+				tryAsignEnum(Interface.BackgroundDisplayType.Playtest, UserIDs::Interface_BackgroundDisplayType_Playtest);
+				tryAsignEnum(Interface.BackgroundDisplayType.PlaytestWithMovie, UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie);
+			}
+
+			if (const Value* gridJson = Find(*interfaceJson, UserIDs::Interface_PlacementGrid))
+			{
+				TryAssign(Interface.PlacementGrid.ShowHorizontalSyncMarkers, TryGetBool(Find(*gridJson, UserIDs::Interface_PlacementGrid_ShowHorizontalSyncMarkers)));
+			}
+
+			if (const Value* checkerboardJson = Find(*interfaceJson, UserIDs::Interface_CheckerboardBackground))
+			{
+				TryAssign(Interface.CheckerboardBackground.PrimaryColor, TryGetVec4HexRGBAStr(Find(*checkerboardJson, UserIDs::Interface_CheckerboardBackground_PrimaryColor)));
+				TryAssign(Interface.CheckerboardBackground.SecondaryColor, TryGetVec4HexRGBAStr(Find(*checkerboardJson, UserIDs::Interface_CheckerboardBackground_SecondaryColor)));
+				TryAssign(Interface.CheckerboardBackground.ScreenPixelSize, TryGetI32(Find(*checkerboardJson, UserIDs::Interface_CheckerboardBackground_ScreenPixelSize)));
+			}
+
+			if (const Value* practiceJson = Find(*interfaceJson, UserIDs::Interface_PracticeBackground))
+			{
+				TryAssign(Interface.PracticeBackground.DisableBackgroundGrid, TryGetBool(Find(*practiceJson, UserIDs::Interface_PracticeBackground_DisableBackgroundGrid)));
+				TryAssign(Interface.PracticeBackground.DisableBackgroundDim, TryGetBool(Find(*practiceJson, UserIDs::Interface_PracticeBackground_DisableBackgroundDim)));
+				TryAssign(Interface.PracticeBackground.HideNowPrintingPlaceholderImages, TryGetBool(Find(*practiceJson, UserIDs::Interface_PracticeBackground_HideNowPrintingPlaceholderImages)));
+				TryAssign(Interface.PracticeBackground.HideCoverImage, TryGetBool(Find(*practiceJson, UserIDs::Interface_PracticeBackground_HideCoverImage)));
+				TryAssign(Interface.PracticeBackground.HideLogoImage, TryGetBool(Find(*practiceJson, UserIDs::Interface_PracticeBackground_HideLogoImage)));
+			}
+
+			if (const Value* movieJson = Find(*interfaceJson, UserIDs::Interface_MovieBackground))
+			{
+				TryAssign(Interface.MovieBackground.OverlayColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_MovieBackground_OverlayColor)));
+				TryAssign(Interface.MovieBackground.OverlayColorGridAndPractice, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_MovieBackground_OverlayColorGridAndPractice)));
+				TryAssign(Interface.MovieBackground.PreStartPostEndColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_MovieBackground_PreStartPostEndColor)));
+			}
 		}
 
 		return true;
@@ -1088,13 +1153,8 @@ namespace Comfy::Studio
 			writer.MemberObjectBegin(UserIDs::TargetPreview);
 			{
 				writer.MemberBool(UserIDs::TargetPreview_ShowButtons, TargetPreview.ShowButtons);
-				writer.MemberBool(UserIDs::TargetPreview_ShowGrid, TargetPreview.ShowGrid);
-				writer.MemberBool(UserIDs::TargetPreview_ShowGridHorizontalSyncMarkers, TargetPreview.ShowGridHorizontalSyncMarkers);
 				writer.MemberBool(UserIDs::TargetPreview_ShowHoldInfo, TargetPreview.ShowHoldInfo);
-				writer.MemberBool(UserIDs::TargetPreview_ShowBackgroundCheckerboard, TargetPreview.ShowBackgroundCheckerboard);
-				writer.MemberF32(UserIDs::TargetPreview_BackgroundDim, TargetPreview.BackgroundDim);
 				writer.MemberI32(UserIDs::TargetPreview_PostHitLingerDurationTicks, TargetPreview.PostHitLingerDuration.Ticks());
-				writer.MemberBool(UserIDs::TargetPreview_DisplayPracticeBackground, TargetPreview.DisplayPracticeBackground);
 			}
 			writer.MemberObjectEnd();
 
@@ -1240,6 +1300,55 @@ namespace Comfy::Studio
 				writer.MemberBool(UserIDs::Playtest_AutoHideCursor, Playtest.AutoHideCursor);
 				writer.MemberF64(UserIDs::Playtest_SongOffsetSecWasapiShared, Playtest.SongOffsetWasapiShared.TotalSeconds());
 				writer.MemberF64(UserIDs::Playtest_SongOffsetSecWasapiExclusive, Playtest.SongOffsetWasapiExclusive.TotalSeconds());
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::Interface);
+			{
+				// TODO: Json enum string helper functions
+				writer.MemberI32(UserIDs::Interface_Theme, static_cast<i32>(Interface.Theme));
+
+				writer.MemberObjectBegin(UserIDs::Interface_BackgroundDisplayType);
+				{
+					// TODO: Json enum string helper functions
+					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_Editor, static_cast<i32>(Interface.BackgroundDisplayType.Editor));
+					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_EditorWithMovie, static_cast<i32>(Interface.BackgroundDisplayType.EditorWithMovie));
+					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_Playtest, static_cast<i32>(Interface.BackgroundDisplayType.Playtest));
+					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie, static_cast<i32>(Interface.BackgroundDisplayType.PlaytestWithMovie));
+				}
+				writer.MemberObjectEnd();
+
+				writer.MemberObjectBegin(UserIDs::Interface_PlacementGrid);
+				{
+					writer.MemberBool(UserIDs::Interface_PlacementGrid_ShowHorizontalSyncMarkers, Interface.PlacementGrid.ShowHorizontalSyncMarkers);
+				}
+				writer.MemberObjectEnd();
+
+				writer.MemberObjectBegin(UserIDs::Interface_CheckerboardBackground);
+				{
+					writer.MemberHexRGBAStr(UserIDs::Interface_CheckerboardBackground_PrimaryColor, Interface.CheckerboardBackground.PrimaryColor);
+					writer.MemberHexRGBAStr(UserIDs::Interface_CheckerboardBackground_SecondaryColor, Interface.CheckerboardBackground.SecondaryColor);
+					writer.MemberI32(UserIDs::Interface_CheckerboardBackground_ScreenPixelSize, Interface.CheckerboardBackground.ScreenPixelSize);
+				}
+				writer.MemberObjectEnd();
+
+				writer.MemberObjectBegin(UserIDs::Interface_PracticeBackground);
+				{
+					writer.MemberBool(UserIDs::Interface_PracticeBackground_DisableBackgroundGrid, Interface.PracticeBackground.DisableBackgroundGrid);
+					writer.MemberBool(UserIDs::Interface_PracticeBackground_DisableBackgroundDim, Interface.PracticeBackground.DisableBackgroundDim);
+					writer.MemberBool(UserIDs::Interface_PracticeBackground_HideNowPrintingPlaceholderImages, Interface.PracticeBackground.HideNowPrintingPlaceholderImages);
+					writer.MemberBool(UserIDs::Interface_PracticeBackground_HideCoverImage, Interface.PracticeBackground.HideCoverImage);
+					writer.MemberBool(UserIDs::Interface_PracticeBackground_HideLogoImage, Interface.PracticeBackground.HideLogoImage);
+				}
+				writer.MemberObjectEnd();
+
+				writer.MemberObjectBegin(UserIDs::Interface_MovieBackground);
+				{
+					writer.MemberHexRGBAStr(UserIDs::Interface_MovieBackground_OverlayColor, Interface.MovieBackground.OverlayColor);
+					writer.MemberHexRGBAStr(UserIDs::Interface_MovieBackground_OverlayColorGridAndPractice, Interface.MovieBackground.OverlayColorGridAndPractice);
+					writer.MemberHexRGBAStr(UserIDs::Interface_MovieBackground_PreStartPostEndColor, Interface.MovieBackground.PreStartPostEndColor);
+				}
+				writer.MemberObjectEnd();
 			}
 			writer.MemberObjectEnd();
 		}
@@ -1439,13 +1548,8 @@ namespace Comfy::Studio
 		TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift;
 
 		TargetPreview.ShowButtons = true;
-		TargetPreview.ShowGrid = true;
-		TargetPreview.ShowGridHorizontalSyncMarkers = true;
 		TargetPreview.ShowHoldInfo = true;
-		TargetPreview.ShowBackgroundCheckerboard = true;
-		TargetPreview.BackgroundDim = 0.35f;
 		TargetPreview.PostHitLingerDuration = BeatTick::FromBeats(1);
-		TargetPreview.DisplayPracticeBackground = false;
 
 		PositionTool.ShowDistanceGuides = true;
 		PositionTool.ShowTargetGrabTooltip = true;
@@ -1487,5 +1591,23 @@ namespace Comfy::Studio
 		Playtest.AutoHideCursor = true;
 		Playtest.SongOffsetWasapiShared = TimeSpan::Zero();
 		Playtest.SongOffsetWasapiExclusive = TimeSpan::Zero();
+
+		Interface.Theme = GameTheme::PS4ColorfulTone;
+		Interface.BackgroundDisplayType.Editor = ChartBackgroundDisplayType::Checkerboard_Grid;
+		Interface.BackgroundDisplayType.EditorWithMovie = ChartBackgroundDisplayType::Movie_Grid;
+		Interface.BackgroundDisplayType.Playtest = ChartBackgroundDisplayType::Practice;
+		Interface.BackgroundDisplayType.PlaytestWithMovie = ChartBackgroundDisplayType::Movie;
+		Interface.PlacementGrid.ShowHorizontalSyncMarkers = true;
+		Interface.CheckerboardBackground.PrimaryColor = { 0.13f, 0.13f, 0.13f, 1.00f };
+		Interface.CheckerboardBackground.SecondaryColor = { 0.17f, 0.17f, 0.17f, 1.00f };
+		Interface.CheckerboardBackground.ScreenPixelSize = 5;
+		Interface.PracticeBackground.DisableBackgroundGrid = false;
+		Interface.PracticeBackground.DisableBackgroundDim = false;
+		Interface.PracticeBackground.HideNowPrintingPlaceholderImages = false;
+		Interface.PracticeBackground.HideCoverImage = false;
+		Interface.PracticeBackground.HideLogoImage = false;
+		Interface.MovieBackground.OverlayColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Interface.MovieBackground.OverlayColorGridAndPractice = { 0.0f, 0.0f, 0.0f, 0.35f };
+		Interface.MovieBackground.PreStartPostEndColor = { 0.13f, 0.13f, 0.13f, 1.00f };
 	}
 }

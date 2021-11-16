@@ -1,4 +1,5 @@
 #include "ChartEditorSettingsWindow.h"
+#include "Editor/Chart/ChartEditor.h"
 #include "Input/Input.h"
 #include "Audio/Audio.h"
 #include <FontIcons.h>
@@ -53,6 +54,21 @@ namespace Comfy::Studio::Editor
 			Gui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, vec2(GuiSettingsCheckboxLabelSpacing, GImGui->Style.ItemInnerSpacing.y));
 			const bool result = Gui::Checkbox(label.data(), &inOutValue);
 			Gui::PopStyleVar(1);
+			Gui::NextColumn();
+
+			return result;
+		}
+
+		bool GuiSettingsSliderI32(std::string_view label, i32& inOutValue, i32 minValue, i32 maxValue, const char* format = "%d", ImGuiSliderFlags flags = ImGuiSliderFlags_None)
+		{
+			GuiSettingsRightAlignedLabel(label);
+			Gui::NextColumn();
+
+			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
+			Gui::PushItemWidth(GuiSettingsItemWidth);
+			const bool result = Gui::SliderInt("##SettingsSlider", &inOutValue, minValue, maxValue, format, flags);
+			Gui::PopItemWidth();
+			Gui::PopID();
 			Gui::NextColumn();
 
 			return result;
@@ -218,6 +234,52 @@ namespace Comfy::Studio::Editor
 				inOutValue = static_cast<EnumType>(i);
 				result = true;
 			}
+
+			return result;
+		}
+
+		template <typename EnumType, size_t LookupSize>
+		bool GuiSettingsCombo(std::string_view label, EnumType& inOutValue, const std::array<const char*, LookupSize>& nameLookup, EnumType firstValue, EnumType lastValue, ImGuiComboFlags flags = ImGuiComboFlags_None)
+		{
+			static_assert(sizeof(EnumType) <= sizeof(i32));
+			auto indexToString = [&nameLookup](i32 i) { return IndexOr(i, nameLookup, nullptr); };
+
+			bool result = false;
+			if (i32 i = static_cast<i32>(inOutValue); GuiSettingsCombo(label, i, static_cast<i32>(firstValue), static_cast<i32>(lastValue) + 1, flags, indexToString))
+			{
+				inOutValue = static_cast<EnumType>(i);
+				result = true;
+			}
+
+			return result;
+		}
+
+		bool GuiSettingsColorEdit3(std::string_view label, vec3& inOutColor, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
+		{
+			GuiSettingsRightAlignedLabel(label);
+			Gui::NextColumn();
+
+			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
+			Gui::PushItemWidth(GuiSettingsItemWidth);
+			const bool result = Gui::ColorEdit3("##SettingsColorEdit3", glm::value_ptr(inOutColor), flags);
+			Gui::PopItemWidth();
+			Gui::PopID();
+			Gui::NextColumn();
+
+			return result;
+		}
+
+		bool GuiSettingsColorEdit4(std::string_view label, vec4& inOutColor, ImGuiColorEditFlags flags = ImGuiColorEditFlags_None)
+		{
+			GuiSettingsRightAlignedLabel(label);
+			Gui::NextColumn();
+
+			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
+			Gui::PushItemWidth(GuiSettingsItemWidth);
+			const bool result = Gui::ColorEdit4("##SettingsColorEdit4", glm::value_ptr(inOutColor), flags);
+			Gui::PopItemWidth();
+			Gui::PopID();
+			Gui::NextColumn();
 
 			return result;
 		}
@@ -613,30 +675,13 @@ namespace Comfy::Studio::Editor
 
 			pendingChanges |= GuiSettingsCheckbox("Show Target Buttons", userData.TargetPreview.ShowButtons);
 			pendingChanges |= GuiSettingsCheckbox("Preview Hold Info", userData.TargetPreview.ShowHoldInfo);
+
 			if (auto v = userData.TargetPreview.PostHitLingerDuration.Ticks();
 				GuiSettingsInputI32("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
 			{
 				userData.TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v);
 				pendingChanges = true;
 			}
-
-			pendingChanges |= GuiSettingsCheckbox("Display Practice Background", userData.TargetPreview.DisplayPracticeBackground);
-
-			Gui::PushItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
-			pendingChanges |= GuiSettingsCheckbox("Show Placement Grid", userData.TargetPreview.ShowGrid);
-			Gui::PushItemDisabledAndTextColorIf(!userData.TargetPreview.ShowGrid);
-			pendingChanges |= GuiSettingsCheckbox("Show Placement Grid Sync Markers", userData.TargetPreview.ShowGridHorizontalSyncMarkers);
-			Gui::PopItemDisabledAndTextColorIf(!userData.TargetPreview.ShowGrid);
-
-			pendingChanges |= GuiSettingsCheckbox("Show Background Checkerboard", userData.TargetPreview.ShowBackgroundCheckerboard);
-			if (auto v = ToPercent(userData.TargetPreview.BackgroundDim);
-				GuiSettingsSliderF32("Background Dim", v, 0.0f, 100.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
-			{
-				userData.TargetPreview.BackgroundDim = FromPercent(v);
-				pendingChanges = true;
-			}
-
-			Gui::PopItemDisabledAndTextColorIf(userData.TargetPreview.DisplayPracticeBackground);
 
 			GuiEndSettingsColumns();
 		}
@@ -880,12 +925,12 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCombo("Cursor Scrubbing - Edge Auto Scroll", userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold, TargetTimelineCursorScrubbingEdgeAutoScrollThresholdNames);
 			if (userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::FixedSize)
 			{
-				pendingChanges |= GuiSettingsInputF32("Auto Scroll after", userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f px");
+				pendingChanges |= GuiSettingsInputF32("Auto Scroll Threshold", userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f px");
 			}
 			else if (userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::Proportional)
 			{
 				if (auto v = ToPercent(userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor);
-					GuiSettingsSliderF32("Auto Scroll after", v, ToPercent(TargetTimelineMinCursorScrubEdgeAutoScrollWidthFactor), ToPercent(TargetTimelineMaxCursorScrubEdgeAutoScrollWidthFactor),
+					GuiSettingsSliderF32("Auto Scroll Threshold", v, ToPercent(TargetTimelineMinCursorScrubEdgeAutoScrollWidthFactor), ToPercent(TargetTimelineMaxCursorScrubEdgeAutoScrollWidthFactor),
 						"%.2f%% of Timeline", ImGuiSliderFlags_AlwaysClamp))
 				{
 					userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor = FromPercent(v);
@@ -904,17 +949,17 @@ namespace Comfy::Studio::Editor
 			GuiBeginSettingsColumns();
 
 			if (auto v = vec3(userData.PositionTool.PositionMouseSnap, userData.PositionTool.PositionMouseSnapRough, userData.PositionTool.PositionMouseSnapPrecise);
-				GuiSettingsInputVec3("Position Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+				GuiSettingsInputVec3("Position Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f px"))
 			{
 				userData.PositionTool.PositionMouseSnap = v[0];
 				userData.PositionTool.PositionMouseSnapRough = v[1];
 				userData.PositionTool.PositionMouseSnapPrecise = v[2];
 				pendingChanges = true;
 			}
-			pendingChanges |= GuiSettingsInputF32("Position Interpolation Command Snap", userData.PositionTool.PositionInterpolationCommandSnap);
+			pendingChanges |= GuiSettingsInputF32("Position Interpolation Command Snap", userData.PositionTool.PositionInterpolationCommandSnap, 0.0f, 0.0f, ImGuiInputTextFlags_None, "%.2f px");
 
 			if (auto v = vec3(userData.PositionTool.PositionKeyMoveStep, userData.PositionTool.PositionKeyMoveStepRough, userData.PositionTool.PositionKeyMoveStepPrecise);
-				GuiSettingsInputVec3("Position Key Move Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f"))
+				GuiSettingsInputVec3("Position Key Move Step (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f px"))
 			{
 				userData.PositionTool.PositionKeyMoveStep = v[0];
 				userData.PositionTool.PositionKeyMoveStepRough = v[1];
@@ -923,14 +968,18 @@ namespace Comfy::Studio::Editor
 			}
 
 			if (showRarelyUsedSettings)
-				pendingChanges |= GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold);
+				pendingChanges |= GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold, 0.0f, 0.0f, ImGuiTextFlags_None, "%.2f px");
+
+			Gui::Separator();
 
 			pendingChanges |= GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
 			pendingChanges |= GuiSettingsCheckbox("Show Target Grab Tooltip", userData.PositionTool.ShowTargetGrabTooltip);
 
+			Gui::Separator();
+
 			pendingChanges |= GuiSettingsCheckbox("Use Axis Snap Guides", userData.PositionTool.UseAxisSnapGuides);
 			Gui::PushItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
-			pendingChanges |= GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold);
+			pendingChanges |= GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold, 0.0f, 0.0f, ImGuiInputTextFlags_None, "%.2f px");
 			Gui::PopItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
 
 			GuiEndSettingsColumns();
@@ -955,6 +1004,8 @@ namespace Comfy::Studio::Editor
 				pendingChanges = true;
 			}
 
+			Gui::Separator();
+
 			if (auto v = vec3(userData.PathTool.AngleMouseSnap, userData.PathTool.AngleMouseSnapRough, userData.PathTool.AngleMouseSnapPrecise);
 				GuiSettingsInputVec3("Angle Mouse Snap (Normal, Rough, Precise)", v, ImGuiInputTextFlags_None, "%.2f" DEGREE_SIGN))
 			{
@@ -964,10 +1015,105 @@ namespace Comfy::Studio::Editor
 				pendingChanges = true;
 			}
 
-			pendingChanges |= GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold);
+			pendingChanges |= GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold, 0.0f, 0.0f, ImGuiTextFlags_None, "%.2f px");
 
 			if (showRarelyUsedSettings)
-				pendingChanges |= GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold);
+				pendingChanges |= GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold, 0.0f, 0.0f, ImGuiTextFlags_None, "%.2f px");
+
+			GuiEndSettingsColumns();
+		}
+	}
+
+	void ChartEditorSettingsWindow::GuiTabInterface(ComfyStudioUserSettings& userData)
+	{
+#if COMFY_DEBUG && 0 // TODO: Actually implement this first
+		if (Gui::CollapsingHeader("Style", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			pendingChanges |= GuiSettingsCombo("Game Theme", userData.Interface.Theme, GameThemeNames);
+
+			GuiEndSettingsColumns();
+		}
+#endif
+
+		if (Gui::CollapsingHeader("Chart Background", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			pendingChanges |= GuiSettingsCombo("Editor", userData.Interface.BackgroundDisplayType.Editor, ChartBackgroundDisplayTypeNames, ChartBackgroundDisplayType::FirstNoMovie, ChartBackgroundDisplayType::LastNoMovie);
+			pendingChanges |= GuiSettingsCombo("Editor (Movie Loaded)", userData.Interface.BackgroundDisplayType.EditorWithMovie, ChartBackgroundDisplayTypeNames);
+			pendingChanges |= GuiSettingsCombo("Playtest", userData.Interface.BackgroundDisplayType.Playtest, ChartBackgroundDisplayTypeNames, ChartBackgroundDisplayType::FirstNoMovie, ChartBackgroundDisplayType::LastNoMovie);
+			pendingChanges |= GuiSettingsCombo("Playtest (Movie Loaded)", userData.Interface.BackgroundDisplayType.PlaytestWithMovie, ChartBackgroundDisplayTypeNames);
+
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Placement Grid", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			pendingChanges |= GuiSettingsCheckbox("Horizontal Sync Markers", userData.Interface.PlacementGrid.ShowHorizontalSyncMarkers);
+
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Checkerboard Background", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			if (auto v = vec3(userData.Interface.CheckerboardBackground.PrimaryColor);
+				GuiSettingsColorEdit3("Primary Color", v))
+			{
+				userData.Interface.CheckerboardBackground.PrimaryColor = vec4(v, 1.0f);
+				pendingChanges = true;
+			}
+
+			if (auto v = vec3(userData.Interface.CheckerboardBackground.SecondaryColor);
+				GuiSettingsColorEdit3("Secondary Color", v))
+			{
+				userData.Interface.CheckerboardBackground.SecondaryColor = vec4(v, 1.0f);
+				pendingChanges = true;
+			}
+
+			// TODO: Combobox for small, medium and large "preset" values instead (?)
+			pendingChanges |= GuiSettingsSliderI32("Cell Size", userData.Interface.CheckerboardBackground.ScreenPixelSize, 0, 16, "%d px", ImGuiSliderFlags_AlwaysClamp);
+
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Practice Background", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			pendingChanges |= GuiSettingsCheckbox("Disable Background Grid", userData.Interface.PracticeBackground.DisableBackgroundGrid);
+			pendingChanges |= GuiSettingsCheckbox("Disable Background Dim", userData.Interface.PracticeBackground.DisableBackgroundDim);
+			pendingChanges |= GuiSettingsCheckbox("Hide 'Now Printing' Placeholder Images", userData.Interface.PracticeBackground.HideNowPrintingPlaceholderImages);
+			pendingChanges |= GuiSettingsCheckbox("Always Hide Cover Image", userData.Interface.PracticeBackground.HideCoverImage);
+			pendingChanges |= GuiSettingsCheckbox("Always Hide Logo Image", userData.Interface.PracticeBackground.HideLogoImage);
+
+			GuiEndSettingsColumns();
+		}
+
+		if (Gui::CollapsingHeader("Movie Background", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			GuiBeginSettingsColumns();
+
+			if (auto v = ToPercent(userData.Interface.MovieBackground.OverlayColor.a);
+				GuiSettingsSliderF32("Overlay Dim", v, 0.0f, 95.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
+			{
+				userData.Interface.MovieBackground.OverlayColor.a = FromPercent(v);
+				pendingChanges = true;
+			}
+
+			if (auto v = ToPercent(userData.Interface.MovieBackground.OverlayColorGridAndPractice.a);
+				GuiSettingsSliderF32("Overlay Dim (Grid / Practice)", v, 0.0f, 95.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
+			{
+				userData.Interface.MovieBackground.OverlayColorGridAndPractice.a = FromPercent(v);
+				pendingChanges = true;
+			}
+
+			pendingChanges |= GuiSettingsColorEdit4("Pre-Start / Post-End Color", userData.Interface.MovieBackground.PreStartPostEndColor);
 
 			GuiEndSettingsColumns();
 		}
@@ -1011,23 +1157,10 @@ namespace Comfy::Studio::Editor
 				pendingChanges = true;
 			}
 
+			Gui::Separator();
+
 			pendingChanges |= GuiSettingsCheckbox("Enter Fullscreen on Maximized Start", userData.Playtest.EnterFullscreenOnMaximizedStart);
 			pendingChanges |= GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
-
-			GuiEndSettingsColumns();
-		}
-
-		if (Gui::CollapsingHeader("Background", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			GuiBeginSettingsColumns();
-
-#if COMFY_DEBUG && 1
-			// TODO: Background settings for editor, playtest, editor-with-video and playtest-with-video
-			static bool DEBUG_HideNowPrintingPlaceholderImages = true;
-			pendingChanges |= GuiSettingsCheckbox("Hide 'Now Printing' Placeholder Images", DEBUG_HideNowPrintingPlaceholderImages);
-#else
-			Gui::TextDisabled("TODO");
-#endif
 
 			GuiEndSettingsColumns();
 		}

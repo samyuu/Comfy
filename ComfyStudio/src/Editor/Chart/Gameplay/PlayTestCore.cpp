@@ -6,6 +6,8 @@
 
 namespace Comfy::Studio::Editor
 {
+	void RenderChartBackgroundForEditorOrPlaytestUsingGlobalUserData(Render::Renderer2D&, TargetRenderHelper&, Chart&, ChartMoviePlaybackController&, TimeSpan cursorTime, bool isEditor);
+
 	namespace
 	{
 		constexpr std::array<const char*, EnumCount<PlayTestSlidePositionType>()> PlayTestSlidePositionTypeIDStrings = { " ", "L", "R", };
@@ -484,35 +486,7 @@ namespace Comfy::Studio::Editor
 		{
 			const auto playbackTime = GetPlaybackTime();
 
-			// TODO: Properly implement background options
-			if (auto texSprView = sharedContext.MoviePlaybackController->GetCurrentTexture(playbackTime); texSprView)
-			{
-				TargetRenderHelper::BackgroundData backgroundData = {};
-				backgroundData.DrawGrid = false;
-				backgroundData.DrawDim = false;
-				backgroundData.DrawCover = false;
-				backgroundData.DrawLogo = false;
-				backgroundData.DrawBackground = true;
-				backgroundData.PlaybackTime = playbackTime;
-				backgroundData.CoverSprite = sharedContext.Chart->Properties.Image.Cover.GetTexSprView();
-				backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
-				backgroundData.BackgroundSprite = texSprView;
-				sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
-			}
-			else
-			{
-				TargetRenderHelper::BackgroundData backgroundData = {};
-				backgroundData.DrawGrid = true;
-				backgroundData.DrawDim = true;
-				backgroundData.DrawCover = true;
-				backgroundData.DrawLogo = true;
-				backgroundData.DrawBackground = true;
-				backgroundData.PlaybackTime = playbackTime;
-				backgroundData.CoverSprite = sharedContext.Chart->Properties.Image.Cover.GetTexSprView();
-				backgroundData.LogoSprite = sharedContext.Chart->Properties.Image.Logo.GetTexSprView();
-				backgroundData.BackgroundSprite = sharedContext.Chart->Properties.Image.Background.GetTexSprView();
-				sharedContext.RenderHelper->DrawBackground(*sharedContext.Renderer, backgroundData);
-			}
+			RenderChartBackgroundForEditorOrPlaytestUsingGlobalUserData(*sharedContext.Renderer, *sharedContext.RenderHelper, *sharedContext.Chart, *sharedContext.MoviePlaybackController, playbackTime, false);
 
 			if (!holdState.EventHistory.empty())
 			{

@@ -26,15 +26,28 @@ namespace Comfy::Studio::Editor
 		// NOTE: Only returns a valid texture if the playback time is >= offset and <= duration
 		Render::TexSprView GetCurrentTexture(TimeSpan playbackTime);
 
-	private:
+		// NOTE: Mostly for simplicity sake, reuploads a new texture if the color changed since the last call
+		Render::TexSprView GetPlaceholderTexture(vec4 color);
+
+		bool IsMovieAsyncLoading() const;
 		bool IsMoviePlayerValidAndReady() const;
 
 	private:
 		Render::IMoviePlayer* moviePlayer = nullptr;
+
 		TimeSpan movieOffset = {}, movieOffsetLastFrame = {};
 		f32 playbackSpeed = 1.0f, playbackSpeedLastFrame = 1.0f;
+
 		bool deferMovieStart = false;
 		bool deferMovieResyncAfterReload = false;
 		bool deferSingleFrameStep = false;
+
+		struct PlaceholderTexAndSprData
+		{
+			bool Initialized;
+			u32 Color;
+			Graphics::Tex Tex;
+			Graphics::Spr Spr;
+		} placeholderTexAndSpr = {};
 	};
 }
