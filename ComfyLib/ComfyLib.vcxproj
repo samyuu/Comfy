@@ -115,7 +115,6 @@
     <ClCompile Include="src\IO\Config\ComfyBinaryConfig.cpp" />
     <ClCompile Include="src\IO\Directory.cpp" />
     <ClCompile Include="src\IO\File.cpp" />
-    <ClCompile Include="src\IO\JSON.cpp" />
     <ClCompile Include="src\IO\Path.cpp" />
     <ClCompile Include="src\IO\Shell.cpp" />
     <ClCompile Include="src\IO\Stream\FileSection.cpp" />

@@ -54,12 +54,55 @@ namespace Comfy::Json
 
 	inline std::optional<std::string_view> TryGetStrView(const Value* j) { if (j != nullptr && j->IsString()) { return std::string_view(j->GetString(), j->GetStringLength()); } else { return std::nullopt; } }
 
+	// NOTE: For both XYZW and RGBA
+	inline std::optional<vec4> TryGetVec4(const Value* j)
+	{
+		if (j != nullptr)
+		{
+			auto xyzw = std::array { TryGetF32(Find(*j, "x")), TryGetF32(Find(*j, "y")), TryGetF32(Find(*j, "z")), TryGetF32(Find(*j, "w")), };
+			auto rgba = std::array { TryGetF32(Find(*j, "r")), TryGetF32(Find(*j, "g")), TryGetF32(Find(*j, "b")), TryGetF32(Find(*j, "a")), };
+			return vec4 { xyzw[0].value_or(rgba[0].value_or(0.0f)), xyzw[1].value_or(rgba[1].value_or(0.0f)), xyzw[2].value_or(rgba[2].value_or(0.0f)), xyzw[3].value_or(rgba[3].value_or(0.0f)), };
+		}
+		else
+		{
+			return std::nullopt;
+		}
+	}
+
+	inline std::optional<u32> TryGetU32HexRGBAStr(const Value* j)
+	{
+		if (j != nullptr && j->IsString() && j->GetStringLength() > 1)
+		{
+			const char* str = j->GetString();
+			if (*str == '#')
+				str++;
+
+			u32 r = 0x00, g = 0x00, b = 0x00, a = 0xFF;
+			sscanf_s(str, "%02X%02X%02X%02X", &r, &g, &b, &a);
+
+			return (a << 24) | (b << 16) | (g << 8) | (r << 0);
+		}
+		else
+		{
+			return std::nullopt;
+		}
+	}
+
+	inline std::optional<vec4> TryGetVec4HexRGBAStr(const Value* j)
+	{
+		if (auto v = TryGetU32HexRGBAStr(j); v.has_value())
+			return vec4(((*v >> 0) & 0xFF) / 255.0f, ((*v >> 8) & 0xFF) / 255.0f, ((*v >> 16) & 0xFF) / 255.0f, ((*v >> 24) & 0xFF) / 255.0f);
+		else
+			return std::nullopt;
+	}
+
 	inline void TryAssign(bool& out, std::optional<bool>&& v) { if (v.has_value()) { out = v.value(); } }
 	inline void TryAssign(i32& out, std::optional<i32>&& v) { if (v.has_value()) { out = v.value(); } }
 	inline void TryAssign(u32& out, std::optional<u32>&& v) { if (v.has_value()) { out = v.value(); } }
 	inline void TryAssign(f32& out, std::optional<f32>&& v) { if (v.has_value()) { out = v.value(); } }
 	inline void TryAssign(f64& out, std::optional<f64>&& v) { if (v.has_value()) { out = v.value(); } }
 	inline void TryAssign(std::string& out, std::optional<std::string_view>&& v) { if (v.has_value()) { out = v.value(); } }
+	inline void TryAssign(vec4& out, std::optional<vec4>&& v) { if (v.has_value()) { out = v.value(); } }
 
 	template <typename BaseWriter, typename OutputStream>
 	class WriterWrapper
@@ -94,7 +137,13 @@ namespace Comfy::Json
 		inline void MemberF64(std::string_view key, f64 value) { MemberKey(key); F64(value); }
 		inline void MemberStr(std::string_view key, std::string_view value) { MemberKey(key); Str(value); }
 
-		// TODO: Consider renaming all optional helpers from "Try" to "Opt" (?)
+		inline void MemberVec4XYZW(std::string_view key, vec4 value) { MemberObjectBegin(key); MemberF32("x", value.x); MemberF32("y", value.y); MemberF32("z", value.z); MemberF32("w", value.w); MemberObjectEnd(); }
+		inline void MemberVec4RGBA(std::string_view key, vec4 value) { MemberObjectBegin(key); MemberF32("r", value.r); MemberF32("g", value.g); MemberF32("b", value.b); MemberF32("a", value.a); MemberObjectEnd(); }
+
+		inline void MemberHexRGBAStr(std::string_view key, u8 r, u8 g, u8 b, u8 a) { char buffer[10]; sprintf_s(buffer, "#%02X%02X%02X%02X", r, g, b, a); MemberStr(key, buffer); }
+		inline void MemberHexRGBAStr(std::string_view key, u32 rgba) { MemberHexRGBAStr(key, (rgba >> 0) & 0xFF, (rgba >> 8) & 0xFF, (rgba >> 16) & 0xFF, (rgba >> 24) & 0xFF); }
+		inline void MemberHexRGBAStr(std::string_view key, vec4 rgba) { auto toU8 = [](f32 c) { return static_cast<u8>(Clamp(c, 0.0f, 1.0f) * 255.0f + 0.5f); }; MemberHexRGBAStr(key, toU8(rgba.r), toU8(rgba.g), toU8(rgba.b), toU8(rgba.a)); }
+
 		inline void MemberTryBool(std::string_view key, std::optional<bool> value) { MemberKey(key); value.has_value() ? Bool(value.value()) : Null(); }
 		inline void MemberTryI32(std::string_view key, std::optional<i32> value) { MemberKey(key); value.has_value() ? I32(value.value()) : Null(); }
 		inline void MemberTryU32(std::string_view key, std::optional<u32> value) { MemberKey(key); value.has_value() ? U32(value.value()) : Null(); }
@@ -130,6 +179,4 @@ namespace Comfy::Json
 
 	using WriteBuffer = rapidjson::StringBuffer;
 	using WriterEx = WriterWrapper<rapidjson::PrettyWriter<WriteBuffer>, WriteBuffer>;
-
-	void DummyFunctionToShutUpLinkerWarning4221();
 }

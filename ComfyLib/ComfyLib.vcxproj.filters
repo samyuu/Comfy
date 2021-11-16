@@ -383,9 +383,6 @@
     <ClCompile Include="src\Database\Game\PvDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\IO\JSON.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Core\SemanticVersion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
