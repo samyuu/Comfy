@@ -402,6 +402,11 @@ namespace Comfy::Studio::Editor
 
 	namespace
 	{
+		constexpr i32 DecimalAndNewLineFilterCallback(ImGuiInputTextCallbackData* data)
+		{
+			return (data->EventFlag == ImGuiInputTextFlags_CallbackCharFilter) && (std::string_view("0123456789.+-\n").find_first_of(static_cast<char>(data->EventChar)) == std::string_view::npos);
+		}
+
 		TargetPropertyType FindFirstNonEmptyInspectorDropdownPropertyType(const ComfyStudioUserSettings& userData)
 		{
 			if (!userData.TargetPreset.InspectorDropdown.PositionsX.empty())
@@ -688,128 +693,86 @@ namespace Comfy::Studio::Editor
 
 		if (Gui::CollapsingHeader("Target Inspector", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			auto guiDropdownVector = [this](auto& inOutVector)
+			static auto forEachNullTerminatedLine = [](std::string& mutableMultilineString, auto perLineFunc)
 			{
-				i32& selectedItemIndex = inspectorDropdownItemIndices[selectedInspectorDropdownPropertyType];
-				bool& scrollToBottomOnNextFrame = inspectorDropdownScrollToBottomOnNextFrames[selectedInspectorDropdownPropertyType];
-
-				Gui::PushID(&inOutVector);
-				constexpr bool isInt = std::is_same_v<std::remove_reference_t<decltype(inOutVector)>::value_type, i32>;
-
-				if (!InBounds(selectedItemIndex, inOutVector))
-					selectedItemIndex = 0;
-
-				Gui::SetCursorPosX(Gui::GetCursorPosX() + GuiSettingsInnerMargin);
-				const vec2 dropdownListChildSize = vec2(Gui::GetContentRegionAvail().x, Gui::GetFrameHeight() * 5.0f);
-				Gui::BeginChild("DropdownListChild", dropdownListChildSize, false, ImGuiWindowFlags_NoScrollWithMouse);
-				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
-				const bool listBoxOpen = Gui::BeginListBox("##DropdownValueList", vec2(Gui::GetContentRegionAvail()) - vec2(1.0f, 0.0f));
-				if (listBoxOpen)
+				for (size_t i = 0; i < mutableMultilineString.size(); i++)
 				{
-					for (i32 i = 0; i < static_cast<i32>(inOutVector.size()); i++)
-					{
-						auto& item = inOutVector[i];
+					const std::string_view remaining = std::string_view(mutableMultilineString).substr(i);
+					const std::string_view line = remaining.substr(0, remaining.find_first_of('\n'));
 
-						char labelBuffer[128];
-						sprintf_s(labelBuffer, isInt ? "%d) %d" : "%d) %.2f", i, item);
+					if (line.empty())
+						continue;
+					else if (line.size() > 1)
+						const_cast<char*>(line.data())[line.size()] = '\0';
 
-						Gui::PushID(&item);
-						if (Gui::Selectable(labelBuffer, (i == selectedItemIndex)))
-							selectedItemIndex = i;
-						Gui::PopID();
-					}
-
-					if (scrollToBottomOnNextFrame)
-					{
-						Gui::SetScrollHereY(0.0f);
-						scrollToBottomOnNextFrame = false;
-					}
-
-					Gui::EndListBox();
+					perLineFunc(line);
+					i += line.size();
 				}
-				Gui::PopItemWidth();
-				Gui::EndChild();
+			};
 
-				Gui::NextColumn();
-				Gui::BeginChild("DropdownEditChild", vec2(Gui::GetContentRegionAvail().x - GuiSettingsInnerMargin, dropdownListChildSize.y), false, ImGuiWindowFlags_NoScrollWithMouse);
+			static auto vectorToMultilineString = [](std::string& outFormattedMultilineString, const std::vector<f32>* inFloats, const std::vector<i32>* inInts)
+			{
+				char b[64];
 
-				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(2.0f));
-				bool moveItemUp = false, moveItemDown = false, addItem = false, removeItem = false;
-				const f32 halfButtonWidth = (Gui::GetContentRegionAvail().x - Gui::GetStyle().ItemSpacing.x) / 2.0f;
-				moveItemUp = Gui::Button("Move Up", vec2(halfButtonWidth, 0.0f));
-				Gui::SameLine();
-				moveItemDown = Gui::Button("Move Down", vec2(halfButtonWidth, 0.0f));
+				outFormattedMultilineString.clear();
+				if (inFloats)
+					for (const f32 value : *inFloats) { outFormattedMultilineString += std::string_view(b, sprintf_s(b, "%.2f\n", value)); }
+				else
+					for (const i32 value : *inInts) { outFormattedMultilineString += std::string_view(b, sprintf_s(b, "%d\n", value)); }
 
-				Gui::PushItemWidth(Gui::GetContentRegionAvail().x);
-				auto* selectedValue = IndexOrNull(selectedItemIndex, inOutVector);
-				Gui::PushItemDisabledAndTextColorIf(selectedValue == nullptr);
-				if constexpr (isInt)
+				if (!outFormattedMultilineString.empty())
+					outFormattedMultilineString.pop_back();
+			};
+
+			static auto parseMultilineTextStringAndUpdateVector = [](std::string& formattedMultilineString, std::vector<f32>* outFloats, std::vector<i32>* outInts)
+			{
+				if (outFloats)
 				{
-					i32 dummyValue = 0;
-					pendingChanges |= Gui::InputInt("##ValueI32", (selectedValue != nullptr) ? selectedValue : &dummyValue, 1, 5);
+					outFloats->clear();
+					forEachNullTerminatedLine(formattedMultilineString, [outFloats](std::string_view line) { f32 out = {}; sscanf_s(line.data(), "%f", &out); outFloats->push_back(out); });
 				}
 				else
 				{
-					f32 dummyValue = 0.0f;
-					pendingChanges |= Gui::InputFloat("##ValueF32", (selectedValue != nullptr) ? selectedValue : &dummyValue, 25.0f, 250.0f, "%.2f");
+					outInts->clear();
+					forEachNullTerminatedLine(formattedMultilineString, [outInts](std::string_view line) { i32 out = {}; sscanf_s(line.data(), "%d", &out); outInts->push_back(out); });
 				}
-				Gui::PopItemDisabledAndTextColorIf(selectedValue == nullptr);
-				Gui::PopItemWidth();
+			};
 
-				addItem = Gui::Button("Add", vec2(halfButtonWidth, 0.0f));
-				Gui::SameLine();
-				removeItem = Gui::Button("Remove ", vec2(halfButtonWidth, 0.0f));
-				Gui::PopStyleVar(1);
-
-				const bool indexInBounds = InBounds(selectedItemIndex, inOutVector);
-				if ((moveItemUp || moveItemDown) && indexInBounds)
-				{
-					const auto valueToMove = inOutVector[selectedItemIndex];
-					if (moveItemUp && selectedItemIndex > 0)
-					{
-						std::swap(inOutVector[selectedItemIndex], inOutVector[selectedItemIndex - 1]);
-						selectedItemIndex--;
-						pendingChanges = true;
-					}
-					else if (moveItemDown && (selectedItemIndex + 1) < static_cast<i32>(inOutVector.size()))
-					{
-						std::swap(inOutVector[selectedItemIndex], inOutVector[selectedItemIndex + 1]);
-						selectedItemIndex++;
-						pendingChanges = true;
-					}
-				}
-				else if (addItem)
-				{
-					selectedItemIndex = static_cast<i32>(inOutVector.size());
-					inOutVector.emplace_back();
-					scrollToBottomOnNextFrame = true;
-					pendingChanges = true;
-				}
-				else if (removeItem && indexInBounds)
-				{
-					inOutVector.erase(inOutVector.begin() + selectedItemIndex);
-					if (selectedItemIndex > 0 && selectedItemIndex == static_cast<i32>(inOutVector.size()))
-						selectedItemIndex--;
-					pendingChanges = true;
-				}
-
-				Gui::EndChild();
-				Gui::PopID();
+			auto guiDropdownVectorFloatsOrInts = [this](std::vector<f32>* inOutFloats, std::vector<i32>* inOutInts)
+			{
+				Gui::PushID(inOutFloats ? static_cast<void*>(inOutFloats) : static_cast<void*>(inOutInts));
 				Gui::NextColumn();
+				{
+					vectorToMultilineString(inspectorDropdownFormattedMultilineString, inOutFloats, inOutInts);
+
+					if (inspectorDropdownInputTextActiveLastFrame) Gui::PushStyleColor(ImGuiCol_Text, vec4(0.83f, 0.75f, 0.42f, 1.0f));
+
+					Gui::SetNextItemWidth(GuiSettingsItemWidth);
+					if (Gui::InputTextMultiline("##InputText", &inspectorDropdownFormattedMultilineString, {}, ImGuiInputTextFlags_CallbackCharFilter | ImGuiInputTextFlags_NoHorizontalScroll, DecimalAndNewLineFilterCallback))
+					{
+						parseMultilineTextStringAndUpdateVector(inspectorDropdownFormattedMultilineString, inOutFloats, inOutInts);
+						pendingChanges = true;
+					}
+
+					if (inspectorDropdownInputTextActiveLastFrame) Gui::PopStyleColor();
+					inspectorDropdownInputTextActiveLastFrame = Gui::IsItemActive();
+				}
+				Gui::NextColumn();
+				Gui::PopID();
 			};
 
 			GuiBeginSettingsColumns();
-			GuiSettingsCombo("Combo Box Dropdown Property", selectedInspectorDropdownPropertyType, TargetPropertyTypeNames);
+			GuiSettingsCombo("Combo Box Dropdown", selectedInspectorDropdownPropertyType, TargetPropertyTypeNames);
 			if (selectedInspectorDropdownPropertyType >= TargetPropertyType_Count)
 				selectedInspectorDropdownPropertyType = FindFirstNonEmptyInspectorDropdownPropertyType(userData);
 			switch (selectedInspectorDropdownPropertyType)
 			{
-			case TargetPropertyType_PositionX: guiDropdownVector(userData.TargetPreset.InspectorDropdown.PositionsX); break;
-			case TargetPropertyType_PositionY: guiDropdownVector(userData.TargetPreset.InspectorDropdown.PositionsY); break;
-			case TargetPropertyType_Angle: guiDropdownVector(userData.TargetPreset.InspectorDropdown.Angles); break;
-			case TargetPropertyType_Frequency: guiDropdownVector(userData.TargetPreset.InspectorDropdown.Frequencies); break;
-			case TargetPropertyType_Amplitude: guiDropdownVector(userData.TargetPreset.InspectorDropdown.Amplitudes); break;
-			case TargetPropertyType_Distance: guiDropdownVector(userData.TargetPreset.InspectorDropdown.Distances); break;
+			case TargetPropertyType_PositionX: guiDropdownVectorFloatsOrInts(&userData.TargetPreset.InspectorDropdown.PositionsX, nullptr); break;
+			case TargetPropertyType_PositionY: guiDropdownVectorFloatsOrInts(&userData.TargetPreset.InspectorDropdown.PositionsY, nullptr); break;
+			case TargetPropertyType_Angle: guiDropdownVectorFloatsOrInts(&userData.TargetPreset.InspectorDropdown.Angles, nullptr); break;
+			case TargetPropertyType_Frequency: guiDropdownVectorFloatsOrInts(nullptr, &userData.TargetPreset.InspectorDropdown.Frequencies); break;
+			case TargetPropertyType_Amplitude: guiDropdownVectorFloatsOrInts(&userData.TargetPreset.InspectorDropdown.Amplitudes, nullptr); break;
+			case TargetPropertyType_Distance: guiDropdownVectorFloatsOrInts(&userData.TargetPreset.InspectorDropdown.Distances, nullptr); break;
 			}
 			GuiEndSettingsColumns();
 		}

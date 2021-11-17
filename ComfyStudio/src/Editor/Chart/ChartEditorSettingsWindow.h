@@ -60,9 +60,9 @@ namespace Comfy::Studio::Editor
 
 		f32 targetTimelineSmoothScrollSpeedPreDisable = TimelineDefaultSmoothScrollSpeedSec.x;
 
-		std::array<i32, TargetPropertyType_Count> inspectorDropdownItemIndices = {};
-		std::array<bool, TargetPropertyType_Count> inspectorDropdownScrollToBottomOnNextFrames = {};
 		TargetPropertyType selectedInspectorDropdownPropertyType = TargetPropertyType_Count;
+		bool inspectorDropdownInputTextActiveLastFrame = false;
+		std::string inspectorDropdownFormattedMultilineString;
 
 		Gui::ExtendedImGuiTextFilter bindingFilter = {};
 		// NOTE: Pointing inside a global struct so don't need to worry about lifetime or becoming invalidated
