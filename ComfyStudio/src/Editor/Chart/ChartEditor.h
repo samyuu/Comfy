@@ -168,7 +168,7 @@ namespace Comfy::Studio::Editor
 
 		PlayTestWindow& GetOrCreatePlayTestWindow();
 		void StartPlaytesting(bool startFromCursor);
-		void StopPlaytesting(PlayTestExitType exitType);
+		void StopPlaytesting(PlayTestExitType exitType, bool focusTimelineAndCloseActivePopup = true, bool startFadeOutAnimation = true);
 
 	private:
 		bool applicationExitRequested = false;

@@ -1,4 +1,4 @@
-#include "ChartEditor.h"
+﻿#include "ChartEditor.h"
 #include "ChartCommands.h"
 #include "FileFormat/PJEFile.h"
 #include "IO/Path.h"
@@ -256,8 +256,12 @@ namespace Comfy::Studio::Editor
 
 		if (undoManager.GetHasPendingChanged())
 		{
+			// HACK: Might wanna think about a better solution for avoiding immediately closing the popup
+			constexpr bool focusTimelineAndCloseActivePopup = false;
+			constexpr bool startFadeOutAnimation = false;
+
 			if (parentApplication.GetExclusiveFullscreenGui())
-				StopPlaytesting(PlayTestExitType::ReturnCurrentTime);
+				StopPlaytesting(PlayTestExitType::ReturnCurrentTime, focusTimelineAndCloseActivePopup, startFadeOutAnimation);
 
 			applicationExitRequested = true;
 			return ApplicationHostCloseResponse::SupressExit;
@@ -1295,7 +1299,7 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
-	void ChartEditor::StopPlaytesting(PlayTestExitType exitType)
+	void ChartEditor::StopPlaytesting(PlayTestExitType exitType, bool focusTimelineAndCloseActivePopup, bool startFadeOutAnimation)
 	{
 		assert(exitType != PlayTestExitType::None);
 		parentApplication.SetExclusiveFullscreenGui(false);
@@ -1317,10 +1321,14 @@ namespace Comfy::Studio::Editor
 		exitFullscreenOnPlaytestEnd = false;
 
 		// NOTE: Delay focus by a few frames beacuse of the exclusive fullscreen transition
-		timeline->SetWindowFocusNextFrame(3);
+		if (focusTimelineAndCloseActivePopup)
+			timeline->SetWindowFocusNextFrame(3);
 
-		guiFrameCountOnPlaytestExit = Gui::GetFrameCount();
-		playtestFadeOutStopwatch = {};
+		if (startFadeOutAnimation)
+		{
+			guiFrameCountOnPlaytestExit = Gui::GetFrameCount();
+			playtestFadeOutStopwatch = {};
+		}
 	}
 
 	bool ChartEditor::GetIsPlayback() const
