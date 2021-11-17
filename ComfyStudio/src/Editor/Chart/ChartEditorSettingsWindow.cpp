@@ -59,6 +59,18 @@ namespace Comfy::Studio::Editor
 			return result;
 		}
 
+		bool GuiSettingsCheckboxInverted(std::string_view label, bool& inOutValue)
+		{
+			bool inOutInverted = !inOutValue;
+			if (GuiSettingsCheckbox(label, inOutInverted))
+			{
+				inOutValue = !inOutInverted;
+				return true;
+			}
+
+			return false;
+		}
+
 		bool GuiSettingsSliderI32(std::string_view label, i32& inOutValue, i32 minValue, i32 maxValue, const char* format = "%d", ImGuiSliderFlags flags = ImGuiSliderFlags_None)
 		{
 			GuiSettingsRightAlignedLabel(label);
@@ -678,13 +690,13 @@ namespace Comfy::Studio::Editor
 		{
 			GuiBeginSettingsColumns();
 
-			pendingChanges |= GuiSettingsCheckbox("Show Target Buttons", userData.TargetPreview.ShowButtons);
-			pendingChanges |= GuiSettingsCheckbox("Preview Hold Info", userData.TargetPreview.ShowHoldInfo);
+			pendingChanges |= GuiSettingsCheckboxInverted("Hide Button Sprites", userData.TargetPreview.ShowButtons);
+			pendingChanges |= GuiSettingsCheckbox("Show Hold Info Preview", userData.TargetPreview.ShowHoldInfo);
 
-			if (auto v = userData.TargetPreview.PostHitLingerDuration.Ticks();
-				GuiSettingsInputI32("Post Hit Linger Duration", v, BeatTick::TicksPerBeat / 4, BeatTick::TicksPerBeat, ImGuiInputTextFlags_None, "%d Ticks"))
+			if (auto v = userData.TargetPreview.PostHitLingerDuration.BeatsFraction();
+				GuiSettingsInputF32("Post Hit Linger Duration", v, BeatTick::FromTicks(BeatTick::TicksPerBeat / 4).BeatsFraction(), BeatTick::FromBeats(1).BeatsFraction(), ImGuiInputTextFlags_None, "%.4gx Beat"))
 			{
-				userData.TargetPreview.PostHitLingerDuration = BeatTick::FromTicks(v);
+				userData.TargetPreview.PostHitLingerDuration = Clamp(BeatTick::FromBeatsFraction(v), BeatTick::Zero(), BeatTick::FromBars(1));
 				pendingChanges = true;
 			}
 
@@ -802,7 +814,7 @@ namespace Comfy::Studio::Editor
 			return result;
 		};
 
-		if (Gui::CollapsingHeader("UserData.System.Video - ColorCorrection", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("UserData.System.Video - ColorCorrection", ImGuiTreeNodeFlags_None /*ImGuiTreeNodeFlags_DefaultOpen*/))
 		{
 			GuiBeginSettingsColumns();
 

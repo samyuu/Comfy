@@ -14,6 +14,7 @@ namespace Comfy::Studio::Editor
 		static constexpr BeatTick FromTicks(i32 ticks) { return BeatTick(ticks); }
 		static constexpr BeatTick FromBeats(i32 beats) { return FromTicks(TicksPerBeat * beats); }
 		static constexpr BeatTick FromBars(i32 bars, i32 beatsPerBar = 4) { return FromBeats(bars * beatsPerBar); }
+		static constexpr BeatTick FromBeatsFraction(f32 fraction) { return FromTicks(static_cast<i32>(glm::round(fraction * static_cast<f32>(TicksPerBeat)))); }
 
 	public:
 		constexpr BeatTick() : tickCount(0) {}
