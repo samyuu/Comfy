@@ -784,7 +784,7 @@ namespace Comfy::Studio::Editor
 			const f32 closeButtonSize = Gui::GetFontSize();
 			const ImRect windowBB = { Gui::GetWindowPos(), Gui::GetWindowPos() + Gui::GetWindowSize() };
 
-			Gui::Text("Edit Tempo Change");
+			Gui::TextUnformatted("Edit Tempo Change");
 			if (Gui::CloseButton(Gui::GetID("TempoChangePopupCloseButton"), vec2(windowBB.Max.x - Gui::GetStyle().FramePadding.x * 2.0f - closeButtonSize, windowBB.Min.y)))
 				Gui::CloseCurrentPopup();
 
@@ -840,23 +840,26 @@ namespace Comfy::Studio::Editor
 					Gui::PushItemDisabledAndTextColorIf(!tempoChangeCanBeMoved);
 					{
 						TimeSpan tempoChangeTime = TickToTime(thisTempoChange.Tick);
-						if (Gui::InputFormattedTimeSpan("##Time", &tempoChangeTime, vec2(Gui::GetContentRegionAvail().x * 0.5f, 0.0f)))
+						if (Gui::InputFormattedTimeSpan("##Time", &tempoChangeTime, vec2(Gui::GetContentRegionAvail().x * 0.5f, 0.0f), ImGuiInputTextFlags_AutoSelectAll))
 						{
 							const BeatTick newTempoChangeTick = Clamp(TimeToTick(tempoChangeTime), prevTempoChangeTickMin, nextTempoChangeTickMax);
 							if (tempoChangeCanBeMoved && newTempoChangeTick != thisTempoChange.Tick)
 								undoManager.Execute<ChangeTempoChangeTick>(*workingChart, tempoPopupIndex, newTempoChangeTick);
 						}
 					}
-					Gui::PopItemDisabledAndTextColorIf(!tempoChangeCanBeMoved);
 					Gui::SameLine();
-					Gui::PushItemDisabledAndTextColor();
 					{
-						char textBuffer[64];
-						sprintf_s(textBuffer, "%.4g", thisTempoChange.Tick.BeatsFraction());
-						Gui::SetNextItemWidth(-1.0f);
-						Gui::InputText("##Beat", textBuffer, sizeof(textBuffer), ImGuiInputTextFlags_ReadOnly);
+						// BUG: Using "%.4g" here means the decimal points won't show if the number is >= 4 chars
+						f32 beatsFraction = thisTempoChange.Tick.BeatsFraction();
+						Gui::SetNextItemWidth(Gui::GetContentRegionAvail().x);
+						if (Gui::InputFloat("##Beat", &beatsFraction, 0.0f, 0.0f, "%.4g"))
+						{
+							const BeatTick newTempoChangeTick = Clamp(BeatTick::FromBeatsFraction(beatsFraction), prevTempoChangeTickMin, nextTempoChangeTickMax);
+							if (tempoChangeCanBeMoved && newTempoChangeTick != thisTempoChange.Tick)
+								undoManager.Execute<ChangeTempoChangeTick>(*workingChart, tempoPopupIndex, newTempoChangeTick);
+						}
 					}
-					Gui::PopItemDisabledAndTextColor();
+					Gui::PopItemDisabledAndTextColorIf(!tempoChangeCanBeMoved);
 
 					return false;
 				});
