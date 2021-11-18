@@ -862,6 +862,24 @@ namespace Comfy::Studio::Editor
 				pendingChanges = true;
 			}
 
+			auto guiSettingsPlacementCursorOffset = [](std::string_view label, TimeSpan& inOutValue)
+			{
+				constexpr f32 minMaxOffsetMS = 100.0f;
+				if (auto v = static_cast<f32>(inOutValue.TotalMilliseconds());
+					GuiSettingsSliderF32(label, v, -minMaxOffsetMS, +minMaxOffsetMS, "%.2f ms from Cursor", ImGuiSliderFlags_AlwaysClamp))
+				{
+					inOutValue = TimeSpan::FromMilliseconds(v);
+					return true;
+				}
+
+				return false;
+			};
+
+			pendingChanges |= guiSettingsPlacementCursorOffset("Shared Mode - Playback Placement Offset", userData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared);
+			pendingChanges |= guiSettingsPlacementCursorOffset("Exclusive Mode - Playback Placement Offset", userData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive);
+
+			Gui::Separator();
+
 			auto isSmoothScrollDisabled = [](f32 speedSec) { return (speedSec <= 0.0f); };
 
 			if (auto v = isSmoothScrollDisabled(userData.TargetTimeline.SmoothScrollSpeedSec);
@@ -884,9 +902,10 @@ namespace Comfy::Studio::Editor
 			}
 			Gui::PopItemDisabledAndTextColorIf(isSmoothScrollDisabled(userData.TargetTimeline.SmoothScrollSpeedSec));
 
+			Gui::Separator();
 
 			if (auto v = userData.TargetTimeline.ShowStartEndMarkersSong && userData.TargetTimeline.ShowStartEndMarkersMovie;
-			GuiSettingsCheckbox("Show Start / End Markers", v))
+				GuiSettingsCheckbox("Show Start / End Markers", v))
 			{
 				userData.TargetTimeline.ShowStartEndMarkersSong = v;
 				userData.TargetTimeline.ShowStartEndMarkersMovie = v;

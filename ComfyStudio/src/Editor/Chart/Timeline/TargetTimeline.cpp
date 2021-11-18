@@ -1522,9 +1522,19 @@ namespace Comfy::Studio::Editor
 		auto onButtonTypePressed = [&](ButtonType buttonType)
 		{
 			if (Gui::GetIO().KeyShift && rangeSelection.IsActive && rangeSelection.HasEnd)
+			{
 				FillInRangeSelectionTargets(undoManager, *workingChart, buttonType);
+			}
 			else
-				PlaceOrRemoveTarget(undoManager, *workingChart, RoundTickToGrid(GetCursorTick()), buttonType);
+			{
+				const auto currentAudioBackend = Audio::AudioEngine::GetInstance().GetAudioBackend();
+				const TimeSpan userPlacementOffset =
+					(currentAudioBackend == Audio::AudioBackend::WASAPIShared) ? GlobalUserData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared :
+					(currentAudioBackend == Audio::AudioBackend::WASAPIExclusive) ? GlobalUserData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive : TimeSpan::Zero();
+
+				const BeatTick cursorTick = GetIsPlayback() ? TimeToTick(chartEditor.GetPlaybackTimeAsync() + userPlacementOffset) : GetCursorTick();
+				PlaceOrRemoveTarget(undoManager, *workingChart, RoundTickToGrid(cursorTick), buttonType);
+			}
 		};
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceTriangle, false, Input::ModifierBehavior_Relaxed))

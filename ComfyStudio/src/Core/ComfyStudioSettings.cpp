@@ -441,6 +441,8 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetTimeline_PlaybackMouseWheelScrollFactor = "playback_mouse_wheel_scroll_factor";
 		constexpr std::string_view TargetTimeline_PlaybackMouseWheelScrollFactorShift = "playback_mouse_wheel_scroll_factor_shift";
 		constexpr std::string_view TargetTimeline_PlaybackAutoScrollCursorPositionFactor = "playback_auto_scroll_cursor_position_factor";
+		constexpr std::string_view TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiShared = "playback_cursor_placement_offset_sec_wasapi_shared";
+		constexpr std::string_view TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiExclusive = "playback_cursor_placement_offset_sec_wasapi_exclusive";
 		constexpr std::string_view TargetTimeline_SmoothScrollSpeedSec = "smooth_scroll_speed_sec";
 		constexpr std::string_view TargetTimeline_ShowStartEndMarkersSong = "show_start_end_markers_song";
 		constexpr std::string_view TargetTimeline_ShowStartEndMarkersMovie = "show_start_end_markers_movie";
@@ -794,6 +796,12 @@ namespace Comfy::Studio
 			TryAssign(TargetTimeline.PlaybackMouseWheelScrollFactorShift, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackMouseWheelScrollFactorShift)));
 
 			TryAssign(TargetTimeline.PlaybackAutoScrollCursorPositionFactor, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackAutoScrollCursorPositionFactor)));
+
+			if (auto v = TryGetF64(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiShared)); v.has_value())
+				TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared = TimeSpan::FromSeconds(v.value());
+			if (auto v = TryGetF64(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiExclusive)); v.has_value())
+				TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive = TimeSpan::FromSeconds(v.value());
+
 			TryAssign(TargetTimeline.SmoothScrollSpeedSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_SmoothScrollSpeedSec)));
 
 			TryAssign(TargetTimeline.ShowStartEndMarkersSong, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_ShowStartEndMarkersSong)));
@@ -1161,6 +1169,10 @@ namespace Comfy::Studio
 				writer.MemberF32(UserIDs::TargetTimeline_PlaybackMouseWheelScrollFactorShift, TargetTimeline.PlaybackMouseWheelScrollFactorShift);
 
 				writer.MemberF32(UserIDs::TargetTimeline_PlaybackAutoScrollCursorPositionFactor, TargetTimeline.PlaybackAutoScrollCursorPositionFactor);
+
+				writer.MemberF64(UserIDs::TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiShared, TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared.TotalSeconds());
+				writer.MemberF64(UserIDs::TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiExclusive, TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive.TotalSeconds());
+
 				writer.MemberF32(UserIDs::TargetTimeline_SmoothScrollSpeedSec, TargetTimeline.SmoothScrollSpeedSec);
 
 				writer.MemberBool(UserIDs::TargetTimeline_ShowStartEndMarkersSong, TargetTimeline.ShowStartEndMarkersSong);
@@ -1600,6 +1612,8 @@ namespace Comfy::Studio
 		TargetTimeline.PlaybackMouseWheelScrollFactor = 1.0f;
 		TargetTimeline.PlaybackMouseWheelScrollFactorShift = 1.0f;
 		TargetTimeline.PlaybackAutoScrollCursorPositionFactor = TargetTimelineDefaultPlaybackAutoScrollCursorPositionFactor;
+		TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared = TimeSpan::Zero();
+		TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive = TimeSpan::Zero();
 		TargetTimeline.SmoothScrollSpeedSec = TimelineDefaultSmoothScrollSpeedSec.x;
 		TargetTimeline.ShowStartEndMarkersSong = true;
 		TargetTimeline.ShowStartEndMarkersMovie = true;
