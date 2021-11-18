@@ -141,6 +141,8 @@ namespace Comfy::Studio::Editor
 
 		TimeSpan GetPlaybackTimeOnPlaybackStart() const;
 
+		std::array<std::optional<TimeSpan>, 2> GetSongAndMovieSourceDurations() const;
+
 		SoundEffectManager& GetSoundEffectManager();
 		ChartMoviePlaybackController& GetMoviePlaybackController();
 

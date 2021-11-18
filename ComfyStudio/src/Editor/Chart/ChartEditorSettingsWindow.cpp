@@ -884,6 +884,15 @@ namespace Comfy::Studio::Editor
 			}
 			Gui::PopItemDisabledAndTextColorIf(isSmoothScrollDisabled(userData.TargetTimeline.SmoothScrollSpeedSec));
 
+
+			if (auto v = userData.TargetTimeline.ShowStartEndMarkersSong && userData.TargetTimeline.ShowStartEndMarkersMovie;
+			GuiSettingsCheckbox("Show Start / End Markers", v))
+			{
+				userData.TargetTimeline.ShowStartEndMarkersSong = v;
+				userData.TargetTimeline.ShowStartEndMarkersMovie = v;
+				pendingChanges = true;
+			}
+
 			Gui::Separator();
 
 			// NOTE: To avoid half-pixel hitboxes

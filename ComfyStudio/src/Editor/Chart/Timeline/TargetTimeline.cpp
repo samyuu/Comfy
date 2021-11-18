@@ -499,6 +499,7 @@ namespace Comfy::Studio::Editor
 		DrawOutOfBoundsBackground();
 		DrawCheckUpdateWaveform();
 		DrawTimelineTempoMap();
+		DrawStartEndMarkers();
 	}
 
 	void TargetTimeline::OnDrawTimelineScrollBarRegion()
@@ -908,6 +909,43 @@ namespace Comfy::Studio::Editor
 		else
 		{
 			tempoPopupIndex = -1;
+		}
+	}
+
+	void TargetTimeline::DrawStartEndMarkers()
+	{
+		const vec2 markerSize = vec2(glm::floor(rowHeight / 3.0f));
+		auto drawMarkerAt = [&](TimeSpan markerTime, f32 facingDirection, u32 markerColor)
+		{
+			const f32 markerX = glm::round(GetTimelinePosition(markerTime) - GetScrollX());
+			baseWindowDrawList->AddTriangleFilled(
+				regions.Content.GetBL() + vec2(markerX, -markerSize.y),
+				regions.Content.GetBL() + vec2(markerX + (markerSize.x * facingDirection), 0.0f),
+				regions.Content.GetBL() + vec2(markerX, 0.0f),
+				markerColor);
+		};
+
+		if (GlobalUserData.TargetTimeline.ShowStartEndMarkersSong || GlobalUserData.TargetTimeline.ShowStartEndMarkersMovie)
+		{
+			const auto[songDuration, movieDuration] = chartEditor.GetSongAndMovieSourceDurations();
+
+			if (GlobalUserData.TargetTimeline.ShowStartEndMarkersSong)
+			{
+				const TimeSpan startTime = -workingChart->SongOffset;
+				const TimeSpan endTime = startTime + songDuration.value_or(workingChart->DurationOrDefault());
+
+				drawMarkerAt(startTime, +1.0f, GetColor(EditorColor_StartEndMarkerSong));
+				drawMarkerAt(endTime, -1.0f, GetColor(EditorColor_StartEndMarkerSong));
+			}
+
+			if (GlobalUserData.TargetTimeline.ShowStartEndMarkersMovie)
+			{
+				const TimeSpan startTime = -workingChart->MovieOffset;
+				const TimeSpan endTime = startTime + movieDuration.value_or(workingChart->DurationOrDefault());
+
+				drawMarkerAt(startTime, +1.0f, GetColor(EditorColor_StartEndMarkerMovie));
+				drawMarkerAt(endTime, -1.0f, GetColor(EditorColor_StartEndMarkerMovie));
+			}
 		}
 	}
 

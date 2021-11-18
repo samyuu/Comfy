@@ -20,6 +20,8 @@ namespace Comfy::Studio::Editor
 		EditorColor_GridAlt,
 		EditorColor_GridTuplet,
 		EditorColor_GridTupletAlt,
+		EditorColor_StartEndMarkerSong,
+		EditorColor_StartEndMarkerMovie,
 		EditorColor_Waveform,
 		EditorColor_WaveformChannel0,
 		EditorColor_WaveformChannel1,

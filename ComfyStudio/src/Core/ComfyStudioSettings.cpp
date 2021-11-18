@@ -442,6 +442,8 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetTimeline_PlaybackMouseWheelScrollFactorShift = "playback_mouse_wheel_scroll_factor_shift";
 		constexpr std::string_view TargetTimeline_PlaybackAutoScrollCursorPositionFactor = "playback_auto_scroll_cursor_position_factor";
 		constexpr std::string_view TargetTimeline_SmoothScrollSpeedSec = "smooth_scroll_speed_sec";
+		constexpr std::string_view TargetTimeline_ShowStartEndMarkersSong = "show_start_end_markers_song";
+		constexpr std::string_view TargetTimeline_ShowStartEndMarkersMovie = "show_start_end_markers_movie";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit = "scaling_behavior_auto_fit";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit_MinRowHeight = "min_row_height";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit_MaxRowHeight = "max_row_height";
@@ -793,6 +795,9 @@ namespace Comfy::Studio
 
 			TryAssign(TargetTimeline.PlaybackAutoScrollCursorPositionFactor, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_PlaybackAutoScrollCursorPositionFactor)));
 			TryAssign(TargetTimeline.SmoothScrollSpeedSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_SmoothScrollSpeedSec)));
+
+			TryAssign(TargetTimeline.ShowStartEndMarkersSong, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_ShowStartEndMarkersSong)));
+			TryAssign(TargetTimeline.ShowStartEndMarkersMovie, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_ShowStartEndMarkersMovie)));
 
 			if (const Value* scalingAutoFitJson = Find(*targetTimelineJson, UserIDs::TargetTimeline_ScalingBehaviorAutoFit))
 			{
@@ -1157,6 +1162,9 @@ namespace Comfy::Studio
 
 				writer.MemberF32(UserIDs::TargetTimeline_PlaybackAutoScrollCursorPositionFactor, TargetTimeline.PlaybackAutoScrollCursorPositionFactor);
 				writer.MemberF32(UserIDs::TargetTimeline_SmoothScrollSpeedSec, TargetTimeline.SmoothScrollSpeedSec);
+
+				writer.MemberBool(UserIDs::TargetTimeline_ShowStartEndMarkersSong, TargetTimeline.ShowStartEndMarkersSong);
+				writer.MemberBool(UserIDs::TargetTimeline_ShowStartEndMarkersMovie, TargetTimeline.ShowStartEndMarkersMovie);
 
 				if (TargetTimeline.ScalingBehavior == TargetTimelineScalingBehavior::AutoFit)
 				{
@@ -1593,6 +1601,8 @@ namespace Comfy::Studio
 		TargetTimeline.PlaybackMouseWheelScrollFactorShift = 1.0f;
 		TargetTimeline.PlaybackAutoScrollCursorPositionFactor = TargetTimelineDefaultPlaybackAutoScrollCursorPositionFactor;
 		TargetTimeline.SmoothScrollSpeedSec = TimelineDefaultSmoothScrollSpeedSec.x;
+		TargetTimeline.ShowStartEndMarkersSong = true;
+		TargetTimeline.ShowStartEndMarkersMovie = true;
 		TargetTimeline.ScalingBehavior = TargetTimelineScalingBehavior::AutoFit;
 		TargetTimeline.ScalingBehaviorAutoFit.MinRowHeight = TargetTimelineMinRowHeight;
 		TargetTimeline.ScalingBehaviorAutoFit.MaxRowHeight = TargetTimelineDefaultRowHeight;

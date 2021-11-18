@@ -154,6 +154,8 @@ namespace Comfy::Studio::Editor
 		void DrawWaveformIndividualVertexLines();
 
 		void DrawTimelineTempoMap();
+		void DrawStartEndMarkers();
+		
 		void DrawRangeSelection();
 
 		void DrawTimelineTargets();

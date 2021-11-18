@@ -798,6 +798,15 @@ namespace Comfy::Studio::Editor
 		return playbackTimeOnPlaybackStart;
 	}
 
+	std::array<std::optional<TimeSpan>, 2> ChartEditor::GetSongAndMovieSourceDurations() const
+	{
+		return 
+		{
+			(songSource != Audio::SourceHandle::Invalid) ? songVoice.GetDuration() : std::optional<TimeSpan> {},
+			(moviePlayer != nullptr && moviePlayer->GetHasVideoStream()) ? moviePlayer->GetDuration() : std::optional<TimeSpan> {},
+		};
+	}
+
 	SoundEffectManager& ChartEditor::GetSoundEffectManager()
 	{
 		return soundEffectManager;
