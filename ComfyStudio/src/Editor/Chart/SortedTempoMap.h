@@ -53,7 +53,9 @@ namespace Comfy::Studio::Editor
 		void RemoveTempoChange(BeatTick tick);
 
 		// NOTE: Assumes the new tick to be within the bounds of the previous and next tempo change
-		void UpdateTempoChangeTick(size_t index, BeatTick newTick);
+		void ChangeExistingTempoChangeTick(size_t index, BeatTick newTick);
+
+		// TODO: Helper methods for getting inheritance flags adjusted TempoChange copy (?) maybe even replace all const TempoChange& functions with adjusted value copies
 
 		const TempoChange& GetTempoChangeAt(size_t index) const;
 		const TempoChange& FindTempoChangeAtTick(BeatTick tick) const;
@@ -97,6 +99,7 @@ namespace Comfy::Studio::Editor
 	template<typename Func>
 	void SortedTempoMap::ForEachBar(Func perBarFunc) const
 	{
+		auto lastSignature = !tempoChanges.empty() ? tempoChanges[0].Signature : TempoChange::DefaultSignature;
 		for (size_t i = 0, barIndex = 0; i < tempoChanges.size(); i++)
 		{
 			const auto& tempoChange = tempoChanges[i];
@@ -105,7 +108,10 @@ namespace Comfy::Studio::Editor
 			const auto startTick = tempoChange.Tick;
 			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : BeatTick::FromTicks(std::numeric_limits<i32>::max());
 
-			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(tempoChange.Signature);
+			if (!(tempoChange.Flags & TempoChangeFlags_InheritSignature))
+				lastSignature = tempoChange.Signature;
+
+			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(lastSignature);
 			for (auto barTick = startTick; barTick < endTick; barTick += (ticksPerBeat * beatsPerBar))
 			{
 				if (perBarFunc(barTick, barIndex++))
@@ -117,6 +123,7 @@ namespace Comfy::Studio::Editor
 	template <typename Func>
 	void SortedTempoMap::ForEachBeatBar(Func perBeatBarFunc) const
 	{
+		auto lastSignature = !tempoChanges.empty() ? tempoChanges[0].Signature : TempoChange::DefaultSignature;
 		for (size_t i = 0, barIndex = 0; i < tempoChanges.size(); i++)
 		{
 			const auto& tempoChange = tempoChanges[i];
@@ -125,7 +132,11 @@ namespace Comfy::Studio::Editor
 			const auto startTick = tempoChange.Tick;
 			const auto endTick = (nextTempoChange != nullptr) ? nextTempoChange->Tick : BeatTick::FromTicks(std::numeric_limits<i32>::max());
 
-			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(tempoChange.Signature);
+			// TODO: Only actually restart the bar if not inherited (?) empty tempo changes should basically be a no-op
+			if (!(tempoChange.Flags & TempoChangeFlags_InheritSignature))
+				lastSignature = tempoChange.Signature;
+
+			const auto[ticksPerBeat, beatsPerBar] = DecomposeTimeSignature(lastSignature);
 			for (auto beatTick = startTick; beatTick < endTick; beatTick += ticksPerBeat)
 			{
 				if (perBeatBarFunc(beatTick, barIndex, true))

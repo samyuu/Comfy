@@ -62,6 +62,33 @@ namespace Comfy::Studio::Editor
 		f32 Factor = 1.0f;
 	};
 
+#if 0 // TODO: Or should all of the fields just be wrapped inside std::optional instead ... (?)
+	// TODO: To pass back to the user inside template ForEach functions
+	struct TempoChangeNewOrOld
+	{
+		Tempo Tempo;
+		FlyingTimeFactor FlyingTime;
+		TimeSignature Signature;
+	};
+
+	struct TempoChange
+	{
+		BeatTick Tick = {};
+		std::optional<Tempo> Tempo = {};
+		std::optional<FlyingTimeFactor> FlyingTime = {};
+		std::optional<TimeSignature> Signature = {};
+	};
+#endif
+
+	using TempoChangeFlags = u8;
+	enum TempoChangeFlagsEnum : TempoChangeFlags
+	{
+		TempoChangeFlags_None = 0,
+		TempoChangeFlags_InheritTempo = 1 << 0,
+		TempoChangeFlags_InheritFlyingTime = 1 << 1,
+		TempoChangeFlags_InheritSignature = 1 << 2,
+	};
+
 	struct TempoChange
 	{
 		static constexpr auto DefaultTempo = Tempo(160.0f);
@@ -71,6 +98,7 @@ namespace Comfy::Studio::Editor
 		constexpr TempoChange() = default;
 		constexpr TempoChange(BeatTick tick, Tempo tempo, TimeSignature signature) : Tick(tick), Tempo(tempo), Signature(signature) {}
 		constexpr TempoChange(BeatTick tick, Tempo tempo, FlyingTimeFactor flyingTimeFactor, TimeSignature signature) : Tick(tick), Tempo(tempo), FlyingTime(flyingTimeFactor), Signature(signature) {}
+		constexpr TempoChange(BeatTick tick, TempoChangeFlags flags, Tempo tempo, FlyingTimeFactor flyingTimeFactor, TimeSignature signature) : Tick(tick), Flags(flags), Tempo(tempo), FlyingTime(flyingTimeFactor), Signature(signature) {}
 
 		constexpr bool operator==(const TempoChange& other) const { return (Tick == other.Tick); }
 		constexpr bool operator!=(const TempoChange& other) const { return (Tick != other.Tick); }
@@ -78,6 +106,8 @@ namespace Comfy::Studio::Editor
 		constexpr bool operator>(const TempoChange& other) const { return (Tick > other.Tick); }
 
 		BeatTick Tick = {};
+		TempoChangeFlags Flags = TempoChangeFlags_None;
+
 		Tempo Tempo = DefaultTempo;
 		FlyingTimeFactor FlyingTime = DefaultFlyingTimeFactor;
 		TimeSignature Signature = DefaultSignature;

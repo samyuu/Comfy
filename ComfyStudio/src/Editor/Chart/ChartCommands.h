@@ -810,13 +810,13 @@ namespace Comfy::Studio::Editor
 	public:
 		void Undo() override
 		{
-			chart.TempoMap.UpdateTempoChangeTick(tempoChangeIndex, oldTick);
+			chart.TempoMap.ChangeExistingTempoChangeTick(tempoChangeIndex, oldTick);
 			chart.TempoMap.RebuildAccelerationStructure();
 		}
 
 		void Redo() override
 		{
-			chart.TempoMap.UpdateTempoChangeTick(tempoChangeIndex, newTick);
+			chart.TempoMap.ChangeExistingTempoChangeTick(tempoChangeIndex, newTick);
 			chart.TempoMap.RebuildAccelerationStructure();
 		}
 

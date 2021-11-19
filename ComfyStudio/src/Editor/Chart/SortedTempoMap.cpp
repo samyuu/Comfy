@@ -5,13 +5,13 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		constexpr f64 GetF64FlyingTimeFactorAdjustedBPM(TempoChange tempoChange, bool applyFlyingTimeFactor)
+		constexpr f64 GetF64FlyingTimeFactorAdjustedBPM(Tempo tempo, FlyingTimeFactor flyingTime, bool applyFlyingTimeFactor)
 		{
-			assert(tempoChange.FlyingTime.Factor > 0.0f);
+			assert(flyingTime.Factor > 0.0f);
 
-			return (applyFlyingTimeFactor && tempoChange.FlyingTime.Factor != 0.0f) ?
-				static_cast<f64>(tempoChange.Tempo.BeatsPerMinute) * static_cast<f64>(tempoChange.FlyingTime.Factor) :
-				static_cast<f64>(tempoChange.Tempo.BeatsPerMinute);
+			return (applyFlyingTimeFactor && flyingTime.Factor != 0.0f) ?
+				static_cast<f64>(tempo.BeatsPerMinute) * static_cast<f64>(flyingTime.Factor) :
+				static_cast<f64>(tempo.BeatsPerMinute);
 		}
 	}
 
@@ -73,7 +73,7 @@ namespace Comfy::Studio::Editor
 
 			// NOTE: So we just have to divide the remaining ticks by the duration
 			const f64 ticks = timePastLast / lastTickDuration;
-			
+
 			// NOTE: And add it to the last tick
 			return BeatTick(static_cast<i32>(tickTimeCount + ticks - 1));
 		}
@@ -107,38 +107,49 @@ namespace Comfy::Studio::Editor
 	{
 		assert(tempoMap.TempoChangeCount() > 0);
 
+		const auto& firstTempoChange = tempoMap.GetTempoChangeAt(0);
 		const auto& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
 		const size_t timeCount = lastTempoChange.Tick.Ticks() + 1;
 
 		tickTimes.resize(timeCount);
 		{
-			// NOTE: The time of when the last tempo change ended, so we can use higher precision multiplication
-			f64 tempoChangeEndTime = 0.0;
+			firstTempoBPM = GetF64FlyingTimeFactorAdjustedBPM(firstTempoChange.Tempo.BeatsPerMinute, firstTempoChange.FlyingTime, applyFlyingTimeFactor);
+
+			f64 lastEndTime = 0.0;
+			f64 lastBPM = firstTempoBPM;
+			FlyingTimeFactor lastFlyingTime = firstTempoChange.FlyingTime;
 
 			const size_t tempoChangeCount = tempoMap.TempoChangeCount();
 			for (size_t tempoIndex = 0; tempoIndex < tempoChangeCount; tempoIndex++)
 			{
 				const auto& tempoChange = tempoMap.GetTempoChangeAt(tempoIndex);
 
-				const f64 beatDuration = (60.0 / GetF64FlyingTimeFactorAdjustedBPM(tempoChange, applyFlyingTimeFactor));
+				if (!(tempoChange.Flags & TempoChangeFlags_InheritFlyingTime))
+				{
+					lastFlyingTime = tempoChange.FlyingTime;
+
+					// BUG: Also need to calculate readjusted flying time if new value is specified
+					lastBPM = GetF64FlyingTimeFactorAdjustedBPM(Tempo(lastBPM), lastFlyingTime, applyFlyingTimeFactor);
+				}
+
+				if (!(tempoChange.Flags & TempoChangeFlags_InheritTempo))
+					lastBPM = GetF64FlyingTimeFactorAdjustedBPM(tempoChange.Tempo, lastFlyingTime, applyFlyingTimeFactor);
+
+				const f64 beatDuration = (60.0 / lastBPM);
 				const f64 tickDuration = (beatDuration / BeatTick::TicksPerBeat);
 
-				const bool singleTempo = (tempoChangeCount == 1);
-				const bool isLastTempo = (tempoIndex == (tempoChangeCount - 1));
+				const bool isSingleOrLastTempo = (tempoChangeCount == 1) || (tempoIndex == (tempoChangeCount - 1));
+				const size_t timesCount = (isSingleOrLastTempo) ? (tickTimes.size()) : (tempoMap.GetTempoChangeAt(tempoIndex + 1).Tick.Ticks());
 
-				const size_t timesStart = tempoChange.Tick.Ticks();
-				const size_t timesCount = (singleTempo || isLastTempo) ? (tickTimes.size()) : (tempoMap.GetTempoChangeAt(tempoIndex + 1).Tick.Ticks());
-
-				for (size_t i = 0, t = timesStart; t < timesCount; t++)
-					tickTimes[t] = TimeSpan::FromSeconds((tickDuration * i++) + tempoChangeEndTime);
+				for (size_t i = 0, t = tempoChange.Tick.Ticks(); t < timesCount; t++)
+					tickTimes[t] = TimeSpan::FromSeconds((tickDuration * i++) + lastEndTime);
 
 				if (tempoChangeCount > 1)
-					tempoChangeEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;
+					lastEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;
 			}
-		}
 
-		firstTempoBPM = GetF64FlyingTimeFactorAdjustedBPM(tempoMap.GetTempoChangeAt(0), applyFlyingTimeFactor);
-		lastTempoBPM = GetF64FlyingTimeFactorAdjustedBPM(lastTempoChange, applyFlyingTimeFactor);
+			lastTempoBPM = lastBPM;
+		}
 	}
 
 	SortedTempoMap::SortedTempoMap()
@@ -181,7 +192,7 @@ namespace Comfy::Studio::Editor
 			tempoChanges.push_back(TempoChange(BeatTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature));
 	}
 
-	void SortedTempoMap::UpdateTempoChangeTick(size_t index, BeatTick newTick)
+	void SortedTempoMap::ChangeExistingTempoChangeTick(size_t index, BeatTick newTick)
 	{
 		if (!InBounds(index, tempoChanges))
 		{
@@ -234,16 +245,16 @@ namespace Comfy::Studio::Editor
 		tempoChanges.push_back(TempoChange(BeatTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature));
 	}
 
-	TimeSpan SortedTempoMap::TickToTime(BeatTick tick) const 
+	TimeSpan SortedTempoMap::TickToTime(BeatTick tick) const
 	{
 		return accelerationStructure.ConvertTickToTimeUsingLookupTableIndexing(tick);
 	}
-	
+
 	BeatTick SortedTempoMap::TimeToTick(TimeSpan tick) const
 	{
 		return accelerationStructure.ConvertTimeToTickUsingLookupTableBinarySearch(tick);
 	}
-	
+
 	TimelineTargetSpawnTimes SortedTempoMap::GetTargetSpawnTimes(const TimelineTarget& target) const
 	{
 		const BeatTick buttonTick = target.Tick;
@@ -255,7 +266,7 @@ namespace Comfy::Studio::Editor
 
 		const TimeSpan targetTime = (buttonTime - flyingTimeAdjusted);
 		const BeatTick targetTick = accelerationStructure.ConvertTimeToTickUsingLookupTableBinarySearch(targetTime);
-		
+
 		return TimelineTargetSpawnTimes { targetTime, buttonTime, targetTick, buttonTick, flyingTimeAdjusted };
 	}
 

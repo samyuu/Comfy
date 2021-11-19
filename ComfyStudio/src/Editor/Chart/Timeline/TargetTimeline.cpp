@@ -690,15 +690,15 @@ namespace Comfy::Studio::Editor
 
 		constexpr const char* tempoChangePopupName = "##TempoChangePopup";
 		vec2 tempoPopupWindowStartPosition = {};
+		// TODO: Make less wide and instead make the right column side bigger than the left (?)
 		vec2 tempoPopupWindowStartPivot = vec2(0.5f, 1.0f);
-		vec2 tempoPopupWindowStartSize = vec2(280.0f, 0.0f);
+		vec2 tempoPopupWindowStartSize = vec2(260.0f/*280.0f*//*314.0f*/, 0.0f);
 
 		f32 lastDrawnTimelineX = 0.0f;
 
 		for (size_t i = 0; i < tempoMap.TempoChangeCount(); i++)
 		{
 			const auto& tempoChange = tempoMap.GetTempoChangeAt(i);
-			const auto& lastTempoChange = tempoMap.GetTempoChangeAt((i == 0) ? i : (i - 1));
 
 			const f32 timelineX = GetTimelinePosition(tempoChange.Tick);
 			const f32 screenX = glm::round(timelineX - GetScrollX());
@@ -711,26 +711,29 @@ namespace Comfy::Studio::Editor
 
 			const bool shortenText = (zoomLevel < 1.0f);
 
-			char tempoChangeTextBuffer[64];
-			sprintf_s(tempoChangeTextBuffer, shortenText ? "%.0f BPM" : "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
+			char tempoChangeTextBuffer[64] = {}, copyBuffer[32];
 
-			const bool displaySignature = (i == 0 || tempoChange.Signature != lastTempoChange.Signature);
-			if (displaySignature)
+			if (!(tempoChange.Flags & TempoChangeFlags_InheritTempo))
+				sprintf_s(tempoChangeTextBuffer, shortenText ? "%.0f BPM" : "%.2f BPM", tempoChange.Tempo.BeatsPerMinute);
+
+			if (!(tempoChange.Flags & TempoChangeFlags_InheritSignature))
 			{
-				char b[32]; sprintf_s(b, " %d/%d", tempoChange.Signature.Numerator, tempoChange.Signature.Denominator);
-				strcat_s(tempoChangeTextBuffer, b);
+				sprintf_s(copyBuffer, " %d/%d", tempoChange.Signature.Numerator, tempoChange.Signature.Denominator);
+				strcat_s(tempoChangeTextBuffer, copyBuffer);
 			}
 
-			const bool displayFlyingTime = (i == 0 || tempoChange.FlyingTime != lastTempoChange.FlyingTime);
-			if (displayFlyingTime)
+			if (!(tempoChange.Flags & TempoChangeFlags_InheritFlyingTime))
 			{
-#if 0 // NOTE: Maybe more readable but takes up too much space..?
-				char b[32]; sprintf_s(b, " %.2f %%", ToPercent(tempoChange.FlyingTime.Factor));
+#if 1 // TODO: Percent to make the clickable area bigger if the only thing displayed in the flying time factor (?)
+				sprintf_s(copyBuffer, " %.2f %%", ToPercent(tempoChange.FlyingTime.Factor));
 #else
-				char b[32]; sprintf_s(b, " %.3gx", tempoChange.FlyingTime.Factor);
+				sprintf_s(copyBuffer, " %.3gx", tempoChange.FlyingTime.Factor);
 #endif
-				strcat_s(tempoChangeTextBuffer, b);
+				strcat_s(tempoChangeTextBuffer, copyBuffer);
 			}
+
+			if (tempoChangeTextBuffer[0] == '\0')
+				strcpy_s(tempoChangeTextBuffer, "(Empty)");
 
 			const vec2 buttonPosition = regions.TempoMap.GetTL() + vec2(screenX + 1.0f, 0.0f);
 			const vec2 buttonSize = vec2(Gui::CalcTextSize(tempoChangeTextBuffer).x, tempoMapHeight);
@@ -791,6 +794,8 @@ namespace Comfy::Studio::Editor
 			// HACK: Raw old columns API usage here just to quickly disable resizing
 			// GuiPropertyRAII::PropertyValueColumns columns;
 			Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
+			if (tempoPopupWindowStartSize.x <= 280.0f) // TODO: Decide on how to best do this
+				Gui::SetColumnWidth(0, tempoPopupWindowStartSize.x / 3.0f);
 
 			if (tempoPopupIndex >= 0)
 			{
@@ -864,23 +869,63 @@ namespace Comfy::Studio::Editor
 					return false;
 				});
 
-				f32 bpm = thisTempoChange.Tempo.BeatsPerMinute;
-				if (GuiProperty::Input("Tempo", bpm, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+				auto guiPropertyInputWithCheckbox = [](std::string_view label, f32& inOutValue, bool& inOutIsSet, f32 dragSpeed, vec2 dragRange, const char* format) -> bool
 				{
+					GuiPropertyRAII::ID id(label);
+					return GuiProperty::PropertyFuncValueFunc([&]
+					{
+						Gui::PushItemFlag(ImGuiItemFlags_Disabled, !inOutIsSet);
+						bool valueChanged = GuiProperty::Detail::DragTextT<f32>(label, inOutValue, dragSpeed, &dragRange.x, &dragRange.y, 0.0f);
+						Gui::PopItemFlag();
+						return valueChanged;
+					}, [&]
+					{
+						bool valueChanged = Gui::Checkbox("##Set", &inOutIsSet);
+						Gui::SameLine(0.0f, Gui::GetStyle().ItemInnerSpacing.x);
+						Gui::PushItemDisabledAndTextColorIf(!inOutIsSet);
+						valueChanged |= GuiProperty::Detail::InputVec1DragBaseValueFunc<f32>(inOutValue, dragSpeed, dragRange, format);
+						Gui::PopItemDisabledAndTextColorIf(!inOutIsSet);
+						return valueChanged;
+					});
+				};
+
+				auto guiPropertyInputFractionWithCheckbox = [](std::string_view label, ivec2& inOutValue, bool& inOutIsSet, ivec2 valueRange) -> bool
+				{
+					return GuiProperty::PropertyLabelValueFunc(label, [&]
+					{
+						bool valueChanged = Gui::Checkbox("##Set", &inOutIsSet);
+						Gui::SameLine(0.0f, Gui::GetStyle().ItemInnerSpacing.x);
+						Gui::PushItemDisabledAndTextColorIf(!inOutIsSet);
+						valueChanged |= GuiProperty::Detail::InputFractionBase(inOutValue, valueRange, Gui::PropertyEditor::ComponentFlags_None);
+						Gui::PopItemDisabledAndTextColorIf(!inOutIsSet);
+						return valueChanged;
+					});
+				};
+
+				bool setNewTempoFlag = !(thisTempoChange.Flags & TempoChangeFlags_InheritTempo);
+				bool setNewFlyingTimeFlag = !(thisTempoChange.Flags & TempoChangeFlags_InheritFlyingTime);
+				bool setNewSignatureFlag = !(thisTempoChange.Flags & TempoChangeFlags_InheritSignature);
+
+				f32 bpm = thisTempoChange.Tempo.BeatsPerMinute;
+				if (guiPropertyInputWithCheckbox("Tempo", bpm, setNewTempoFlag, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+				{
+					updatedTempoChange.Flags = (!setNewTempoFlag) ? (thisTempoChange.Flags | TempoChangeFlags_InheritTempo) : (thisTempoChange.Flags & ~TempoChangeFlags_InheritTempo);
 					updatedTempoChange.Tempo = Clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM);
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
 				}
 
 				f32 flyingTimeFactor = ToPercent(thisTempoChange.FlyingTime.Factor);
-				if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, ToPercent(vec2(FlyingTimeFactor::Min, FlyingTimeFactor::Max)), "%.2f %%"))
+				if (guiPropertyInputWithCheckbox("Flying Time", flyingTimeFactor, setNewFlyingTimeFlag, 1.0f, ToPercent(vec2(FlyingTimeFactor::Min, FlyingTimeFactor::Max)), "%.2f %%"))
 				{
+					updatedTempoChange.Flags = (!setNewFlyingTimeFlag) ? (thisTempoChange.Flags | TempoChangeFlags_InheritFlyingTime) : (thisTempoChange.Flags & ~TempoChangeFlags_InheritFlyingTime);
 					updatedTempoChange.FlyingTime.Factor = FromPercent(flyingTimeFactor);
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
 				}
 
 				ivec2 sig = { thisTempoChange.Signature.Numerator, thisTempoChange.Signature.Denominator };
-				if (GuiProperty::InputFraction("Time Signature", sig, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
+				if (guiPropertyInputFractionWithCheckbox("Time Signature", sig, setNewSignatureFlag, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
 				{
+					updatedTempoChange.Flags = (!setNewSignatureFlag) ? (thisTempoChange.Flags | TempoChangeFlags_InheritSignature) : (thisTempoChange.Flags & ~TempoChangeFlags_InheritSignature);
 					updatedTempoChange.Signature = TimeSignature(sig[0], sig[1]);
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
 				}
