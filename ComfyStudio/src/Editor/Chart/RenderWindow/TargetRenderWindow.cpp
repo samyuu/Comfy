@@ -237,6 +237,7 @@ namespace Comfy::Studio::Editor
 		UpdateAllInput();
 
 		renderHelper->UpdateAsyncLoading(renderer);
+		renderHelper->SetGameTheme(GlobalUserData.Interface.Theme);
 		renderer.Begin(camera, *renderTarget);
 		{
 			RenderBackground();

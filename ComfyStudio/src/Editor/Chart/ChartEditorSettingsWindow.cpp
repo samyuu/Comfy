@@ -517,8 +517,9 @@ namespace Comfy::Studio::Editor
 		lastFrameAnyItemActive = thisFrameAnyItemActive;
 		thisFrameAnyItemActive = Gui::IsAnyItemActive();
 
+		// NOTE: Adjust window height in the future to try and fit everything inside the window without scroll bars. for now at least...
 		constexpr vec2 explicitMargin = vec2(6.0f);
-		constexpr f32 windowHeight = 540.0f;
+		constexpr f32 windowHeight = 554.0f;
 		constexpr f32 tabListWidth = 120.0f;
 		constexpr f32 tabContentWidth = 600.0f;
 		constexpr f32 tabControlWidth = 82.0f;
@@ -1063,20 +1064,12 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditorSettingsWindow::GuiTabInterface(ComfyStudioUserSettings& userData)
 	{
-#if COMFY_DEBUG && 0 // TODO: Actually implement this first
-		if (Gui::CollapsingHeader("Style", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			GuiBeginSettingsColumns();
-
-			pendingChanges |= GuiSettingsCombo("Game Theme", userData.Interface.Theme, GameThemeNames);
-
-			GuiEndSettingsColumns();
-		}
-#endif
-
 		if (Gui::CollapsingHeader("Chart Background", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
+
+			// NOTE: Technically doesn't belong in this category but this seems better for now than having it inside its own CollpasingHeader
+			pendingChanges |= GuiSettingsCombo("Game Theme", userData.Interface.Theme, GameThemeNames);
 
 			pendingChanges |= GuiSettingsCombo("Editor", userData.Interface.BackgroundDisplayType.Editor, ChartBackgroundDisplayTypeNames, ChartBackgroundDisplayType::FirstNoMovie, ChartBackgroundDisplayType::LastNoMovie);
 			pendingChanges |= GuiSettingsCombo("Editor (Movie Loaded)", userData.Interface.BackgroundDisplayType.EditorWithMovie, ChartBackgroundDisplayTypeNames);

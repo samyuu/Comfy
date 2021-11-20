@@ -24,7 +24,7 @@
 
 namespace Comfy::Studio::Editor
 {
-	// TODO: Implement these and move into a different header (?)
+	// TODO: Move these into a different header
 	enum class GameTheme : u8
 	{
 		PS4FutureTone,

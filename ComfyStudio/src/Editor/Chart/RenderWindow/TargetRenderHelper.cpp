@@ -1,4 +1,5 @@
 #include "TargetRenderHelper.h"
+#include "Editor/Chart/ChartEditor.h"
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Graphics/Auth2D/Aet/AetSet.h"
 #include "Graphics/Auth2D/SprSet.h"
@@ -484,6 +485,11 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
+		void SetGameTheme(GameTheme theme)
+		{
+			gameTheme = theme;
+		}
+
 		void SetAetSprGetter(Render::Renderer2D& renderer)
 		{
 			// TODO: Find a better solution for this, maybe store tex shared_ptr + spr as mutable VideoSource member (?)
@@ -577,8 +583,13 @@ namespace Comfy::Studio::Editor
 				return;
 
 			const auto playbackFrame = hud.PlaybackTime.ToFrames();
-			TryDrawLayerLooped(renderer, layers.FrameUpT, playbackFrame);
-			TryDrawLayerLooped(renderer, layers.FrameBottomT, playbackFrame);
+			switch (gameTheme)
+			{
+			case GameTheme::PS4FutureTone: { TryDrawLayerLooped(renderer, layers.FrameUpFT, playbackFrame); TryDrawLayerLooped(renderer, layers.FrameBottomFT, playbackFrame); } break;
+			case GameTheme::PS4FutureSound: { TryDrawLayerLooped(renderer, layers.FrameUpF, playbackFrame); TryDrawLayerLooped(renderer, layers.FrameBottomF, playbackFrame); } break;
+			case GameTheme::PS4ColorfulTone: { TryDrawLayerLooped(renderer, layers.FrameUpT, playbackFrame); TryDrawLayerLooped(renderer, layers.FrameBottomT, playbackFrame); } break;
+			}
+			
 			TryDrawLayerLooped(renderer, layers.LifeGauge, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.LifeGaugeInsurance, playbackFrame);
 			TryDrawLayerLooped(renderer, layers.SongIconLoop, playbackFrame);
@@ -1391,6 +1402,8 @@ namespace Comfy::Studio::Editor
 		size_t font36Index = std::numeric_limits<size_t>::max();
 		size_t fontPracticeNumIndex = std::numeric_limits<size_t>::max();
 
+		GameTheme gameTheme = GameTheme::PS4ColorfulTone;
+
 		mutable std::stack<f32> tempKeyFrameBackupStack;
 		mutable std::stack<bool> tempLayerVisibleBackupStack;
 
@@ -1569,6 +1582,11 @@ namespace Comfy::Studio::Editor
 	void TargetRenderHelper::UpdateAsyncLoading(Render::Renderer2D& renderer)
 	{
 		impl->UpdateAsyncLoading(renderer);
+	}
+
+	void TargetRenderHelper::SetGameTheme(GameTheme theme)
+	{
+		impl->SetGameTheme(theme);
 	}
 
 	void TargetRenderHelper::SetAetSprGetter(Render::Renderer2D& renderer)

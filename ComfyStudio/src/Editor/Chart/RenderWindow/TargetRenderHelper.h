@@ -8,6 +8,8 @@
 
 namespace Comfy::Studio::Editor
 {
+	enum class GameTheme : u8;
+
 	// NOTE: Helper class to abstract away all of the aet and spr specific render interactions
 	class TargetRenderHelper : NonCopyable
 	{
@@ -17,6 +19,7 @@ namespace Comfy::Studio::Editor
 
 	public:
 		void UpdateAsyncLoading(Render::Renderer2D& renderer);
+		void SetGameTheme(GameTheme theme);
 		void SetAetSprGetter(Render::Renderer2D& renderer);
 
 		template <typename Func>
