@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Misc/StringUtil.h"
 #include <optional>
 #include <future>
 
@@ -96,6 +97,57 @@ namespace Comfy::Json
 			return std::nullopt;
 	}
 
+	template <typename Enum>
+	struct EnumNameMapping
+	{
+		Enum EnumIndex;
+		std::string_view EnumName;
+	};
+
+	template <typename Enum>
+	using EnumNameMappingTable = std::array<EnumNameMapping<Enum>, EnumCount<Enum>()>;
+
+	template <typename Enum>
+	constexpr bool CompileTimeValidateEnumNameMappingTable(const EnumNameMappingTable<Enum>& nameTable)
+	{
+		for (size_t i = 0; i < nameTable.size(); i++)
+		{
+			if (nameTable[i].EnumIndex != static_cast<Enum>(i))
+				return false;
+
+			if (Util::Trim(nameTable[i].EnumName).size() != nameTable[i].EnumName.size())
+				return false;
+		}
+		return true;
+	}
+
+	template <typename Enum>
+	constexpr std::string_view EnumToStr(const EnumNameMappingTable<Enum>& nameTable, Enum enumIndex, std::string_view fallback = "")
+	{
+		const auto index = static_cast<size_t>(enumIndex);
+		return (index < nameTable.size()) ? nameTable[index].EnumName : fallback;
+	}
+
+	template <typename Enum>
+	constexpr std::optional<Enum> EnumFromStr(const EnumNameMappingTable<Enum>& nameTable, std::string_view enumString)
+	{
+		for (size_t i = 0; i < nameTable.size(); i++)
+		{
+			if (!nameTable[i].EnumName.empty() && Util::MatchesInsensitive(nameTable[i].EnumName, enumString))
+				return static_cast<Enum>(i);
+		}
+		return std::nullopt;
+	}
+
+	template <typename Enum>
+	inline std::optional<Enum> TryGetEnumStr(const Value* j, const EnumNameMappingTable<Enum>& nameTable)
+	{
+		if (j != nullptr && j->IsString())
+			return EnumFromStr(nameTable, Util::Trim(std::string_view(j->GetString(), j->GetStringLength())));
+		else
+			return std::nullopt;
+	}
+
 	inline void TryAssign(bool& out, std::optional<bool>&& v) { if (v.has_value()) { out = v.value(); } }
 	inline void TryAssign(i32& out, std::optional<i32>&& v) { if (v.has_value()) { out = v.value(); } }
 	inline void TryAssign(u32& out, std::optional<u32>&& v) { if (v.has_value()) { out = v.value(); } }
@@ -127,6 +179,8 @@ namespace Comfy::Json
 		inline void F32(f32 value) { writer.Double(static_cast<f64>(value)); }
 		inline void F64(f64 value) { writer.Double(value); }
 		inline void Str(std::string_view value) { writer.String(value.data(), static_cast<SizeType>(value.size())); }
+		template <typename Enum>
+		inline void EnumStr(Enum value, const EnumNameMappingTable<Enum>& nameTable) { Str(EnumToStr(nameTable, value)); }
 
 		inline void MemberKey(std::string_view key) { writer.Key(key.data(), static_cast<SizeType>(key.size())); }
 		inline void MemberNull(std::string_view key) { MemberKey(key); Null(); }
@@ -136,6 +190,8 @@ namespace Comfy::Json
 		inline void MemberF32(std::string_view key, f32 value) { MemberKey(key); F32(value); }
 		inline void MemberF64(std::string_view key, f64 value) { MemberKey(key); F64(value); }
 		inline void MemberStr(std::string_view key, std::string_view value) { MemberKey(key); Str(value); }
+		template <typename Enum>
+		inline void MemberEnumStr(std::string_view key, Enum value, const EnumNameMappingTable<Enum>& nameTable) { MemberKey(key); EnumStr(value, nameTable); }
 
 		inline void MemberVec4XYZW(std::string_view key, vec4 value) { MemberObjectBegin(key); MemberF32("x", value.x); MemberF32("y", value.y); MemberF32("z", value.z); MemberF32("w", value.w); MemberObjectEnd(); }
 		inline void MemberVec4RGBA(std::string_view key, vec4 value) { MemberObjectBegin(key); MemberF32("r", value.r); MemberF32("g", value.g); MemberF32("b", value.b); MemberF32("a", value.a); MemberObjectEnd(); }
