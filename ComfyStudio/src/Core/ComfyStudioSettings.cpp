@@ -651,6 +651,58 @@ namespace Comfy::Studio
 			func(userData.Input.Playtest_MoveResetPointBackward, "playtest_move_reset_point_backward");
 			func(userData.Input.Playtest_MoveResetPointForward, "playtest_move_reset_point_forward");
 		}
+
+		constexpr Json::EnumNameMappingTable<ButtonType> ButtonTypeEnumNames
+		{
+			Json::EnumNameMapping<ButtonType>
+			{ ButtonType::Triangle, "triangle", },
+			{ ButtonType::Square, "square", },
+			{ ButtonType::Cross, "cross", },
+			{ ButtonType::Circle, "circle", },
+			{ ButtonType::SlideL, "slide_l", },
+			{ ButtonType::SlideR, "slide_r", },
+		};
+		static_assert(Json::CompileTimeValidateEnumNameMappingTable(ButtonTypeEnumNames));
+
+		constexpr Json::EnumNameMappingTable<SequencePresetButtonType> SequencePresetButtonTypeEnumNames
+		{
+			Json::EnumNameMapping<SequencePresetButtonType>
+			{ SequencePresetButtonType::SingleLine, "same_line", },
+			{ SequencePresetButtonType::SameLine, "single_line", },
+		};
+		static_assert(Json::CompileTimeValidateEnumNameMappingTable(SequencePresetButtonTypeEnumNames));
+
+		constexpr Json::EnumNameMappingTable<BPMTapSoundType> BPMTapSoundTypeEnumNames
+		{
+			Json::EnumNameMapping<BPMTapSoundType>
+			{ BPMTapSoundType::None, "none", },
+			{ BPMTapSoundType::MetronomeBeat, "metronome_beat", },
+			{ BPMTapSoundType::MetronomeBar, "metronome_bar", },
+			{ BPMTapSoundType::ButtonSound, "button_sound", },
+			{ BPMTapSoundType::SlideSound, "slide_sound", },
+		};
+		static_assert(Json::CompileTimeValidateEnumNameMappingTable(BPMTapSoundTypeEnumNames));
+
+		constexpr Json::EnumNameMappingTable<GameTheme> GameThemeEnumNames
+		{
+			Json::EnumNameMapping<GameTheme>
+			{ GameTheme::PS4FutureTone, "ps4_future_tone", },
+			{ GameTheme::PS4FutureSound, "ps4_future_sound", },
+			{ GameTheme::PS4ColorfulTone, "ps4_colorful_tone", },
+		};
+		static_assert(Json::CompileTimeValidateEnumNameMappingTable(GameThemeEnumNames));
+
+		constexpr Json::EnumNameMappingTable<ChartBackgroundDisplayType> ChartBackgroundDisplayTypeEnumNames
+		{
+			Json::EnumNameMapping<ChartBackgroundDisplayType>
+			{ ChartBackgroundDisplayType::Checkerboard, "checkerboard", },
+			{ ChartBackgroundDisplayType::Checkerboard_Grid, "checkerboard_grid" },
+			{ ChartBackgroundDisplayType::Practice, "practice" },
+			{ ChartBackgroundDisplayType::Movie, "movie" },
+			{ ChartBackgroundDisplayType::Movie_Grid, "movie_grid" },
+			{ ChartBackgroundDisplayType::Movie_Practice, "movie_practice" },
+		};
+		static_assert(Json::CompileTimeValidateEnumNameMappingTable(ChartBackgroundDisplayTypeEnumNames));
 	}
 
 	bool ComfyStudioUserSettings::LoadFromFile(std::string_view filePath)
@@ -680,6 +732,10 @@ namespace Comfy::Studio
 			Logger::LogErrorLine(__FUNCTION__"(): Unsupported UserSettings version detected: \"%s\". Current version: \"%s\"", fileVersion.ToString().c_str(), CurrentVersion.ToString().c_str());
 			return false;
 		}
+
+		// NOTE: Introduction of enum string storage instead of indices (2021/11/20)
+		constexpr SemanticVersion fileVersionWithBreakingEnumChanges = { 1, 26, 0 };
+		const bool fileHasOldEnums = (fileVersion.Major <= fileVersionWithBreakingEnumChanges.Major && fileVersion.Minor < fileVersionWithBreakingEnumChanges.Minor);
 
 		// NOTE: Restore default so that unspecified objects still start off with reasonable values, thereby improving forward compatibility in case the json is from an older version.
 		//		 To compensate all parser code needs to clear out all vectors to avoid duplicate entries and only assign to trivial types if the corresponding json entry was found
@@ -886,7 +942,7 @@ namespace Comfy::Studio
 
 		if (const Value* targetPresetJson = Find(rootJson, UserIDs::TargetPreset))
 		{
-			if (const Value* syncPresetsJson = Find(*targetPresetJson, UserIDs::TargetPreset_StaticSyncPresets); syncPresetsJson && syncPresetsJson->IsArray())
+			if (const Value* syncPresetsJson = Find(*targetPresetJson, UserIDs::TargetPreset_StaticSyncPresets); syncPresetsJson && syncPresetsJson->IsArray() && !fileHasOldEnums)
 			{
 				TargetPreset.StaticSyncPresets.clear();
 				TargetPreset.StaticSyncPresets.reserve(syncPresetsJson->Size());
@@ -902,7 +958,7 @@ namespace Comfy::Studio
 							if (syncPreset.TargetCount < syncPreset.Targets.size())
 							{
 								auto& targetData = syncPreset.Targets[syncPreset.TargetCount++];
-								targetData.Type = static_cast<ButtonType>(TryGetI32(Find(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType)).value_or(0));
+								targetData.Type = TryGetEnumStr(Find(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType), UserIDs::ButtonTypeEnumNames).value_or(ButtonType {});
 
 								if (const Value* propertiesJson = Find(targetDataJson, UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties))
 									targetData.Properties = JsonTryGetTargetProperties(*propertiesJson);
@@ -912,14 +968,15 @@ namespace Comfy::Studio
 				}
 			}
 
-			if (const Value* sequencePresetsJson = Find(*targetPresetJson, UserIDs::TargetPreset_SequencePresets); sequencePresetsJson && sequencePresetsJson->IsArray())
+			if (const Value* sequencePresetsJson = Find(*targetPresetJson, UserIDs::TargetPreset_SequencePresets); sequencePresetsJson && sequencePresetsJson->IsArray() && !fileHasOldEnums)
 			{
 				TargetPreset.SequencePresets.clear();
 				TargetPreset.SequencePresets.reserve(sequencePresetsJson->Size());
 				for (const Value& sequencePresetJson : sequencePresetsJson->GetArray())
 				{
 					auto& sequencePreset = TargetPreset.SequencePresets.emplace_back();
-					sequencePreset.ButtonType = static_cast<SequencePresetButtonType>(TryGetI32(Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_GuiButtonType)).value_or(0));
+
+					sequencePreset.ButtonType = TryGetEnumStr(Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_GuiButtonType), UserIDs::SequencePresetButtonTypeEnumNames).value_or(SequencePresetButtonType {});
 					sequencePreset.Name = TryGetStrView(Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_Name)).value_or("");
 
 					if (const Value* circleJson = Find(sequencePresetJson, UserIDs::TargetPreset_SequencePresets_Circle))
@@ -975,8 +1032,12 @@ namespace Comfy::Studio
 		{
 			TryAssign(BPMCalculator.AutoResetEnabled, TryGetBool(Find(*bpmCalculatorJson, UserIDs::BPMCalculator_AutoResetEnabled)));
 			TryAssign(BPMCalculator.ApplyToTempoMap, TryGetBool(Find(*bpmCalculatorJson, UserIDs::BPMCalculator_ApplyToTempoMap)));
-			if (auto v = TryGetI32(Find(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType)); v.has_value())
-				BPMCalculator.TapSoundType = static_cast<BPMTapSoundType>(v.value());
+
+			if (!fileHasOldEnums)
+			{
+				if (auto v = TryGetEnumStr(Find(*bpmCalculatorJson, UserIDs::BPMCalculator_TapSoundType), UserIDs::BPMTapSoundTypeEnumNames); v.has_value())
+					BPMCalculator.TapSoundType = v.value();
+			}
 		}
 
 		if (const Value* playtestJson = Find(rootJson, UserIDs::Playtest))
@@ -991,23 +1052,24 @@ namespace Comfy::Studio
 
 		if (const Value* interfaceJson = Find(rootJson, UserIDs::Interface))
 		{
-			// TODO: Json enum string helper functions
-			if (auto v = TryGetI32(Find(*interfaceJson, UserIDs::Interface_Theme)); v.has_value())
-				Interface.Theme = static_cast<GameTheme>(v.value());
+			if (auto v = TryGetEnumStr(Find(*interfaceJson, UserIDs::Interface_Theme), UserIDs::GameThemeEnumNames); v.has_value())
+				Interface.Theme = v.value();
 
 			if (const Value* displayTypeJson = Find(*interfaceJson, UserIDs::Interface_BackgroundDisplayType))
 			{
 				auto tryAsignEnum = [interfaceJson](ChartBackgroundDisplayType& outEnum, std::string_view key)
 				{
-					// TODO: Json enum string helper functions
-					if (auto v = TryGetI32(Find(*interfaceJson, key)); v.has_value())
-						outEnum = static_cast<ChartBackgroundDisplayType>(v.value());
+					if (auto v = TryGetEnumStr(Find(*interfaceJson, key), UserIDs::ChartBackgroundDisplayTypeEnumNames); v.has_value())
+						outEnum = v.value();
 				};
 
-				tryAsignEnum(Interface.BackgroundDisplayType.Editor, UserIDs::Interface_BackgroundDisplayType_Editor);
-				tryAsignEnum(Interface.BackgroundDisplayType.EditorWithMovie, UserIDs::Interface_BackgroundDisplayType_EditorWithMovie);
-				tryAsignEnum(Interface.BackgroundDisplayType.Playtest, UserIDs::Interface_BackgroundDisplayType_Playtest);
-				tryAsignEnum(Interface.BackgroundDisplayType.PlaytestWithMovie, UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie);
+				if (!fileHasOldEnums)
+				{
+					tryAsignEnum(Interface.BackgroundDisplayType.Editor, UserIDs::Interface_BackgroundDisplayType_Editor);
+					tryAsignEnum(Interface.BackgroundDisplayType.EditorWithMovie, UserIDs::Interface_BackgroundDisplayType_EditorWithMovie);
+					tryAsignEnum(Interface.BackgroundDisplayType.Playtest, UserIDs::Interface_BackgroundDisplayType_Playtest);
+					tryAsignEnum(Interface.BackgroundDisplayType.PlaytestWithMovie, UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie);
+				}
 			}
 
 			if (const Value* gridJson = Find(*interfaceJson, UserIDs::Interface_PlacementGrid))
@@ -1286,7 +1348,7 @@ namespace Comfy::Studio
 								const auto& targetData = syncPreset.Targets[i];
 
 								writer.ObjectBegin();
-								writer.MemberI32(UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType, static_cast<i32>(targetData.Type));
+								writer.MemberEnumStr(UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType, targetData.Type, UserIDs::ButtonTypeEnumNames);
 
 								writer.MemberObjectBegin(UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties);
 								writer.MemberF32(IDs::TargetProperties_PositionX, targetData.Properties.Position.x);
@@ -1312,7 +1374,7 @@ namespace Comfy::Studio
 					{
 						writer.ObjectBegin();
 
-						writer.MemberI32(UserIDs::TargetPreset_SequencePresets_GuiButtonType, static_cast<i32>(sequencePreset.ButtonType));
+						writer.MemberEnumStr(UserIDs::TargetPreset_SequencePresets_GuiButtonType, sequencePreset.ButtonType, UserIDs::SequencePresetButtonTypeEnumNames);
 						writer.MemberStr(UserIDs::TargetPreset_SequencePresets_Name, sequencePreset.Name);
 
 						if (sequencePreset.Type == SequencePresetType::Circle)
@@ -1359,7 +1421,7 @@ namespace Comfy::Studio
 			{
 				writer.MemberBool(UserIDs::BPMCalculator_AutoResetEnabled, BPMCalculator.AutoResetEnabled);
 				writer.MemberBool(UserIDs::BPMCalculator_ApplyToTempoMap, BPMCalculator.ApplyToTempoMap);
-				writer.MemberI32(UserIDs::BPMCalculator_TapSoundType, static_cast<i32>(BPMCalculator.TapSoundType));
+				writer.MemberEnumStr(UserIDs::BPMCalculator_TapSoundType, BPMCalculator.TapSoundType, UserIDs::BPMTapSoundTypeEnumNames);
 			}
 			writer.MemberObjectEnd();
 
@@ -1374,16 +1436,14 @@ namespace Comfy::Studio
 
 			writer.MemberObjectBegin(UserIDs::Interface);
 			{
-				// TODO: Json enum string helper functions
-				writer.MemberI32(UserIDs::Interface_Theme, static_cast<i32>(Interface.Theme));
+				writer.MemberEnumStr(UserIDs::Interface_Theme, Interface.Theme, UserIDs::GameThemeEnumNames);
 
 				writer.MemberObjectBegin(UserIDs::Interface_BackgroundDisplayType);
 				{
-					// TODO: Json enum string helper functions
-					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_Editor, static_cast<i32>(Interface.BackgroundDisplayType.Editor));
-					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_EditorWithMovie, static_cast<i32>(Interface.BackgroundDisplayType.EditorWithMovie));
-					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_Playtest, static_cast<i32>(Interface.BackgroundDisplayType.Playtest));
-					writer.MemberI32(UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie, static_cast<i32>(Interface.BackgroundDisplayType.PlaytestWithMovie));
+					writer.MemberEnumStr(UserIDs::Interface_BackgroundDisplayType_Editor, Interface.BackgroundDisplayType.Editor, UserIDs::ChartBackgroundDisplayTypeEnumNames);
+					writer.MemberEnumStr(UserIDs::Interface_BackgroundDisplayType_EditorWithMovie, Interface.BackgroundDisplayType.EditorWithMovie, UserIDs::ChartBackgroundDisplayTypeEnumNames);
+					writer.MemberEnumStr(UserIDs::Interface_BackgroundDisplayType_Playtest, Interface.BackgroundDisplayType.Playtest, UserIDs::ChartBackgroundDisplayTypeEnumNames);
+					writer.MemberEnumStr(UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie, Interface.BackgroundDisplayType.PlaytestWithMovie, UserIDs::ChartBackgroundDisplayTypeEnumNames);
 				}
 				writer.MemberObjectEnd();
 
