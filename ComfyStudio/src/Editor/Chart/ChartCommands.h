@@ -729,7 +729,7 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		RemoveTempoChange(Chart& chart, BeatTick tick)
-			: chart(chart), oldValue(chart.TempoMap.FindTempoChangeAtTick(tick))
+			: chart(chart), oldValue(chart.TempoMap.FindRawViewAtTick(tick))
 		{
 			assert(oldValue.Tick == tick);
 		}
@@ -763,7 +763,7 @@ namespace Comfy::Studio::Editor
 	{
 	public:
 		UpdateTempoChange(Chart& chart, TempoChange newValue)
-			: chart(chart), newValue(newValue), oldValue(chart.TempoMap.FindTempoChangeAtTick(newValue.Tick))
+			: chart(chart), newValue(newValue), oldValue(chart.TempoMap.FindRawViewAtTick(newValue.Tick))
 		{
 			assert(newValue.Tick == oldValue.Tick);
 		}
@@ -804,7 +804,7 @@ namespace Comfy::Studio::Editor
 		ChangeTempoChangeTick(Chart& chart, i32 tempoChangeIndex, BeatTick newTick)
 			: chart(chart), tempoChangeIndex(tempoChangeIndex), newTick(newTick)
 		{
-			oldTick = chart.TempoMap.GetTempoChangeAt(tempoChangeIndex).Tick;
+			oldTick = chart.TempoMap.GetRawViewAt(tempoChangeIndex).Tick;
 		}
 
 	public:

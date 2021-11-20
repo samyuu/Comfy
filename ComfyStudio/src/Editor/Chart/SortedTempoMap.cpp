@@ -5,13 +5,13 @@ namespace Comfy::Studio::Editor
 {
 	namespace
 	{
-		constexpr f64 GetF64FlyingTimeFactorAdjustedBPM(Tempo tempo, FlyingTimeFactor flyingTime, bool applyFlyingTimeFactor)
+		constexpr f64 GetF64FlyingTimeFactorAdjustedBPM(f64 tempoBPM, FlyingTimeFactor flyingTime, bool applyFlyingTimeFactor)
 		{
-			assert(flyingTime.Factor > 0.0f);
+			assert(flyingTime.Factor > 0.0f && tempoBPM > 0.0f);
 
 			return (applyFlyingTimeFactor && flyingTime.Factor != 0.0f) ?
-				static_cast<f64>(tempo.BeatsPerMinute) * static_cast<f64>(flyingTime.Factor) :
-				static_cast<f64>(tempo.BeatsPerMinute);
+				tempoBPM * static_cast<f64>(flyingTime.Factor) :
+				tempoBPM;
 		}
 	}
 
@@ -105,51 +105,29 @@ namespace Comfy::Studio::Editor
 
 	void TempoMapAccelerationStructure::Rebuild(const SortedTempoMap& tempoMap)
 	{
-		assert(tempoMap.TempoChangeCount() > 0);
+		assert(tempoMap.Count() > 0);
+		tickTimes.resize(tempoMap.GetRawView().back().Tick.Ticks() + 1);
 
-		const auto& firstTempoChange = tempoMap.GetTempoChangeAt(0);
-		const auto& lastTempoChange = tempoMap.GetTempoChangeAt(tempoMap.TempoChangeCount() - 1);
-		const size_t timeCount = lastTempoChange.Tick.Ticks() + 1;
-
-		tickTimes.resize(timeCount);
+		f64 lastEndTime = 0.0;
+		tempoMap.ForEachNewOrInherited([&](const NewOrInheritedTempoChange& tempoChange)
 		{
-			firstTempoBPM = GetF64FlyingTimeFactorAdjustedBPM(firstTempoChange.Tempo.BeatsPerMinute, firstTempoChange.FlyingTime, applyFlyingTimeFactor);
+			const f64 bpm = GetF64FlyingTimeFactorAdjustedBPM(tempoChange.Tempo.BeatsPerMinute, tempoChange.FlyingTime, applyFlyingTimeFactor);
+			const f64 beatDuration = (60.0 / bpm);
+			const f64 tickDuration = (beatDuration / BeatTick::TicksPerBeat);
 
-			f64 lastEndTime = 0.0;
-			f64 lastBPM = firstTempoBPM;
-			FlyingTimeFactor lastFlyingTime = firstTempoChange.FlyingTime;
+			const bool isSingleOrLastTempo = (tempoMap.Count() == 1) || (tempoChange.IndexWithinTempoMap == (tempoMap.Count() - 1));
+			const size_t timesCount = (isSingleOrLastTempo) ? (tickTimes.size()) : (tempoMap.GetRawViewAt(tempoChange.IndexWithinTempoMap + 1).Tick.Ticks());
 
-			const size_t tempoChangeCount = tempoMap.TempoChangeCount();
-			for (size_t tempoIndex = 0; tempoIndex < tempoChangeCount; tempoIndex++)
-			{
-				const auto& tempoChange = tempoMap.GetTempoChangeAt(tempoIndex);
+			for (size_t i = 0, t = tempoChange.Tick.Ticks(); t < timesCount; t++)
+				tickTimes[t] = TimeSpan::FromSeconds((tickDuration * i++) + lastEndTime);
 
-				if (!(tempoChange.Flags & TempoChangeFlags_InheritFlyingTime))
-				{
-					lastFlyingTime = tempoChange.FlyingTime;
+			if (tempoMap.Count() > 1)
+				lastEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;
 
-					// BUG: Also need to calculate readjusted flying time if new value is specified
-					lastBPM = GetF64FlyingTimeFactorAdjustedBPM(Tempo(lastBPM), lastFlyingTime, applyFlyingTimeFactor);
-				}
-
-				if (!(tempoChange.Flags & TempoChangeFlags_InheritTempo))
-					lastBPM = GetF64FlyingTimeFactorAdjustedBPM(tempoChange.Tempo, lastFlyingTime, applyFlyingTimeFactor);
-
-				const f64 beatDuration = (60.0 / lastBPM);
-				const f64 tickDuration = (beatDuration / BeatTick::TicksPerBeat);
-
-				const bool isSingleOrLastTempo = (tempoChangeCount == 1) || (tempoIndex == (tempoChangeCount - 1));
-				const size_t timesCount = (isSingleOrLastTempo) ? (tickTimes.size()) : (tempoMap.GetTempoChangeAt(tempoIndex + 1).Tick.Ticks());
-
-				for (size_t i = 0, t = tempoChange.Tick.Ticks(); t < timesCount; t++)
-					tickTimes[t] = TimeSpan::FromSeconds((tickDuration * i++) + lastEndTime);
-
-				if (tempoChangeCount > 1)
-					lastEndTime = tickTimes[timesCount - 1].TotalSeconds() + tickDuration;
-			}
-
-			lastTempoBPM = lastBPM;
-		}
+			firstTempoBPM = (tempoChange.IndexWithinTempoMap == 0) ? bpm : firstTempoBPM;
+			lastTempoBPM = bpm;
+			return false;
+		});
 	}
 
 	SortedTempoMap::SortedTempoMap()
@@ -163,7 +141,7 @@ namespace Comfy::Studio::Editor
 	void SortedTempoMap::SetTempoChange(TempoChange tempoChangeToInsertOrUpdate)
 	{
 		assert(tempoChangeToInsertOrUpdate.Tick.Ticks() >= 0);
-		assert(tempoChangeToInsertOrUpdate.Signature.Numerator > 0 && tempoChangeToInsertOrUpdate.Signature.Denominator > 0);
+		if (tempoChangeToInsertOrUpdate.Signature.has_value()) assert(tempoChangeToInsertOrUpdate.Signature->Numerator > 0 && tempoChangeToInsertOrUpdate.Signature->Denominator > 0);
 
 		const auto insertionIndex = InternalFindSortedInsertionIndex(tempoChangeToInsertOrUpdate.Tick);
 		if (InBounds(insertionIndex, tempoChanges))
@@ -204,15 +182,14 @@ namespace Comfy::Studio::Editor
 		assert(std::is_sorted(tempoChanges.begin(), tempoChanges.end(), [](const auto& a, const auto& b) { return a.Tick < b.Tick; }));
 	}
 
-	const TempoChange& SortedTempoMap::GetTempoChangeAt(size_t index) const
+	const TempoChange& SortedTempoMap::GetRawViewAt(size_t index) const
 	{
 		return tempoChanges.at(index);
 	}
 
-	const TempoChange& SortedTempoMap::FindTempoChangeAtTick(BeatTick tick) const
+	const TempoChange& SortedTempoMap::FindRawViewAtTick(BeatTick tick) const
 	{
 		assert(!tempoChanges.empty());
-
 		if (tempoChanges.size() == 1)
 			return tempoChanges.front();
 
@@ -228,21 +205,74 @@ namespace Comfy::Studio::Editor
 		return tempoChanges.back();
 	}
 
-	void SortedTempoMap::RebuildAccelerationStructure()
+	i32 SortedTempoMap::RawViewToIndex(const TempoChange* tempoChange) const
 	{
-		accelerationStructure.Rebuild(*this);
-		accelerationStructureFlyingTimeFactor.Rebuild(*this);
+		if (tempoChange == nullptr)
+			return -1;
+
+		if (tempoChange >= &tempoChanges[0] && tempoChange <= &tempoChanges[Count() - 1])
+			return static_cast<i32>(std::distance(&tempoChanges[0], tempoChange));
+
+		// NOTE: Accidentally passed a pointer to a stack variable..?
+		assert(false);
+		return -1;
 	}
 
-	size_t SortedTempoMap::TempoChangeCount() const
+	NewOrInheritedTempoChange SortedTempoMap::FindNewOrInheritedAt(size_t index) const
+	{
+		NewOrInheritedTempoChange result = {};
+		if (index >= tempoChanges.size())
+			return result;
+
+		ForEachNewOrInherited([&](const NewOrInheritedTempoChange& newOrInherited)
+		{
+			if (newOrInherited.IndexWithinTempoMap == index)
+			{
+				result = newOrInherited;
+				return true;
+			}
+
+			return false;
+		});
+
+		assert(result.IndexWithinTempoMap == index);
+		return result;
+	}
+
+	NewOrInheritedTempoChange SortedTempoMap::FindNewOrInheritedAtTick(BeatTick tick) const
+	{
+		return FindNewOrInheritedAt(RawViewToIndex(&FindRawViewAtTick(tick)));
+	}
+
+	const TempoChange* SortedTempoMap::FindNextTempoChangeWithValidSignatureAt(size_t startIndex) const
+	{
+		if (startIndex == 0)
+			return &tempoChanges[startIndex];
+
+		for (size_t i = startIndex; i < tempoChanges.size(); i++)
+		{
+			if (tempoChanges[i].Signature.has_value())
+				return &tempoChanges[i];
+		}
+
+		return nullptr;
+	}
+
+	size_t SortedTempoMap::Count() const
 	{
 		return tempoChanges.size();
 	}
 
-	void SortedTempoMap::Clear()
+	void SortedTempoMap::Reset()
 	{
 		tempoChanges.clear();
 		tempoChanges.push_back(TempoChange(BeatTick(0), TempoChange::DefaultTempo, TempoChange::DefaultSignature));
+	}
+
+	void SortedTempoMap::RebuildAccelerationStructure()
+	{
+		accelerationStructure.Rebuild(*this);
+		accelerationStructureFlyingTimeFactor.Rebuild(*this);
 	}
 
 	TimeSpan SortedTempoMap::TickToTime(BeatTick tick) const
@@ -280,8 +310,8 @@ namespace Comfy::Studio::Editor
 
 		for (auto& tempoChange : tempoChanges)
 		{
-			assert(tempoChange.Tempo.BeatsPerMinute > 0.0f);
-			assert(tempoChange.Signature.Numerator > 0 && tempoChange.Signature.Denominator > 0);
+			if (tempoChange.Tempo.has_value()) assert(tempoChange.Tempo->BeatsPerMinute > 0.0f);
+			if (tempoChange.Signature.has_value()) assert(tempoChange.Signature->Numerator > 0 && tempoChange.Signature->Denominator > 0);
 		}
 
 		std::sort(tempoChanges.begin(), tempoChanges.end(), [](const auto& a, const auto& b) { return a.Tick < b.Tick; });

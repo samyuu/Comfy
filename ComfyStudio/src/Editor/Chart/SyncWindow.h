@@ -19,9 +19,5 @@ namespace Comfy::Studio::Editor
 		Undo::UndoManager& undoManager;
 
 		BeatTick thisFrameCursorTick, lastFrameCursorTick;
-
-		Tempo newTempo = TempoChange::DefaultTempo;
-		FlyingTimeFactor newFlyingTime = TempoChange::DefaultFlyingTimeFactor;
-		TimeSignature newSignature = TempoChange::DefaultSignature;
 	};
 }

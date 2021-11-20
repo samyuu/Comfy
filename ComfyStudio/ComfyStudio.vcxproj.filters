@@ -272,9 +272,6 @@
     <ClInclude Include="src\Editor\Chart\SyncWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Editor\Chart\TempoChange.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Editor\Common\CameraController2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -292,7 +292,6 @@
     <ClInclude Include="src\Editor\Chart\SyncWindow.h" />
     <ClInclude Include="src\Editor\Chart\SortedTargetList.h" />
     <ClInclude Include="src\Editor\Chart\RenderWindow\TargetRenderWindow.h" />
-    <ClInclude Include="src\Editor\Chart\TempoChange.h" />
     <ClInclude Include="src\Editor\Chart\SortedTempoMap.h" />
     <ClInclude Include="src\Editor\Chart\Timeline\TargetTimeline.h" />
     <ClInclude Include="src\Editor\Chart\BeatTick.h" />

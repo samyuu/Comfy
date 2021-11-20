@@ -7,6 +7,25 @@
 
 namespace Comfy::Studio::Editor
 {
+	namespace
+	{
+		std::array<Tempo, 2> FindMinMaxTempo(const SortedTempoMap& tempoMap)
+		{
+			const f32 initialBPM = tempoMap.GetRawViewAt(0).Tempo.value_or(TempoChange::DefaultTempo).BeatsPerMinute;
+			f32 minBPM = initialBPM, maxBPM = initialBPM;
+
+			for (const auto& tempoChange : tempoMap.GetRawView())
+			{
+				if (!tempoChange.Tempo.has_value())
+					continue;
+				if (tempoChange.Tempo->BeatsPerMinute < minBPM) minBPM = tempoChange.Tempo->BeatsPerMinute;
+				if (tempoChange.Tempo->BeatsPerMinute > maxBPM) maxBPM = tempoChange.Tempo->BeatsPerMinute;
+			}
+
+			return { Tempo(minBPM), Tempo(maxBPM) };
+		}
+	}
+
 	SyncWindow::SyncWindow(Undo::UndoManager& undoManager) : undoManager(undoManager)
 	{
 	}
@@ -24,44 +43,6 @@ namespace Comfy::Studio::Editor
 			if (GuiProperty::Input("Song Offset##SyncWindow", songOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
 				undoManager.Execute<ChangeSongOffset>(chart, TimeSpan::FromMilliseconds(songOffsetMS));
 
-			GuiProperty::PropertyFuncValueFunc([&]
-			{
-				Gui::TextUnformatted("Move by Beat");
-				return false;
-			}, [&]
-			{
-				const auto& style = Gui::GetStyle();
-				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
-				const f32 buttonWidth = (Gui::GetContentRegionAvail().x - (style.ItemSpacing.x + style.ItemInnerSpacing.x * 2.0f) - 1.0f) / 4.0f;
-
-				auto beatOffsetButton = [&](const char* label, const f64 factor)
-				{
-					if (Gui::Button(label, vec2(buttonWidth, 0.0f)))
-					{
-						const auto firstTempo = chart.TempoMap.FindTempoChangeAtTick(BeatTick::Zero()).Tempo;
-						const auto beatDuration = TimeSpan::FromSeconds(60.0 / firstTempo.BeatsPerMinute);
-
-						undoManager.Execute<ChangeSongOffset>(chart, TimeSpan::FromMilliseconds(songOffsetMS) + (beatDuration * factor));
-					}
-				};
-
-				beatOffsetButton("+1.0", +1.0);
-				Gui::SameLine();
-				beatOffsetButton("+0.5", +0.5);
-				Gui::SameLine();
-				beatOffsetButton("-0.5", -0.5);
-				Gui::SameLine();
-				beatOffsetButton("-1.0", -1.0);
-
-				Gui::PopStyleVar();
-				return false;
-			});
-
-#if 0
-			f32 movieOffsetMS = static_cast<f32>(chart.MovieOffset.TotalMilliseconds());
-			if (GuiProperty::Input("Movie Offset##SyncWindow", movieOffsetMS, offsetDragSpeed, {}, "%.2f ms"))
-				undoManager.Execute<ChangeMovieOffset>(chart, TimeSpan::FromMilliseconds(movieOffsetMS));
-#else
 			// HACK: Manual GuiProperty::Detail accesses here to be able to change ValueFunc only text color
 			{
 				constexpr std::string_view movieOffsetLabel = "Movie Offset##SyncWindow";
@@ -84,7 +65,39 @@ namespace Comfy::Studio::Editor
 
 				Gui::PopID();
 			}
-#endif
+
+			GuiProperty::PropertyFuncValueFunc([&]
+			{
+				Gui::TextUnformatted("Move by Beat");
+				return false;
+			}, [&]
+			{
+				const auto& style = Gui::GetStyle();
+				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
+				const f32 buttonWidth = (Gui::GetContentRegionAvail().x - (style.ItemSpacing.x + style.ItemInnerSpacing.x * 2.0f) - 1.0f) / 4.0f;
+
+				auto beatOffsetButton = [&](const char* label, const f64 factor)
+				{
+					if (Gui::Button(label, vec2(buttonWidth, 0.0f)))
+					{
+						const Tempo firstTempo = chart.TempoMap.FindNewOrInheritedAt(0).Tempo;
+						const TimeSpan beatDuration = TimeSpan::FromSeconds(60.0 / firstTempo.BeatsPerMinute);
+
+						undoManager.Execute<ChangeSongOffset>(chart, chart.SongOffset + (beatDuration * factor));
+					}
+				};
+
+				beatOffsetButton("+1.0", +1.0);
+				Gui::SameLine();
+				beatOffsetButton("+0.5", +0.5);
+				Gui::SameLine();
+				beatOffsetButton("-0.5", -0.5);
+				Gui::SameLine();
+				beatOffsetButton("-1.0", -1.0);
+
+				Gui::PopStyleVar();
+				return false;
+			});
 
 			auto duration = chart.DurationOrDefault();
 			if (GuiProperty::PropertyFuncValueFunc([&]
@@ -119,21 +132,20 @@ namespace Comfy::Studio::Editor
 		lastFrameCursorTick = thisFrameCursorTick;
 		thisFrameCursorTick = timeline.RoundTickToGrid(timeline.GetCursorTick());
 
-		const auto tempoChangeAtCursor = chart.TempoMap.FindTempoChangeAtTick(thisFrameCursorTick);
-		const auto cursorSitsOnTempoChange = (tempoChangeAtCursor.Tick == thisFrameCursorTick);
+		NewOrInheritedTempoChange newOrInheritedTempoChangeAtCursor = chart.TempoMap.FindNewOrInheritedAtTick(thisFrameCursorTick);
+		const TempoChange& tempoChangeAtCursor = chart.TempoMap.GetRawViewAt(newOrInheritedTempoChangeAtCursor.IndexWithinTempoMap);
 
-		auto tempoComparison = [](const auto& a, const auto& b) { return (a.Tempo.BeatsPerMinute < b.Tempo.BeatsPerMinute); };
-		const auto minBPM = (chart.TempoMap.TempoChangeCount() < 1) ? 0.0f : std::min_element(chart.TempoMap.begin(), chart.TempoMap.end(), tempoComparison)->Tempo.BeatsPerMinute;
-		const auto maxBPM = (chart.TempoMap.TempoChangeCount() < 1) ? 0.0f : std::max_element(chart.TempoMap.begin(), chart.TempoMap.end(), tempoComparison)->Tempo.BeatsPerMinute;
+		const bool cursorSitsOnTempoChange = (tempoChangeAtCursor.Tick == thisFrameCursorTick);
 
+		const auto[minTempo, maxTempo] = FindMinMaxTempo(chart.TempoMap);
 		char rhythmNodeValueBuffer[64];
-		const auto rhythmNodeValueView = std::string_view(rhythmNodeValueBuffer, (minBPM == maxBPM) ?
-			sprintf_s(rhythmNodeValueBuffer, "(%.2f BPM)", minBPM) :
-			sprintf_s(rhythmNodeValueBuffer, "(%.2f - %.2f BPM)", minBPM, maxBPM));
+		const auto rhythmNodeValueView = std::string_view(rhythmNodeValueBuffer, (minTempo.BeatsPerMinute == maxTempo.BeatsPerMinute) ?
+			sprintf_s(rhythmNodeValueBuffer, "(%.2f BPM)", minTempo.BeatsPerMinute) :
+			sprintf_s(rhythmNodeValueBuffer, "(%.2f - %.2f BPM)", minTempo.BeatsPerMinute, maxTempo.BeatsPerMinute));
 
 		GuiProperty::TreeNode("Chart Rhythm", rhythmNodeValueView, ImGuiTreeNodeFlags_DefaultOpen, [&]
 		{
-			auto executeAddOrUpdate = [&]()
+			auto executeAddOrUpdate = [&](std::optional<Tempo> newTempo, std::optional<FlyingTimeFactor> newFlyingTime, std::optional<TimeSignature> newSignature)
 			{
 				// HACK: Moving the cursor on the timeline (= losing focus on the same frame) while having a textbox focused
 				//		 would otherwise incorrectly insert an additional tempo change at the new cursor location
@@ -141,31 +153,28 @@ namespace Comfy::Studio::Editor
 					return;
 
 				if (cursorSitsOnTempoChange)
+				{
+					if (!newTempo.has_value()) newTempo = tempoChangeAtCursor.Tempo;
+					if (!newFlyingTime.has_value()) newFlyingTime = tempoChangeAtCursor.FlyingTime;
+					if (!newSignature.has_value()) newSignature = tempoChangeAtCursor.Signature;
 					undoManager.Execute<UpdateTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newFlyingTime, newSignature));
+				}
 				else
+				{
 					undoManager.Execute<AddTempoChange>(chart, TempoChange(thisFrameCursorTick, newTempo, newFlyingTime, newSignature));
+				}
 			};
 
-			newTempo = tempoChangeAtCursor.Tempo;
-			newFlyingTime = tempoChangeAtCursor.FlyingTime;
-			newSignature = tempoChangeAtCursor.Signature;
+			if (GuiProperty::Input("Tempo##SyncWindow", newOrInheritedTempoChangeAtCursor.Tempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+				executeAddOrUpdate(newOrInheritedTempoChangeAtCursor.Tempo, {}, {});
 
-			if (GuiProperty::Input("Tempo##SyncWindow", newTempo.BeatsPerMinute, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
-				executeAddOrUpdate();
-
-			f32 flyingTimeFactor = ToPercent(newFlyingTime.Factor);
+			f32 flyingTimeFactor = ToPercent(newOrInheritedTempoChangeAtCursor.FlyingTime.Factor);
 			if (GuiProperty::Input("Flying Time", flyingTimeFactor, 1.0f, ToPercent(vec2(FlyingTimeFactor::Min, FlyingTimeFactor::Max)), "%.2f %%"))
-			{
-				newFlyingTime.Factor = FromPercent(flyingTimeFactor);
-				executeAddOrUpdate();
-			}
+				executeAddOrUpdate({}, FlyingTimeFactor(FromPercent(flyingTimeFactor)), {});
 
-			ivec2 sig = { newSignature.Numerator, newSignature.Denominator };
+			ivec2 sig = { newOrInheritedTempoChangeAtCursor.Signature.Numerator, newOrInheritedTempoChangeAtCursor.Signature.Denominator };
 			if (GuiProperty::InputFraction("Time Signature", sig, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
-			{
-				newSignature = TimeSignature(sig[0], sig[1]);
-				executeAddOrUpdate();
-			}
+				executeAddOrUpdate({}, {}, TimeSignature(sig[0], sig[1]));
 
 			GuiProperty::PropertyLabelValueFunc("", [&]
 			{
@@ -173,16 +182,10 @@ namespace Comfy::Studio::Editor
 				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
 				const f32 buttonWidth = (Gui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2.0f;
 
-				if (cursorSitsOnTempoChange)
-				{
-					if (Gui::Button("Update##SyncWindow", vec2(buttonWidth, 0.0f)))
-						executeAddOrUpdate();
-				}
-				else
-				{
-					if (Gui::Button("Insert##SyncWindow", vec2(buttonWidth, 0.0f)))
-						executeAddOrUpdate();
-				}
+				// TODO: What exactly should happen here (?)
+				if (Gui::Button(cursorSitsOnTempoChange ? "Update##SyncWindow" : "Insert##SyncWindow", vec2(buttonWidth, 0.0f)))
+					executeAddOrUpdate(newOrInheritedTempoChangeAtCursor.Tempo, newOrInheritedTempoChangeAtCursor.FlyingTime, newOrInheritedTempoChangeAtCursor.Signature);
+
 				Gui::SameLine();
 
 				if (Gui::Button("Remove##SyncWindow", vec2(buttonWidth, 0.0f)))

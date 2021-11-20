@@ -62,7 +62,7 @@ namespace Comfy::Studio::Editor
 				if (matchingTempoChange.Tick == BeatTick(pjeSigChange.Index))
 					matchingTempoChange.Signature = signature;
 				else
-					newTempoChanges.emplace_back(BeatTick(pjeSigChange.Index), matchingTempoChange.Tempo, signature);
+					newTempoChanges.emplace_back(TempoChange(BeatTick(pjeSigChange.Index), matchingTempoChange.Tempo, signature));
 			}
 
 			std::vector<TimelineTarget> newTargets;
@@ -83,10 +83,10 @@ namespace Comfy::Studio::Editor
 			}
 
 			chart->Targets = std::move(newTargets);
-			
+
 			chart->TempoMap = std::move(newTempoChanges);
 			chart->TempoMap.RebuildAccelerationStructure();
-			
+
 			chart->Duration = chart->TempoMap.TickToTime(BeatTick(songEnd));
 
 			return chart;
@@ -353,17 +353,24 @@ namespace Comfy::Studio::Editor
 			songTitle = {};
 			std::memcpy(songTitle.data(), sourceSongTitle.data(), Min(sourceSongTitle.size(), songTitle.size() - 1));
 
-			bpmChanges.reserve(sourceChart.TempoMap.TempoChangeCount());
-			sigChanges.reserve(sourceChart.TempoMap.TempoChangeCount());
-			for (const auto& sourceTempoChange : sourceChart.TempoMap)
+			bpmChanges.reserve(sourceChart.TempoMap.Count());
+			sigChanges.reserve(sourceChart.TempoMap.Count());
+			for (const auto& sourceTempoChange : sourceChart.TempoMap.GetRawView())
 			{
-				auto& newBPMChange = bpmChanges.emplace_back();
-				auto& newSigChange = sigChanges.emplace_back();
-				newBPMChange.Index = sourceTempoChange.Tick;
-				newBPMChange.BPM = sourceTempoChange.Tempo.BeatsPerMinute;
-				newSigChange.Index = sourceTempoChange.Tick;
-				newSigChange.Numerator = sourceTempoChange.Signature.Numerator;
-				newSigChange.Denominator = sourceTempoChange.Signature.Denominator;
+				const bool isFirst = (&sourceTempoChange == &sourceChart.TempoMap.GetRawViewAt(0));
+				if (isFirst || sourceTempoChange.Tempo.has_value())
+				{
+					auto& newBPMChange = bpmChanges.emplace_back();
+					newBPMChange.Index = sourceTempoChange.Tick;
+					newBPMChange.BPM = sourceTempoChange.Tempo.value_or(TempoChange::DefaultTempo).BeatsPerMinute;
+				}
+				if (isFirst || sourceTempoChange.Signature.has_value())
+				{
+					auto& newSigChange = sigChanges.emplace_back();
+					newSigChange.Index = sourceTempoChange.Tick;
+					newSigChange.Numerator = sourceTempoChange.Signature.value_or(TempoChange::DefaultSignature).Numerator;
+					newSigChange.Denominator = sourceTempoChange.Signature.value_or(TempoChange::DefaultSignature).Denominator;
+				}
 			}
 
 			targets.reserve(sourceChart.Targets.size());

@@ -12,7 +12,7 @@ namespace Comfy::Studio::Editor
 	namespace ChartFileFormat
 	{
 		// NOTE: Increment major version for breaking changes and minor version for backwards and forward compatible additions
-		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 7, };
+		enum class Version : u16 { CurrentMajor = 1, CurrentMinor = 8, };
 		enum class Endianness : u16 { Little = 'L', Big = 'B' };
 		enum class PointerSize : u16 { Bit32 = 32, Bit64 = 64 };
 		enum class HeaderFlags : u32 { None = 0xFFFFFFFF };
@@ -120,15 +120,66 @@ namespace Comfy::Studio::Editor
 			std::string_view Name;
 			size_t ByteSize;
 			void(*ReadFunc)(IO::StreamReader&, TempoChange&);
-			void(*WriteFunc)(IO::StreamWriter&, const TempoChange&);
+			void(*WriteFunc)(IO::StreamWriter&, const TempoChange&, const NewOrInheritedTempoChange&);
 		};
 
-		constexpr std::array<TempoField, 4> TempoMapFields =
+		union TempoFieldFlags
 		{
-			TempoField { "Tick", sizeof(i32), [](IO::StreamReader& r, TempoChange& t) { t.Tick = BeatTick(r.ReadI32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteI32(t.Tick.Ticks()); } },
-			TempoField { "Tempo", sizeof(f32), [](IO::StreamReader& r, TempoChange& t) { t.Tempo = Tempo(r.ReadF32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteF32(t.Tempo.BeatsPerMinute); } },
-			TempoField { "Flying Time Factor", sizeof(f32), [](IO::StreamReader& r, TempoChange& t) { t.FlyingTime = FlyingTimeFactor(r.ReadF32()); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteF32(t.FlyingTime.Factor); } },
-			TempoField { "Time Signature", sizeof(i16) * 2, [](IO::StreamReader& r, TempoChange& t) { t.Signature.Numerator = r.ReadI16(); t.Signature.Denominator = r.ReadI16(); }, [](IO::StreamWriter& w, const TempoChange& t) { w.WriteI16(t.Signature.Numerator); w.WriteI16(t.Signature.Denominator); } },
+			// NOTE: Since these are written to the file directly as is, the order and layout should never be changed.
+			//		 U32 might be a bit overkill but charts typically only have very few tempo changes so the overhead should be minimal
+			//		 and new data could potentially be tagged on here in the future as well if ever needed
+			struct
+			{
+				u32 HasTempo : 1;
+				u32 HasFlyingTime : 1;
+				u32 HasSignature : 1;
+			};
+			u32 RawU32;
+		};
+
+		static_assert(sizeof(TempoFieldFlags) == sizeof(u32));
+
+		constexpr std::array<TempoField, 5> TempoMapFields =
+		{
+			TempoField { "Tick", sizeof(i32),
+			[](IO::StreamReader& r, TempoChange& t) { t.Tick = BeatTick(r.ReadI32()); },
+			[](IO::StreamWriter& w, const TempoChange& raw, const NewOrInheritedTempoChange& t) { w.WriteI32(t.Tick.Ticks()); } },
+
+			TempoField { "Tempo", sizeof(f32),
+			[](IO::StreamReader& r, TempoChange& t) { t.Tempo = Tempo(r.ReadF32()); },
+			[](IO::StreamWriter& w, const TempoChange& raw, const NewOrInheritedTempoChange& t) { w.WriteF32(t.Tempo.BeatsPerMinute); } },
+
+			TempoField { "Flying Time Factor", sizeof(f32),
+			[](IO::StreamReader& r, TempoChange& t) { t.FlyingTime = FlyingTimeFactor(r.ReadF32()); },
+			[](IO::StreamWriter& w, const TempoChange& raw, const NewOrInheritedTempoChange& t) { w.WriteF32(t.FlyingTime.Factor); } },
+
+			TempoField { "Time Signature", sizeof(i16) * 2,
+			[](IO::StreamReader& r, TempoChange& t) { t.Signature.emplace(); t.Signature->Numerator = r.ReadI16(); t.Signature->Denominator = r.ReadI16(); },
+			[](IO::StreamWriter& w, const TempoChange& raw, const NewOrInheritedTempoChange& t) { w.WriteI16(t.Signature.Numerator); w.WriteI16(t.Signature.Denominator); } },
+
+			// NOTE: These *always* have to be stored last so that the previously read optional values can be updated.
+			//		 Doing it this way makes for better forward/backwards compatibility as not defining this "Flags" field (as is the case for old files)
+			//		 automatically means "all std::optionals are set" (as is the desired behavior) and old Comfy Studio versions 
+			//		 can still read the newer file versions because the NewOrInheritedTempoChange values are also written out
+			TempoField { "Flags", sizeof(u32),
+			[](IO::StreamReader& r, TempoChange& t)
+			{
+				TempoFieldFlags flags = {};
+				flags.RawU32 = r.ReadU32();
+
+				if (!flags.HasTempo) t.Tempo.reset();
+				if (!flags.HasFlyingTime) t.FlyingTime.reset();
+				if (!flags.HasSignature) t.Signature.reset();
+			},
+			[](IO::StreamWriter& w, const TempoChange& raw, const NewOrInheritedTempoChange& t)
+			{
+				TempoFieldFlags flags = {};
+				flags.HasTempo = raw.Tempo.has_value();
+				flags.HasFlyingTime = raw.FlyingTime.has_value();
+				flags.HasSignature = raw.Signature.has_value();
+
+				w.WriteU32(flags.RawU32);
+			} },
 		};
 	}
 
@@ -175,13 +226,7 @@ namespace Comfy::Studio::Editor
 		outChart->Properties.SongPreview.Duration = chart.Time.SongPreviewDuration;
 
 		outChart->Targets = std::move(chart.Targets);
-		
-		for (auto& tempoChange : chart.TempoMap)
-		{
-			if (tempoChange.FlyingTime.Factor <= 0.0f)
-				tempoChange.FlyingTime = 1.0f;
-		}
-		outChart->TempoMap = std::move(chart.TempoMap);
+		outChart->TempoMap = std::move(chart.TempoChanges);
 
 		outChart->Properties.ButtonSound.ButtonID = chart.ButtonSound.ButtonID;
 		outChart->Properties.ButtonSound.SlideID = chart.ButtonSound.SlideID;
@@ -416,7 +461,7 @@ namespace Comfy::Studio::Editor
 										{
 											reader.ReadAt(fieldsOffset, [&](IO::StreamReader& reader)
 											{
-												chart.TempoMap.resize(tempoChangeCount);
+												chart.TempoChanges.resize(tempoChangeCount);
 												for (size_t fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++)
 												{
 													const auto nameID = reader.ReadStrPtrOffsetAware();
@@ -435,7 +480,7 @@ namespace Comfy::Studio::Editor
 																if (nameID == field.Name)
 																{
 																	for (size_t i = 0; i < tempoChangeCount; i++)
-																		field.ReadFunc(reader, chart.TempoMap[i]);
+																		field.ReadFunc(reader, chart.TempoChanges[i]);
 																	break;
 																}
 															}
@@ -649,7 +694,7 @@ namespace Comfy::Studio::Editor
 									writer.WriteStrPtr(SectionIDChartSectionIDTempoMap);
 									writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 									{
-										writer.WriteSize(chart.TempoMap.size());
+										writer.WriteSize(chart.TempoChanges.size());
 										writer.WriteSize(TempoMapFields.size());
 										writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 										{
@@ -657,11 +702,29 @@ namespace Comfy::Studio::Editor
 											{
 												writer.WriteStrPtr(field.Name);
 												writer.WriteSize(field.ByteSize);
-												writer.WriteSize(field.ByteSize * chart.TempoMap.size());
+												writer.WriteSize(field.ByteSize * chart.TempoChanges.size());
 												writer.WriteFuncPtr([&](IO::StreamWriter& writer)
 												{
-													for (const auto& tempoChange : chart.TempoMap)
-														field.WriteFunc(writer, tempoChange);
+													if (!chart.TempoChanges.empty())
+													{
+														// HACK: Basically a reimplementation of SortedTempoMap::ForEachNewOrInherited() just because this operates on a raw vector
+														NewOrInheritedTempoChange newOrInherited = {};
+														newOrInherited.Tempo = chart.TempoChanges[0].Tempo.value_or(TempoChange::DefaultTempo);
+														newOrInherited.FlyingTime = chart.TempoChanges[0].FlyingTime.value_or(TempoChange::DefaultFlyingTimeFactor);
+														newOrInherited.Signature = chart.TempoChanges[0].Signature.value_or(TempoChange::DefaultSignature);
+
+														for (size_t i = 0; i < chart.TempoChanges.size(); i++)
+														{
+															const auto& tempoChange = chart.TempoChanges[i];
+															newOrInherited.Tick = tempoChange.Tick;
+															newOrInherited.Tempo = tempoChange.Tempo.value_or(newOrInherited.Tempo);
+															newOrInherited.FlyingTime = tempoChange.FlyingTime.value_or(newOrInherited.FlyingTime);
+															newOrInherited.Signature = tempoChange.Signature.value_or(newOrInherited.Signature);
+															newOrInherited.IndexWithinTempoMap = i;
+
+															field.WriteFunc(writer, tempoChange, newOrInherited);
+														}
+													}
 													writer.WriteAlignmentPadding(16);
 												});
 												writer.WriteU64(0);
@@ -827,7 +890,7 @@ namespace Comfy::Studio::Editor
 		chart.Time.SongPreviewDuration = sourceChart.Properties.SongPreview.Duration;
 
 		chart.Targets = sourceChart.Targets.GetRawView();
-		chart.TempoMap = sourceChart.TempoMap.GetRawView();
+		chart.TempoChanges = sourceChart.TempoMap.GetRawView();
 
 		switch (sourceChart.Properties.Difficulty.Type)
 		{

@@ -13,7 +13,7 @@ namespace Comfy::Studio::Editor
 	{
 		void CreateTempoMapApproximationFromPVCommands(const DecomposedPVScriptChartData& decomposedScript, SortedTempoMap& outTempoMap, const PVScriptImportWindow::ImportSettings& settings)
 		{
-			outTempoMap.Clear();
+			outTempoMap.Reset();
 			outTempoMap.RebuildAccelerationStructure();
 
 			const f32 flyingTimeFactor = (settings.FlyingTimeFactor <= 0.001f) ? 1.0f : settings.FlyingTimeFactor;

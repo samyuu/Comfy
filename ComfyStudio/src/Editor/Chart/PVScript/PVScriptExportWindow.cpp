@@ -345,7 +345,7 @@ namespace Comfy::Studio::Editor
 				pvDB.reserve(0x800);
 				pvDB.append("\n\n");
 				pvDB.append("# --- COMFY STUDIO MDATA EXPORT: ---\n");
-				pvDB.append(b, sprintf_s(b, "pv_%03d.bpm=%d\n", inParam.OutPVID, static_cast<i32>(inData.Chart->TempoMap.GetTempoChangeAt(0).Tempo.BeatsPerMinute)));
+				pvDB.append(b, sprintf_s(b, "pv_%03d.bpm=%d\n", inParam.OutPVID, static_cast<i32>(inData.Chart->TempoMap.FindNewOrInheritedAt(0).Tempo.BeatsPerMinute)));
 				pvDB.append(b, sprintf_s(b, "pv_%03d.chainslide_failure_name=", inParam.OutPVID)).append(chainSlideFailureName).append("\n");
 				pvDB.append(b, sprintf_s(b, "pv_%03d.chainslide_first_name=", inParam.OutPVID)).append(chainSlideFirstName).append("\n");
 				pvDB.append(b, sprintf_s(b, "pv_%03d.chainslide_sub_name=", inParam.OutPVID)).append(chainSlideSubName).append("\n");
