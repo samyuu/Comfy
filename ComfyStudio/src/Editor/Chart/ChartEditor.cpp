@@ -166,10 +166,10 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::BeginMenu("Import"))
 			{
-				if (Gui::MenuItem("Import UPDC Chart...", nullptr, false, true))
+				if (Gui::MenuItem("Import UPDC Chart...", Input::ToString(GlobalUserData.Input.ChartEditor_ImportUPDCChart).data(), false, true))
 					CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPJEChartFileDialog(); });
 
-				if (Gui::MenuItem("Import PV Script Chart...", nullptr, false, true))
+				if (Gui::MenuItem("Import PV Script Chart...", Input::ToString(GlobalUserData.Input.ChartEditor_ImportPVScriptChart).data(), false, true))
 					CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPVScriptFileDialogThenOpenImportWindow(); });
 
 				Gui::EndMenu();
@@ -177,13 +177,13 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::BeginMenu("Export"))
 			{
-				if (Gui::MenuItem("Export UPDC Chart...", nullptr, false, true))
+				if (Gui::MenuItem("Export UPDC Chart...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportUPDCChart).data(), false, true))
 					OpenSaveExportPJEChartFileDialog();
 
-				if (Gui::MenuItem("Expot PV Script MData...", nullptr, false, true))
+				if (Gui::MenuItem("Expot PV Script MData...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportPVScriptMData).data(), false, true))
 					OpenPVScriptExportWindow();
 
-				if (Gui::MenuItem("Expot PV Script Chart...", nullptr, false, true))
+				if (Gui::MenuItem("Expot PV Script Chart...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportPVScriptChart).data(), false, true))
 					OpenSaveExportSimplePVScriptChartFileDialog();
 
 				Gui::EndMenu();
@@ -800,7 +800,7 @@ namespace Comfy::Studio::Editor
 
 	std::array<std::optional<TimeSpan>, 2> ChartEditor::GetSongAndMovieSourceDurations() const
 	{
-		return 
+		return
 		{
 			(songSource != Audio::SourceHandle::Invalid) ? songVoice.GetDuration() : std::optional<TimeSpan> {},
 			(moviePlayer != nullptr && moviePlayer->GetHasVideoStream()) ? moviePlayer->GetDuration() : std::optional<TimeSpan> {},
@@ -887,6 +887,18 @@ namespace Comfy::Studio::Editor
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ChartOpenDirectory, false))
 			OpenChartDirectoryInExplorer();
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ImportUPDCChart, false))
+			CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPJEChartFileDialog(); });
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ImportPVScriptChart, false))
+			CheckOpenSaveConfirmationPopupThenCall([this] { OpenReadImportPVScriptFileDialogThenOpenImportWindow(); });
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ExportUPDCChart, false))
+			OpenSaveExportPJEChartFileDialog();
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ExportPVScriptMData, false))
+			OpenPVScriptExportWindow();
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ExportPVScriptChart, false))
+			OpenSaveExportSimplePVScriptChartFileDialog();
 	}
 
 	void ChartEditor::UpdateApplicationWindowTitle()

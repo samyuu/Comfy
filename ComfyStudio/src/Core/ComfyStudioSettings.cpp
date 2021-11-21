@@ -571,6 +571,11 @@ namespace Comfy::Studio
 			func(userData.Input.ChartEditor_ChartSave, "chart_editor_chart_save");
 			func(userData.Input.ChartEditor_ChartSaveAs, "chart_editor_chart_save_as");
 			func(userData.Input.ChartEditor_ChartOpenDirectory, "chart_editor_chart_open_directory");
+			func(userData.Input.ChartEditor_ImportUPDCChart, "chart_editor_import_updc_chart");
+			func(userData.Input.ChartEditor_ImportPVScriptChart, "chart_editor_import_pv_script_chart");
+			func(userData.Input.ChartEditor_ExportUPDCChart, "chart_editor_export_updc_chart");
+			func(userData.Input.ChartEditor_ExportPVScriptMData, "chart_editor_export_pv_script_mdata");
+			func(userData.Input.ChartEditor_ExportPVScriptChart, "chart_editor_export_pv_script_chart");
 			func(userData.Input.ChartEditor_Undo, "chart_editor_undo");
 			func(userData.Input.ChartEditor_Redo, "chart_editor_redo");
 			func(userData.Input.ChartEditor_OpenSettings, "chart_editor_open_settings");
@@ -674,7 +679,7 @@ namespace Comfy::Studio
 			func(userData.Input.Playtest_MoveResetPointBackward, "playtest_move_reset_point_backward");
 			func(userData.Input.Playtest_MoveResetPointForward, "playtest_move_reset_point_forward");
 
-			constexpr size_t bindingsHandledInsideThisFunction = 113;
+			constexpr size_t bindingsHandledInsideThisFunction = 118;
 			constexpr size_t totalBindingsCountInsideUserDataHeader = (sizeof(userData.Input) - sizeof(userData.Input.ControllerLayoutMappings) - sizeof(userData.Input.PlaytestBindings)) / sizeof(Input::MultiBinding);
 			static_assert(totalBindingsCountInsideUserDataHeader == bindingsHandledInsideThisFunction);
 		}

@@ -61,7 +61,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 28, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 29, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -131,6 +131,11 @@ namespace Comfy::Studio
 			Input::MultiBinding ChartEditor_ChartSave;
 			Input::MultiBinding ChartEditor_ChartSaveAs;
 			Input::MultiBinding ChartEditor_ChartOpenDirectory;
+			Input::MultiBinding ChartEditor_ImportUPDCChart;
+			Input::MultiBinding ChartEditor_ImportPVScriptChart;
+			Input::MultiBinding ChartEditor_ExportUPDCChart;
+			Input::MultiBinding ChartEditor_ExportPVScriptMData;
+			Input::MultiBinding ChartEditor_ExportPVScriptChart;
 			Input::MultiBinding ChartEditor_Undo;
 			Input::MultiBinding ChartEditor_Redo;
 			Input::MultiBinding ChartEditor_OpenSettings;
