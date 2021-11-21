@@ -39,6 +39,20 @@ namespace Comfy::Studio::Editor
 			BarDivisionMultiBindingPair { 48, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_48 },
 			BarDivisionMultiBindingPair { 64, &GlobalUserData.Input.TargetTimeline_SetChainSlideGridDivision_64 },
 		};
+
+		struct PlaybackSpeedMultiBindingPair
+		{
+			f32 PlaybackSpeed;
+			const Input::MultiBinding* MultiBinding;
+		};
+
+		constexpr std::array<PlaybackSpeedMultiBindingPair, 4> PresetPlaybackSpeeds =
+		{
+			PlaybackSpeedMultiBindingPair { 1.00f, &GlobalUserData.Input.TargetTimeline_SetPlaybackSpeed_100Percent },
+			PlaybackSpeedMultiBindingPair { 0.75f, &GlobalUserData.Input.TargetTimeline_SetPlaybackSpeed_75Percent },
+			PlaybackSpeedMultiBindingPair { 0.50f, &GlobalUserData.Input.TargetTimeline_SetPlaybackSpeed_50Percent },
+			PlaybackSpeedMultiBindingPair { 0.25f, &GlobalUserData.Input.TargetTimeline_SetPlaybackSpeed_25Percent },
+		};
 	}
 
 	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager, ButtonSoundController& buttonSoundController)
@@ -1221,7 +1235,45 @@ namespace Comfy::Studio::Editor
 
 			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_Paste, false))
 				ClipboardPasteSelection(undoManager, *workingChart);
+
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_SelectAll, false))
+				SelectAllTargets(*workingChart);
+
+			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DeselectAll, false))
+				DeselectAllTargets(*workingChart);
 		}
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ModifyTargetsMirrorTypes, false))
+			MirrorSelectedTargetTypes(undoManager, *workingChart);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ModifyTargetsExpandTime2To1, false))
+			CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 2, 1 });
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ModifyTargetsExpandTime3To2, false))
+			CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 3, 2 });
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ModifyTargetsExpandTime4To3, false))
+			CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 4, 3 });
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ModifyTargetsCompressTime1To2, false))
+			CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 1, 2 });
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ModifyTargetsCompressTime2To3, false))
+			CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 2, 3 });
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ModifyTargetsCompressTime3To4, false))
+			CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 3, 4 });
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectEvery2ndTarget, false))
+			SelectEveryNthTarget(*workingChart, 2);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectEvery3rdTarget, false))
+			SelectEveryNthTarget(*workingChart, 3);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectEvery4thTarget, false))
+			SelectEveryNthTarget(*workingChart, 4);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionShiftSelectionLeft, false))
+			ShiftTargetSelection(*workingChart, -1);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionShiftSelectionRight, false))
+			ShiftTargetSelection(*workingChart, +1);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectAllSingleTargets, false))
+			RefineTargetSelectionBySingleTargetsOnly(*workingChart);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectAllSyncTargets, false))
+			RefineTargetSelectionBySyncPairsOnly(*workingChart);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectAllPartiallySelectedSyncPairs, false))
+			SelectAllParticallySelectedSyncPairs(*workingChart);
 	}
 
 	void TargetTimeline::UpdateCursorKeyboardInput()
@@ -1289,6 +1341,12 @@ namespace Comfy::Studio::Editor
 				songVoice.SetPlaybackSpeed(Clamp(songVoice.GetPlaybackSpeed() - playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
 			if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_IncreasePlaybackSpeed, true))
 				songVoice.SetPlaybackSpeed(Clamp(songVoice.GetPlaybackSpeed() + playbackSpeedStep, playbackSpeedStepMin, playbackSpeedStepMax));
+
+			for (const auto& presetSpeed : PresetPlaybackSpeeds)
+			{
+				if (Input::IsAnyPressed(*presetSpeed.MultiBinding, false))
+					songVoice.SetPlaybackSpeed(presetSpeed.PlaybackSpeed);
+			}
 		}
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_ToggleMetronome, false))
@@ -1697,12 +1755,13 @@ namespace Comfy::Studio::Editor
 				auto songVoice = chartEditor.GetSongVoice();
 				f32 songPlaybackSpeed = songVoice.GetPlaybackSpeed();
 
-				for (const auto presetSpeed : { 1.00f, 0.75f, 0.50f, 0.25f, })
+				for (const auto& presetSpeed : PresetPlaybackSpeeds)
 				{
-					char b[64]; sprintf_s(b, "Set %3.0f%%", ToPercent(presetSpeed));
+					char b[64]; sprintf_s(b, "Set %3.0f%%", ToPercent(presetSpeed.PlaybackSpeed));
 
-					if (Gui::MenuItem(b, nullptr, (presetSpeed == songPlaybackSpeed), (presetSpeed != songPlaybackSpeed)))
-						songVoice.SetPlaybackSpeed(presetSpeed);
+					const bool speedAlreadySet = ApproxmiatelySame(presetSpeed.PlaybackSpeed, songPlaybackSpeed);
+					if (Gui::MenuItem(b, Input::ToString(*presetSpeed.MultiBinding).data(), speedAlreadySet, !speedAlreadySet))
+						songVoice.SetPlaybackSpeed(presetSpeed.PlaybackSpeed);
 				}
 
 				if (Gui::BeginMenu("Set Exact"))
@@ -1731,27 +1790,27 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::BeginMenu("Modify Targets", (selectionCount > 0)))
 			{
-				if (Gui::MenuItem("Mirror Types"))
+				if (Gui::MenuItem("Mirror Types", Input::ToString(GlobalUserData.Input.TargetTimeline_ModifyTargetsMirrorTypes).data()))
 					MirrorSelectedTargetTypes(undoManager, *workingChart);
 
 				if (Gui::BeginMenu("Expand Time"))
 				{
-					if (Gui::MenuItem("2:1 (8th to 4th)"))
+					if (Gui::MenuItem("2:1 (8th to 4th)", Input::ToString(GlobalUserData.Input.TargetTimeline_ModifyTargetsExpandTime2To1).data()))
 						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 2, 1 });
-					if (Gui::MenuItem("3:2 (12th to 8th)"))
+					if (Gui::MenuItem("3:2 (12th to 8th)", Input::ToString(GlobalUserData.Input.TargetTimeline_ModifyTargetsExpandTime3To2).data()))
 						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 3, 2 });
-					if (Gui::MenuItem("4:3 (16th to 12th)"))
+					if (Gui::MenuItem("4:3 (16th to 12th)", Input::ToString(GlobalUserData.Input.TargetTimeline_ModifyTargetsExpandTime4To3).data()))
 						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 4, 3 });
 					Gui::EndMenu();
 				}
 
 				if (Gui::BeginMenu("Compress Time"))
 				{
-					if (Gui::MenuItem("1:2 (4th to 8th)"))
+					if (Gui::MenuItem("1:2 (4th to 8th)", Input::ToString(GlobalUserData.Input.TargetTimeline_ModifyTargetsCompressTime1To2).data()))
 						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 1, 2 });
-					if (Gui::MenuItem("2:3 (8th to 12th)"))
+					if (Gui::MenuItem("2:3 (8th to 12th)", Input::ToString(GlobalUserData.Input.TargetTimeline_ModifyTargetsCompressTime2To3).data()))
 						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 2, 3 });
-					if (Gui::MenuItem("3:4 (12th to 16th)"))
+					if (Gui::MenuItem("3:4 (12th to 16th)", Input::ToString(GlobalUserData.Input.TargetTimeline_ModifyTargetsCompressTime3To4).data()))
 						CompressOrExpandSelectedTargetTimes(undoManager, *workingChart, { 3, 4 });
 					Gui::EndMenu();
 				}
@@ -1770,23 +1829,31 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Select All", "", nullptr, (workingChart->Targets.size() > 0)))
+			if (Gui::MenuItem("Select All", Input::ToString(GlobalUserData.Input.TargetTimeline_SelectAll).data(), nullptr, (workingChart->Targets.size() > 0)))
 				SelectAllTargets(*workingChart);
-			if (Gui::MenuItem("Deselect", "", nullptr, (selectionCount > 0)))
+			if (Gui::MenuItem("Deselect", Input::ToString(GlobalUserData.Input.TargetTimeline_DeselectAll).data(), nullptr, (selectionCount > 0)))
 				DeselectAllTargets(*workingChart);
 
 			if (Gui::BeginMenu("Refine Selection", (selectionCount > 0)))
 			{
-				if (Gui::MenuItem("Select every 2nd Target")) SelectEveryNthTarget(*workingChart, 2);
-				if (Gui::MenuItem("Select every 3rd Target")) SelectEveryNthTarget(*workingChart, 3);
-				if (Gui::MenuItem("Select every 4th Target")) SelectEveryNthTarget(*workingChart, 4);
+				if (Gui::MenuItem("Select every 2nd Target", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectEvery2ndTarget).data()))
+					SelectEveryNthTarget(*workingChart, 2);
+				if (Gui::MenuItem("Select every 3rd Target", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectEvery3rdTarget).data()))
+					SelectEveryNthTarget(*workingChart, 3);
+				if (Gui::MenuItem("Select every 4th Target", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectEvery4thTarget).data()))
+					SelectEveryNthTarget(*workingChart, 4);
 				Gui::Separator();
-				if (Gui::MenuItem("Shift Selection Left")) ShiftTargetSelection(*workingChart, -1);
-				if (Gui::MenuItem("Shift Selection Right")) ShiftTargetSelection(*workingChart, +1);
+				if (Gui::MenuItem("Shift Selection Left", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionShiftSelectionLeft).data()))
+					ShiftTargetSelection(*workingChart, -1);
+				if (Gui::MenuItem("Shift Selection Right", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionShiftSelectionRight).data()))
+					ShiftTargetSelection(*workingChart, +1);
 				Gui::Separator();
-				if (Gui::MenuItem("Select all Single Targets")) RefineTargetSelectionBySingleTargetsOnly(*workingChart);
-				if (Gui::MenuItem("Select all Sync Targets")) RefineTargetSelectionBySyncPairsOnly(*workingChart);
-				if (Gui::MenuItem("Select all partially selected Sync Pairs")) SelectAllParticallySelectedSyncPairs(*workingChart);
+				if (Gui::MenuItem("Select all Single Targets", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectAllSingleTargets).data()))
+					RefineTargetSelectionBySingleTargetsOnly(*workingChart);
+				if (Gui::MenuItem("Select all Sync Targets", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectAllSyncTargets).data()))
+					RefineTargetSelectionBySyncPairsOnly(*workingChart);
+				if (Gui::MenuItem("Select all partially selected Sync Pairs", Input::ToString(GlobalUserData.Input.TargetTimeline_RefineSelectionSelectAllPartiallySelectedSyncPairs).data()))
+					SelectAllParticallySelectedSyncPairs(*workingChart);
 				Gui::EndMenu();
 			}
 

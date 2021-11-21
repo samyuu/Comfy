@@ -606,8 +606,14 @@ namespace Comfy::Studio
 			func(userData.Input.TargetTimeline_SetChainSlideGridDivision_64, "target_timeline_set_chain_slide_grid_division_1_64");
 			func(userData.Input.TargetTimeline_StartEndRangeSelection, "target_timeline_start_end_range_selection");
 			func(userData.Input.TargetTimeline_DeleteSelection, "target_timeline_delete_selection");
+			func(userData.Input.TargetTimeline_SelectAll, "target_timeline_select_all");
+			func(userData.Input.TargetTimeline_DeselectAll, "target_timeline_deselect_all");
 			func(userData.Input.TargetTimeline_IncreasePlaybackSpeed, "target_timeline_increase_playback_speed");
 			func(userData.Input.TargetTimeline_DecreasePlaybackSpeed, "target_timeline_decrease_playback_speed");
+			func(userData.Input.TargetTimeline_SetPlaybackSpeed_100Percent, "target_timeline_set_playback_speed_100_percent");
+			func(userData.Input.TargetTimeline_SetPlaybackSpeed_75Percent, "target_timeline_set_playback_speed_75_percent");
+			func(userData.Input.TargetTimeline_SetPlaybackSpeed_50Percent, "target_timeline_set_playback_speed_50_percent");
+			func(userData.Input.TargetTimeline_SetPlaybackSpeed_25Percent, "target_timeline_set_playback_speed_25_percent");
 			func(userData.Input.TargetTimeline_ToggleMetronome, "target_timeline_toggle_metronome");
 			func(userData.Input.TargetTimeline_ToggleTargetHolds, "target_timeline_toggle_target_holds");
 			func(userData.Input.TargetTimeline_PlaceTriangle, "target_timeline_place_triangle");
@@ -616,6 +622,21 @@ namespace Comfy::Studio
 			func(userData.Input.TargetTimeline_PlaceCircle, "target_timeline_place_circle");
 			func(userData.Input.TargetTimeline_PlaceSlideL, "target_timeline_place_slide_l");
 			func(userData.Input.TargetTimeline_PlaceSlideR, "target_timeline_place_slide_r");
+			func(userData.Input.TargetTimeline_ModifyTargetsMirrorTypes, "target_timeline_modify_targets_mirror_types");
+			func(userData.Input.TargetTimeline_ModifyTargetsExpandTime2To1, "target_timeline_modify_targets_expand_time_2_to_1");
+			func(userData.Input.TargetTimeline_ModifyTargetsExpandTime3To2, "target_timeline_modify_targets_expand_time_3_to_2");
+			func(userData.Input.TargetTimeline_ModifyTargetsExpandTime4To3, "target_timeline_modify_targets_expand_time_4_to_3");
+			func(userData.Input.TargetTimeline_ModifyTargetsCompressTime1To2, "target_timeline_modify_targets_compress_time_1_to_2");
+			func(userData.Input.TargetTimeline_ModifyTargetsCompressTime2To3, "target_timeline_modify_targets_compress_time_2_to_3");
+			func(userData.Input.TargetTimeline_ModifyTargetsCompressTime3To4, "target_timeline_modify_targets_compress_time_3_to_4");
+			func(userData.Input.TargetTimeline_RefineSelectionSelectEvery2ndTarget, "target_timeline_refine_selection_select_every_2nd_target");
+			func(userData.Input.TargetTimeline_RefineSelectionSelectEvery3rdTarget, "target_timeline_refine_selection_select_every_3rd_target");
+			func(userData.Input.TargetTimeline_RefineSelectionSelectEvery4thTarget, "target_timeline_refine_selection_select_every_4th_target");
+			func(userData.Input.TargetTimeline_RefineSelectionShiftSelectionLeft, "target_timeline_refine_selection_shift_selection_left");
+			func(userData.Input.TargetTimeline_RefineSelectionShiftSelectionRight, "target_timeline_refine_selection_shift_selection_right");
+			func(userData.Input.TargetTimeline_RefineSelectionSelectAllSingleTargets, "target_timeline_refine_selection_select_all_single_targets");
+			func(userData.Input.TargetTimeline_RefineSelectionSelectAllSyncTargets, "target_timeline_refine_selection_select_all_sync_targets");
+			func(userData.Input.TargetTimeline_RefineSelectionSelectAllPartiallySelectedSyncPairs, "target_timeline_refine_selection_select_all_partially_selected_sync_pairs");
 			func(userData.Input.TargetPreview_JumpToPreviousTarget, "target_preview_jump_to_previous_target");
 			func(userData.Input.TargetPreview_JumpToNextTarget, "target_preview_jump_to_next_target");
 			func(userData.Input.TargetPreview_TogglePlayback, "target_preview_toggle_playback");
@@ -653,7 +674,7 @@ namespace Comfy::Studio
 			func(userData.Input.Playtest_MoveResetPointBackward, "playtest_move_reset_point_backward");
 			func(userData.Input.Playtest_MoveResetPointForward, "playtest_move_reset_point_forward");
 
-			constexpr size_t bindingsHandledInsideThisFunction = 92;
+			constexpr size_t bindingsHandledInsideThisFunction = 113;
 			constexpr size_t totalBindingsCountInsideUserDataHeader = (sizeof(userData.Input) - sizeof(userData.Input.ControllerLayoutMappings) - sizeof(userData.Input.PlaytestBindings)) / sizeof(Input::MultiBinding);
 			static_assert(totalBindingsCountInsideUserDataHeader == bindingsHandledInsideThisFunction);
 		}

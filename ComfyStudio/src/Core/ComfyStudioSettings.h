@@ -61,7 +61,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 27, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 28, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -168,8 +168,14 @@ namespace Comfy::Studio
 			Input::MultiBinding TargetTimeline_SetChainSlideGridDivision_64;
 			Input::MultiBinding TargetTimeline_StartEndRangeSelection;
 			Input::MultiBinding TargetTimeline_DeleteSelection;
+			Input::MultiBinding TargetTimeline_SelectAll;
+			Input::MultiBinding TargetTimeline_DeselectAll;
 			Input::MultiBinding TargetTimeline_IncreasePlaybackSpeed;
 			Input::MultiBinding TargetTimeline_DecreasePlaybackSpeed;
+			Input::MultiBinding TargetTimeline_SetPlaybackSpeed_100Percent;
+			Input::MultiBinding TargetTimeline_SetPlaybackSpeed_75Percent;
+			Input::MultiBinding TargetTimeline_SetPlaybackSpeed_50Percent;
+			Input::MultiBinding TargetTimeline_SetPlaybackSpeed_25Percent;
 			Input::MultiBinding TargetTimeline_ToggleMetronome;
 			Input::MultiBinding TargetTimeline_ToggleTargetHolds;
 			Input::MultiBinding TargetTimeline_PlaceTriangle;
@@ -178,6 +184,21 @@ namespace Comfy::Studio
 			Input::MultiBinding TargetTimeline_PlaceCircle;
 			Input::MultiBinding TargetTimeline_PlaceSlideL;
 			Input::MultiBinding TargetTimeline_PlaceSlideR;
+			Input::MultiBinding TargetTimeline_ModifyTargetsMirrorTypes;
+			Input::MultiBinding TargetTimeline_ModifyTargetsExpandTime2To1;
+			Input::MultiBinding TargetTimeline_ModifyTargetsExpandTime3To2;
+			Input::MultiBinding TargetTimeline_ModifyTargetsExpandTime4To3;
+			Input::MultiBinding TargetTimeline_ModifyTargetsCompressTime1To2;
+			Input::MultiBinding TargetTimeline_ModifyTargetsCompressTime2To3;
+			Input::MultiBinding TargetTimeline_ModifyTargetsCompressTime3To4;
+			Input::MultiBinding TargetTimeline_RefineSelectionSelectEvery2ndTarget;
+			Input::MultiBinding TargetTimeline_RefineSelectionSelectEvery3rdTarget;
+			Input::MultiBinding TargetTimeline_RefineSelectionSelectEvery4thTarget;
+			Input::MultiBinding TargetTimeline_RefineSelectionShiftSelectionLeft;
+			Input::MultiBinding TargetTimeline_RefineSelectionShiftSelectionRight;
+			Input::MultiBinding TargetTimeline_RefineSelectionSelectAllSingleTargets;
+			Input::MultiBinding TargetTimeline_RefineSelectionSelectAllSyncTargets;
+			Input::MultiBinding TargetTimeline_RefineSelectionSelectAllPartiallySelectedSyncPairs;
 
 			Input::MultiBinding TargetPreview_JumpToPreviousTarget;
 			Input::MultiBinding TargetPreview_JumpToNextTarget;
