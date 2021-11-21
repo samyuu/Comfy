@@ -1785,7 +1785,10 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			if (Gui::MenuItem("Toggle Target Holds", Input::ToString(GlobalUserData.Input.TargetTimeline_ToggleTargetHolds).data(), nullptr, (selectionCount > 0)))
+			auto isTargetSelectedAndHoldToggable = [](const TimelineTarget& t) -> bool { return t.IsSelected && !IsSlideButtonType(t.Type); };
+			const bool anyHoldToggableTargetSelected = (selectionCount > 0) && std::any_of(workingChart->Targets.begin(), workingChart->Targets.end(), isTargetSelectedAndHoldToggable);
+
+			if (Gui::MenuItem("Toggle Target Holds", Input::ToString(GlobalUserData.Input.TargetTimeline_ToggleTargetHolds).data(), nullptr, anyHoldToggableTargetSelected))
 				ToggleSelectedTargetsHolds(undoManager, *workingChart);
 
 			if (Gui::BeginMenu("Modify Targets", (selectionCount > 0)))
