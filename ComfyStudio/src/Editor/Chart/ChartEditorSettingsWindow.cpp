@@ -1173,19 +1173,21 @@ namespace Comfy::Studio::Editor
 		{
 			GuiBeginSettingsColumns();
 
-			if (auto v = static_cast<f32>(userData.Playtest.SongOffsetWasapiShared.TotalMilliseconds());
-				GuiSettingsInputF32("Shared Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
+			auto guiSettingsSongOffset = [](std::string_view label, TimeSpan& inOutValue)
 			{
-				userData.Playtest.SongOffsetWasapiShared = TimeSpan::FromMilliseconds(v);
-				pendingChanges = true;
-			}
+				constexpr f32 minMaxOffsetMS = 100.0f;
+				if (auto v = static_cast<f32>(inOutValue.TotalMilliseconds());
+					GuiSettingsSliderF32(label, v, -minMaxOffsetMS, +minMaxOffsetMS, "%.2f ms", ImGuiSliderFlags_AlwaysClamp))
+				{
+					inOutValue = TimeSpan::FromMilliseconds(v);
+					return true;
+				}
 
-			if (auto v = static_cast<f32>(userData.Playtest.SongOffsetWasapiExclusive.TotalMilliseconds());
-				GuiSettingsInputF32("Exclusive Mode - Song Offset", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f ms"))
-			{
-				userData.Playtest.SongOffsetWasapiExclusive = TimeSpan::FromMilliseconds(v);
-				pendingChanges = true;
-			}
+				return false;
+			};
+
+			pendingChanges |= guiSettingsSongOffset("Shared Mode - Song Offset", userData.Playtest.SongOffsetWasapiShared);
+			pendingChanges |= guiSettingsSongOffset("Exclusive Mode - Song Offset", userData.Playtest.SongOffsetWasapiExclusive);
 
 			Gui::Separator();
 
@@ -1193,6 +1195,28 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
 
 			GuiEndSettingsColumns();
+
+#if 1 // TODO: Is this a good idea to have here..?
+			{
+				Gui::Separator();
+				Gui::SetCursorPosX(GuiSettingsInnerMargin);
+
+				Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				Gui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, { 0.0f, 0.5f });
+				Gui::PushStyleColor(ImGuiCol_Text, Gui::GetColorU32(ImGuiCol_Text, 0.55f));
+				Gui::PushStyleColor(ImGuiCol_Button, {});
+				Gui::ButtonEx(
+					"\n"
+					"NOTE: The direction of the offset slider matches\n"
+					"that in which the song waveform would be visually moved towards.\n"
+					"Typically the intention is to delay the song by a few milliseconds\n"
+					"which in this case would mean moving the slider slightly to the right.",
+					{ Gui::GetContentRegionAvail().x - GuiSettingsInnerMargin, 0.0f });
+				Gui::PopStyleColor(2);
+				Gui::PopStyleVar(1);
+				Gui::PopItemFlag();
+			}
+#endif
 		}
 	}
 
