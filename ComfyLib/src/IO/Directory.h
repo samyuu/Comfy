@@ -41,7 +41,8 @@ namespace Comfy::IO
 
 		COMFY_NODISCARD bool Exists(std::string_view directoryPath);
 
-		void Create(std::string_view directoryPath);
+		bool Create(std::string_view directoryPath);
+		bool CreateRecursive(std::string_view directoryPath);
 
 		COMFY_NODISCARD std::string GetWorkingDirectory();
 		void SetWorkingDirectory(std::string_view directoryPath);
