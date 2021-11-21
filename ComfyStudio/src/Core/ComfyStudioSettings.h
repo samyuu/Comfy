@@ -61,7 +61,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 26, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 27, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -146,6 +146,8 @@ namespace Comfy::Studio
 			Input::MultiBinding TargetTimeline_Paste;
 			Input::MultiBinding TargetTimeline_MoveCursorLeft;
 			Input::MultiBinding TargetTimeline_MoveCursorRight;
+			Input::MultiBinding TargetTimeline_GoToStartOfTimeline;
+			Input::MultiBinding TargetTimeline_GoToEndOfTimeline;
 			Input::MultiBinding TargetTimeline_IncreaseGridPrecision;
 			Input::MultiBinding TargetTimeline_DecreaseGridPrecision;
 			Input::MultiBinding TargetTimeline_SetGridDivision_4;

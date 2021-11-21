@@ -318,16 +318,14 @@ namespace Comfy::Studio::Editor
 		constexpr vec4 transparent = vec4(0.0f);
 		Gui::PushStyleColor(ImGuiCol_Button, transparent);
 		{
-			auto approxmiatelySame = [](f32 a, f32 b, f32 threshold) -> bool { return glm::abs(a - b) < threshold; };
-
-			const f32 timelineEndPosition = GetTimelinePosition(workingChart->DurationOrDefault()) - regions.Content.GetWidth() + 1.0f;
 			const bool isPlayback = GetIsPlayback();
 
+			const f32 timelineEndPosition = GetTimelinePosition(workingChart->DurationOrDefault()) - regions.Content.GetWidth() + 1.0f;
 			const bool isCursorAtStart = (cursorTime <= TimeSpan::Zero());
-			const bool isAtStartOfTimeline = (isCursorAtStart && approxmiatelySame(GetScrollTargetX(), 0.0f, 0.01f));
+			const bool isAtStartOfTimeline = (isCursorAtStart && ApproxmiatelySame(GetScrollTargetX(), 0.0f, 0.01f));
 
 			const bool isCursorAtEnd = (cursorTime >= workingChart->DurationOrDefault());
-			const bool isAtEndOfTimeline = (isCursorAtEnd && approxmiatelySame(GetScrollTargetX(), timelineEndPosition, 0.01f));
+			const bool isAtEndOfTimeline = (isCursorAtEnd && ApproxmiatelySame(GetScrollTargetX(), timelineEndPosition, 0.01f));
 
 			constexpr f32 borderSize = 1.0f;
 			Gui::SetCursorPosX(Gui::GetCursorPosX() + borderSize);
@@ -335,8 +333,7 @@ namespace Comfy::Studio::Editor
 			Gui::PushItemDisabledAndTextColorIf(isAtStartOfTimeline);
 			if (Gui::Button(ICON_FA_FAST_BACKWARD))
 			{
-				SetCursorTime(TimeSpan::Zero());
-				SetScrollTargetX(0.0f);
+				AdvanceCursorAndScrollToStartOrEndOfTimeline(-1);
 			}
 			Gui::PopItemDisabledAndTextColorIf(isAtStartOfTimeline);
 			Gui::SetWideItemTooltip("Go to Start of Timeline");
@@ -377,8 +374,7 @@ namespace Comfy::Studio::Editor
 			Gui::PushItemDisabledAndTextColorIf(isAtEndOfTimeline);
 			if (Gui::Button(ICON_FA_FAST_FORWARD))
 			{
-				SetCursorTime(workingChart->DurationOrDefault());
-				SetScrollTargetX(timelineEndPosition);
+				AdvanceCursorAndScrollToStartOrEndOfTimeline(+1);
 			}
 			Gui::PopItemDisabledAndTextColorIf(isAtEndOfTimeline);
 			Gui::SetWideItemTooltip("Go to End of Timeline");
@@ -1245,6 +1241,11 @@ namespace Comfy::Studio::Editor
 			AdvanceCursorByGridDivisionTick(-1, useBeatStep, stepDistanceFactor);
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_MoveCursorRight, true, Input::ModifierBehavior_Relaxed))
 			AdvanceCursorByGridDivisionTick(+1, useBeatStep, stepDistanceFactor);
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_GoToStartOfTimeline, false))
+			AdvanceCursorAndScrollToStartOrEndOfTimeline(-1);
+		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_GoToEndOfTimeline, false))
+			AdvanceCursorAndScrollToStartOrEndOfTimeline(+1);
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_DecreaseGridPrecision, true))
 			SelectNextPresetGridDivision(-1);
@@ -2448,6 +2449,26 @@ namespace Comfy::Studio::Editor
 		}
 
 		CenterCursor();
+	}
+
+	void TargetTimeline::AdvanceCursorAndScrollToStartOrEndOfTimeline(i32 direction)
+	{
+		if (direction < 0)
+		{
+			SetCursorTime(TimeSpan::Zero());
+			SetScrollTargetX(0.0f);
+		}
+		else if (direction > 0)
+		{
+			const f32 timelineEndPosition = GetTimelinePosition(workingChart->DurationOrDefault()) - regions.Content.GetWidth() + 1.0f;
+
+			SetCursorTime(workingChart->DurationOrDefault());
+			SetScrollTargetX(timelineEndPosition);
+		}
+		else
+		{
+			assert(false);
+		}
 	}
 
 	void TargetTimeline::PlaybackStateChangeSyncButtonSoundCursorTime(TimeSpan newCursorTime)

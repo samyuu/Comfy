@@ -130,6 +130,8 @@ namespace Comfy::Studio::Editor
 		void AdvanceCursorByGridDivisionTick(i32 direction, bool beatStep = false, i32 distanceFactor = 1);
 		void AdvanceCursorToNextTarget(i32 direction);
 
+		void AdvanceCursorAndScrollToStartOrEndOfTimeline(i32 direction);
+
 	private:
 		void OnUpdate() override;
 		void UpdateOffsetChangeCursorTimeAdjustment();

@@ -1321,6 +1321,8 @@ namespace Comfy::Studio::Editor
 			{ &userData.Input.TargetTimeline_Paste, "Target Timeline - Paste" },
 			{ &userData.Input.TargetTimeline_MoveCursorLeft, "Target Timeline - Move Cursor Left" },
 			{ &userData.Input.TargetTimeline_MoveCursorRight, "Target Timeline - Move Cursor Right" },
+			{ &userData.Input.TargetTimeline_GoToStartOfTimeline, "Target Timeline - Go to Start of Timelien" },
+			{ &userData.Input.TargetTimeline_GoToEndOfTimeline, "Target Timeline - Go to End of Timeline" },
 			{ &userData.Input.TargetTimeline_IncreaseGridPrecision, "Target Timeline - Increase Grid Precision" },
 			{ &userData.Input.TargetTimeline_DecreaseGridPrecision, "Target Timeline - Decrease Grid Precision" },
 			{ &userData.Input.TargetTimeline_SetGridDivision_4, "Target Timeline - Set Grid Division 1 / 4" },
@@ -1388,6 +1390,10 @@ namespace Comfy::Studio::Editor
 			{ &userData.Input.Playtest_MoveResetPointBackward, "Playtest - Move Reset Point Backward" },
 			{ &userData.Input.Playtest_MoveResetPointForward, "Playtest - Move Reset Point Forward" },
 		};
+
+		constexpr size_t definedBindingsCountInsideThisSourceFile = sizeof(namedMultiBindings) / sizeof(NamedBinding);
+		constexpr size_t totalBindingsCountInsideUserDataHeader = (sizeof(userData.Input) - sizeof(userData.Input.ControllerLayoutMappings) - sizeof(userData.Input.PlaytestBindings)) / sizeof(Input::MultiBinding);
+		static_assert(definedBindingsCountInsideThisSourceFile == totalBindingsCountInsideUserDataHeader);
 
 		const auto& style = Gui::GetStyle();
 		constexpr f32 primaryColumWidthFactor = 0.65f;

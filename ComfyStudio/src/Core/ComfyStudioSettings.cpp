@@ -584,6 +584,8 @@ namespace Comfy::Studio
 			func(userData.Input.TargetTimeline_Paste, "target_timeline_paste");
 			func(userData.Input.TargetTimeline_MoveCursorLeft, "target_timeline_move_cursor_left");
 			func(userData.Input.TargetTimeline_MoveCursorRight, "target_timeline_move_cursor_right");
+			func(userData.Input.TargetTimeline_GoToStartOfTimeline, "target_timeline_go_to_start_of_timeline");
+			func(userData.Input.TargetTimeline_GoToEndOfTimeline, "target_timeline_go_to_end_of_timeline");
 			func(userData.Input.TargetTimeline_IncreaseGridPrecision, "target_timeline_increase_grid_precision");
 			func(userData.Input.TargetTimeline_DecreaseGridPrecision, "target_timeline_decrease_grid_precision");
 			func(userData.Input.TargetTimeline_SetGridDivision_4, "target_timeline_set_grid_division_1_4");
@@ -650,6 +652,10 @@ namespace Comfy::Studio
 			func(userData.Input.Playtest_RestartFromResetPoint, "playtest_restart_from_reset_point");
 			func(userData.Input.Playtest_MoveResetPointBackward, "playtest_move_reset_point_backward");
 			func(userData.Input.Playtest_MoveResetPointForward, "playtest_move_reset_point_forward");
+
+			constexpr size_t bindingsHandledInsideThisFunction = 92;
+			constexpr size_t totalBindingsCountInsideUserDataHeader = (sizeof(userData.Input) - sizeof(userData.Input.ControllerLayoutMappings) - sizeof(userData.Input.PlaytestBindings)) / sizeof(Input::MultiBinding);
+			static_assert(totalBindingsCountInsideUserDataHeader == bindingsHandledInsideThisFunction);
 		}
 
 		constexpr Json::EnumNameMappingTable<ButtonType> ButtonTypeEnumNames
@@ -1558,12 +1564,14 @@ namespace Comfy::Studio
 			Input.TargetTimeline_Paste = MultiBinding(Binding(KeyCode_V, KeyModifiers_Ctrl));
 			Input.TargetTimeline_MoveCursorLeft = MultiBinding(Binding(KeyCode_Left));
 			Input.TargetTimeline_MoveCursorRight = MultiBinding(Binding(KeyCode_Right));
+			Input.TargetTimeline_GoToStartOfTimeline = MultiBinding(Binding(KeyCode_PageUp));
+			Input.TargetTimeline_GoToEndOfTimeline = MultiBinding(Binding(KeyCode_PageDown));
 			Input.TargetTimeline_IncreaseGridPrecision = MultiBinding(Binding(KeyCode_Up), Binding(KeyCode_MouseX2));
 			Input.TargetTimeline_DecreaseGridPrecision = MultiBinding(Binding(KeyCode_Down), Binding(KeyCode_MouseX1));
 			Input.TargetTimeline_StartEndRangeSelection = MultiBinding(Binding(KeyCode_Tab));
 			Input.TargetTimeline_DeleteSelection = MultiBinding(Binding(KeyCode_Delete));
-			Input.TargetTimeline_IncreasePlaybackSpeed = MultiBinding(Binding(KeyCode_OEMPeriod));
-			Input.TargetTimeline_DecreasePlaybackSpeed = MultiBinding(Binding(KeyCode_OEMComma));
+			Input.TargetTimeline_IncreasePlaybackSpeed = MultiBinding(Binding(KeyCode_C));
+			Input.TargetTimeline_DecreasePlaybackSpeed = MultiBinding(Binding(KeyCode_Z));
 			Input.TargetTimeline_SetGridDivision_4 = MultiBinding();
 			Input.TargetTimeline_SetGridDivision_8 = MultiBinding();
 			Input.TargetTimeline_SetGridDivision_12 = MultiBinding();
