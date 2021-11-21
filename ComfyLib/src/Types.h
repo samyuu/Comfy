@@ -221,6 +221,9 @@ namespace Comfy
 		return index;
 	}
 
+	COMFY_NODISCARD constexpr bool ApproxmiatelySame(f32 a, f32 b, f32 threshold = 0.0001f) { return glm::abs(a - b) < threshold; }
+	COMFY_NODISCARD constexpr bool ApproxmiatelySame(f64 a, f64 b, f64 threshold = 0.0001) { return glm::abs(a - b) < threshold; }
+
 	COMFY_NODISCARD constexpr f32 ToPercent(f32 value) { return (value * 100.0f); }
 	COMFY_NODISCARD constexpr vec2 ToPercent(vec2 value) { return { ToPercent(value.x), ToPercent(value.y) }; }
 

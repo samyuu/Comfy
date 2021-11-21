@@ -33,12 +33,6 @@ namespace Comfy::Studio::Editor
 				return result;
 			}
 		}
-
-		// TODO: Move to a different public header
-		constexpr bool ApproxmiatelySame(const f32 a, const f32 b, const f32 threshold)
-		{
-			return glm::abs(a - b) < threshold;
-		}
 	}
 
 	f32 TimelineBase::GetTimelinePosition(TimeSpan time) const
