@@ -182,9 +182,9 @@ namespace Comfy::Studio::Editor
 				Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, vec2(style.ItemInnerSpacing.x, style.ItemSpacing.y));
 				const f32 buttonWidth = (Gui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2.0f;
 
-				// TODO: What exactly should happen here (?)
+				// NOTE: Insert a new tempo change without an explicit flying time as it should only be set manually
 				if (Gui::Button(cursorSitsOnTempoChange ? "Update##SyncWindow" : "Insert##SyncWindow", vec2(buttonWidth, 0.0f)))
-					executeAddOrUpdate(newOrInheritedTempoChangeAtCursor.Tempo, newOrInheritedTempoChangeAtCursor.FlyingTime, newOrInheritedTempoChangeAtCursor.Signature);
+					executeAddOrUpdate(newOrInheritedTempoChangeAtCursor.Tempo, {}, newOrInheritedTempoChangeAtCursor.Signature);
 
 				Gui::SameLine();
 

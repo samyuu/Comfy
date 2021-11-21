@@ -107,7 +107,9 @@ namespace ImGui
 
 	void SetWideItemTooltip(const char* fmt, ...);
 	void WideSetTooltip(const char* fmt, ...);
+	void WideSetTooltip(vec2 position, vec2 pivot, const char* fmt, ...);
 	void WideTooltip(const std::function<void(void)>& func);
+	void WideTooltip(vec2 position, vec2 pivot, const std::function<void(void)>& func);
 
 	void HelpMarker(std::string_view description);
 	void SameLineHelpMarker(std::string_view description);

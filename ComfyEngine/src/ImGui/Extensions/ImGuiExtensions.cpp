@@ -698,10 +698,61 @@ namespace ImGui
 		va_end(args);
 	}
 
+	namespace
+	{
+		void ModifiedBeginTooltipExWithExplicitPositionAndPivot(vec2 position, vec2 pivot)
+		{
+			ImGuiContext& g = *GImGui;
+
+			// if (g.DragDropWithinSource || g.DragDropWithinTarget)
+			{
+				ImVec2 tooltip_pos = position; // g.IO.MousePos + ImVec2(16 * g.Style.MouseCursorScale, 8 * g.Style.MouseCursorScale);
+				SetNextWindowPos(tooltip_pos, ImGuiCond_None, pivot);
+				SetNextWindowBgAlpha(g.Style.Colors[ImGuiCol_PopupBg].w * 0.60f);
+			}
+
+			char window_name[16];
+			ImFormatString(window_name, IM_ARRAYSIZE(window_name), "##Tooltip_%02d", g.TooltipOverrideCount);
+
+			if (ImGuiWindow* window = FindWindowByName(window_name); window != nullptr && window->Active)
+			{
+				window->Hidden = true;
+				window->HiddenFramesCanSkipItems = 1;
+				ImFormatString(window_name, IM_ARRAYSIZE(window_name), "##Tooltip_%02d", ++g.TooltipOverrideCount);
+			}
+
+			ImGuiWindowFlags flags = ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking;
+			Begin(window_name, nullptr, flags);
+		}
+	}
+
+	void WideSetTooltip(vec2 position, vec2 pivot, const char* fmt, ...)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+
+		va_list args;
+		va_start(args, fmt);
+
+		ModifiedBeginTooltipExWithExplicitPositionAndPivot(position, pivot);
+		TextV(fmt, args);
+		EndTooltip();
+
+		va_end(args);
+	}
+
 	void WideTooltip(const std::function<void(void)>& func)
 	{
 		RAII_POPUP_WINDOW_PADDING();
 		BeginTooltip();
+		func();
+		EndTooltip();
+	}
+
+	void WideTooltip(vec2 position, vec2 pivot, const std::function<void(void)>& func)
+	{
+		RAII_POPUP_WINDOW_PADDING();
+
+		ModifiedBeginTooltipExWithExplicitPositionAndPivot(position, pivot);
 		func();
 		EndTooltip();
 	}

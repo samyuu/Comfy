@@ -686,13 +686,15 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::DrawTimelineTempoMap()
 	{
-		const auto& tempoMap = workingChart->TempoMap;
+		lastFrameTempoPopupIndex = tempoPopupIndex;
 
+		const auto& tempoMap = workingChart->TempoMap;
 		constexpr const char* tempoChangePopupName = "##TempoChangePopup";
+
+		constexpr f32 tempoPopupCenterFraction = 3.0f;
 		vec2 tempoPopupWindowStartPosition = {};
-		// TODO: Make less wide and instead make the right column side bigger than the left (?)
-		vec2 tempoPopupWindowStartPivot = vec2(0.5f, 1.0f);
-		vec2 tempoPopupWindowStartSize = vec2(260.0f/*280.0f*//*314.0f*/, 0.0f);
+		vec2 tempoPopupWindowStartPivot = vec2((1.0f / tempoPopupCenterFraction), 1.0f);
+		vec2 tempoPopupWindowStartSize = vec2(280.0f, 0.0f);
 
 		f32 lastDrawnTimelineX = 0.0f;
 
@@ -709,12 +711,17 @@ namespace Comfy::Studio::Editor
 			if (visiblity == TimelineVisibility::Right)
 				return true;
 
+			char tempoChangeTextBuffer[64] = {}, copyBuffer[32];
 			const bool shortenText = (zoomLevel < 1.0f);
 
-			char tempoChangeTextBuffer[64] = {}, copyBuffer[32];
-
 			if (tempoChange.Tempo.has_value())
-				sprintf_s(tempoChangeTextBuffer, shortenText ? "%.0f BPM" : "%.2f BPM", tempoChange.Tempo->BeatsPerMinute);
+				sprintf_s(tempoChangeTextBuffer, shortenText ? " %.0f BPM" : " %.2f BPM", tempoChange.Tempo->BeatsPerMinute);
+
+			if (tempoChange.FlyingTime.has_value())
+			{
+				sprintf_s(copyBuffer, " %.0f%%", ToPercent(tempoChange.FlyingTime->Factor));
+				strcat_s(tempoChangeTextBuffer, copyBuffer);
+			}
 
 			if (tempoChange.Signature.has_value())
 			{
@@ -722,35 +729,30 @@ namespace Comfy::Studio::Editor
 				strcat_s(tempoChangeTextBuffer, copyBuffer);
 			}
 
-			if (tempoChange.FlyingTime.has_value())
-			{
-				// TODO: Decide on how to best display this. Percent has the advantage of making the clickable area bigger 
-				//		 which is important for when the only thing displayed is the flying time factor
-				if (true)
-					sprintf_s(copyBuffer, " %.2f %%", ToPercent(tempoChange.FlyingTime->Factor));
-				else
-					sprintf_s(copyBuffer, " %.3gx", tempoChange.FlyingTime->Factor);
-				strcat_s(tempoChangeTextBuffer, copyBuffer);
-			}
-
-			// TODO: Come up with a better way to display this
 			if (tempoChangeTextBuffer[0] == '\0')
-				strcpy_s(tempoChangeTextBuffer, "(Empty)");
+				strcpy_s(tempoChangeTextBuffer, " (Empty)");
 
 			const vec2 buttonPosition = regions.TempoMap.GetTL() + vec2(screenX + 1.0f, 0.0f);
-			const vec2 buttonSize = vec2(Gui::CalcTextSize(tempoChangeTextBuffer).x, tempoMapHeight);
-
+			const vec2 buttonSize = vec2(Max(Gui::CalcTextSize(tempoChangeTextBuffer).x, 36.0f), tempoMapHeight);
 			Gui::SetCursorScreenPos(buttonPosition);
 
 			Gui::PushID(&tempoChange);
 			Gui::InvisibleButton("##InvisibleTempoButton", buttonSize);
 			Gui::PopID();
 
+			if (Gui::IsItemHovered() || tempoPopupIndex == static_cast<i32>(newOrInheritedTempoChange.IndexWithinTempoMap))
+				baseWindowDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
+
 			if (Gui::IsItemHovered())
 			{
-				Gui::WideSetTooltip("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
+				constexpr vec2 tooltipOffset = vec2(0.0f, 8.0f);
 
-				baseWindowDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
+				// TODO: Manually clamp inside the visible timeline area as well? although a bit more tricky here since the window size isn't known until drawn
+				Gui::WideTooltip(buttonPosition - tooltipOffset + vec2(buttonSize.x * 0.5f, 0.0f), vec2(0.5f, 1.0f), [this, &tempoChange]()
+				{
+					Gui::TextDisabled("(Right-Click to Edit)");
+					Gui::Text("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
+				});
 
 				if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 					SetCursorTick(tempoChange.Tick);
@@ -761,7 +763,7 @@ namespace Comfy::Studio::Editor
 					tempoPopupIndex = static_cast<i32>(newOrInheritedTempoChange.IndexWithinTempoMap);
 
 					// NOTE: Appear above the TempoChange on the TempoMap to not block the timeline content region
-					tempoPopupWindowStartPosition = buttonPosition - vec2(0.0f, 8.0f);
+					tempoPopupWindowStartPosition = buttonPosition - tooltipOffset;
 					tempoPopupWindowStartPosition.x = Clamp(tempoPopupWindowStartPosition.x,
 						regions.TempoMap.Min.x + (tempoPopupWindowStartSize.x * tempoPopupWindowStartPivot.x),
 						regions.TempoMap.Max.x - (tempoPopupWindowStartSize.x * (1.0f - tempoPopupWindowStartPivot.x)));
@@ -798,8 +800,7 @@ namespace Comfy::Studio::Editor
 			// HACK: Raw old columns API usage here just to quickly disable resizing
 			// GuiPropertyRAII::PropertyValueColumns columns;
 			Gui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoResize);
-			if (tempoPopupWindowStartSize.x <= 280.0f) // TODO: Decide on how to best do this
-				Gui::SetColumnWidth(0, tempoPopupWindowStartSize.x / 3.0f);
+			Gui::SetColumnWidth(0, tempoPopupWindowStartSize.x / tempoPopupCenterFraction);
 
 			if (tempoPopupIndex >= 0 && tempoPopupIndex < tempoMap.Count())
 			{
@@ -818,7 +819,7 @@ namespace Comfy::Studio::Editor
 				const BeatTick nextTempoChangeTickMax = (nextTempoChange != nullptr) ? Max((nextTempoChange->Tick - minTickBetweenTempoChanges), thisTempoChange->Tick) : BeatTick::FromTicks(std::numeric_limits<i32>::max());
 
 				// TODO: Also be able to move tempo changes using the mouse similarly to targets (?) although then the "left click to jump" behavior would have to change (?)
-				// TODO: Maybe the timeline should automatically be scrolled while moving a tempo change (?) or at least if the tempo change is moved off-screen
+				//		 Maybe the timeline should also automatically be scrolled while moving a tempo change (?) or at least if the tempo change is moved off-screen
 				GuiProperty::PropertyFuncValueFunc([&]
 				{
 					if (tempoChangeCanBeMoved)
@@ -860,7 +861,7 @@ namespace Comfy::Studio::Editor
 					}
 					Gui::SameLine();
 					{
-						// BUG: Using "%.4g" here means the decimal points won't show if the number is >= 4 chars
+						// BUG: Using "%.4g" here means the decimal values won't show if the number is >= 4 chars
 						f32 beatsFraction = newOrInheritedTempoChange.Tick.BeatsFraction();
 						Gui::SetNextItemWidth(Gui::GetContentRegionAvail().x);
 						if (Gui::InputFloat("##Beat", &beatsFraction, 0.0f, 0.0f, "%.4g"))
@@ -875,19 +876,39 @@ namespace Comfy::Studio::Editor
 					return false;
 				});
 
-				auto guiPropertyInputWithCheckbox = [](std::string_view label, f32& inOutValue, bool& inOutIsSet, f32 dragSpeed, vec2 dragRange, const char* format) -> bool
+				static auto guiPropertySameLineCheckbox = [](const char* label, bool& inOutIsSet, bool disableUncheck) -> bool
+				{
+					if (disableUncheck)
+					{
+						// NOTE: Allow checking but not un-checking the value
+						Gui::PushItemFlag(ImGuiItemFlags_Disabled, inOutIsSet);
+						Gui::PushItemFlag(ImGuiItemFlags_MixedValue, inOutIsSet);
+						Gui::PushStyleColor(ImGuiCol_CheckMark, Gui::GetColorU32(ImGuiCol_CheckMark, 0.45f));
+					}
+					bool valueChanged = Gui::Checkbox(label, &inOutIsSet);
+					if (disableUncheck)
+					{
+						Gui::PopStyleColor(1);
+						Gui::PopItemFlag();
+						Gui::PopItemFlag();
+					}
+
+					Gui::SameLine(0.0f, Gui::GetStyle().ItemInnerSpacing.x);
+					return valueChanged;
+				};
+
+				static auto guiPropertyInputWithCheckbox = [](std::string_view label, f32& inOutValue, bool& inOutIsSet, bool disableUncheck, f32 dragSpeed, vec2 dragRange, const char* format) -> bool
 				{
 					GuiPropertyRAII::ID id(label);
 					return GuiProperty::PropertyFuncValueFunc([&]
 					{
-						Gui::PushItemFlag(ImGuiItemFlags_Disabled, !inOutIsSet);
 						bool valueChanged = GuiProperty::Detail::DragTextT<f32>(label, inOutValue, dragSpeed, &dragRange.x, &dragRange.y, 0.0f);
-						Gui::PopItemFlag();
+						if (valueChanged)
+							inOutIsSet = true;
 						return valueChanged;
 					}, [&]
 					{
-						bool valueChanged = Gui::Checkbox("##Set", &inOutIsSet);
-						Gui::SameLine(0.0f, Gui::GetStyle().ItemInnerSpacing.x);
+						bool valueChanged = guiPropertySameLineCheckbox("##Checkbox", inOutIsSet, disableUncheck);
 						Gui::PushItemDisabledAndTextColorIf(!inOutIsSet);
 						valueChanged |= GuiProperty::Detail::InputVec1DragBaseValueFunc<f32>(inOutValue, dragSpeed, dragRange, format);
 						Gui::PopItemDisabledAndTextColorIf(!inOutIsSet);
@@ -895,12 +916,11 @@ namespace Comfy::Studio::Editor
 					});
 				};
 
-				auto guiPropertyInputFractionWithCheckbox = [](std::string_view label, ivec2& inOutValue, bool& inOutIsSet, ivec2 valueRange) -> bool
+				static auto guiPropertyInputFractionWithCheckbox = [](std::string_view label, ivec2& inOutValue, bool& inOutIsSet, bool disableUncheck, ivec2 valueRange) -> bool
 				{
 					return GuiProperty::PropertyLabelValueFunc(label, [&]
 					{
-						bool valueChanged = Gui::Checkbox("##Set", &inOutIsSet);
-						Gui::SameLine(0.0f, Gui::GetStyle().ItemInnerSpacing.x);
+						bool valueChanged = guiPropertySameLineCheckbox("##Checkbox", inOutIsSet, disableUncheck);
 						Gui::PushItemDisabledAndTextColorIf(!inOutIsSet);
 						valueChanged |= GuiProperty::Detail::InputFractionBase(inOutValue, valueRange, Gui::PropertyEditor::ComponentFlags_None);
 						Gui::PopItemDisabledAndTextColorIf(!inOutIsSet);
@@ -908,9 +928,10 @@ namespace Comfy::Studio::Editor
 					});
 				};
 
+				const bool disableTempoCheckbox = (tempoPopupIndex == 0);
 				bool hasNewTempo = thisTempoChange->Tempo.has_value();
 				f32 bpm = newOrInheritedTempoChange.Tempo.BeatsPerMinute;
-				if (guiPropertyInputWithCheckbox("Tempo", bpm, hasNewTempo, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
+				if (guiPropertyInputWithCheckbox("Tempo", bpm, hasNewTempo, disableTempoCheckbox, 1.0f, vec2(Tempo::MinBPM, Tempo::MaxBPM), "%.2f BPM"))
 				{
 					updatedTempoChange.Tempo = hasNewTempo ? Clamp(bpm, Tempo::MinBPM, Tempo::MaxBPM) : std::optional<Tempo> {};
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
@@ -918,15 +939,16 @@ namespace Comfy::Studio::Editor
 
 				bool hasNewFlyingTime = thisTempoChange->FlyingTime.has_value();
 				f32 flyingTimeFactor = ToPercent(newOrInheritedTempoChange.FlyingTime.Factor);
-				if (guiPropertyInputWithCheckbox("Flying Time", flyingTimeFactor, hasNewFlyingTime, 1.0f, ToPercent(vec2(FlyingTimeFactor::Min, FlyingTimeFactor::Max)), "%.2f %%"))
+				if (guiPropertyInputWithCheckbox("Flying Time", flyingTimeFactor, hasNewFlyingTime, false, 1.0f, ToPercent(vec2(FlyingTimeFactor::Min, FlyingTimeFactor::Max)), "%.2f %%"))
 				{
 					updatedTempoChange.FlyingTime = hasNewFlyingTime ? FlyingTimeFactor(FromPercent(flyingTimeFactor)) : std::optional<FlyingTimeFactor> {};
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
 				}
 
+				const bool disableSignatureCheckbox = (tempoPopupIndex == 0);
 				bool hasNewSignature = thisTempoChange->Signature.has_value();
 				ivec2 sig = { newOrInheritedTempoChange.Signature.Numerator, newOrInheritedTempoChange.Signature.Denominator };
-				if (guiPropertyInputFractionWithCheckbox("Time Signature", sig, hasNewSignature, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
+				if (guiPropertyInputFractionWithCheckbox("Time Signature", sig, hasNewSignature, disableSignatureCheckbox, ivec2(TimeSignature::MinValue, TimeSignature::MaxValue)))
 				{
 					updatedTempoChange.Signature = hasNewSignature ? TimeSignature(sig[0], sig[1]) : std::optional<TimeSignature> {};
 					undoManager.Execute<UpdateTempoChange>(*workingChart, updatedTempoChange);
@@ -960,6 +982,26 @@ namespace Comfy::Studio::Editor
 		else
 		{
 			tempoPopupIndex = -1;
+		}
+
+		const bool popupClosedLastFrame = (tempoPopupIndex <= -1) && (lastFrameTempoPopupIndex >= 0);
+		if (popupClosedLastFrame)
+		{
+			for (const auto& tempoChange : tempoMap.GetRawView())
+			{
+				if (&tempoChange == &tempoMap.GetRawViewAt(0))
+					continue;
+
+				const bool isTempoChangeEmptpy = !tempoChange.Tempo.has_value() && !tempoChange.FlyingTime.has_value() && !tempoChange.Signature.has_value();
+				if (!isTempoChangeEmptpy)
+					continue;
+
+#if 1 // NOTE: Doing it this way means they can still be un-done and return to their empty state... but I guess that could be considered a feature
+				undoManager.ExecuteEndOfFrame<RemoveTempoChange>(*workingChart, tempoChange.Tick);
+#else // NOTE: Skipping the undo manager and doing a remove mid-frame feels a bit scary and can still result in empty tempo changes unless this check loop is run every frame
+				RemoveTempoChange(*workingChart, tempoChange.Tick).Redo();
+#endif
+			}
 		}
 	}
 
@@ -1008,8 +1050,8 @@ namespace Comfy::Studio::Editor
 		{
 			const auto buttonTime = TickToTime(target.Tick);
 			const f32 screenX = glm::round(GetTimelinePosition(buttonTime) - GetScrollX());
-
 			const auto visiblity = GetTimelineVisibility(screenX);
+
 			if (visiblity == TimelineVisibility::Left)
 				continue;
 			if (visiblity == TimelineVisibility::Right)
