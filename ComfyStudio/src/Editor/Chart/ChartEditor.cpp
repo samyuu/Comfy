@@ -10,6 +10,7 @@
 #include "Version/BuildVersion.h"
 #include "System/ComfyData.h"
 #include "Misc/StringUtil.h"
+#include "Time/TimeUtilities.h"
 #include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
@@ -34,6 +35,74 @@ namespace Comfy::Studio::Editor
 			for (auto* viewport : Gui::GetCurrentContext()->Viewports)
 				Gui::GetForegroundDrawList(viewport)->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size, ImColor(0.0f, 0.0f, 0.0f, alpha));
 		}
+
+		constexpr std::string_view ComfyAutoSaveFilePrefix = "comfy_auto_save_";
+		constexpr std::string_view ComfyAutoSaveFileExtension = ComfyStudioChartFile::Extension;
+
+		std::string MakeRelativeAutoSaveDirectoryAbsolute(std::string_view relativeDirectory)
+		{
+			if (relativeDirectory.empty())
+				return "";
+
+			return IO::Path::IsRelative(relativeDirectory) ? IO::Path::Combine(IO::Directory::GetExecutableDirectory(), relativeDirectory) : std::string(relativeDirectory);
+		}
+
+		// HACK: Gotta resort to raw Win32 calls to have access to the file creation dates. Might wanna refactor and abstract away this in the future 
+		bool Win32DeleteAllOldAutoSaveFilesInDirectoryOverMaxLimit(std::string_view directoryToClear, i32 maxAutoSaveFiles)
+		{
+			assert(maxAutoSaveFiles > 0 && !directoryToClear.empty());
+
+			struct FileNameAndCreationTime { std::string FileName; i64 CreationTime; };
+			std::vector<FileNameAndCreationTime> foundAutoSaveFiles;
+
+			auto findFileDirectoryW = UTF8::Widen(directoryToClear);
+			for (wchar_t& c : findFileDirectoryW)
+				c = (c == L'/') ? L'\\' : c;
+			if (findFileDirectoryW.back() != L'\\')
+				findFileDirectoryW += L'\\';
+			findFileDirectoryW += L"*";
+
+			WIN32_FIND_DATAW findData = {};
+			auto findResult = ::FindFirstFileW(findFileDirectoryW.c_str(), &findData);
+			if (findResult == INVALID_HANDLE_VALUE)
+				return false;
+
+			do
+			{
+				if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				{
+					auto fileNameUTF8 = UTF8::Narrow(findData.cFileName);
+					if (Util::StartsWithInsensitive(fileNameUTF8, ComfyAutoSaveFilePrefix) && Util::EndsWithInsensitive(fileNameUTF8, ComfyAutoSaveFileExtension))
+					{
+						LARGE_INTEGER creationTime64Bit = {};
+						creationTime64Bit.LowPart = findData.ftCreationTime.dwLowDateTime;
+						creationTime64Bit.HighPart = findData.ftCreationTime.dwHighDateTime;
+						foundAutoSaveFiles.push_back(FileNameAndCreationTime { std::move(fileNameUTF8), creationTime64Bit.QuadPart });
+					}
+				}
+			}
+			while (::FindNextFileW(findResult, &findData) != 0);
+
+			if (foundAutoSaveFiles.size() >= maxAutoSaveFiles)
+			{
+				auto sortByOldestFileFirst = [](const FileNameAndCreationTime& a, const FileNameAndCreationTime& b) { return a.CreationTime < b.CreationTime; };
+				std::sort(foundAutoSaveFiles.begin(), foundAutoSaveFiles.end(), sortByOldestFileFirst);
+
+				std::string fullPathBuffer;
+				const i32 numberOfFilesOverLimit = static_cast<i32>(foundAutoSaveFiles.size() + 1) - maxAutoSaveFiles;
+
+				for (i32 i = 0; (i < numberOfFilesOverLimit) && (i < foundAutoSaveFiles.size()); i++)
+				{
+					fullPathBuffer.clear();
+					fullPathBuffer += directoryToClear;
+					fullPathBuffer += IO::Path::DirectorySeparator;
+					fullPathBuffer += foundAutoSaveFiles[i].FileName;
+					::DeleteFileW(UTF8::WideArg(fullPathBuffer).c_str());
+				}
+			}
+
+			return true;
+		};
 	}
 
 	ChartEditor::ChartEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
@@ -65,6 +134,8 @@ namespace Comfy::Studio::Editor
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
 		unixTimeOnChartBegin = Discord::GlobalGetCurrentUnixTime();
 #endif
+
+		lastAutoSaveStowpatch.Restart();
 	}
 
 	const char* ChartEditor::GetName() const
@@ -89,10 +160,14 @@ namespace Comfy::Studio::Editor
 		songVoice.SetVolume(GlobalUserData.System.Audio.SongVolume);
 
 		UpdateApplicationClosingRequest();
-		UpdateGlobalControlInput();
 		UpdateApplicationWindowTitle();
 		UpdateDiscordStatusIfEnabled(false);
+
+		if (!GetIsPlayback())
+			CheckAutoSaveStopwatchAndDoAsyncAutoSave();
+
 		UpdateAsyncSongSourceLoading();
+		UpdateGlobalControlInput();
 
 		GuiChildWindows();
 		GuiPlaytestFullscreenFadeOutAnimation();
@@ -239,6 +314,36 @@ namespace Comfy::Studio::Editor
 
 			if constexpr (debugPopupPlaytestWindowEnabled)
 				Gui::MenuItemDontClosePopup("Popout Playtest Window (Debug)", nullptr, &debugPopupPlaytestWindowOpen);
+
+			Gui::EndMenu();
+		}
+
+		if (Gui::BeginMenu("Auto Save"))
+		{
+			const bool isAutoSaveEnabled = GlobalUserData.SaveAndLoad.AutoSaveEnabled;
+			const bool hasAutoSaveDirectory = !GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory.empty();
+
+			const TimeSpan timeUntilNextAutoSave = (GlobalUserData.SaveAndLoad.AutoSaveInterval - lastAutoSaveStowpatch.GetElapsed());
+			const bool autoSaveDueNow = (timeUntilNextAutoSave < TimeSpan::FromSeconds(1.0));
+
+			char autoSaveTimeBuffer[32];
+			sprintf_s(autoSaveTimeBuffer, !isAutoSaveEnabled ? "(Disabled)" : autoSaveDueNow ? "Now" : "%.0f min", Max(timeUntilNextAutoSave.TotalMinutes(), 1.0));
+
+			// NOTE: Use Disabled flag to disable interactions while still keeping the non disabled text color
+			Gui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			Gui::MenuItem("Next Auto Save:", autoSaveTimeBuffer, false, true);
+			Gui::PopItemFlag();
+
+			Gui::Separator();
+
+			if (Gui::MenuItem("Create Manual Auto Save", Input::ToString(GlobalUserData.Input.ChartEditor_CreateManualAutoSave).data(), false, hasAutoSaveDirectory && isAutoSaveEnabled))
+				AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+
+			if (Gui::MenuItem("Open Auto Save Directory...", Input::ToString(GlobalUserData.Input.ChartEditor_OpenAutoSaveDirectory).data(), false, hasAutoSaveDirectory))
+				OpenAutoSaveDirectoryInExplorer();
+
+			// NOTE: "Delete Auto Save Files" could be an option, although accidentally clicking on it might be too much of a risk
+			//		 and manually deleting the files via the regular file explorer doesn't seem like too much of a hassle anyhow
 
 			Gui::EndMenu();
 		}
@@ -461,6 +566,10 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::CreateNewChart(bool focusTimelineAndCloseActivePopup)
 	{
+		// TODO: Shold this really be here..?
+		if (undoManager.GetHasPendingChanged() || !undoManager.GetUndoStackView().empty() || !undoManager.GetRedoStackView().empty())
+			AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+
 		undoManager.ClearAll();
 		chart = MakeNewChartWithDefaults();
 		UnloadSong();
@@ -525,8 +634,11 @@ namespace Comfy::Studio::Editor
 			if (chartSaveFileFuture.valid())
 				chartSaveFileFuture.get();
 
-			lastSavedChartFile = std::make_unique<ComfyStudioChartFile>(*chart);
-			chartSaveFileFuture = IO::File::SaveAsync(chart->ChartFilePath, lastSavedChartFile.get());
+			auto syncConvertedChartFile = std::make_unique<ComfyStudioChartFile>(*chart);
+			chartSaveFileFuture = std::async(std::launch::async, [futureOwnedPath = std::string(chart->ChartFilePath), futureOwnedChartFile = std::move(syncConvertedChartFile)]()
+			{
+				return (futureOwnedChartFile != nullptr) ? IO::File::Save(futureOwnedPath, *futureOwnedChartFile) : false;
+			});
 
 			undoManager.ClearPendingChangesFlag();
 			GlobalAppData.RecentFiles.ChartFiles.Add(chart->ChartFilePath);
@@ -538,6 +650,21 @@ namespace Comfy::Studio::Editor
 		const auto chartDirectory = IO::Path::GetDirectoryName(chart->ChartFilePath);
 		if (!chartDirectory.empty() && IO::Directory::Exists(chartDirectory))
 			IO::Shell::OpenInExplorer(chartDirectory);
+	}
+
+	void ChartEditor::OpenAutoSaveDirectoryInExplorer() const
+	{
+		if (GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory.empty())
+			return;
+
+		const auto autoSaveDirectory = MakeRelativeAutoSaveDirectoryAbsolute(GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory);
+		if (autoSaveDirectory.empty())
+			return;
+
+		if (!IO::Directory::Exists(autoSaveDirectory))
+			IO::Directory::CreateRecursive(autoSaveDirectory);
+
+		IO::Shell::OpenInExplorer(autoSaveDirectory);
 	}
 
 	bool ChartEditor::OpenReadNativeChartFileDialog()
@@ -899,6 +1026,11 @@ namespace Comfy::Studio::Editor
 			OpenPVScriptExportWindow();
 		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_ExportPVScriptChart, false))
 			OpenSaveExportSimplePVScriptChartFileDialog();
+
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_CreateManualAutoSave, false))
+			AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_OpenAutoSaveDirectory, false))
+			OpenAutoSaveDirectoryInExplorer();
 	}
 
 	void ChartEditor::UpdateApplicationWindowTitle()
@@ -988,6 +1120,64 @@ namespace Comfy::Studio::Editor
 			Audio::AudioEngine::GetInstance().EnsureStreamRunning();
 
 		timeline->OnSongLoaded();
+	}
+
+	void ChartEditor::CheckAutoSaveStopwatchAndDoAsyncAutoSave()
+	{
+		const auto timeSinceLastAutoSave = lastAutoSaveStowpatch.GetElapsed();
+		if (timeSinceLastAutoSave >= GlobalUserData.SaveAndLoad.AutoSaveInterval)
+			AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+	}
+
+	void ChartEditor::AutoSaveCurrentChartIfEnabledAndRestartStopwatch()
+	{
+		if (GlobalUserData.SaveAndLoad.AutoSaveEnabled && !GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory.empty() && chart != nullptr)
+			StartAsyncAutoSaveFutureForChart(*chart);
+
+		lastAutoSaveStowpatch.Restart();
+	}
+
+	void ChartEditor::StartAsyncAutoSaveFutureForChart(const Chart& chartToSave) const
+	{
+		struct FutureOwnedAsyncAutoSaveContext
+		{
+			std::unique_ptr<ComfyStudioChartFile> ChartFile;
+			i32 MaxAutoSaveFilesToKeep;
+			std::string RelativeOutputDirectory;
+		};
+
+		// NOTE: Create sync copies first to avoid any kind of multi threading problems
+		FutureOwnedAsyncAutoSaveContext syncPreparedAutoSaveContext = {};
+		syncPreparedAutoSaveContext.ChartFile = std::make_unique<ComfyStudioChartFile>(chartToSave);
+		syncPreparedAutoSaveContext.MaxAutoSaveFilesToKeep = GlobalUserData.SaveAndLoad.MaxAutoSaveFiles;
+		syncPreparedAutoSaveContext.RelativeOutputDirectory = GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory;
+
+		if (chartAutoSaveFuture.valid())
+			chartAutoSaveFuture.get();
+
+		chartAutoSaveFuture = std::async(std::launch::async, [autoSaveContext = std::move(syncPreparedAutoSaveContext)]()
+		{
+			const std::string absoluteOutputDirectory = MakeRelativeAutoSaveDirectoryAbsolute(autoSaveContext.RelativeOutputDirectory);
+			if (absoluteOutputDirectory.empty())
+				return false;
+
+			if (autoSaveContext.MaxAutoSaveFilesToKeep > 0)
+				Win32DeleteAllOldAutoSaveFilesInDirectoryOverMaxLimit(absoluteOutputDirectory, autoSaveContext.MaxAutoSaveFilesToKeep);
+
+			IO::Directory::CreateRecursive(absoluteOutputDirectory);
+
+			std::string outputPath;
+			outputPath += absoluteOutputDirectory;
+			if (!absoluteOutputDirectory.empty() && (absoluteOutputDirectory.back() != IO::Path::DirectorySeparator || outputPath.back() != IO::Path::DirectorySeparatorAlt))
+				outputPath += IO::Path::DirectorySeparator;
+			outputPath += ComfyAutoSaveFilePrefix;
+			outputPath += FormatFileNameDateTimeNow();
+			outputPath += "_";
+			outputPath += std::string_view(BuildVersion::CommitHash, 8);
+			outputPath += ComfyAutoSaveFileExtension;
+
+			return (autoSaveContext.ChartFile != nullptr) ? IO::File::Save(outputPath, *autoSaveContext.ChartFile) : false;
+		});
 	}
 
 	void ChartEditor::GuiChildWindows()

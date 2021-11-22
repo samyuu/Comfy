@@ -61,7 +61,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 29, 0 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 30, 0 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -115,6 +115,18 @@ namespace Comfy::Studio
 			} Discord;
 		} System;
 
+		struct
+		{
+			// TODO: Do these make sense (?)
+			// bool UnsavedChangesWarningDialog;
+			// bool RememberRecentFiles;
+
+			bool AutoSaveEnabled;
+			TimeSpan AutoSaveInterval;
+			i32 MaxAutoSaveFiles;
+			std::string RelativeAutoSaveDirectory;
+		} SaveAndLoad;
+
 		struct // NOTE: Underscores in symbols are usually a big no go but definitely help with readability here quite a lot
 		{
 			Input::StandardControllerLayoutMappings ControllerLayoutMappings;
@@ -141,6 +153,8 @@ namespace Comfy::Studio
 			Input::MultiBinding ChartEditor_OpenSettings;
 			Input::MultiBinding ChartEditor_StartPlaytestFromStart;
 			Input::MultiBinding ChartEditor_StartPlaytestFromCursor;
+			Input::MultiBinding ChartEditor_CreateManualAutoSave;
+			Input::MultiBinding ChartEditor_OpenAutoSaveDirectory;
 
 			Input::MultiBinding Timeline_CenterCursor;
 			Input::MultiBinding Timeline_TogglePlayback;
@@ -246,15 +260,6 @@ namespace Comfy::Studio
 
 			std::vector<Editor::PlayTestInputBinding> PlaytestBindings;
 		} Input;
-
-		struct
-		{
-			// bool UnsavedChangesWarningDialog;
-			// bool RememberRecentFiles;
-
-			// bool AutoSaveEnabled;
-			// TimeSpan AutoSaveInterval;
-		} SaveAndLoad;
 
 		struct
 		{

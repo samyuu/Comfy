@@ -429,6 +429,12 @@ namespace Comfy::Studio
 		constexpr std::string_view System_Discord_EnableRichPresence = "enable_rich_presence";
 		constexpr std::string_view System_Discord_ShareElapsedTime = "share_elapsed_time";
 
+		constexpr std::string_view SaveAndLoad = "save_and_load";
+		constexpr std::string_view SaveAndLoad_AutoSaveEnabled = "auto_save_enabled";
+		constexpr std::string_view SaveAndLoad_AutoSaveIntervalMin = "auto_save_interval_min";
+		constexpr std::string_view SaveAndLoad_MaxAutoSaveFiles = "max_auto_save_files";
+		constexpr std::string_view SaveAndLoad_RelativeAutoSaveDirectory = "relative_auto_save_directory";
+
 		constexpr std::string_view Input = "input";
 		constexpr std::string_view Input_ControllerLayoutMappings = "controller_layout_mappings";
 		constexpr std::string_view Input_Bindings = "bindings";
@@ -581,6 +587,8 @@ namespace Comfy::Studio
 			func(userData.Input.ChartEditor_OpenSettings, "chart_editor_open_settings");
 			func(userData.Input.ChartEditor_StartPlaytestFromStart, "chart_editor_start_playtest_from_start");
 			func(userData.Input.ChartEditor_StartPlaytestFromCursor, "chart_editor_start_playtest_from_cursor");
+			func(userData.Input.ChartEditor_CreateManualAutoSave, "chart_editor_create_manual_auto_save");
+			func(userData.Input.ChartEditor_OpenAutoSaveDirectory, "chart_editor_open_auto_save_directory");
 			func(userData.Input.Timeline_CenterCursor, "timeline_center_cursor");
 			func(userData.Input.Timeline_TogglePlayback, "timeline_toggle_playback");
 			func(userData.Input.Timeline_StopPlayback, "timeline_stop_playback");
@@ -679,7 +687,7 @@ namespace Comfy::Studio
 			func(userData.Input.Playtest_MoveResetPointBackward, "playtest_move_reset_point_backward");
 			func(userData.Input.Playtest_MoveResetPointForward, "playtest_move_reset_point_forward");
 
-			constexpr size_t bindingsHandledInsideThisFunction = 118;
+			constexpr size_t bindingsHandledInsideThisFunction = 120;
 			constexpr size_t totalBindingsCountInsideUserDataHeader = (sizeof(userData.Input) - sizeof(userData.Input.ControllerLayoutMappings) - sizeof(userData.Input.PlaytestBindings)) / sizeof(Input::MultiBinding);
 			static_assert(totalBindingsCountInsideUserDataHeader == bindingsHandledInsideThisFunction);
 		}
@@ -825,6 +833,15 @@ namespace Comfy::Studio
 				TryAssign(System.Discord.EnableRichPresence, TryGetBool(Find(*discordJson, UserIDs::System_Discord_EnableRichPresence)));
 				TryAssign(System.Discord.ShareElapsedTime, TryGetBool(Find(*discordJson, UserIDs::System_Discord_ShareElapsedTime)));
 			}
+		}
+
+		if (const Value* saveAndLoadJson = Find(rootJson, UserIDs::SaveAndLoad))
+		{
+			TryAssign(SaveAndLoad.AutoSaveEnabled, TryGetBool(Find(*saveAndLoadJson, UserIDs::SaveAndLoad_AutoSaveEnabled)));
+			if (auto v = TryGetF64(Find(*saveAndLoadJson, UserIDs::SaveAndLoad_AutoSaveIntervalMin)); v.has_value())
+				SaveAndLoad.AutoSaveInterval = TimeSpan::FromMinutes(v.value());
+			TryAssign(SaveAndLoad.MaxAutoSaveFiles, TryGetI32(Find(*saveAndLoadJson, UserIDs::SaveAndLoad_MaxAutoSaveFiles)));
+			TryAssign(SaveAndLoad.RelativeAutoSaveDirectory, TryGetStrView(Find(*saveAndLoadJson, UserIDs::SaveAndLoad_RelativeAutoSaveDirectory)));
 		}
 
 		if (const Value* inputJson = Find(rootJson, UserIDs::Input))
@@ -1220,6 +1237,15 @@ namespace Comfy::Studio
 			}
 			writer.MemberObjectEnd();
 
+			writer.MemberObjectBegin(UserIDs::SaveAndLoad);
+			{
+				writer.MemberBool(UserIDs::SaveAndLoad_AutoSaveEnabled, SaveAndLoad.AutoSaveEnabled);
+				writer.MemberF64(UserIDs::SaveAndLoad_AutoSaveIntervalMin, SaveAndLoad.AutoSaveInterval.TotalMinutes());
+				writer.MemberI32(UserIDs::SaveAndLoad_MaxAutoSaveFiles, SaveAndLoad.MaxAutoSaveFiles);
+				writer.MemberStr(UserIDs::SaveAndLoad_RelativeAutoSaveDirectory, SaveAndLoad.RelativeAutoSaveDirectory);
+			}
+			writer.MemberObjectEnd();
+
 			writer.MemberObjectBegin(UserIDs::Input);
 			{
 				writer.MemberArrayBegin(UserIDs::Input_ControllerLayoutMappings);
@@ -1551,6 +1577,11 @@ namespace Comfy::Studio
 		// NOTE: This one is debatable...
 		System.Discord.EnableRichPresence = true;
 		System.Discord.ShareElapsedTime = true;
+
+		SaveAndLoad.AutoSaveEnabled = true;
+		SaveAndLoad.AutoSaveInterval = TimeSpan::FromMinutes(10.0);
+		SaveAndLoad.MaxAutoSaveFiles = 120;
+		SaveAndLoad.RelativeAutoSaveDirectory = "auto_save";
 
 		{
 			using namespace Input;

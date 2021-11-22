@@ -77,9 +77,8 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::SliderInt("##SettingsSlider", &inOutValue, minValue, maxValue, format, flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -92,9 +91,8 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::SliderFloat("##SettingsSlider", &inOutValue, minValue, maxValue, format, flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -107,7 +105,7 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 
 			bool result = false;
 #if 0
@@ -122,7 +120,6 @@ namespace Comfy::Studio::Editor
 				inOutValue = Audio::SquareToLinearVolume(FromPercent(s));
 #endif
 
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -135,13 +132,12 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::InputScalar("##SettingsInput", ImGuiDataType_S32, &inOutValue,
 				(step > 0 ? &step : nullptr),
 				(stepFast > 0 ? &stepFast : nullptr),
 				(format != nullptr) ? format : (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%08X" : "%d",
 				flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -154,13 +150,12 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::InputScalar("##SettingsInput", ImGuiDataType_Float, &inOutValue,
 				(step > 0 ? &step : nullptr),
 				(stepFast > 0 ? &stepFast : nullptr),
 				format,
 				flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -173,9 +168,8 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::InputScalarN("##SettingsInput", ImGuiDataType_Float, glm::value_ptr(inOutValue), 3, nullptr, nullptr, format, flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -188,9 +182,10 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
+			Gui::PushItemDisabledAndTextColorIf(flags & ImGuiInputTextFlags_ReadOnly);
 			const bool result = (hintText != nullptr) ? Gui::InputTextWithHint("##SettingsText", hintText, &inOutValue, flags) : Gui::InputText("##SettingsText", &inOutValue, flags);
-			Gui::PopItemWidth();
+			Gui::PopItemDisabledAndTextColorIf(flags & ImGuiInputTextFlags_ReadOnly);
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -272,9 +267,8 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::ColorEdit3("##SettingsColorEdit3", glm::value_ptr(inOutColor), flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -287,9 +281,8 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::ColorEdit4("##SettingsColorEdit4", glm::value_ptr(inOutColor), flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -806,9 +799,8 @@ namespace Comfy::Studio::Editor
 			Gui::NextColumn();
 
 			Gui::PushID(Gui::StringViewStart(label), Gui::StringViewEnd(label));
-			Gui::PushItemWidth(GuiSettingsItemWidth);
+			Gui::SetNextItemWidth(GuiSettingsItemWidth);
 			const bool result = Gui::SliderFloat3("##SettingsSlider", glm::value_ptr(inOutValue), minValue, maxValue, format, flags);
-			Gui::PopItemWidth();
 			Gui::PopID();
 			Gui::NextColumn();
 
@@ -1155,13 +1147,43 @@ namespace Comfy::Studio::Editor
 		{
 			GuiBeginSettingsColumns();
 
-#if COMFY_DEBUG && 1
-			// TODO: Auto save interval, save location, etc.
-			static bool DEBUG_EnableAutoSave = true;
-			pendingChanges |= GuiSettingsCheckbox("Enable Auto Save", DEBUG_EnableAutoSave);
-#else
-			Gui::TextDisabled("TODO");
-#endif
+			pendingChanges |= GuiSettingsCheckbox("Enable Auto Save", userData.SaveAndLoad.AutoSaveEnabled);
+
+			Gui::PushItemDisabledAndTextColorIf(!userData.SaveAndLoad.AutoSaveEnabled);
+
+			if (auto v = static_cast<f32>(userData.SaveAndLoad.AutoSaveInterval.TotalMinutes());
+				GuiSettingsInputF32("Auto Save Interval", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.0f min"))
+			{
+				userData.SaveAndLoad.AutoSaveInterval = TimeSpan::FromMinutes(Clamp(v, 1.0f, 60.0f));
+				pendingChanges = true;
+			}
+
+			if (auto v = userData.SaveAndLoad.MaxAutoSaveFiles;
+				GuiSettingsInputI32("Max Auto Saves", v, 1, 10, ImGuiInputTextFlags_None, (v == 1) ? "%d file" : "%d files"))
+			{
+				userData.SaveAndLoad.MaxAutoSaveFiles = Clamp(v, 1, 999);
+				pendingChanges = true;
+			}
+
+			Gui::Separator();
+
+			{
+				autoSaveDirectoryBuffer.clear();
+				if (!userData.SaveAndLoad.RelativeAutoSaveDirectory.empty())
+				{
+					autoSaveDirectoryBuffer += "${ComfyStudio}/";
+					autoSaveDirectoryBuffer += userData.SaveAndLoad.RelativeAutoSaveDirectory;
+					autoSaveDirectoryBuffer += "/";
+				}
+				else
+				{
+					autoSaveDirectoryBuffer += "(None)";
+				}
+
+				GuiSettingsInputText("Auto Save Directory", autoSaveDirectoryBuffer, nullptr, ImGuiInputTextFlags_ReadOnly);
+			}
+
+			Gui::PopItemDisabledAndTextColorIf(!userData.SaveAndLoad.AutoSaveEnabled);
 
 			GuiEndSettingsColumns();
 		}
@@ -1193,6 +1215,8 @@ namespace Comfy::Studio::Editor
 
 			pendingChanges |= GuiSettingsCheckbox("Enter Fullscreen on Maximized Start", userData.Playtest.EnterFullscreenOnMaximizedStart);
 			pendingChanges |= GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
+
+			// TODO: Maybe eventually options for how the transition between ChartEditor and PlayTestCore should occure (?)
 
 			GuiEndSettingsColumns();
 
@@ -1318,6 +1342,8 @@ namespace Comfy::Studio::Editor
 			{ &userData.Input.ChartEditor_OpenSettings, "Chart Editor - Open Settings" },
 			{ &userData.Input.ChartEditor_StartPlaytestFromStart, "Chart Editor - Start Playtest from Start" },
 			{ &userData.Input.ChartEditor_StartPlaytestFromCursor, "Chart Editor - Start Playtest from Cursor" },
+			{ &userData.Input.ChartEditor_CreateManualAutoSave, "Chart Editor - Create Manual Auto Save" },
+			{ &userData.Input.ChartEditor_OpenAutoSaveDirectory, "Chart Editor - Open Auto Save Directory" },
 			{ &userData.Input.Timeline_CenterCursor, "Timeline - Center Cursor" },
 			{ &userData.Input.Timeline_TogglePlayback, "Timeline - Toggle Playback" },
 			{ &userData.Input.Timeline_StopPlayback, "Timeline - Stop Playback" },

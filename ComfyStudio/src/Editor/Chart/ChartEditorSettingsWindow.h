@@ -64,6 +64,8 @@ namespace Comfy::Studio::Editor
 		bool inspectorDropdownInputTextActiveLastFrame = false;
 		std::string inspectorDropdownFormattedMultilineString;
 
+		std::string autoSaveDirectoryBuffer;
+
 		Gui::ExtendedImGuiTextFilter bindingFilter = {};
 		// NOTE: Pointing inside a global struct so don't need to worry about lifetime or becoming invalidated
 		Input::MultiBinding* selectedMultiBinding = nullptr;

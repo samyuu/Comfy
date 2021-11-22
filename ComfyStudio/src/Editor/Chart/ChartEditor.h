@@ -104,6 +104,7 @@ namespace Comfy::Studio::Editor
 		void SaveNativeChartFileAsync(std::string_view filePath = "");
 
 		void OpenChartDirectoryInExplorer() const;
+		void OpenAutoSaveDirectoryInExplorer() const;
 		bool OpenReadNativeChartFileDialog();
 		bool OpenSaveNativeChartFileDialog();
 		bool TrySaveNativeChartFileOrOpenDialog();
@@ -156,6 +157,9 @@ namespace Comfy::Studio::Editor
 		void UpdateApplicationWindowTitle();
 		void UpdateDiscordStatusIfEnabled(bool isPlaytesting);
 		void UpdateAsyncSongSourceLoading();
+		void CheckAutoSaveStopwatchAndDoAsyncAutoSave();
+		void AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+		void StartAsyncAutoSaveFutureForChart(const Chart& chartToSave) const;
 
 		void GuiChildWindows();
 		void GuiPlaytestFullscreenFadeOutAnimation();
@@ -235,7 +239,9 @@ namespace Comfy::Studio::Editor
 		} fileNotFoundPopup = {};
 
 		std::future<bool> chartSaveFileFuture;
-		std::unique_ptr<ComfyStudioChartFile> lastSavedChartFile;
+		
+		mutable std::future<bool> chartAutoSaveFuture;
+		Stopwatch lastAutoSaveStowpatch = {};
 
 #if COMFY_COMILE_WITH_DLL_DISCORD_RICH_PRESENCE_INTEGRATION
 		Discord::Status discordStatus = {};
