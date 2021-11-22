@@ -133,6 +133,15 @@ namespace Comfy::IO
 			std::replace(normalized.begin(), normalized.end(), DirectorySeparator, DirectorySeparatorAlt);
 			return normalized;
 		}
+
+		std::string TrySearchSystemSearchPath(std::string_view fileName, std::string_view fileExtension)
+		{
+			wchar_t outFileBuffer[MAX_PATH] = {};
+			wchar_t* outFilePart = nullptr;
+
+			const DWORD outStrLen = SearchPathW(nullptr, UTF8::WideArg(fileName).c_str(), UTF8::WideArg(fileExtension).c_str(), MAX_PATH, outFileBuffer, &outFilePart);
+			return (outStrLen > 0) ? UTF8::Narrow(std::wstring_view(outFileBuffer, outStrLen)) : "";
+		}
 	}
 }
 

@@ -51,6 +51,40 @@ namespace Comfy::IO
 					}
 				}
 			}
+
+			// HACK: Fuck it, I don't wanna deal with this any more. All the COM stuff is causing too many multi threading issues... 
+			//		 Very hacky but showing / opening files this way should at least work reliably regardless of the current program state
+			bool LaunchDetachedExplorerExeProcessWithPathArg(std::string_view singlePathArg)
+			{
+				const auto explorerExePath = IO::Path::TrySearchSystemSearchPath("explorer", ".exe");
+				const auto explorerExePathW = UTF8::WideArg(explorerExePath);
+				if (explorerExePath.empty())
+					return false;
+
+				std::wstring commandLineW;
+				commandLineW += L'"';
+				commandLineW += explorerExePathW.c_str();
+				commandLineW += L'"';
+				if (!singlePathArg.empty())
+				{
+					commandLineW += L' ';
+					commandLineW += L'"';
+					commandLineW += UTF8::WideArg(IO::Path::NormalizeWin32(singlePathArg)).c_str();
+					commandLineW += L'"';
+				}
+
+				STARTUPINFOW inStartupInfo = {};
+				inStartupInfo.cb = sizeof(inStartupInfo);
+
+				PROCESS_INFORMATION outProcessInfo = {};
+				const BOOL result = ::CreateProcessW(explorerExePathW.c_str(), commandLineW.data(), nullptr, nullptr, false, DETACHED_PROCESS, nullptr, nullptr, &inStartupInfo, &outProcessInfo);
+				if (!result)
+					return false;
+
+				::CloseHandle(outProcessInfo.hProcess);
+				::CloseHandle(outProcessInfo.hThread);
+				return true;
+			}
 		}
 
 		bool IsFileLink(std::string filePath)
@@ -87,6 +121,7 @@ namespace Comfy::IO
 
 		void OpenInExplorer(std::string_view filePath)
 		{
+#if 0
 			// HACK: Just to be sure...
 			CreateRunAndWaitOnComThreadWithTimeout([path = std::string(filePath)]()
 			{
@@ -100,6 +135,9 @@ namespace Comfy::IO
 					::ShellExecuteW(NULL, L"open", UTF8::WideArg(path).c_str(), NULL, NULL, SW_SHOWDEFAULT);
 				}
 			});
+#else 
+			LaunchDetachedExplorerExeProcessWithPathArg(IO::Path::ResolveRelative(filePath));
+#endif
 		}
 
 		void OpenExplorerProperties(std::string_view filePath)
@@ -121,6 +159,7 @@ namespace Comfy::IO
 
 		void OpenWithDefaultProgram(std::string_view filePath)
 		{
+#if 0
 			// BUG: Can't reliably reproduce it but under certain conditions it seems if this is called after the MoviePlayer has been initialized
 			//		then these can completely lock up the program. Probably related to multi threading / COM threading apartment...
 			CreateRunAndWaitOnComThreadWithTimeout([path = std::string(filePath)]()
@@ -135,6 +174,9 @@ namespace Comfy::IO
 					::ShellExecuteW(NULL, L"open", UTF8::WideArg(path).c_str(), NULL, NULL, SW_SHOW);
 				}
 			});
+#else
+			LaunchDetachedExplorerExeProcessWithPathArg(IO::Path::ResolveRelative(filePath));
+#endif
 		}
 
 		namespace

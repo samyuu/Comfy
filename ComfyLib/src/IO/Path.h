@@ -95,5 +95,7 @@ namespace Comfy::IO
 
 		// NOTE: Replace '/' -> '\\' etc.
 		COMFY_NODISCARD std::string NormalizeWin32(std::string_view filePath);
+
+		COMFY_NODISCARD std::string TrySearchSystemSearchPath(std::string_view fileName, std::string_view fileExtension = ".exe");
 	}
 }
