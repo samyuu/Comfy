@@ -31,6 +31,7 @@ namespace Comfy::Studio::Editor
 
 		bool IsMovieAsyncLoading() const;
 		bool IsMoviePlayerValidAndReady() const;
+		bool IsMoviePlayerValidAndHasVideo() const;
 
 	private:
 		Render::IMoviePlayer* moviePlayer = nullptr;

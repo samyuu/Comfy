@@ -13,7 +13,8 @@ namespace Comfy::Studio::Editor
 
 	void ChartMoviePlaybackController::OnResume(TimeSpan playbackTime)
 	{
-		if (!IsMoviePlayerValidAndReady())
+		deferMovieStart = false;
+		if (!IsMoviePlayerValidAndHasVideo())
 			return;
 
 		if (playbackTime < -movieOffset)
@@ -30,10 +31,10 @@ namespace Comfy::Studio::Editor
 
 	void ChartMoviePlaybackController::OnPause(TimeSpan playbackTime)
 	{
-		if (!IsMoviePlayerValidAndReady())
+		deferMovieStart = false;
+		if (!IsMoviePlayerValidAndHasVideo())
 			return;
 
-		deferMovieStart = false;
 		deferMovieResyncAfterReload = false;
 		moviePlayer->SetIsPlayingAsync(false);
 
@@ -45,7 +46,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartMoviePlaybackController::OnSeek(TimeSpan newPlaybackTime)
 	{
-		if (!IsMoviePlayerValidAndReady())
+		if (!IsMoviePlayerValidAndHasVideo())
 			return;
 
 		moviePlayer->SetPositionAsync(newPlaybackTime + movieOffset);
@@ -107,6 +108,10 @@ namespace Comfy::Studio::Editor
 				moviePlayer->SetPlaybackSpeedAsync(playbackSpeed);
 			deferMovieStart = false;
 		}
+
+		// NOTE: Handle the case of having played past the end, paused and rewound
+		if (!isPlaying && (playbackTime + movieOffset) >= moviePlayer->GetDuration() && moviePlayer->GetIsPlaying())
+			moviePlayer->SetIsPlayingAsync(false);
 	}
 
 	Render::TexSprView ChartMoviePlaybackController::GetCurrentTexture(TimeSpan playbackTime)
@@ -143,13 +148,13 @@ namespace Comfy::Studio::Editor
 				texAndSpr.Spr.TexelRegion = { 0.5f, 0.5f, 0.5f, 0.5f };
 				texAndSpr.Spr.PixelRegion = { 0.5f, 0.5f, 1.0f, 1.0f };
 				texAndSpr.Spr.Extra.ScreenMode = Graphics::ScreenMode::HDTV1080;
+				texAndSpr.Initialized = true;
 			}
 
 			for (i32 i = 0; i < (baseMip.Size.x * baseMip.Size.y); i++)
 				reinterpret_cast<u32*>(baseMip.Data.get())[i] = newColorU32;
 
 			texAndSpr.Tex.GPU_Texture2D.RequestReupload = true;
-			texAndSpr.Initialized = true;
 		}
 
 		return { &texAndSpr.Tex, &texAndSpr.Spr };
@@ -162,10 +167,11 @@ namespace Comfy::Studio::Editor
 
 	bool ChartMoviePlaybackController::IsMoviePlayerValidAndReady() const
 	{
-#if 0 // NOTE: Checking either one *seems* to be working correctly so not sure which one makes more sense here...
-		return (moviePlayer != nullptr && moviePlayer->GetHasVideoStream());
-#else
 		return (moviePlayer != nullptr && moviePlayer->GetHasEnoughData());
-#endif
+	}
+
+	bool ChartMoviePlaybackController::IsMoviePlayerValidAndHasVideo() const
+	{
+		return (moviePlayer != nullptr && moviePlayer->GetHasVideoStream());
 	}
 }
