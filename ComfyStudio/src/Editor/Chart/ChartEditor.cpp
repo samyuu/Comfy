@@ -337,7 +337,7 @@ namespace Comfy::Studio::Editor
 			Gui::Separator();
 
 			if (Gui::MenuItem("Create Manual Auto Save", Input::ToString(GlobalUserData.Input.ChartEditor_CreateManualAutoSave).data(), false, hasAutoSaveDirectory && isAutoSaveEnabled))
-				AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+				AutoSaveCurrentChartIfEnabledThenRestartStopwatch();
 
 			if (Gui::MenuItem("Open Auto Save Directory...", Input::ToString(GlobalUserData.Input.ChartEditor_OpenAutoSaveDirectory).data(), false, hasAutoSaveDirectory))
 				OpenAutoSaveDirectoryInExplorer();
@@ -566,9 +566,8 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::CreateNewChart(bool focusTimelineAndCloseActivePopup)
 	{
-		// TODO: Shold this really be here..?
-		if (undoManager.GetHasPendingChanged() || !undoManager.GetUndoStackView().empty() || !undoManager.GetRedoStackView().empty())
-			AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+		if (undoManager.GetHasPendingChanged() && GlobalUserData.SaveAndLoad.AutoSaveBeforeDiscardingChanges)
+			AutoSaveCurrentChartIfEnabledThenRestartStopwatch();
 
 		undoManager.ClearAll();
 		chart = MakeNewChartWithDefaults();
@@ -966,6 +965,12 @@ namespace Comfy::Studio::Editor
 		applicationExitRequested = false;
 		CheckOpenSaveConfirmationPopupThenCall([this]
 		{
+			if (undoManager.GetHasPendingChanged() && GlobalUserData.SaveAndLoad.AutoSaveBeforeDiscardingChanges)
+				AutoSaveCurrentChartIfEnabledThenRestartStopwatch();
+
+			if (chartAutoSaveFuture.valid())
+				chartAutoSaveFuture.get();
+
 			if (chartSaveFileFuture.valid())
 				chartSaveFileFuture.get();
 
@@ -1028,7 +1033,7 @@ namespace Comfy::Studio::Editor
 			OpenSaveExportSimplePVScriptChartFileDialog();
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_CreateManualAutoSave, false))
-			AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+			AutoSaveCurrentChartIfEnabledThenRestartStopwatch();
 		if (Input::IsAnyPressed(GlobalUserData.Input.ChartEditor_OpenAutoSaveDirectory, false))
 			OpenAutoSaveDirectoryInExplorer();
 	}
@@ -1126,10 +1131,10 @@ namespace Comfy::Studio::Editor
 	{
 		const auto timeSinceLastAutoSave = lastAutoSaveStowpatch.GetElapsed();
 		if (timeSinceLastAutoSave >= GlobalUserData.SaveAndLoad.AutoSaveInterval)
-			AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+			AutoSaveCurrentChartIfEnabledThenRestartStopwatch();
 	}
 
-	void ChartEditor::AutoSaveCurrentChartIfEnabledAndRestartStopwatch()
+	void ChartEditor::AutoSaveCurrentChartIfEnabledThenRestartStopwatch()
 	{
 		if (GlobalUserData.SaveAndLoad.AutoSaveEnabled && !GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory.empty() && chart != nullptr)
 			StartAsyncAutoSaveFutureForChart(*chart);

@@ -789,7 +789,7 @@ namespace Comfy::Studio::Editor
 			GuiBeginSettingsColumns();
 			pendingChanges |= GuiSettingsCombo("Tap Sound Type", userData.BPMCalculator.TapSoundType, BPMTapSoundTypeNames);
 			pendingChanges |= GuiSettingsCheckbox("Auto Reset Enabled", userData.BPMCalculator.AutoResetEnabled);
-			pendingChanges |= GuiSettingsCheckbox("Apply To Tempo Map", userData.BPMCalculator.ApplyToTempoMap);
+			pendingChanges |= GuiSettingsCheckbox("Apply to Tempo Map", userData.BPMCalculator.ApplyToTempoMap);
 			GuiEndSettingsColumns();
 		}
 
@@ -1166,6 +1166,8 @@ namespace Comfy::Studio::Editor
 				userData.SaveAndLoad.MaxAutoSaveFiles = Clamp(v, 1, 999);
 				pendingChanges = true;
 			}
+
+			pendingChanges |= GuiSettingsCheckbox("Auto Save before Discarding Changes", userData.SaveAndLoad.AutoSaveBeforeDiscardingChanges);
 
 			Gui::Separator();
 

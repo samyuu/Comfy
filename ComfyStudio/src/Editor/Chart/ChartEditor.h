@@ -164,7 +164,7 @@ namespace Comfy::Studio::Editor
 		void UpdateDiscordStatusIfEnabled(bool isPlaytesting);
 		void UpdateAsyncSongSourceLoading();
 		void CheckAutoSaveStopwatchAndDoAsyncAutoSave();
-		void AutoSaveCurrentChartIfEnabledAndRestartStopwatch();
+		void AutoSaveCurrentChartIfEnabledThenRestartStopwatch();
 		void StartAsyncAutoSaveFutureForChart(const Chart& chartToSave) const;
 
 		void GuiChildWindows();
