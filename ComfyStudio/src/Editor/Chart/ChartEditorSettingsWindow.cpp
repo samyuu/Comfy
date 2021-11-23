@@ -676,6 +676,7 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsInputText("Chart Creator Default Name", userData.ChartProperties.ChartCreatorDefaultName, "n/a");
 
 			// TODO: Default button sounds (?)
+			// TODO: Default difficulty <--
 
 			GuiEndSettingsColumns();
 		}
@@ -1063,6 +1064,8 @@ namespace Comfy::Studio::Editor
 			// NOTE: Technically doesn't belong in this category but this seems better for now than having it inside its own CollpasingHeader
 			pendingChanges |= GuiSettingsCombo("Game Theme", userData.Interface.Theme, GameThemeNames);
 
+			Gui::Separator();
+
 			pendingChanges |= GuiSettingsCombo("Editor", userData.Interface.BackgroundDisplayType.Editor, ChartBackgroundDisplayTypeNames, ChartBackgroundDisplayType::FirstNoMovie, ChartBackgroundDisplayType::LastNoMovie);
 			pendingChanges |= GuiSettingsCombo("Editor (Movie Loaded)", userData.Interface.BackgroundDisplayType.EditorWithMovie, ChartBackgroundDisplayTypeNames);
 			pendingChanges |= GuiSettingsCombo("Playtest", userData.Interface.BackgroundDisplayType.Playtest, ChartBackgroundDisplayTypeNames, ChartBackgroundDisplayType::FirstNoMovie, ChartBackgroundDisplayType::LastNoMovie);
@@ -1098,7 +1101,6 @@ namespace Comfy::Studio::Editor
 				pendingChanges = true;
 			}
 
-			// TODO: Combobox for small, medium and large "preset" values instead (?)
 			pendingChanges |= GuiSettingsSliderI32("Cell Size", userData.Interface.CheckerboardBackground.ScreenPixelSize, 0, 16, "%d px", ImGuiSliderFlags_AlwaysClamp);
 
 			GuiEndSettingsColumns();
@@ -1117,25 +1119,25 @@ namespace Comfy::Studio::Editor
 			GuiEndSettingsColumns();
 		}
 
-		if (Gui::CollapsingHeader("Movie Background", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Image and Movie Background", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
 
-			if (auto v = ToPercent(userData.Interface.MovieBackground.OverlayColor.a);
+			if (auto v = ToPercent(userData.Interface.ImageMovieBackground.OverlayColor.a);
 				GuiSettingsSliderF32("Overlay Dim", v, 0.0f, 95.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
 			{
-				userData.Interface.MovieBackground.OverlayColor.a = FromPercent(v);
+				userData.Interface.ImageMovieBackground.OverlayColor.a = FromPercent(v);
 				pendingChanges = true;
 			}
 
-			if (auto v = ToPercent(userData.Interface.MovieBackground.OverlayColorGridAndPractice.a);
-				GuiSettingsSliderF32("Overlay Dim (Grid / Practice)", v, 0.0f, 95.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
+			if (auto v = ToPercent(userData.Interface.ImageMovieBackground.OverlayColorGrid.a);
+				GuiSettingsSliderF32("Overlay Dim (Grid)", v, 0.0f, 95.0f, "%.f%%", ImGuiSliderFlags_AlwaysClamp))
 			{
-				userData.Interface.MovieBackground.OverlayColorGridAndPractice.a = FromPercent(v);
+				userData.Interface.ImageMovieBackground.OverlayColorGrid.a = FromPercent(v);
 				pendingChanges = true;
 			}
 
-			pendingChanges |= GuiSettingsColorEdit4("Pre-Start / Post-End Color", userData.Interface.MovieBackground.PreStartPostEndColor);
+			pendingChanges |= GuiSettingsColorEdit4("Movie Pre-Start / Post-End Color", userData.Interface.ImageMovieBackground.PreStartPostEndMovieColor);
 
 			GuiEndSettingsColumns();
 		}
@@ -1217,6 +1219,7 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCheckbox("Auto Hide Mouse Cursor", userData.Playtest.AutoHideCursor);
 
 			// TODO: Maybe eventually options for how the transition between ChartEditor and PlayTestCore should occure (?)
+			//		 - don't pause on playtest exit, don't play on playtest enter, don't rewind one bar, etc.
 
 			GuiEndSettingsColumns();
 

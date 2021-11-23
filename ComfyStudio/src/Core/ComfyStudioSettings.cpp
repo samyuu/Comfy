@@ -558,10 +558,10 @@ namespace Comfy::Studio
 		constexpr std::string_view Interface_PracticeBackground_HideNowPrintingPlaceholderImages = "hide_now_printing_placeholder_images";
 		constexpr std::string_view Interface_PracticeBackground_HideCoverImage = "hide_cover_image";
 		constexpr std::string_view Interface_PracticeBackground_HideLogoImage = "hide_logo_image";
-		constexpr std::string_view Interface_MovieBackground = "movie_background";
-		constexpr std::string_view Interface_MovieBackground_OverlayColor = "overlay_color";
-		constexpr std::string_view Interface_MovieBackground_OverlayColorGridAndPractice = "overlay_color_grid_and_practice";
-		constexpr std::string_view Interface_MovieBackground_PreStartPostEndColor = "pre_start_post_end_color";
+		constexpr std::string_view Interface_ImageMovieBackground = "image_movie_background";
+		constexpr std::string_view Interface_ImageMovieBackground_OverlayColor = "overlay_color";
+		constexpr std::string_view Interface_ImageMovieBackground_OverlayColorGrid = "overlay_color_grid";
+		constexpr std::string_view Interface_ImageMovieBackground_PreStartPostEndMovieColor = "pre_start_post_end_movie_color";
 
 		template <typename Func>
 		void ForEachMultiBindingWithID(/* const */ ComfyStudioUserSettings& userData, Func func)
@@ -737,7 +737,9 @@ namespace Comfy::Studio
 			Json::EnumNameMapping<ChartBackgroundDisplayType>
 			{ ChartBackgroundDisplayType::Checkerboard, "checkerboard", },
 			{ ChartBackgroundDisplayType::Checkerboard_Grid, "checkerboard_grid" },
-			{ ChartBackgroundDisplayType::Practice, "practice" },
+			{ ChartBackgroundDisplayType::Image, "image", },
+			{ ChartBackgroundDisplayType::Image_Grid, "image_grid" },
+			{ ChartBackgroundDisplayType::Image_Practice, "image_practice" },
 			{ ChartBackgroundDisplayType::Movie, "movie" },
 			{ ChartBackgroundDisplayType::Movie_Grid, "movie_grid" },
 			{ ChartBackgroundDisplayType::Movie_Practice, "movie_practice" },
@@ -1142,11 +1144,11 @@ namespace Comfy::Studio
 				TryAssign(Interface.PracticeBackground.HideLogoImage, TryGetBool(Find(*practiceJson, UserIDs::Interface_PracticeBackground_HideLogoImage)));
 			}
 
-			if (const Value* movieJson = Find(*interfaceJson, UserIDs::Interface_MovieBackground))
+			if (const Value* movieJson = Find(*interfaceJson, UserIDs::Interface_ImageMovieBackground))
 			{
-				TryAssign(Interface.MovieBackground.OverlayColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_MovieBackground_OverlayColor)));
-				TryAssign(Interface.MovieBackground.OverlayColorGridAndPractice, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_MovieBackground_OverlayColorGridAndPractice)));
-				TryAssign(Interface.MovieBackground.PreStartPostEndColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_MovieBackground_PreStartPostEndColor)));
+				TryAssign(Interface.ImageMovieBackground.OverlayColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_ImageMovieBackground_OverlayColor)));
+				TryAssign(Interface.ImageMovieBackground.OverlayColorGrid, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_ImageMovieBackground_OverlayColorGrid)));
+				TryAssign(Interface.ImageMovieBackground.PreStartPostEndMovieColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_ImageMovieBackground_PreStartPostEndMovieColor)));
 			}
 		}
 
@@ -1529,11 +1531,11 @@ namespace Comfy::Studio
 				}
 				writer.MemberObjectEnd();
 
-				writer.MemberObjectBegin(UserIDs::Interface_MovieBackground);
+				writer.MemberObjectBegin(UserIDs::Interface_ImageMovieBackground);
 				{
-					writer.MemberHexRGBAStr(UserIDs::Interface_MovieBackground_OverlayColor, Interface.MovieBackground.OverlayColor);
-					writer.MemberHexRGBAStr(UserIDs::Interface_MovieBackground_OverlayColorGridAndPractice, Interface.MovieBackground.OverlayColorGridAndPractice);
-					writer.MemberHexRGBAStr(UserIDs::Interface_MovieBackground_PreStartPostEndColor, Interface.MovieBackground.PreStartPostEndColor);
+					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_OverlayColor, Interface.ImageMovieBackground.OverlayColor);
+					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_OverlayColorGrid, Interface.ImageMovieBackground.OverlayColorGrid);
+					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_PreStartPostEndMovieColor, Interface.ImageMovieBackground.PreStartPostEndMovieColor);
 				}
 				writer.MemberObjectEnd();
 			}
@@ -1801,7 +1803,7 @@ namespace Comfy::Studio
 		Interface.Theme = GameTheme::PS4ColorfulTone;
 		Interface.BackgroundDisplayType.Editor = ChartBackgroundDisplayType::Checkerboard_Grid;
 		Interface.BackgroundDisplayType.EditorWithMovie = ChartBackgroundDisplayType::Movie_Grid;
-		Interface.BackgroundDisplayType.Playtest = ChartBackgroundDisplayType::Practice;
+		Interface.BackgroundDisplayType.Playtest = ChartBackgroundDisplayType::Image_Practice;
 		Interface.BackgroundDisplayType.PlaytestWithMovie = ChartBackgroundDisplayType::Movie;
 		Interface.PlacementGrid.ShowHorizontalSyncMarkers = true;
 		Interface.CheckerboardBackground.PrimaryColor = { 0.13f, 0.13f, 0.13f, 1.00f };
@@ -1812,8 +1814,8 @@ namespace Comfy::Studio
 		Interface.PracticeBackground.HideNowPrintingPlaceholderImages = false;
 		Interface.PracticeBackground.HideCoverImage = false;
 		Interface.PracticeBackground.HideLogoImage = false;
-		Interface.MovieBackground.OverlayColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-		Interface.MovieBackground.OverlayColorGridAndPractice = { 0.0f, 0.0f, 0.0f, 0.6f };
-		Interface.MovieBackground.PreStartPostEndColor = { 0.13f, 0.13f, 0.13f, 1.00f };
+		Interface.ImageMovieBackground.OverlayColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Interface.ImageMovieBackground.OverlayColorGrid = { 0.0f, 0.0f, 0.0f, 0.6f };
+		Interface.ImageMovieBackground.PreStartPostEndMovieColor = { 0.13f, 0.13f, 0.13f, 1.00f };
 	}
 }

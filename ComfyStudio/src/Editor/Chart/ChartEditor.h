@@ -44,14 +44,17 @@ namespace Comfy::Studio::Editor
 	{
 		Checkerboard,
 		Checkerboard_Grid,
-		Practice,
+		Image,
+		Image_Grid,
+		Image_Practice,
+
 		Movie,
 		Movie_Grid,
 		Movie_Practice,
 
 		Count,
 		FirstNoMovie = Checkerboard,
-		LastNoMovie = Practice,
+		LastNoMovie = Image_Practice,
 		FirstMovie = Movie,
 		LastMovie = Movie_Practice,
 	};
@@ -60,15 +63,18 @@ namespace Comfy::Studio::Editor
 	{
 		"Checkerboard",
 		"Checkerboard + Grid",
-		"Practice",
+		"Image",
+		"Image + Grid",
+		"Image + Practice",
 		"Movie",
 		"Movie + Grid",
 		"Movie + Practice",
 	};
 
-	constexpr bool HasChartBackgroundDisplayTypeGrid(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Checkerboard_Grid) || (type == ChartBackgroundDisplayType::Movie_Grid); }
+	constexpr bool HasChartBackgroundDisplayTypeGrid(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Checkerboard_Grid) || (type == ChartBackgroundDisplayType::Movie_Grid) || (type == ChartBackgroundDisplayType::Image_Grid); }
 	constexpr bool HasChartBackgroundDisplayTypeCheckerboard(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Checkerboard) || (type == ChartBackgroundDisplayType::Checkerboard_Grid); }
-	constexpr bool HasChartBackgroundDisplayTypePractice(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Practice) || (type == ChartBackgroundDisplayType::Movie_Practice); }
+	constexpr bool HasChartBackgroundDisplayTypeImage(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Image) || (type == ChartBackgroundDisplayType::Image_Grid) || (type == ChartBackgroundDisplayType::Image_Practice); }
+	constexpr bool HasChartBackgroundDisplayTypePractice(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Image_Practice) || (type == ChartBackgroundDisplayType::Movie_Practice); }
 	constexpr bool HasChartBackgroundDisplayTypeMovie(ChartBackgroundDisplayType type) { return (type == ChartBackgroundDisplayType::Movie) || (type == ChartBackgroundDisplayType::Movie_Grid) || (type == ChartBackgroundDisplayType::Movie_Practice); }
 
 	class ChartEditor : public IEditorComponent
@@ -239,7 +245,7 @@ namespace Comfy::Studio::Editor
 		} fileNotFoundPopup = {};
 
 		std::future<bool> chartSaveFileFuture;
-		
+
 		mutable std::future<bool> chartAutoSaveFuture;
 		Stopwatch lastAutoSaveStowpatch = {};
 

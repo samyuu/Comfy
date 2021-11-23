@@ -34,6 +34,8 @@ namespace Comfy::Studio::Editor
 			backgroundCheckerboard.Render(renderer);
 		}
 
+		const vec4 imageOrMovieOverlayColor = HasChartBackgroundDisplayTypeGrid(backgroundType) ? userData.ImageMovieBackground.OverlayColorGrid : userData.ImageMovieBackground.OverlayColor;
+		if (HasChartBackgroundDisplayTypePractice(backgroundType) || HasChartBackgroundDisplayTypeMovie(backgroundType))
 		{
 			TargetRenderHelper::BackgroundData backgroundData = {};
 			backgroundData.DrawGrid = !userData.PracticeBackground.DisableBackgroundGrid;
@@ -55,12 +57,10 @@ namespace Comfy::Studio::Editor
 			if (chartHasMovie && HasChartBackgroundDisplayTypeMovie(backgroundType))
 			{
 				const auto videoFrameTexSprView = moviePlaybackController.GetCurrentTexture(cursorTime);
-
 				const bool drawOverlayColor = videoFrameTexSprView;
-				const vec4 overlayColor = (backgroundType == ChartBackgroundDisplayType::Movie) ? userData.MovieBackground.OverlayColor : userData.MovieBackground.OverlayColorGridAndPractice;
 
 				backgroundData.DrawBackground = true;
-				backgroundData.BackgroundSprite = videoFrameTexSprView ? videoFrameTexSprView : moviePlaybackController.GetPlaceholderTexture(userData.MovieBackground.PreStartPostEndColor);
+				backgroundData.BackgroundSprite = videoFrameTexSprView ? videoFrameTexSprView : moviePlaybackController.GetPlaceholderTexture(userData.ImageMovieBackground.PreStartPostEndMovieColor);
 
 				if (backgroundType == ChartBackgroundDisplayType::Movie || backgroundType == ChartBackgroundDisplayType::Movie_Grid)
 				{
@@ -71,24 +71,30 @@ namespace Comfy::Studio::Editor
 					renderHelper.DrawBackground(renderer, backgroundData);
 
 					if (drawOverlayColor)
-						drawFullscreenQuad(renderer, overlayColor);
+						drawFullscreenQuad(renderer, imageOrMovieOverlayColor);
 				}
 				else if (backgroundType == ChartBackgroundDisplayType::Movie_Practice)
 				{
 					renderHelper.DrawBackground(renderer, backgroundData);
-
-					// HACK: All of these aet interactions are pretty hacky to beging with but hardcoding the black chip opacity like this definitely isn't ideal...
-					//		 Although probably not like this options will be used frequently anyway nor does this extra bit of dim make that much of a difference
-					const f32 dimAmountAlreadyPartOfAet = backgroundData.DrawDim ? 0.6f : 0.0f;
-
-					if (drawOverlayColor)
-						drawFullscreenQuad(renderer, vec4(vec3(overlayColor), Clamp(overlayColor.a - dimAmountAlreadyPartOfAet, 0.0f, 1.0f)));
 				}
 			}
 			else if (HasChartBackgroundDisplayTypePractice(backgroundType))
 			{
 				renderHelper.DrawBackground(renderer, backgroundData);
 			}
+		}
+		else if (HasChartBackgroundDisplayTypeImage(backgroundType))
+		{
+			TargetRenderHelper::BackgroundData backgroundData = {};
+			backgroundData.DrawGrid = false;
+			backgroundData.DrawDim = false;
+			backgroundData.DrawCover = false;
+			backgroundData.DrawLogo = false;
+			backgroundData.DrawBackground = true;
+			backgroundData.PlaybackTime = cursorTime;
+			backgroundData.BackgroundSprite = chart.Properties.Image.Background.GetTexSprView();
+			renderHelper.DrawBackground(renderer, backgroundData);
+			drawFullscreenQuad(renderer, imageOrMovieOverlayColor);
 		}
 
 		if (HasChartBackgroundDisplayTypeGrid(backgroundType))
