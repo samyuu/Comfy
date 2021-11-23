@@ -4,6 +4,7 @@
 #include "ImGui/Gui.h"
 #include "ImGui/Extensions/PropertyEditor.h"
 #include "IO/Path.h"
+#include <FontIcons.h>
 
 namespace Comfy::Studio::Editor
 {
@@ -123,23 +124,39 @@ namespace Comfy::Studio::Editor
 						valueChanged = true;
 					}
 
+					constexpr const char* previewButtonLabel = ICON_FA_VOLUME_UP;
+					const f32 previewButtonWidth = Gui::CalcTextSize(previewButtonLabel).x;
+
 					for (const auto* entry : sortedEntries)
 					{
 						if (btnSfxDBType == Database::GmBtnSfxType::Button && entry->ID == buttonIgnoreID)
 							continue;
 
+						Gui::PushID(entry);
+
 						const bool isSelected = (entry->ID == inOutID);
-						if (Gui::Selectable(entryToCStr(entry), isSelected))
+						if (Gui::Selectable(entryToCStr(entry), isSelected, ImGuiSelectableFlags_AllowItemOverlap))
 						{
 							inOutID = entry->ID;
 							valueChanged = true;
 						}
 
-						if (Gui::IsItemHovered() && Gui::IsMouseClicked(ImGuiMouseButton_Right))
-							previewButtonSound(*entry);
+						const auto previewButtonColor = Gui::GetStyleColorVec4(Gui::IsItemHovered() ? ImGuiCol_HeaderHovered : isSelected ? ImGuiCol_FrameBg : ImGuiCol_PopupBg);
+
+						Gui::SameLine(Gui::GetContentRegionAvail().x - previewButtonWidth, 0.0f);
+						Gui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, vec2(0.5f, 0.0f));
+						Gui::PushStyleColor(ImGuiCol_Header, previewButtonColor);
+						{
+							// NOTE: Always draw as selected to avoid text clipping from rendering an otherwise transparent overlapping selectable
+							if (Gui::Selectable(previewButtonLabel, true, ImGuiSelectableFlags_AllowItemOverlap | ImGuiSelectableFlags_DontClosePopups))
+								previewButtonSound(*entry);
+						}
+						Gui::PopStyleColor(1);
+						Gui::PopStyleVar();
 
 						if (isSelected)
 							Gui::SetItemDefaultFocus();
+						Gui::PopID();
 					}
 					Gui::EndCombo();
 				}
@@ -194,6 +211,8 @@ namespace Comfy::Studio::Editor
 				{
 					if (const auto image = asyncImage.GetTexSprView(); image)
 					{
+						// TODO: Replace with fixed position tooltip so that it doesn't move with the mouse (?)
+						// TODO: Add subtle fade in and out animations (?)
 						const auto fixedRect = Gui::FitFixedAspectRatioImage(ImRect(0.0f, 0.0f, 320.0f, 320.0f), image.Tex->GetSize());
 						Gui::BeginTooltip();
 						Gui::Image(*image.Tex, fixedRect.GetSize(), Gui::UV0_R, Gui::UV1_R);
