@@ -7,6 +7,7 @@
 #include "System/Profiling/Profiler.h"
 #include "Version/BuildConfiguration.h"
 #include "Version/BuildVersion.h"
+#include "ImGui/GuiRenderer.h"
 #include "Input/Input.h"
 #include "System/ComfyData.h"
 #include "Core/Logger.h"
@@ -345,9 +346,37 @@ namespace Comfy::Studio
 				Gui::EndMenu();
 			}
 
-			// TODO: Reset to default layout menu option
+			Gui::Separator();
+
+			// NOTE: Don't close popup for these so that the "Restore Previous" menu item becomes self explanitory 
+			//		 as it becomes enabled once "Restore Default" has been clicked
+			Gui::PushStyleColor(ImGuiCol_Text, vec4(0.862f, 0.789f, 0.364f, 1.0f));
+			if (Gui::MenuItemDontClosePopup("Restore Default Layout", nullptr, false, !imGuiLayoutHasBeenSetToDefaultWhileCurrentPopupOpen))
+			{
+				size_t oldIniLength = 0;
+				const char* oldIniString = Gui::SaveIniSettingsToMemory(&oldIniLength);
+				previousImGuiIniUndoStack.emplace_back(oldIniString, oldIniLength);
+
+				Gui::LoadIniSettingsFromDisk(Gui::GuiRenderer::ConfigFileNameDefault);
+				imGuiLayoutHasBeenSetToDefaultWhileCurrentPopupOpen = true;
+			}
+			Gui::PopStyleColor();
+
+			// NOTE: Mostly here in case the user accidentally clicks "Restore Default" or just wants to experiment around a bit
+			if (Gui::MenuItemDontClosePopup("Restore Previous Layout", nullptr, false, !previousImGuiIniUndoStack.empty()))
+			{
+				const auto& iniToRestoreTo = previousImGuiIniUndoStack.back();
+				Gui::LoadIniSettingsFromMemory(iniToRestoreTo.c_str(), iniToRestoreTo.size());
+
+				previousImGuiIniUndoStack.erase(previousImGuiIniUndoStack.end() - 1);
+				imGuiLayoutHasBeenSetToDefaultWhileCurrentPopupOpen = false;
+			}
 
 			Gui::EndMenu();
+		}
+		else
+		{
+			imGuiLayoutHasBeenSetToDefaultWhileCurrentPopupOpen = false;
 		}
 	}
 

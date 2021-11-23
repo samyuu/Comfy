@@ -78,7 +78,10 @@ namespace Comfy::Studio
 		bool aboutWindowIsOpen = false;
 
 		std::unique_ptr<Editor::EditorManager> editorManager = nullptr;
-		
+
+		std::vector<std::string> previousImGuiIniUndoStack;
+		bool imGuiLayoutHasBeenSetToDefaultWhileCurrentPopupOpen = false;
+
 		std::vector<std::unique_ptr<BaseWindow>> testWindows;
 		std::string testWindowNameBuffer;
 	};

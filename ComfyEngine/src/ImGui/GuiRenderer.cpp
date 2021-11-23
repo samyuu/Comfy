@@ -93,8 +93,8 @@ namespace ImGui
 	bool GuiRenderer::SetStartupIOState()
 	{
 		auto& io = GetIO();
-		io.IniFilename = configFileName;
-		io.LogFilename = logFileName;
+		io.IniFilename = ConfigFileName;
+		io.LogFilename = LogFileName;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
@@ -125,11 +125,11 @@ namespace ImGui
 
 	bool GuiRenderer::LoadFontFiles()
 	{
-		const auto fontDirectory = System::Data.FindDirectory(fontDirectoryName);
+		const auto fontDirectory = System::Data.FindDirectory(FontDirectoryName);
 		if (fontDirectory == nullptr)
 			return false;
 
-		const auto textFontEntry = System::Data.FindFileInDirectory(*fontDirectory, textFontFileName);
+		const auto textFontEntry = System::Data.FindFileInDirectory(*fontDirectory, TextFontFileName);
 		const auto iconFontEntry = System::Data.FindFileInDirectory(*fontDirectory, FONT_ICON_FILE_NAME_FAS);
 
 		if (textFontEntry == nullptr || iconFontEntry == nullptr)
@@ -164,30 +164,30 @@ namespace ImGui
 
 		ImFontConfig textFontConfig = {};
 		textFontConfig.FontDataOwnedByAtlas = false;
-		memcpy(textFontConfig.Name, textFontName.data(), textFontName.size());
+		memcpy(textFontConfig.Name, TextFontName.data(), TextFontName.size());
 
 		ImFontConfig iconFontConfig = {};
 		iconFontConfig.FontDataOwnedByAtlas = false;
-		iconFontConfig.GlyphMinAdvanceX = iconMinAdvanceX;
+		iconFontConfig.GlyphMinAdvanceX = IconMinAdvanceX;
 		iconFontConfig.MergeMode = true;
-		memcpy(iconFontConfig.Name, iconFontName.data(), iconFontName.size());
+		memcpy(iconFontConfig.Name, IconFontName.data(), IconFontName.size());
 
 		u8* textFontFileContent = combinedFontFileContent.get();
 		u8* iconFontFileContent = combinedFontFileContent.get() + textFontFileSize;
 
-		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), textFontSizes[0], &textFontConfig, GetTextGlyphRange()) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), TextFontSizes[0], &textFontConfig, GetTextGlyphRange()) == nullptr)
 			return false;
-		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontFileSize), iconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(iconFontFileContent, static_cast<int>(iconFontFileSize), IconFontSize, &iconFontConfig, GetIconGlyphRange()) == nullptr)
 			return false;
 
 #if 0 // NOTE: Additional bold fonts for fancy formatting, not needed for now
 		ImFontConfig boldFontConfig = {};
 		boldFontConfig.FontDataOwnedByAtlas = false;
-		memcpy(boldFontConfig.Name, textFontName.data(), textFontName.size());
+		memcpy(boldFontConfig.Name, TextFontName.data(), TextFontName.size());
 
-		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), textFontSizes[1], &boldFontConfig) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), TextFontSizes[1], &boldFontConfig) == nullptr)
 			return false;
-		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), textFontSizes[2], &boldFontConfig) == nullptr)
+		if (ioFonts.AddFontFromMemoryTTF(textFontFileContent, static_cast<int>(textFontFileSize), TextFontSizes[2], &boldFontConfig) == nullptr)
 			return false;
 #endif
 
