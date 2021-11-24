@@ -46,7 +46,6 @@ namespace Comfy::Studio::Editor
 		vec4 PVScriptBackgroundTint;
 		bool MergeWithExistingMData;
 		bool CreateSprSelPV;
-		bool AddDummyMovieReference;
 		f32 VorbisVBRQuality;
 
 		std::string MDataRootDirectory;
@@ -60,6 +59,7 @@ namespace Comfy::Studio::Editor
 		std::string OutMDataRom2DDirectory;
 		std::string OutMDataInfo;
 		std::string OutOgg;
+		std::string OutMovie;
 		std::string OutDsc;
 		std::string OutPVListFArc;
 		std::string OutMDataPVDB;
@@ -72,6 +72,7 @@ namespace Comfy::Studio::Editor
 	struct PVExportAtomicProgress
 	{
 		std::atomic<f32> Audio;
+		std::atomic<f32> Movie;
 		std::atomic<f32> Sprites;
 		std::atomic<f32> Script;
 		std::atomic<f32> MDataInfo;

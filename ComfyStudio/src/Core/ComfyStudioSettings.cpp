@@ -45,7 +45,6 @@ namespace Comfy::Studio
 		constexpr std::string_view LastPVScriptExportOptions_BackgroundDim = "background_dim";
 		constexpr std::string_view LastPVScriptExportOptions_MergeWithExistingMData = "merge_with_existing_mdata";
 		constexpr std::string_view LastPVScriptExportOptions_CreateSprSelPV = "create_spr_sel_pv";
-		constexpr std::string_view LastPVScriptExportOptions_AddDummyMovieReference = "add_dummy_movie_reference";
 		constexpr std::string_view LastPVScriptExportOptions_VorbisVBRQuality = "vorbis_vbr_quality";
 
 		constexpr std::string_view RecentFiles = "recent_files";
@@ -125,7 +124,6 @@ namespace Comfy::Studio
 			LastPVScriptExportOptions.BackgroundDim = TryGetF32(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_BackgroundDim));
 			LastPVScriptExportOptions.MergeWithExistingMData = TryGetBool(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_MergeWithExistingMData));
 			LastPVScriptExportOptions.CreateSprSelPV = TryGetBool(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_CreateSprSelPV));
-			LastPVScriptExportOptions.AddDummyMovieReference = TryGetBool(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_AddDummyMovieReference));
 			LastPVScriptExportOptions.VorbisVBRQuality = TryGetF32(Find(*exportOptionsJson, AppIDs::LastPVScriptExportOptions_VorbisVBRQuality));
 		}
 
@@ -200,7 +198,6 @@ namespace Comfy::Studio
 				writer.MemberTryF32(AppIDs::LastPVScriptExportOptions_BackgroundDim, LastPVScriptExportOptions.BackgroundDim);
 				writer.MemberTryBool(AppIDs::LastPVScriptExportOptions_MergeWithExistingMData, LastPVScriptExportOptions.MergeWithExistingMData);
 				writer.MemberTryBool(AppIDs::LastPVScriptExportOptions_CreateSprSelPV, LastPVScriptExportOptions.CreateSprSelPV);
-				writer.MemberTryBool(AppIDs::LastPVScriptExportOptions_AddDummyMovieReference, LastPVScriptExportOptions.AddDummyMovieReference);
 				writer.MemberTryF32(AppIDs::LastPVScriptExportOptions_VorbisVBRQuality, LastPVScriptExportOptions.VorbisVBRQuality);
 			}
 			writer.MemberObjectEnd();

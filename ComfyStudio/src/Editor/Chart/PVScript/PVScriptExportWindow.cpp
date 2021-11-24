@@ -110,7 +110,7 @@ namespace Comfy::Studio::Editor
 			}
 		}
 
-		PVScript ConvertChartToPVScript(const Chart& chart, bool addMovieCommands = false, vec4 backgroundTint = {})
+		PVScript ConvertChartToPVScript(const Chart& chart, vec4 backgroundTint = {})
 		{
 			PVScriptBuilder scriptBuilder {};
 
@@ -120,47 +120,83 @@ namespace Comfy::Studio::Editor
 			if (backgroundTint.a > 0.0f)
 				scriptBuilder.Add(TimeSpan::Zero(), PVCommandLayout::SceneFade(TimeSpan::Zero(), backgroundTint.a, backgroundTint.a, vec3(backgroundTint)));
 
-			const auto clampedSongOffsetCommandTime = Max(-chart.SongOffset, TimeSpan::Zero());
-			if (!chart.SongFileName.empty())
-				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MusicPlay());
+			const TimeSpan songOffset = !chart.SongFileName.empty() ? chart.SongOffset : TimeSpan::Zero();
+			const TimeSpan movieOffset = !chart.MovieFileName.empty() ? chart.MovieOffset : TimeSpan::Zero();
 
-			if (addMovieCommands)
+			TimeSpan songPlayCommandTime = Max(-songOffset, TimeSpan::Zero());
+			TimeSpan moviePlayCommandTime = Max(-movieOffset, TimeSpan::Zero());
+
+			// NOTE: In the case the song or movie is set to start before time 0, as that would require a negative time command which typically isn't supported
+			const TimeSpan targetTimeDelayToEnsurePositiveSongAndMovieStart = Max(Max(songOffset, movieOffset), TimeSpan::Zero());
+			if (songOffset > TimeSpan::Zero() || movieOffset >= TimeSpan::Zero())
 			{
-				// TODO: Handle movie offset
-				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MoviePlay(1));
-				scriptBuilder.Add(clampedSongOffsetCommandTime, PVCommandLayout::MovieDisp(true));
+				// TODO: Does this correctly handle all casess (?)
+				if (songOffset > movieOffset)
+					moviePlayCommandTime += songOffset.Absolute();
+				else if (movieOffset > songOffset)
+					songPlayCommandTime += movieOffset.Absolute();
 			}
 
-			const TimeSpan targetTimeDelay = Max(chart.SongOffset, TimeSpan::Zero());
-			i32 lastFlyingTimeMS = {};
-
-			for (const auto& target : chart.Targets)
+			if (!chart.SongFileName.empty())
 			{
-				const auto spawnTimes = chart.TempoMap.GetTargetSpawnTimes(target);
-				const TimeSpan targetTime = spawnTimes.TargetTime;
-				const TimeSpan buttonTime = spawnTimes.ButtonTime;
+				scriptBuilder.Add(songPlayCommandTime, PVCommandLayout::MusicPlay());
+			}
+
+			if (!chart.MovieFileName.empty())
+			{
+				scriptBuilder.Add(moviePlayCommandTime, PVCommandLayout::MoviePlay(1));
+				scriptBuilder.Add(moviePlayCommandTime, PVCommandLayout::MovieDisp(true));
+			}
+
+			i32 lastFlyingTimeMS = {};
+			TimeSpan lastSyncPairTargetTime = {};
+
+			// NOTE: Has to be larger than at least one diva time unit
+			constexpr TimeSpan minTimeBetweenPairsToPreventAccidentalSyncTargets = TimeSpan::FromMilliseconds(0.1);
+
+			for (size_t targetIndex = 0; targetIndex < chart.Targets.size();)
+			{
+				const auto& firstTargetInSyncPair = chart.Targets[targetIndex];
+
+				auto spawnTimes = chart.TempoMap.GetTargetSpawnTimes(firstTargetInSyncPair);
+				spawnTimes.TargetTime = Max(TimeSpan::Zero(), spawnTimes.TargetTime + targetTimeDelayToEnsurePositiveSongAndMovieStart);
+				spawnTimes.ButtonTime = Max(TimeSpan::Zero(), spawnTimes.ButtonTime + targetTimeDelayToEnsurePositiveSongAndMovieStart);
+
+				const TimeSpan timeSinceLastSyncPair = (spawnTimes.TargetTime - lastSyncPairTargetTime);
+				if ((targetIndex > 0) && timeSinceLastSyncPair <= TimeSpan::Zero())
+					spawnTimes.TargetTime = (lastSyncPairTargetTime + minTimeBetweenPairsToPreventAccidentalSyncTargets);
+				lastSyncPairTargetTime = spawnTimes.TargetTime;
+				spawnTimes.FlyingTime = Max(TimeSpan::FromMilliseconds(1.0), (spawnTimes.ButtonTime - spawnTimes.TargetTime));
+
 				const i32 flyingTimeMS = static_cast<i32>(glm::round(spawnTimes.FlyingTime.TotalMilliseconds()));
-
-				auto targetProperties = Rules::TryGetProperties(target);
-				if (target.Flags.IsChain && !target.Flags.IsChainStart)
-					targetProperties.Position.x += Rules::ChainFragmentStartEndOffsetDistance * (target.Type == ButtonType::SlideL ? -1.0f : +1.0f);
-
-				auto targetCommand = PVCommandLayout::Target();
-				targetCommand.Type = ButtonTypeToPVCommandTargetType(target);
-				targetCommand.PositionX = static_cast<i32>(targetProperties.Position.x * 250.0f);
-				targetCommand.PositionY = static_cast<i32>(targetProperties.Position.y * 250.0f);
-				targetCommand.Angle = static_cast<i32>(targetProperties.Angle * 1000.0f);
-				targetCommand.Distance = static_cast<i32>(targetProperties.Distance * 250.0f);
-				targetCommand.Amplitude = static_cast<i32>(targetProperties.Amplitude);
-				targetCommand.Frequency = static_cast<i32>(targetProperties.Frequency);
-
 				if (flyingTimeMS != lastFlyingTimeMS)
 				{
-					scriptBuilder.Add(targetTime, PVCommandLayout::TargetFlyingTime(flyingTimeMS));
+					scriptBuilder.Add(spawnTimes.TargetTime, PVCommandLayout::TargetFlyingTime(flyingTimeMS));
 					lastFlyingTimeMS = flyingTimeMS;
 				}
 
-				scriptBuilder.Add(targetTime, targetCommand);
+				for (size_t indexWithinPair = 0; indexWithinPair < firstTargetInSyncPair.Flags.SyncPairCount; indexWithinPair++)
+				{
+					const auto& targetInSyncPair = chart.Targets[targetIndex + indexWithinPair];
+
+					auto targetProperties = Rules::TryGetProperties(targetInSyncPair);
+					if (targetInSyncPair.Flags.IsChain && !targetInSyncPair.Flags.IsChainStart)
+						targetProperties.Position.x += Rules::ChainFragmentStartEndOffsetDistance * (targetInSyncPair.Type == ButtonType::SlideL ? -1.0f : +1.0f);
+
+					auto targetCommand = PVCommandLayout::Target();
+					targetCommand.Type = ButtonTypeToPVCommandTargetType(targetInSyncPair);
+					targetCommand.PositionX = static_cast<i32>(targetProperties.Position.x * 250.0f);
+					targetCommand.PositionY = static_cast<i32>(targetProperties.Position.y * 250.0f);
+					targetCommand.Angle = static_cast<i32>(targetProperties.Angle * 1000.0f);
+					targetCommand.Distance = static_cast<i32>(targetProperties.Distance * 250.0f);
+					targetCommand.Amplitude = static_cast<i32>(targetProperties.Amplitude);
+					targetCommand.Frequency = static_cast<i32>(targetProperties.Frequency);
+
+					scriptBuilder.Add(spawnTimes.TargetTime, targetCommand);
+				}
+
+				assert(firstTargetInSyncPair.Flags.SyncPairCount >= 1);
+				targetIndex += Max<i32>(1, firstTargetInSyncPair.Flags.SyncPairCount);
 			}
 
 			scriptBuilder.Add(chart.DurationOrDefault(), PVCommandLayout::PVEnd());
@@ -292,14 +328,29 @@ namespace Comfy::Studio::Editor
 
 			outTasks.push_back(std::async(std::launch::async, [&inData, &inParam, &outProgress]()
 			{
-				const auto absoluteSongFilePath = IO::Path::ResolveRelativeTo(inData.Chart->SongFileName, inData.Chart->ChartFilePath);
+				const std::string absoluteSongFilePath = IO::Path::ResolveRelativeTo(inData.Chart->SongFileName, inData.Chart->ChartFilePath);
 				ConvertOrCopyToOgg(absoluteSongFilePath, inParam.OutOgg, inParam.SongSampleProvider, inParam.VorbisVBRQuality, outProgress.Audio);
 				outProgress.Audio = 1.0f;
 			}));
 
+			if (!inData.Chart->MovieFileName.empty() && !inParam.OutMovie.empty())
+			{
+				outTasks.push_back(std::async(std::launch::async, [&inData, &inParam, &outProgress]()
+				{
+					const std::string absoluteMovieFilePath = IO::Path::ResolveRelativeTo(inData.Chart->MovieFileName, inData.Chart->ChartFilePath);
+					outProgress.Movie = 0.1f;
+					IO::File::Copy(absoluteMovieFilePath, inParam.OutMovie, true);
+					outProgress.Movie = 1.0f;
+				}));
+			}
+			else
+			{
+				outProgress.Movie = 1.0f;
+			}
+
 			outTasks.push_back(std::async(std::launch::async, [&inData, &inParam, &outProgress]()
 			{
-				PVScript script = ConvertChartToPVScript(*inData.Chart, inParam.AddDummyMovieReference, inParam.PVScriptBackgroundTint);
+				PVScript script = ConvertChartToPVScript(*inData.Chart, inParam.PVScriptBackgroundTint);
 				IO::File::Save(inParam.OutDsc, script);
 				outProgress.Script = 1.0f;
 			}));
@@ -370,10 +421,11 @@ namespace Comfy::Studio::Editor
 				pvDB.append(b, sprintf_s(b, "pv_%03d.lyric.%03d=%s\n", inParam.OutPVID, 0, "DUMMY_LYRICS"));
 				pvDB.append(b, sprintf_s(b, "pv_%03d.motion.01=CMN_POSE_DEFAULT_T\n", inParam.OutPVID));
 
-				if (!inParam.AddDummyMovieReference) pvDB.append("#");
-				pvDB.append(b, sprintf_s(b, "pv_%03d.movie_file_name=rom/", inParam.OutPVID)).append(IO::Path::GetFileName(inParam.OutDsc, false)).append(".mp4").append("\n");
-				if (!inParam.AddDummyMovieReference) pvDB.append("#");
-				pvDB.append(b, sprintf_s(b, "pv_%03d.movie_surface=FRONT\n", inParam.OutPVID));
+				if (!inParam.OutMovie.empty())
+				{
+					pvDB.append(b, sprintf_s(b, "pv_%03d.movie_file_name=rom/", inParam.OutPVID)).append(IO::Path::GetFileName(inParam.OutMovie)).append("\n");
+					pvDB.append(b, sprintf_s(b, "pv_%03d.movie_surface=FRONT\n", inParam.OutPVID));
+				}
 
 				pvDB.append(b, sprintf_s(b, "pv_%03d.performer.0.chara=MIK\n", inParam.OutPVID));
 				pvDB.append(b, sprintf_s(b, "pv_%03d.performer.0.pv_costume=1\n", inParam.OutPVID));
@@ -411,9 +463,13 @@ namespace Comfy::Studio::Editor
 							{
 								if (remainingPVDB[relativeIndex] == '\n')
 								{
+#if 0 // BUG: The old code wasn't behaving correctly and checking for \n\r instead of the windows \r\n..?
 									const std::string_view line = remainingPVDB.substr(0, relativeIndex);
 									if (relativeIndex + 1 < remainingPVDB.size() && remainingPVDB[relativeIndex + 1] == '\r')
 										relativeIndex++;
+#else
+									const std::string_view line = remainingPVDB.substr(0, (relativeIndex > 0 && remainingPVDB[relativeIndex - 1] == '\r') ? (relativeIndex - 1) : relativeIndex);
+#endif
 
 									if (!line.empty() && line[0] != '#' && !perLineReturnFalseToStopFunc(line))
 										return;
@@ -625,7 +681,6 @@ namespace Comfy::Studio::Editor
 		param.PVScriptBackgroundTint = vec4(0.0f, 0.0f, 0.0f, 0.35f);
 		param.MergeWithExistingMData = true;
 		param.CreateSprSelPV = true;
-		param.AddDummyMovieReference = false;
 		// TODO: What should be the default (?)
 		param.VorbisVBRQuality = 0.8f;
 	}
@@ -648,7 +703,7 @@ namespace Comfy::Studio::Editor
 		Gui::PushItemDisabledAndTextColorIf(itemsDisabledDueToExport);
 		{
 			const auto& style = Gui::GetStyle();
-			Gui::BeginChild("OutterChild", vec2(480.0f, 386.0f), true);
+			Gui::BeginChild("OutterChild", vec2(480.0f, 386.0f - 35.0f), true);
 			{
 				auto guiSameLineRightAlignedHintText = [](std::string_view description)
 				{
@@ -684,7 +739,7 @@ namespace Comfy::Studio::Editor
 				}
 				Gui::Separator();
 
-				guiHeaderLabel("Game Root Directory", "(Containing executable and rom subdirectory)");
+				guiHeaderLabel("Game Root Directory", "(Containing diva.exe and rom + mdata subdirectories)");
 				{
 					PathTextInputWithBrowserButton(param.RootDirectory, "\"...\" to select a folder", [&](std::string& inOutPath)
 					{
@@ -738,10 +793,8 @@ namespace Comfy::Studio::Editor
 				Gui::PopItemWidth();
 				Gui::Separator();
 
-				Gui::Checkbox("Merge with Existing MData", &param.MergeWithExistingMData);
+				Gui::Checkbox("Merge with Existing MData", &param.MergeWithExistingMData); guiSameLineRightAlignedHintText("(Copy existing DBs for compatibility)");
 				Gui::Checkbox("Export Image Sprites", &param.CreateSprSelPV); guiSameLineRightAlignedHintText("(Cover, Logo, Background)");
-				// TODO: Handle this better
-				Gui::Checkbox("Dummy Movie Reference", &param.AddDummyMovieReference); guiSameLineRightAlignedHintText("(MP4 can manually be copied to output MData rom)");
 				Gui::Separator();
 
 				const bool isOggFile = (inData.Chart->SongFileName.empty() || HasOggExtension(inData.Chart->SongFileName));
@@ -752,11 +805,12 @@ namespace Comfy::Studio::Editor
 					param.VorbisVBRQuality = v / 10.0f;
 				Gui::PopItemWidth();
 				Gui::PopItemDisabledAndTextColorIf(isOggFile);
-				Gui::Separator();
+
+				// Gui::Separator();
 			}
 			Gui::EndChild();
 
-			Gui::BeginChild("ConfirmatioBaseChild", vec2(0.0f, 32.0f), true, ImGuiWindowFlags_None);
+			Gui::BeginChild("ConfirmatioBaseChild", vec2(0.0f, 32.0f + 20.0f), true, ImGuiWindowFlags_None);
 			{
 				if (Gui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !thisFrameAnyItemActive && !lastFrameAnyItemActive)
 				{
@@ -769,6 +823,11 @@ namespace Comfy::Studio::Editor
 						RequestExit();
 					}
 				}
+
+				Gui::AlignTextToFramePadding();
+				Gui::TextColored(Gui::ColorConvertU32ToFloat4(GetColor(EditorColor_RedText, 0.95f)), "WARNING: ");
+				Gui::SameLine(0.0f, 0.0f);
+				Gui::TextColored(Gui::ColorConvertU32ToFloat4(Gui::GetColorU32(ImGuiCol_Text, 0.9f)), "Existing data inside the output MData directory will be *overwritten*");
 
 				Gui::PushItemDisabledAndTextColorIf(param.RootDirectory.empty());
 				if (Gui::Button("Export MData", vec2((Gui::GetContentRegionAvail().x - Gui::GetStyle().ItemSpacing.x) * 0.5f, Gui::GetContentRegionAvail().y)))
@@ -800,9 +859,9 @@ namespace Comfy::Studio::Editor
 
 			if (Gui::WideBeginPopupModal(progressWindowID, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				// TODO: Make this look nicer, the "Loading" text animation also doesn't really fit too well..?
+				// TODO: Make this look nicer, the "Loading" text animation also doesn't really fit too well (?)
 				Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(6.0f));
-				Gui::BeginChild("ProgressChild", vec2(540.0f, 320.0f), true);
+				Gui::BeginChild("ProgressChild", vec2(540.0f, 320.0f + 31.0f), true);
 				{
 					loadingAnimation.Update();
 					Gui::PushStyleVar(ImGuiStyleVar_ItemSpacing, Gui::GetStyle().ItemSpacing * 2.0f);
@@ -811,8 +870,9 @@ namespace Comfy::Studio::Editor
 					Gui::Separator();
 					Gui::PopStyleVar();
 
-					// TODO: Maybe add some interpolation to smooth out the progress bars..?
+					// TODO: Maybe add some interpolation to smooth out the progress bars (?)
 					Gui::TextUnformatted("  Audio"); Gui::ProgressBar(progress.Audio);
+					Gui::TextUnformatted("  Movie"); Gui::ProgressBar(progress.Movie);
 					Gui::TextUnformatted("  Sprite"); Gui::ProgressBar(progress.Sprites);
 					Gui::TextUnformatted("  Script"); Gui::ProgressBar(progress.Script);
 					Gui::TextUnformatted("  MData Info"); Gui::ProgressBar(progress.MDataInfo);
@@ -884,6 +944,7 @@ namespace Comfy::Studio::Editor
 
 		const std::string pvUnderscoreIDStr = [id = param.OutPVID]() { char b[16]; sprintf_s(b, "pv_%03d", id); return std::string(b); }();
 		const std::string pvIDStr = [id = param.OutPVID]() { char b[16]; sprintf_s(b, "pv%03d", id); return std::string(b); }();
+		const std::string movieExtension { !inData.Chart->MovieFileName.empty() ? IO::Path::GetExtension(inData.Chart->MovieFileName) : ".mp4" };
 
 		param.OutMDataDirectory = IO::Path::Combine(param.MDataRootDirectory, param.OutMDataID.data());
 		param.OutMDataRomDirectory = IO::Path::Combine(param.OutMDataDirectory, "rom");
@@ -891,6 +952,7 @@ namespace Comfy::Studio::Editor
 		param.OutMDataInfo = IO::Path::Combine(param.OutMDataDirectory, "info.txt");
 		param.OutOgg = IO::Path::Combine(param.OutMDataRomDirectory, pvUnderscoreIDStr + "_comfy.ogg");
 		param.OutDsc = IO::Path::Combine(param.OutMDataRomDirectory, pvUnderscoreIDStr + "_comfy.dsc");
+		param.OutMovie = !inData.Chart->MovieFileName.empty() ? IO::Path::Combine(param.OutMDataRomDirectory, pvUnderscoreIDStr + "_comfy" + movieExtension) : "";
 		param.OutPVListFArc = IO::Path::Combine(param.OutMDataRomDirectory, "gm_pv_list_tbl.farc");
 		param.OutMDataPVDB = IO::Path::Combine(param.OutMDataRomDirectory, "mdata_pv_db.txt");
 		param.OutMDataSprDB = IO::Path::Combine(param.OutMDataRom2DDirectory, "mdata_spr_db.bin");
@@ -936,9 +998,6 @@ namespace Comfy::Studio::Editor
 		if (in.CreateSprSelPV.has_value())
 			out.CreateSprSelPV = in.CreateSprSelPV.value();
 
-		if (in.AddDummyMovieReference.has_value())
-			out.AddDummyMovieReference = in.AddDummyMovieReference.value();
-
 		if (in.VorbisVBRQuality.has_value())
 			out.VorbisVBRQuality = in.VorbisVBRQuality.value();
 	}
@@ -958,7 +1017,6 @@ namespace Comfy::Studio::Editor
 		out.BackgroundDim = in.PVScriptBackgroundTint.a;
 		out.MergeWithExistingMData = in.MergeWithExistingMData;
 		out.CreateSprSelPV = in.CreateSprSelPV;
-		out.AddDummyMovieReference = in.AddDummyMovieReference;
 		out.VorbisVBRQuality = in.VorbisVBRQuality;
 	}
 }
