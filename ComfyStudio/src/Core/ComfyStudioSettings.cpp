@@ -1107,9 +1107,9 @@ namespace Comfy::Studio
 
 			if (const Value* displayTypeJson = Find(*interfaceJson, UserIDs::Interface_BackgroundDisplayType))
 			{
-				auto tryAsignEnum = [interfaceJson](ChartBackgroundDisplayType& outEnum, std::string_view key)
+				auto tryAsignEnum = [displayTypeJson](ChartBackgroundDisplayType& outEnum, std::string_view key)
 				{
-					if (auto v = TryGetEnumStr(Find(*interfaceJson, key), UserIDs::ChartBackgroundDisplayTypeEnumNames); v.has_value())
+					if (auto v = TryGetEnumStr(Find(*displayTypeJson, key), UserIDs::ChartBackgroundDisplayTypeEnumNames); v.has_value())
 						outEnum = v.value();
 				};
 
