@@ -63,9 +63,11 @@ namespace Comfy::Studio::Editor
 			findFileDirectoryW += L"*";
 
 			WIN32_FIND_DATAW findData = {};
-			auto findResult = ::FindFirstFileW(findFileDirectoryW.c_str(), &findData);
+			const HANDLE findResult = ::FindFirstFileW(findFileDirectoryW.c_str(), &findData);
 			if (findResult == INVALID_HANDLE_VALUE)
 				return false;
+
+			defer { ::FindClose(findResult); };
 
 			do
 			{
