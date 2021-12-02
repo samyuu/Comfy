@@ -833,12 +833,22 @@ namespace Comfy::Studio::Editor
 		{
 			GuiBeginSettingsColumns();
 
-			pendingChanges |= GuiSettingsInputF32("Scroll Speed", userData.TargetTimeline.MouseWheelScrollSpeed, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx");
-			pendingChanges |= GuiSettingsInputF32("Scroll Speed (Shift)", userData.TargetTimeline.MouseWheelScrollSpeedShift, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx");
+			auto guiSettingsScrollSpeedOrFactor = [](std::string_view label, f32& inOutValue, const char* format, f32 step = 0.1f, f32 stepFast = 1.0f, f32 minValue = 0.1f, f32 maxValue = 100.0f) -> bool
+			{
+				if (auto v = inOutValue; GuiSettingsInputF32(label, v, step, stepFast, ImGuiInputTextFlags_None, format))
+				{
+					inOutValue = Clamp(v, minValue, maxValue);
+					return true;
+				}
+				return false;
+			};
+
+			pendingChanges |= guiSettingsScrollSpeedOrFactor("Scroll Speed", userData.TargetTimeline.MouseWheelScrollSpeed, "%gx");
+			pendingChanges |= guiSettingsScrollSpeedOrFactor("Scroll Speed (Shift)", userData.TargetTimeline.MouseWheelScrollSpeedShift, "%gx");
 
 			// NOTE: Having the "x Grid Division" and "x Beat" format strings embeded here feels a bit iffy, in case their behavior ever changes...
-			pendingChanges |= GuiSettingsInputF32("Playback Scroll Factor", userData.TargetTimeline.PlaybackMouseWheelScrollFactor, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx Grid Division");
-			pendingChanges |= GuiSettingsInputF32("Playback Scroll Factor (Shift)", userData.TargetTimeline.PlaybackMouseWheelScrollFactorShift, 0.1f, 1.0f, ImGuiInputTextFlags_None, "%gx Beat");
+			pendingChanges |= guiSettingsScrollSpeedOrFactor("Playback Scroll Factor", userData.TargetTimeline.PlaybackMouseWheelScrollFactor, "%gx Grid Division");
+			pendingChanges |= guiSettingsScrollSpeedOrFactor("Playback Scroll Factor (Shift)", userData.TargetTimeline.PlaybackMouseWheelScrollFactorShift, "%gx Beat");
 
 			if (auto v = (userData.TargetTimeline.MouseWheelScrollDirection < 0.0f);
 				GuiSettingsCheckbox("Flip Mouse Scroll Direction", v))
@@ -956,7 +966,12 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsCombo("Cursor Scrubbing - Edge Auto Scroll", userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold, TargetTimelineCursorScrubbingEdgeAutoScrollThresholdNames);
 			if (userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::FixedSize)
 			{
-				pendingChanges |= GuiSettingsInputF32("Auto Scroll Threshold", userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f px");
+				if (auto v = userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels;
+					GuiSettingsInputF32("Auto Scroll Threshold", v, 1.0f, 10.0f, ImGuiInputTextFlags_None, "%.2f px"))
+				{
+					userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdFixedSize.Pixels = Clamp(v, 0.0f, 1000.0f);
+					pendingChanges = true;
+				}
 			}
 			else if (userData.TargetTimeline.CursorScrubbingEdgeAutoScrollThreshold == TargetTimelineCursorScrubbingEdgeAutoScrollThreshold::Proportional)
 			{
