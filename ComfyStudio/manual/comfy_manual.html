@@ -30,9 +30,9 @@
         <header class="MainHeader">
             <div>
                 <img class="MainHeaderIcon" src="image/comfy_icon.ico">
-                <h1>Comfy Studio Chart Editor (Beta)</h1>
+                <h1>Comfy Studio Chart Editor</h1>
                 <!-- TODO: Keep this updated :Sadge: -->
-                <h4>User Manual - <time>(2021/04/22)</time></h4>
+                <h4>User Manual - <time>(2021/12/02)</time></h4>
             </div>
             <div>
                 <img class="MainHeaderImage" src="image/other/editor_example_chart.png">
@@ -181,13 +181,17 @@
             </div>
 
             <div class="TextBlock">
-                <p>The currently supported audio file formats are:</p>
+                <p>The natively supported audio file formats are:</p>
                 <ul>
                     <li>Free Lossless Audio Codec (*.flac)</li>
                     <li>Ogg Vorbis (*.ogg)</li>
                     <li>MPEG Audio Layer III (*.mp3)</li>
                     <li>Waveform Audio File Format (*.wav)</li>
                 </ul>
+                <p>
+                    With an additional option of using a <em>video file</em> as audio source
+                    as long as it is supported by Microsoft Media Foundation on the current system.
+                </p>
             </div>
             <div class="ImageBlock">
                 <img src="image/other/file_dialog_audio_file_types.png">
@@ -202,6 +206,28 @@
             <div class="ImageBlock">
                 <img src="image/timeline/waveform_example.png">
             </div>
+
+            <div class="TextBlock">
+                <p>
+                    In addition to loading an audio file an optional background video can also be selected
+                    the same way via the <code>Movie File Name</code> widget.
+                    <br>
+                    If a video file is dropped onto the window and no audio file has been selected yet
+                    then the video file will automatically be set as both the audio and video source.
+                </p>
+                <figure class="NoteFigure">
+                    <p>
+                        <strong>Note:</strong> Rendering of a video file inside Comfy Studio requires
+                        a GPU with hardware accelerated Media Foundation support
+                        to be available for the specified codec as well as Windows 8 or newer.
+                        <br>
+                        Media Foundation plugins for additional codecs such as H.265 and VP9
+                        may have to be installed
+                        <a href="https://codecguide.com/media_foundation_codecs.htm" target="_blank">externally</a>
+                    </p>
+                </figure>
+            </div>
+
         </section>
         <hr>
         <section class="SubSection" id="setting-metadata">
@@ -290,12 +316,6 @@
                                 The default button sounds associated with the chart and the sounds used inside the
                                 editor as well as during playtesting.
                             </p>
-
-                            <figure class="NoteFigure">
-                                <p>
-                                    <strong>Note:</strong> <em>Right Click</em> a combo box item to preview its sound.
-                                </p>
-                            </figure>
                         </ul>
                     </div>
                 </div>
@@ -321,36 +341,41 @@
                     The <em>Sync Window</em> is the main method of setting a song's tempo, start offset and duration.
                 </p>
                 <p>
-                    The <code>Start Offset</code> widget is used for setting the offset of the song audio file relative
+                    The <code>Song Offset</code> widget is used for setting the offset of the song audio file relative
                     to the
                     start of the chart.
                     A <em>negative</em> offset results in the song starting <em>later</em>, a <em>positive</em> offset
                     <em>earlier</em>. The Target Timeline waveform can be a very useful tool in finding a suitable
                     offset.
                     <br>
+                    <code>Move Offset</code> matches the behavior of the <code>Song Offset</code>
+                    but is instead applied to the the background movie file.
+                    <br>
                     The <code>Move by Beat</code> buttons add or subtract a fraction of the duration of a beat at the
-                    initial tempo to the Start Offset.
-                    This is especially useful when for example delaying the start offset of a song up to the second
+                    initial tempo to the Song Offset
+                    and is especially useful when delaying the offset of a song up to the second
                     <span class="TimeSigSpan"><sup class="TimeSigSup"><b>4</b></sup><br><sup
                             class="TimeSigSup"><b>4</b></sub></span>
-                    bar as is recommended.
+                    bar as it needs to be.
                     <br>
                     The <code>Duration</code> widget is used for entering the duration of the chart. Upon initially
                     loading an audio file the duration is automatically set to its duration.
                     The <code>Set</code> button can be used to set the Duration to that of the current Target Timeline
                     Cursor position.
                 </p>
+                <!-- TODO: Example video of changing song offset using drag text -->
                 <p>
-                    The <code>Tempo</code> and <code>Time Signature</code> widgets
+                    The <code>Tempo</code>, <code>Flying Time</code> and <code>Time Signature</code> widgets
                     operate on the current Target Timeline cursor position.
                     If the cursor does not sit on an existing Tempo Change, a new one is inserted automatically.
                     <br>
                     Pressing the <code>Remove</code> button removes the tempo change at the cursor position, the very
                     first tempo change however can not be removed.
                     <br>
-                    Allowed tempos range from <code>30.00 BPM</code> to <code>960.00 BPM</code>
-                    and both the numerator and denominator of the time signature may range from <code>1</code> to
-                    <code>64</code>.
+                    Allowed tempos range from <code>30.00 BPM</code> to <code>960.00 BPM</code>,
+                    flying times from <code>50.00 %</code> to <code>400.00 %</code>
+                    and both the numerator and denominator of the time signature
+                    can be set anywhere from <code>1</code> to <code>64</code>.
                 </p>
 
                 <figure class="NoteFigure">
@@ -372,6 +397,21 @@
                 <p>
                     Alternatively <code>Right Mouse</code> click on an existing Tempo Change in the Target Timeline to
                     open an edit popup with similar functionality to the Sync Window Chart Rhythm widgets.
+                    <br>
+                    Each tempo change (except for the very first) can specify one or more of the 3 available properties:
+                    <code>Tempo</code>, <code>Flying Time</code> and <code>Time Signature</code>.
+                    The <code>Flying Time</code> field can be used to optionally speed up or slow down
+                    the time it takes for a <em>button</em> to each its <em>target</em> after spawning
+                    which in turn makes it appear to be moving slower or faster.
+                </p>
+                <p>
+                    A change in tempo and or flying time takes effect visually after a
+                    <span class="TimeSigSpan"><sup class="TimeSigSup"><b>4</b></sup><br><sup
+                            class="TimeSigSup"><b>4</b></sub></span>
+                    bar transition period.
+                    <br>
+                    The <code>Time Signature</code> field changes the spacing between bar lines drawn on the
+                    timeline as well as the sound pattern of the in-editor metronome when enabled.
                 </p>
             </div>
             <div class="ImageBlock">
@@ -497,7 +537,8 @@
                         <strong>Note:</strong> Targets <strong>mustn't</strong> be placed inside the first <span
                             class="TimeSigSpan"><sup class="TimeSigSup"><b>4</b></sup><br>
                             <sup class="TimeSigSup"><b>4</b></sub> </span> bar (indicated by a darkened background)
-                        as it takes a Button the duration of <em>1 bar</em> to fly towards its Target.
+                        as it takes a Button the duration of <em>1 bar</em> to (at 100% flying speed) to fly towards its
+                        Target.
                     </p>
                 </figure>
             </div>
@@ -519,7 +560,8 @@
                     the <code>Chain Slide Division</code> context menu options.
                     <br>
                     Holding down <code>Shift</code> and pressing a <em>non-slide</em> button key will fill in the
-                    range-selection at the current grid division level with normal targets instead.
+                    range-selection at the current grid division level with normal targets instead (sometimes referred
+                    to as "spam").
                 </p>
             </div>
             <div class="ImageBlock">
@@ -549,7 +591,7 @@
                         and can only be moved if <em>all</em> targets within a sync pair are selected.
                         <br>
                         To separate sync targets and or move targets past each other
-                        the <code>Cut</code> and <code>Paste</code> commands can be used instead.
+                        the <code>Cut</code> and <code>Paste</code> commands should be used instead.
                     </p>
                 </figure>
             </div>
@@ -912,6 +954,7 @@
                     applied to a sync target pair without variations.
                 </p>
                 <p>
+                    <!-- TODO: Finally implement this properly -->
                     At the moment these static sync presets <strong>can not yet be configured</strong>
                     inside the program itself and the <code>Add New...</code> button serves as a placeholder.
                 </p>
@@ -1043,8 +1086,9 @@
                     Sequence presets are applied and previewed the same way
                     as by the <em>Sync Target Presets</em> window.
                     <br>
+                    <!-- TODO: Finally implement this properly -->
                     This feature is <strong>still in development</strong>
-                    and only clockwise / counterclockwise circle presets are available at the moment.
+                    and only basic clockwise / counterclockwise circle presets are available at the moment.
                 </p>
             </div>
             <div class="ImageBlock">
@@ -1123,26 +1167,18 @@
 
             <div class="TextBlock">
                 <p>
-                    Once a chart is completed it can be exported as a <code>.dsc</code> PV Script to be used in-game
+                    A chart can be exported as a <code>.dsc</code> PV Script to be used in-game
                     through either the <code>File > Export > Export PV Script Chart...</code> menu option
                     (to export a single chart file without any additional data)
                     or through <code>File > Export > Export PV Script MData...</code>
-                    (to export a complete MData folder together with all associated files required to be playable).
+                    (to export a single chart as well as an MData folder together
+                    with all its associated files required to be playable right away).
                 </p>
                 <p>
                     At the moment only the <em>Arcade</em> export target format is supported
                     and only a single chart can be exported at a time.
                     If the <em>Output MData ID</em> folder <strong>already exists</strong>
                     then it will be <strong>overwritten</strong>.
-                    <br>
-                    Advanced auto-merge compatibility options are planned for the future
-                    but to export multiple charts at this time requires exporting each chart as its own MData folder
-                    with an incrementing MData ID while always merging with the last.
-                </p>
-                <p>
-                    If enabled the <code>Dummy Movie Reference</code> option adds a <code>pv_db.txt</code> movie file
-                    reference with a name matching that of the output chart + <code>.mp4</code>
-                    as well as <code>.dsc</code> movie play commands at the same time as the music starts.
                 </p>
                 <p>
                     If the chart audio source file isn't already an Ogg Vorbis file
@@ -1160,13 +1196,32 @@
                     If more control over the audio conversion is desired
                     then it is recommended to externally convert the audio file first
                     and linking it as the chart's audio source.
-                    Doing so also means that the audio file doesn't need to be re-encoded on every export
-                    which naturally speeds up the export process.
+                </p>
+                <p>
+                    In the case a movie video file is specified
+                    it is directly copied to the output directory <strong>as is</strong>
+                    without <em>any</em> further processing or consideration
+                    regarding its internal format or codec.
+                    <br>
+                    Manual preprocessing
+                    (via <a href="https://ffmpeg.org/" target="_blank">FFmpeg</a> for example)
+                    to <code>.wmv</code> as well as removing of the audio track may therefore be required.
                 </p>
             </div>
             <div class="ImageBlock">
                 <img src="image/other/export_pv_script_mdata.png">
             </div>
+
+            <p>
+                The current PV Script / MData export options mostly serve as a proof of concept and for quick testing
+                but are not suited for working with multiple charts at once, sharing with other users as mods,
+                nor do they offer great user customizability.
+                <br>
+                To improve on this and also allow exporting into different formats and games,
+                an export plug-in system <em>might</em> be implemented in the future (soon&trade;)
+                which would provide full control over the exact data transformations.
+            </p>
+
         </section>
         <hr>
         <section class="SubSection" id="settings-window">
@@ -1176,8 +1231,8 @@
 
             <div class="TextBlock">
                 <p>
-                    The Settings window can be opened through the <code>Edit > Settings...</code> menu option
-                    or by pressing <code>Ctrl+,</code>.
+                    Program settings can be change through the <code>Edit > Settings...</code> menu option
+                    or by pressing <code>Ctrl+,</code> to open the Settings Window.
                     <br>
                     Comfy Studio comes preconfigured with 1st and 2nd Gen DualShock4 controller support.
                     Other DirectInput compatible controllers can also be used
@@ -1187,10 +1242,21 @@
                     Once a layout mapping has been defined for a controller it can be used to assign input bindings
                     in the <code>Editor Bindings</code> and <code>Playtest Bindings</code> tabs.
                 </p>
-                <p>
-                    <!-- TODO: Explain all options... although probably inside the program itself via tooltips or a description box -->
-                    More detailed explanations and additional options will be coming in the future.
-                </p>
+                <figure class="NoteFigure">
+                    <p>
+                        <strong>Note:</strong> User settings are stored inside <code>settings_user.json</code>
+                        and can be copied over from a previous version when updating Comfy Studio.
+                        <br>
+                        External editing via a text editor might result in settings being overwritten
+                        in case of a syntax error by the user.
+                        Manual creation of a backup in this case is therefore encouraged.
+                        <br>
+                        The <Code>settings_app.json</Code> file stores general persistent program state across runs
+                        and <code>settings_imgui.ini</code> stores the window docking layout, positions and sizes
+                        but should generally not be edited by the user directly.
+                        <br>
+                    </p>
+                </figure>
             </div>
             <div class="ImageBlock">
                 <img src="image/other/settings_window_general.png">
