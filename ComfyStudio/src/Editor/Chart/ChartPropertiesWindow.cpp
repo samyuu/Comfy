@@ -17,6 +17,13 @@ namespace Comfy::Studio::Editor
 		constexpr TimeSpan SongPreviewFadeOutDuration = TimeSpan::FromSeconds(0.5);
 		constexpr TimeSpan SongPreviewLoopDelay = TimeSpan::FromSeconds(0.35);
 
+		static Gui::TooltipFadeInOutHelper SongImageTooltipFadeHelper = []()
+		{
+			Gui::TooltipFadeInOutHelper tooltipHelper = {};
+			tooltipHelper.FadeInDelay = TimeSpan::FromMilliseconds(80.0);
+			return tooltipHelper;
+		}();
+
 		bool GuiPropertyButtonSoundCombo(std::string_view label, u32& inOutID, Database::GmBtnSfxType btnSfxDBType, SoundEffectManager& soundEffectManager, Stopwatch& lastChainSlidePreviewStopwatch)
 		{
 			auto entryToCStr = [&](const Database::GmBtnSfxEntry* entry)
@@ -141,6 +148,11 @@ namespace Comfy::Studio::Editor
 							valueChanged = true;
 						}
 
+						// NOTE: Render dedicated preview buttons to make it clear to the user that the sounds can be previewed
+						//		 but still keep the right click behavior as a convenient shortcut
+						if (Gui::IsItemHovered() && Gui::IsMouseClicked(ImGuiMouseButton_Right))
+							previewButtonSound(*entry);
+
 						const auto previewButtonColor = Gui::GetStyleColorVec4(Gui::IsItemHovered() ? ImGuiCol_HeaderHovered : isSelected ? ImGuiCol_FrameBg : ImGuiCol_PopupBg);
 
 						Gui::SameLine(Gui::GetContentRegionAvail().x - previewButtonWidth, 0.0f);
@@ -207,16 +219,29 @@ namespace Comfy::Studio::Editor
 				}
 				Gui::PopStyleVar();
 
-				if (Gui::IsItemHovered())
+				const f32 tooltipOpacity = SongImageTooltipFadeHelper.UpdateFadeAndGetOpacity(&asyncImage, Gui::IsItemHovered());
+				if (tooltipOpacity > 0.0f)
 				{
 					if (const auto image = asyncImage.GetTexSprView(); image)
 					{
-						// TODO: Replace with fixed position tooltip so that it doesn't move with the mouse (?)
-						// TODO: Add subtle fade in and out animations (?)
-						const auto fixedRect = Gui::FitFixedAspectRatioImage(ImRect(0.0f, 0.0f, 320.0f, 320.0f), image.Tex->GetSize());
+						const ImVec2 originalMousePos = Gui::GetIO().MousePos;
+						defer { Gui::GetIO().MousePos = originalMousePos; };
+
+						// HACK: To prevent the tooltip from moving around with the cursor once it's open. Doing it this way 
+						//		 is a lot simpler than trying to SetNextWindowPos() and having to manually find a non-clipped + on-screen window position.
+						//		 Only slight annoyance with this is that the tooltip can then scroll along with underlying window before fading out
+						Gui::GetIO().MousePos = Gui::GetItemRectMin();
+
+						Gui::PushStyleVar(ImGuiStyleVar_WindowPadding, Gui::PopupWindowPadding);
+						Gui::PushStyleVar(ImGuiStyleVar_Alpha, tooltipOpacity);
+						Gui::SetNextWindowBgAlpha(tooltipOpacity);
 						Gui::BeginTooltip();
-						Gui::Image(*image.Tex, fixedRect.GetSize(), Gui::UV0_R, Gui::UV1_R);
+						{
+							const ImRect fixedRect = Gui::FitFixedAspectRatioImage(ImRect(0.0f, 0.0f, 320.0f, 320.0f), image.Tex->GetSize());
+							Gui::Image(*image.Tex, fixedRect.GetSize(), Gui::UV0_R, Gui::UV1_R);
+						}
 						Gui::EndTooltip();
+						Gui::PopStyleVar(2);
 					}
 				}
 
