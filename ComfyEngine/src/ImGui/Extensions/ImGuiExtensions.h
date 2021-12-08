@@ -29,6 +29,27 @@ namespace ImGui
 	ImRect FitFixedAspectRatio(ImRect sourceRegion, float targetAspectRatio);
 	ImRect FitFixedAspectRatioImage(ImRect sourceRegion, vec2 imageDimensions);
 
+	f32 AnimateFadeInOutOpacity(f32& inOutCurrentOpacity, bool isFadingIn, f32 fadeInDurationSec = 0.5f, f32 fadeOutDurationSec = 0.5f, f32 minOpacity = 0.0f, f32 maxOpacity = 1.0f);
+	f32 AnimateFadeInOutOpacity(f32& inOutCurrentOpacity, bool isFadingIn, Comfy::TimeSpan fadeInDuration, Comfy::TimeSpan fadeOutDuration, f32 minOpacity = 0.0f, f32 maxOpacity = 1.0f);
+	f32 AnimateFadeInOutOpacity(f32& inOutCurrentOpacity, bool isFadingIn, Comfy::TimeSpan fadeInOutDuration, f32 minOpacity = 0.0f, f32 maxOpacity = 1.0f);
+
+	struct TooltipFadeInOutHelper
+	{
+		const void* CurrentID = {};
+		f32 CurrentOpacity = {};
+		Comfy::TimeSpan CurrentElapsedHoverTime = {};
+
+		// NOTE: Small delay to prevent accidentally showing the tooltip when quickly moving the mouse over and past the help marker
+		Comfy::TimeSpan FadeInDelay = Comfy::TimeSpan::FromMilliseconds(60.0);
+		Comfy::TimeSpan FadeInDuration = Comfy::TimeSpan::FromMilliseconds(120.0);
+		Comfy::TimeSpan FadeOutDuration = Comfy::TimeSpan::FromMilliseconds(120.0);
+		f32 MinOpacity = 0.0f;
+		f32 MaxOpacity = 1.0f;
+
+		void ResetFade(const void* newID = nullptr);
+		f32 UpdateFadeAndGetOpacity(const void* newID, bool isItemHovered);
+	};
+
 	void UpdateExtendedState();
 
 	bool WasActiveWindowFocusedOnMouseClicked(int button);

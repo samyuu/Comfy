@@ -4,6 +4,7 @@
 #include "Time/Stopwatch.h"
 #include "IO/Path.h"
 
+using namespace Comfy;
 using namespace Comfy::Graphics;
 
 namespace ImGui
@@ -51,6 +52,43 @@ namespace ImGui
 	ImRect FitFixedAspectRatioImage(ImRect sourceRegion, vec2 imageDimensions)
 	{
 		return FitFixedAspectRatio(sourceRegion, (imageDimensions.x / imageDimensions.y));
+	}
+
+
+	f32 AnimateFadeInOutOpacity(f32& inOutCurrentOpacity, bool isFadingIn, f32 fadeInDurationSec, f32 fadeOutDurationSec, f32 minOpacity, f32 maxOpacity)
+	{
+		const f32 deltaScaledOpacityRange = (maxOpacity - minOpacity) * GetIO().DeltaTime;
+
+		return inOutCurrentOpacity = isFadingIn ?
+			Min(inOutCurrentOpacity + (deltaScaledOpacityRange / fadeInDurationSec), maxOpacity) :
+			Max(inOutCurrentOpacity - (deltaScaledOpacityRange / fadeOutDurationSec), minOpacity);
+	}
+
+	f32 AnimateFadeInOutOpacity(f32& inOutCurrentOpacity, bool isFadingIn, TimeSpan fadeInDuration, TimeSpan fadeOutDuration, f32 minOpacity, f32 maxOpacity)
+	{
+		return AnimateFadeInOutOpacity(inOutCurrentOpacity, isFadingIn, static_cast<f32>(fadeInDuration.TotalSeconds()), static_cast<f32>(fadeOutDuration.TotalSeconds()), minOpacity, maxOpacity);
+	}
+
+	f32 AnimateFadeInOutOpacity(f32& inOutCurrentOpacity, bool isFadingIn, TimeSpan fadeInOutDuration, f32 minOpacity, f32 maxOpacity)
+	{
+		return AnimateFadeInOutOpacity(inOutCurrentOpacity, isFadingIn, static_cast<f32>(fadeInOutDuration.TotalSeconds()), static_cast<f32>(fadeInOutDuration.TotalSeconds()), minOpacity, maxOpacity);
+	}
+
+	void TooltipFadeInOutHelper::ResetFade(const void* newID)
+	{
+		CurrentID = newID;
+		CurrentOpacity = 0.0f;
+		CurrentElapsedHoverTime = TimeSpan::Zero();
+	}
+
+	f32 TooltipFadeInOutHelper::UpdateFadeAndGetOpacity(const void* newID, bool isItemHovered)
+	{
+		if (CurrentID == newID)
+			CurrentElapsedHoverTime = isItemHovered ? (CurrentElapsedHoverTime + TimeSpan::FromSeconds(GetIO().DeltaTime)) : TimeSpan::Zero();
+		else if (isItemHovered)
+			ResetFade(newID);
+
+		return (CurrentID == newID) ? AnimateFadeInOutOpacity(CurrentOpacity, (CurrentElapsedHoverTime > FadeInDelay), FadeInDuration, FadeOutDuration, MinOpacity, MaxOpacity) : 0.0f;
 	}
 
 	void UpdateExtendedState()
@@ -143,9 +181,9 @@ namespace ImGui
 		drawList->AddImage(*tex, position, position + vec2(sourceRegion.z, sourceRegion.w), uv0, uv1, color);
 	}
 
-	void AddSprite(ImDrawList* drawList, const Comfy::Graphics::SprSet& sprSet, const Comfy::Graphics::Spr& spr, vec2 topLeft, vec2 bottomRight, ImU32 color)
+	void AddSprite(ImDrawList* drawList, const Graphics::SprSet& sprSet, const Graphics::Spr& spr, vec2 topLeft, vec2 bottomRight, ImU32 color)
 	{
-		if (!Comfy::InBounds(spr.TextureIndex, sprSet.TexSet.Textures))
+		if (!InBounds(spr.TextureIndex, sprSet.TexSet.Textures))
 			return;
 
 		const auto& tex = sprSet.TexSet.Textures[spr.TextureIndex];
@@ -237,7 +275,7 @@ namespace ImGui
 			{
 				auto isInvalidPathChar = [](char charToCheck)
 				{
-					return std::any_of(Comfy::IO::Path::InvalidPathCharacters.begin(), Comfy::IO::Path::InvalidPathCharacters.end(),
+					return std::any_of(IO::Path::InvalidPathCharacters.begin(), IO::Path::InvalidPathCharacters.end(),
 						[charToCheck](char invalidChar) { return (charToCheck == invalidChar); });
 				};
 
@@ -305,7 +343,7 @@ namespace ImGui
 			if (data->EventFlag == ImGuiInputTextFlags_CallbackAlways)
 			{
 				// NOTE: To immediately restore any invalid input such as when deleting the ':' or '.'
-				const auto roundtripFormat = Comfy::TimeSpan::ParseFormattedTime(data->Buf).FormatTime();
+				const auto roundtripFormat = TimeSpan::ParseFormattedTime(data->Buf).FormatTime();
 				const size_t roundTripLength = strlen(roundtripFormat.data());
 
 				assert(roundTripLength <= data->BufSize);
@@ -327,7 +365,7 @@ namespace ImGui
 		}
 	}
 
-	bool InputFormattedTimeSpan(const char* label, Comfy::TimeSpan* value, vec2 size, ImGuiInputTextFlags flags)
+	bool InputFormattedTimeSpan(const char* label, TimeSpan* value, vec2 size, ImGuiInputTextFlags flags)
 	{
 		flags |= ImGuiInputTextFlags_NoHorizontalScroll;
 		flags |= ImGuiInputTextFlags_AlwaysOverwrite;
@@ -339,7 +377,7 @@ namespace ImGui
 		const bool result = InputTextEx(label, nullptr, formattedTime.data(), static_cast<i32>(formattedTime.size()), size, flags, InputTextTimeSpanCallback, nullptr);
 
 		if (result)
-			*value = Comfy::TimeSpan::ParseFormattedTime(formattedTime.data());
+			*value = TimeSpan::ParseFormattedTime(formattedTime.data());
 
 		return result;
 	}
