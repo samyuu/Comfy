@@ -53,6 +53,14 @@ namespace Comfy::Studio::Editor
 			PlaybackSpeedMultiBindingPair { 0.50f, &GlobalUserData.Input.TargetTimeline_SetPlaybackSpeed_50Percent },
 			PlaybackSpeedMultiBindingPair { 0.25f, &GlobalUserData.Input.TargetTimeline_SetPlaybackSpeed_25Percent },
 		};
+
+		static Gui::TooltipFadeInOutHelper TempoEditTooltipFadeHelper = []()
+		{
+			Gui::TooltipFadeInOutHelper tooltipHelper = {};
+			tooltipHelper.FadeInDelay = TimeSpan::FromMilliseconds(40.0);
+			tooltipHelper.FadeInDuration = tooltipHelper.FadeOutDuration = TimeSpan::FromMilliseconds(80.0);
+			return tooltipHelper;
+		}();
 	}
 
 	TargetTimeline::TargetTimeline(ChartEditor& parent, Undo::UndoManager& undoManager, ButtonSoundController& buttonSoundController)
@@ -753,9 +761,14 @@ namespace Comfy::Studio::Editor
 			if (Gui::IsItemHovered() || tempoPopupIndex == static_cast<i32>(newOrInheritedTempoChange.IndexWithinTempoMap))
 				baseWindowDrawList->AddRect(buttonPosition, buttonPosition + buttonSize, Gui::GetColorU32(ImGuiCol_ChildBg));
 
-			if (Gui::IsItemHovered())
+			constexpr vec2 tooltipOffset = vec2(0.0f, 8.0f);
+
+			// BUG: Doesn't behave correctly for overlapping tempo changes
+			const f32 tooltipOpacity = TempoEditTooltipFadeHelper.UpdateFadeAndGetOpacity(&tempoChange, Gui::IsItemHovered());
+			if (tooltipOpacity > 0.0f)
 			{
-				constexpr vec2 tooltipOffset = vec2(0.0f, 8.0f);
+				Gui::PushStyleVar(ImGuiStyleVar_Alpha, tooltipOpacity);
+				Gui::SetNextWindowBgAlpha(tooltipOpacity);
 
 				// TODO: Manually clamp inside the visible timeline area as well? although a bit more tricky here since the window size isn't known until drawn
 				Gui::WideTooltip(buttonPosition - tooltipOffset + vec2(buttonSize.x * 0.5f, 0.0f), vec2(0.5f, 1.0f), [this, &tempoChange]()
@@ -764,11 +777,18 @@ namespace Comfy::Studio::Editor
 					Gui::Text("Time: %s", TickToTime(tempoChange.Tick).FormatTime().data());
 				});
 
+				Gui::PopStyleVar();
+			}
+
+			if (Gui::IsItemHovered())
+			{
 				if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
 					SetCursorTick(tempoChange.Tick);
 
 				if (Gui::IsMouseClicked(ImGuiMouseButton_Right))
 				{
+					TempoEditTooltipFadeHelper.ResetFade();
+
 					Gui::OpenPopup(tempoChangePopupName);
 					tempoPopupIndex = static_cast<i32>(newOrInheritedTempoChange.IndexWithinTempoMap);
 
