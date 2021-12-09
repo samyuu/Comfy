@@ -109,7 +109,7 @@ namespace Comfy::Studio::Editor
 
 	ChartEditor::ChartEditor(ComfyStudioApplication& parent, EditorManager& editor) : IEditorComponent(parent, editor)
 	{
-		chart = MakeNewChartWithDefaults();
+		chart = MakeNewChartWithDefaultSettings();
 		songVoice = Audio::AudioEngine::GetInstance().AddVoice(Audio::SourceHandle::Invalid, "ChartEditor SongVoice", false, 1.0f, true);
 		buttonSoundController = std::make_unique<ButtonSoundController>(soundEffectManager);
 
@@ -572,7 +572,7 @@ namespace Comfy::Studio::Editor
 			AutoSaveCurrentChartIfEnabledThenRestartStopwatch();
 
 		undoManager.ClearAll();
-		chart = MakeNewChartWithDefaults();
+		chart = MakeNewChartWithDefaultSettings();
 		UnloadSong();
 		UnloadMovie(true);
 
@@ -950,12 +950,38 @@ namespace Comfy::Studio::Editor
 		return parentApplication;
 	}
 
-	std::unique_ptr<Chart> ChartEditor::MakeNewChartWithDefaults() const
+	std::unique_ptr<Chart> ChartEditor::MakeNewChartWithDefaultSettings() const
 	{
 		std::unique_ptr<Chart> newChart = nullptr;
 		newChart = std::make_unique<Chart>();
 		newChart->TempoMap.RebuildAccelerationStructure();
-		newChart->Properties.Creator.Name = GlobalUserData.ChartProperties.ChartCreatorDefaultName;
+		{
+			auto tryAssignOptional = [](auto& outValue, const auto& inOptional) { if (inOptional.has_value()) { outValue = inOptional.value(); } };
+			auto tryAssignOptionalEmptyString = [](std::string& outValue, const std::string& inString) { if (!inString.empty()) { outValue = inString; } };
+			auto tryAsignOptionalImagePath = [&newChart](std::string& outPath, AsyncLoadedImageFile& outImage, std::optional<std::string> inOptionalPath)
+			{
+				if (inOptionalPath.has_value() && !Util::Trim(inOptionalPath.value()).empty())
+				{
+					// NOTE: The chart directory hasn't been set yet so this shouldn't actually do anything (the default settings path is expected to be absolute)
+					//		 but still here to make the intend clear as the path should otherwise always be made relative right away
+					outPath = IO::Path::TryMakeRelative(inOptionalPath.value(), newChart->ChartFilePath);
+					outImage.TryLoad(outPath);
+				}
+			};
+
+			const auto& defaultSettings = GlobalUserData.ChartProperties.Default;
+			tryAssignOptionalEmptyString(newChart->Properties.Creator.Name, defaultSettings.CreatorName);
+			tryAssignOptionalEmptyString(newChart->Properties.Creator.Comment, defaultSettings.CreatorComment);
+			tryAsignOptionalImagePath(newChart->Properties.Image.CoverFileName, newChart->Properties.Image.Cover, defaultSettings.ImageFilePathCover);
+			tryAsignOptionalImagePath(newChart->Properties.Image.LogoFileName, newChart->Properties.Image.Logo, defaultSettings.ImageFilePathLogo);
+			tryAsignOptionalImagePath(newChart->Properties.Image.BackgroundFileName, newChart->Properties.Image.Background, defaultSettings.ImageFilePathBackground);
+			tryAssignOptional(newChart->Properties.Difficulty.Type, defaultSettings.DifficultyType);
+			tryAssignOptional(newChart->Properties.Difficulty.Level, defaultSettings.DifficultyLevel);
+			tryAssignOptional(newChart->Properties.ButtonSound.ButtonID, defaultSettings.ButtonSoundButtonID);
+			tryAssignOptional(newChart->Properties.ButtonSound.SlideID, defaultSettings.ButtonSoundSlideID);
+			tryAssignOptional(newChart->Properties.ButtonSound.ChainSlideID, defaultSettings.ButtonSoundChainSlideID);
+			tryAssignOptional(newChart->Properties.ButtonSound.SliderTouchID, defaultSettings.ButtonSoundSliderTouchID);
+		}
 		return newChart;
 	}
 

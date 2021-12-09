@@ -524,7 +524,18 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetPreset_InspectorDropdown_Distances = "distances";
 
 		constexpr std::string_view ChartProperties = "chart_properties";
-		constexpr std::string_view ChartProperties_ChartCreatorDefaultName = "chart_creator_default_name";
+		constexpr std::string_view ChartProperties_Default = "default";
+		constexpr std::string_view ChartProperties_Default_CreatorName = "creator_name";
+		constexpr std::string_view ChartProperties_Default_CreatorComment = "creator_comment";
+		constexpr std::string_view ChartProperties_Default_ImageFilePathCover = "image_file_path_cover";
+		constexpr std::string_view ChartProperties_Default_ImageFilePathLogo = "image_file_path_logo";
+		constexpr std::string_view ChartProperties_Default_ImageFilePathBackground = "image_file_path_background";
+		constexpr std::string_view ChartProperties_Default_DifficultyType = "difficulty_type";
+		constexpr std::string_view ChartProperties_Default_DifficultyLevel = "difficulty_level";
+		constexpr std::string_view ChartProperties_Default_ButtonSoundButtonID = "button_sound_button_id";
+		constexpr std::string_view ChartProperties_Default_ButtonSoundSlideID = "button_sound_slide_id";
+		constexpr std::string_view ChartProperties_Default_ButtonSoundChainSlideID = "button_sound_chain_slide_id";
+		constexpr std::string_view ChartProperties_Default_ButtonSoundSliderTouchID = "button_sound_slider_touch_id";
 
 		constexpr std::string_view BPMCalculator = "bpm_calculator";
 		constexpr std::string_view BPMCalculator_AutoResetEnabled = "auto_reset_enabled";
@@ -709,6 +720,34 @@ namespace Comfy::Studio
 			{ SequencePresetButtonType::SameLine, "single_line", },
 		};
 		static_assert(Json::CompileTimeValidateEnumNameMappingTable(SequencePresetButtonTypeEnumNames));
+
+		constexpr Json::EnumNameMappingTable<Difficulty> DifficultyTypeEnumNames
+		{
+			Json::EnumNameMapping<Difficulty>
+			{ Difficulty::Easy, "easy", },
+			{ Difficulty::Normal, "normal", },
+			{ Difficulty::Hard, "hard", },
+			{ Difficulty::Extreme, "extreme", },
+			{ Difficulty::ExExtreme, "ex_extreme", },
+		};
+		static_assert(Json::CompileTimeValidateEnumNameMappingTable(DifficultyTypeEnumNames));
+
+		constexpr Json::EnumNameMappingTable<DifficultyLevel> DifficultyLevelEnumNames
+		{
+			Json::EnumNameMapping<DifficultyLevel>
+			{ DifficultyLevel::Star_00_0, "0_0_stars", }, { DifficultyLevel::Star_00_5, "0_5_stars", },
+			{ DifficultyLevel::Star_01_0, "1_0_stars", }, { DifficultyLevel::Star_01_5, "1_5_stars", },
+			{ DifficultyLevel::Star_02_0, "2_0_stars", }, { DifficultyLevel::Star_02_5, "2_5_stars", },
+			{ DifficultyLevel::Star_03_0, "3_0_stars", }, { DifficultyLevel::Star_03_5, "3_5_stars", },
+			{ DifficultyLevel::Star_04_0, "4_0_stars", }, { DifficultyLevel::Star_04_5, "4_5_stars", },
+			{ DifficultyLevel::Star_05_0, "5_0_stars", }, { DifficultyLevel::Star_05_5, "5_5_stars", },
+			{ DifficultyLevel::Star_06_0, "6_0_stars", }, { DifficultyLevel::Star_06_5, "6_5_stars", },
+			{ DifficultyLevel::Star_07_0, "7_0_stars", }, { DifficultyLevel::Star_07_5, "7_5_stars", },
+			{ DifficultyLevel::Star_08_0, "8_0_stars", }, { DifficultyLevel::Star_08_5, "8_5_stars", },
+			{ DifficultyLevel::Star_09_0, "9_0_stars", }, { DifficultyLevel::Star_09_5, "9_5_stars", },
+			{ DifficultyLevel::Star_10_0, "10_0_stars", },
+		};
+		static_assert(Json::CompileTimeValidateEnumNameMappingTable(DifficultyLevelEnumNames));
 
 		constexpr Json::EnumNameMappingTable<BPMTapSoundType> BPMTapSoundTypeEnumNames
 		{
@@ -1075,7 +1114,29 @@ namespace Comfy::Studio
 
 		if (const Value* chartPropertiesJson = Find(rootJson, UserIDs::ChartProperties))
 		{
-			TryAssign(ChartProperties.ChartCreatorDefaultName, TryGetStrView(Find(*chartPropertiesJson, UserIDs::ChartProperties_ChartCreatorDefaultName)));
+			if (const Value* defaultJson = Find(*chartPropertiesJson, UserIDs::ChartProperties_Default))
+			{
+				TryAssign(ChartProperties.Default.CreatorName, TryGetStrView(Find(*defaultJson, UserIDs::ChartProperties_Default_CreatorName)));
+				TryAssign(ChartProperties.Default.CreatorComment, TryGetStrView(Find(*defaultJson, UserIDs::ChartProperties_Default_CreatorComment)));
+
+				ChartProperties.Default.ImageFilePathCover = TryGetStrView(Find(*defaultJson, UserIDs::ChartProperties_Default_ImageFilePathCover));
+				ChartProperties.Default.ImageFilePathLogo = TryGetStrView(Find(*defaultJson, UserIDs::ChartProperties_Default_ImageFilePathLogo));
+				ChartProperties.Default.ImageFilePathBackground = TryGetStrView(Find(*defaultJson, UserIDs::ChartProperties_Default_ImageFilePathBackground));
+
+				if (auto v = TryGetEnumStr(Find(*defaultJson, UserIDs::ChartProperties_Default_DifficultyType), UserIDs::DifficultyTypeEnumNames); v.has_value())
+					ChartProperties.Default.DifficultyType = v.value();
+				if (auto v = TryGetEnumStr(Find(*defaultJson, UserIDs::ChartProperties_Default_DifficultyLevel), UserIDs::DifficultyLevelEnumNames); v.has_value())
+					ChartProperties.Default.DifficultyLevel = v.value();
+
+				if (auto v = TryGetI32(Find(*defaultJson, UserIDs::ChartProperties_Default_ButtonSoundButtonID)); v.has_value())
+					ChartProperties.Default.ButtonSoundButtonID = v.value();
+				if (auto v = TryGetI32(Find(*defaultJson, UserIDs::ChartProperties_Default_ButtonSoundSlideID)); v.has_value())
+					ChartProperties.Default.ButtonSoundSlideID = v.value();
+				if (auto v = TryGetI32(Find(*defaultJson, UserIDs::ChartProperties_Default_ButtonSoundChainSlideID)); v.has_value())
+					ChartProperties.Default.ButtonSoundChainSlideID = v.value();
+				if (auto v = TryGetI32(Find(*defaultJson, UserIDs::ChartProperties_Default_ButtonSoundSliderTouchID)); v.has_value())
+					ChartProperties.Default.ButtonSoundSliderTouchID = v.value();
+			}
 		}
 
 		if (const Value* bpmCalculatorJson = Find(rootJson, UserIDs::BPMCalculator))
@@ -1107,7 +1168,7 @@ namespace Comfy::Studio
 
 			if (const Value* displayTypeJson = Find(*interfaceJson, UserIDs::Interface_BackgroundDisplayType))
 			{
-				auto tryAsignEnum = [displayTypeJson](ChartBackgroundDisplayType& outEnum, std::string_view key)
+				auto tryAssignEnum = [displayTypeJson](ChartBackgroundDisplayType& outEnum, std::string_view key)
 				{
 					if (auto v = TryGetEnumStr(Find(*displayTypeJson, key), UserIDs::ChartBackgroundDisplayTypeEnumNames); v.has_value())
 						outEnum = v.value();
@@ -1115,10 +1176,10 @@ namespace Comfy::Studio
 
 				if (!fileHasOldEnums)
 				{
-					tryAsignEnum(Interface.BackgroundDisplayType.Editor, UserIDs::Interface_BackgroundDisplayType_Editor);
-					tryAsignEnum(Interface.BackgroundDisplayType.EditorWithMovie, UserIDs::Interface_BackgroundDisplayType_EditorWithMovie);
-					tryAsignEnum(Interface.BackgroundDisplayType.Playtest, UserIDs::Interface_BackgroundDisplayType_Playtest);
-					tryAsignEnum(Interface.BackgroundDisplayType.PlaytestWithMovie, UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie);
+					tryAssignEnum(Interface.BackgroundDisplayType.Editor, UserIDs::Interface_BackgroundDisplayType_Editor);
+					tryAssignEnum(Interface.BackgroundDisplayType.EditorWithMovie, UserIDs::Interface_BackgroundDisplayType_EditorWithMovie);
+					tryAssignEnum(Interface.BackgroundDisplayType.Playtest, UserIDs::Interface_BackgroundDisplayType_Playtest);
+					tryAssignEnum(Interface.BackgroundDisplayType.PlaytestWithMovie, UserIDs::Interface_BackgroundDisplayType_PlaytestWithMovie);
 				}
 			}
 
@@ -1473,7 +1534,21 @@ namespace Comfy::Studio
 
 			writer.MemberObjectBegin(UserIDs::ChartProperties);
 			{
-				writer.MemberStr(UserIDs::ChartProperties_ChartCreatorDefaultName, ChartProperties.ChartCreatorDefaultName);
+				writer.MemberObjectBegin(UserIDs::ChartProperties_Default);
+				{
+					writer.MemberStr(UserIDs::ChartProperties_Default_CreatorName, ChartProperties.Default.CreatorName);
+					writer.MemberStr(UserIDs::ChartProperties_Default_CreatorComment, ChartProperties.Default.CreatorComment);
+					writer.MemberTryStr(UserIDs::ChartProperties_Default_ImageFilePathCover, ChartProperties.Default.ImageFilePathCover);
+					writer.MemberTryStr(UserIDs::ChartProperties_Default_ImageFilePathLogo, ChartProperties.Default.ImageFilePathLogo);
+					writer.MemberTryStr(UserIDs::ChartProperties_Default_ImageFilePathBackground, ChartProperties.Default.ImageFilePathBackground);
+					writer.MemberTryEnumStr(UserIDs::ChartProperties_Default_DifficultyType, ChartProperties.Default.DifficultyType, UserIDs::DifficultyTypeEnumNames);
+					writer.MemberTryEnumStr(UserIDs::ChartProperties_Default_DifficultyLevel, ChartProperties.Default.DifficultyLevel, UserIDs::DifficultyLevelEnumNames);
+					writer.MemberTryU32(UserIDs::ChartProperties_Default_ButtonSoundButtonID, ChartProperties.Default.ButtonSoundButtonID);
+					writer.MemberTryU32(UserIDs::ChartProperties_Default_ButtonSoundSlideID, ChartProperties.Default.ButtonSoundSlideID);
+					writer.MemberTryU32(UserIDs::ChartProperties_Default_ButtonSoundChainSlideID, ChartProperties.Default.ButtonSoundChainSlideID);
+					writer.MemberTryU32(UserIDs::ChartProperties_Default_ButtonSoundSliderTouchID, ChartProperties.Default.ButtonSoundSliderTouchID);
+				}
+				writer.MemberObjectEnd();
 			}
 			writer.MemberObjectEnd();
 
@@ -1791,6 +1866,10 @@ namespace Comfy::Studio
 		TargetPreset.SequencePresets = GetDefaultSequencePresets();
 		TargetPreset.InspectorDropdown.Amplitudes = { 450.0f, 500.0f, 600.0f, 750.0f, 800.0f, 1250.0f, 1500.0f };
 		TargetPreset.InspectorDropdown.Distances = { 880.0f, 960.0f, 1200.0f, 1212.0f, 1440.0f };
+
+		// NOTE: Always set a default difficulty so that the user doesn't only see confusing "null" strings inside the json when trying to manually edit the file
+		ChartProperties.Default.DifficultyType = Difficulty::Hard;
+		ChartProperties.Default.DifficultyLevel = DifficultyLevel::Star_07_5;
 
 		BPMCalculator.AutoResetEnabled = true;
 		BPMCalculator.ApplyToTempoMap = false;

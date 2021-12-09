@@ -60,7 +60,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 32, 1 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 33, 1 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -359,7 +359,20 @@ namespace Comfy::Studio
 
 		struct
 		{
-			std::string ChartCreatorDefaultName;
+			struct
+			{
+				std::string CreatorName;
+				std::string CreatorComment;
+				std::optional<std::string> ImageFilePathCover;
+				std::optional<std::string> ImageFilePathLogo;
+				std::optional<std::string> ImageFilePathBackground;
+				std::optional<Editor::Difficulty> DifficultyType;
+				std::optional<Editor::DifficultyLevel> DifficultyLevel;
+				std::optional<u32> ButtonSoundButtonID;
+				std::optional<u32> ButtonSoundSlideID;
+				std::optional<u32> ButtonSoundChainSlideID;
+				std::optional<u32> ButtonSoundSliderTouchID;
+			} Default;
 		} ChartProperties;
 
 		struct

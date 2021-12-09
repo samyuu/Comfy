@@ -206,6 +206,8 @@ namespace Comfy::Json
 		inline void MemberTryF32(std::string_view key, std::optional<f32> value) { MemberKey(key); value.has_value() ? F32(value.value()) : Null(); }
 		inline void MemberTryF64(std::string_view key, std::optional<f64> value) { MemberKey(key); value.has_value() ? F64(value.value()) : Null(); }
 		inline void MemberTryStr(std::string_view key, const std::optional<std::string>& value) { MemberKey(key); value.has_value() ? Str(value.value()) : Null(); }
+		template <typename Enum>
+		inline void MemberTryEnumStr(std::string_view key, const std::optional<Enum>& value, const EnumNameMappingTable<Enum>& nameTable) { MemberKey(key); value.has_value() ? EnumStr(value.value(), nameTable) : Null(); }
 
 #if 1 // NOTE: To try and avoid implicit conversion error at compile time
 		void MemberI32(std::string_view key, bool value) = delete;

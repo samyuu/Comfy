@@ -670,13 +670,14 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditorSettingsWindow::GuiTabGeneral(ComfyStudioUserSettings& userData)
 	{
-		if (Gui::CollapsingHeader("Chart Properties", ImGuiTreeNodeFlags_DefaultOpen))
+		if (Gui::CollapsingHeader("Default Chart Properties", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
-			pendingChanges |= GuiSettingsInputText("Chart Creator Default Name", userData.ChartProperties.ChartCreatorDefaultName, "n/a");
 
-			// TODO: Default button sounds (?)
-			// TODO: Default difficulty <--
+			pendingChanges |= GuiSettingsInputText("Creator Name", userData.ChartProperties.Default.CreatorName, "n/a");
+			pendingChanges |= GuiSettingsInputText("Creator Comment", userData.ChartProperties.Default.CreatorComment, "");
+
+			// TODO: Default button sounds, difficulty, image paths (?) or should they only be accessible via manual json editing for now..?
 
 			GuiEndSettingsColumns();
 		}
