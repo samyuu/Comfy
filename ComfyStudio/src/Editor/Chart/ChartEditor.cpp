@@ -1102,11 +1102,17 @@ namespace Comfy::Studio::Editor
 			discordStatus.SmallImageKey = Discord::ImageKey::ComfyApplicatonIcon;
 			discordStatus.SmallImageText = IndexOr(static_cast<std::underlying_type_t<Difficulty>>(chart->Properties.Difficulty.Type), DifficultyNames, "Invalid");;
 
-			discordStatus.State = (isPlaytesting) ? "Playing a Chart" : "Creating a Chart";
+			discordStatus.State.clear();
+			if (GlobalUserData.System.Discord.ShareEditorOrPlaytestState)
+				discordStatus.State += (isPlaytesting) ? "Playing a Chart" : "Creating a Chart";
+
 			discordStatus.Details.clear();
-			discordStatus.Details += chart->SongTitleOrDefault();
-			discordStatus.Details += " by ";
-			discordStatus.Details += chart->Properties.Song.Artist.empty() ? "Unknown" : chart->Properties.Song.Artist;
+			if (GlobalUserData.System.Discord.ShareSongTitleAndArtist)
+			{
+				discordStatus.Details += chart->SongTitleOrDefault();
+				discordStatus.Details += " by ";
+				discordStatus.Details += chart->Properties.Song.Artist.empty() ? "Unknown" : chart->Properties.Song.Artist;
+			}
 
 			Discord::GlobalSetStatus(discordStatus);
 		}

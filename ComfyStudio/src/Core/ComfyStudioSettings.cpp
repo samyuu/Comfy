@@ -424,6 +424,8 @@ namespace Comfy::Studio
 
 		constexpr std::string_view System_Discord = "discord";
 		constexpr std::string_view System_Discord_EnableRichPresence = "enable_rich_presence";
+		constexpr std::string_view System_Discord_ShareSongTitleAndArtist = "share_song_title_and_artist";
+		constexpr std::string_view System_Discord_ShareEditorOrPlaytestState = "share_editor_or_playtest_state";
 		constexpr std::string_view System_Discord_ShareElapsedTime = "share_elapsed_time";
 
 		constexpr std::string_view SaveAndLoad = "save_and_load";
@@ -870,6 +872,8 @@ namespace Comfy::Studio
 			if (const Value* discordJson = Find(*systemJson, UserIDs::System_Discord))
 			{
 				TryAssign(System.Discord.EnableRichPresence, TryGetBool(Find(*discordJson, UserIDs::System_Discord_EnableRichPresence)));
+				TryAssign(System.Discord.ShareSongTitleAndArtist, TryGetBool(Find(*discordJson, UserIDs::System_Discord_ShareSongTitleAndArtist)));
+				TryAssign(System.Discord.ShareEditorOrPlaytestState, TryGetBool(Find(*discordJson, UserIDs::System_Discord_ShareEditorOrPlaytestState)));
 				TryAssign(System.Discord.ShareElapsedTime, TryGetBool(Find(*discordJson, UserIDs::System_Discord_ShareElapsedTime)));
 			}
 		}
@@ -1293,6 +1297,8 @@ namespace Comfy::Studio
 				writer.MemberObjectBegin(UserIDs::System_Discord);
 				{
 					writer.MemberBool(UserIDs::System_Discord_EnableRichPresence, System.Discord.EnableRichPresence);
+					writer.MemberBool(UserIDs::System_Discord_ShareSongTitleAndArtist, System.Discord.ShareSongTitleAndArtist);
+					writer.MemberBool(UserIDs::System_Discord_ShareEditorOrPlaytestState, System.Discord.ShareEditorOrPlaytestState);
 					writer.MemberBool(UserIDs::System_Discord_ShareElapsedTime, System.Discord.ShareElapsedTime);
 				}
 				writer.MemberObjectEnd();
@@ -1653,6 +1659,8 @@ namespace Comfy::Studio
 
 		// NOTE: This one is debatable...
 		System.Discord.EnableRichPresence = true;
+		System.Discord.ShareSongTitleAndArtist = true;
+		System.Discord.ShareEditorOrPlaytestState = true;
 		System.Discord.ShareElapsedTime = true;
 
 		SaveAndLoad.AutoSaveEnabled = true;

@@ -1273,9 +1273,12 @@ namespace Comfy::Studio::Editor
 		if (Gui::CollapsingHeader("Discord Integration", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			GuiBeginSettingsColumns();
+
 			pendingChanges |= GuiSettingsCheckbox("Enaled Discord Rich Presence", userData.System.Discord.EnableRichPresence);
 
 			Gui::PushItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
+			pendingChanges |= GuiSettingsCheckbox("Share Song Title and Artist", userData.System.Discord.ShareSongTitleAndArtist);
+			pendingChanges |= GuiSettingsCheckbox("Share Editor / Playtest State", userData.System.Discord.ShareEditorOrPlaytestState);
 			pendingChanges |= GuiSettingsCheckbox("Share Elapsed Time", userData.System.Discord.ShareElapsedTime);
 			Gui::PopItemDisabledAndTextColorIf(!userData.System.Discord.EnableRichPresence);
 
