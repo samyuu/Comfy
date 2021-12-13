@@ -151,6 +151,22 @@ namespace ImGui
 		PopItemFlag();
 	}
 
+	ImVec4 FindOriginalColorVec4BeforeColorStackEdits(ImGuiCol colorEnum)
+	{
+		for (const auto& colorMod : GetCurrentContext()->ColorStack)
+		{
+			if (colorMod.Col == colorEnum)
+				return colorMod.BackupValue;
+		}
+
+		return GetStyleColorVec4(colorEnum);
+	}
+
+	ImU32 FindOriginalColorU32BeforeColorStackEdits(ImGuiCol colorEnum)
+	{
+		return ColorConvertFloat4ToU32(FindOriginalColorVec4BeforeColorStackEdits(colorEnum));
+	}
+
 	void AddTextWithShadow(ImDrawList* drawList, vec2 position, std::string_view text, u32 color, u32 shadowColor, vec2 shadowOffset)
 	{
 		drawList->AddText(position + shadowOffset, shadowColor, StringViewStart(text), StringViewEnd(text));
