@@ -213,10 +213,11 @@ namespace Comfy::Studio::Editor
 	private:
 		struct SettingsPopupData
 		{
-			bool OpenOnNextFrame;
-			bool WasOpenLastFrame;
+			bool OpenOnNextFrame = {};
+			bool WasOpenLastFrame = {};
 			ChartEditorSettingsWindow Window;
-		} settingsPopup = {};
+			SettingsPopupData(ChartEditor& parent) : Window(parent) {}
+		} settingsPopup = { *this };
 
 		struct PVScriptImportPopupData
 		{

@@ -6,10 +6,12 @@
 
 namespace Comfy::Studio::Editor
 {
+	class ChartEditor;
+
 	class ChartEditorSettingsWindow : NonCopyable
 	{
 	public:
-		ChartEditorSettingsWindow() = default;
+		ChartEditorSettingsWindow(ChartEditor& parent);
 		~ChartEditorSettingsWindow() = default;
 
 	public:
@@ -48,6 +50,8 @@ namespace Comfy::Studio::Editor
 		void GuiButtonPickerPopupContent(ComfyStudioUserSettings& userData, Input::StandardControllerLayoutMapping& layoutMapping);
 
 	private:
+		ChartEditor& chartEditor;
+
 		bool closeWindowThisFrame = false;
 		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
 
