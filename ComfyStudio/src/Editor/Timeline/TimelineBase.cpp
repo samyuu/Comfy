@@ -94,21 +94,34 @@ namespace Comfy::Studio::Editor
 	{
 		ImU32 outterColor = GetColor(EditorColor_Cursor);
 		ImU32 innerColor = GetColor(EditorColor_CursorInner);
-		if (drawCursorAtAutoScrollPosition && debugVisualizeDrawCursorAtAutoScrollPosition)
-		{
-			outterColor = GetColor(EditorColor_GreenText);
-			innerColor = GetColor(EditorColor_RedText);
-		}
 
 		const f32 scrollX = GetScrollX();
 		const f32 cursorX = GetCursorTimelinePosition();
-		f32 cursorScreenX = cursorX - scrollX;
+		const f32 realCursorScreenX = (cursorX - scrollX);
+		f32 cursorScreenX = glm::round(realCursorScreenX);
 
-		const f32 autoScrollCursorX = regions.Content.GetWidth() - (regions.Content.GetWidth() * (1.0f - playbackAutoScrollCursorPositionFactor));
-		if (drawCursorAtAutoScrollPosition)
-			cursorScreenX = autoScrollCursorX;
+		f32 autoScrollCursorScreenX = regions.Content.GetWidth() - (regions.Content.GetWidth() * (1.0f - playbackAutoScrollCursorPositionFactor));
+		if (enablePlaybackAutoScrollLocking && lockCursorToAutoScrollPosition)
+		{
+			// NOTE: Only allow scroll locking in the forward direction because it's a right side auto scroll
+			autoScrollCursorScreenX = Max(autoScrollCursorScreenX, cursorScreenX);
 
-		cursorScreenX = glm::round(cursorScreenX);
+			const bool hasTransition = (realAndAutoScrollLockedCursorPositionTransitionTime > TimeSpan::Zero());
+			const f32 percentageOrTransitionElapsedSoFar = static_cast<f32>(ConvertRangeClamped<f64>(
+				0.0, realAndAutoScrollLockedCursorPositionTransitionTime.TotalSeconds(),
+				0.0, 1.0,
+				lastAutoScrollLockStopwatch.GetElapsed().TotalSeconds()));
+
+			cursorScreenX = (percentageOrTransitionElapsedSoFar < 1.0f && hasTransition) ?
+				ConvertRange(0.0f, 1.0f, realCursorScreenX, autoScrollCursorScreenX, percentageOrTransitionElapsedSoFar) :
+				glm::round(autoScrollCursorScreenX);
+
+			if (debugVisualizeLockedAutoScrollCursorStateByUsingDifferentColors)
+			{
+				outterColor = GetColor(EditorColor_GreenText);
+				innerColor = GetColor(percentageOrTransitionElapsedSoFar < 1.0f ? EditorColor_GreenText : EditorColor_RedText);
+			}
+		}
 
 		const vec2 start = regions.ContentHeader.GetTL() + vec2(cursorScreenX, 0.0f);
 		const vec2 end = regions.Content.GetBL() + vec2(cursorScreenX, 0.0f);
@@ -125,11 +138,21 @@ namespace Comfy::Studio::Editor
 		baseWindowDrawList->AddTriangleFilled(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], innerColor);
 		baseWindowDrawList->AddTriangle(cursorTriangle[0], cursorTriangle[1], cursorTriangle[2], outterColor);
 
-		if (debugVisualizeAutoScrollCursorPosition)
+		if (debugVisualizeAutoScrollCursorPositionByDrawingAdditionalCursorLine)
 		{
 			const u32 debugColor = ImColor(0.74f, 0.40f, 0.13f, 0.75f);
-			baseWindowDrawList->AddLine(regions.Content.GetTL() + vec2(autoScrollCursorX, 0.0f), regions.Content.GetBL() + vec2(autoScrollCursorX, 0.0f), debugColor);
+			baseWindowDrawList->AddLine(regions.Content.GetTL() + vec2(autoScrollCursorScreenX, 0.0f), regions.Content.GetBL() + vec2(autoScrollCursorScreenX, 0.0f), debugColor);
 		}
+	}
+
+	void TimelineBase::InvalidateAutoScrollLock()
+	{
+		lockCursorToAutoScrollPosition = false;
+	}
+
+	bool TimelineBase::IsCursorAutoScrollLocked() const
+	{
+		return lockCursorToAutoScrollPosition;
 	}
 
 	void TimelineBase::SetZoomCenteredAroundCursor(f32 newZoom)
@@ -152,6 +175,7 @@ namespace Comfy::Studio::Editor
 
 		const f32 postPosition = GetTimelinePosition(timeToCenter);
 		scroll.x = scrollTarget.x = (GetScrollTargetX() + postPosition - prePosition);
+		InvalidateAutoScrollLock();
 	}
 
 	void TimelineBase::CenterCursor(std::optional<f32> widthFactor)
@@ -223,6 +247,7 @@ namespace Comfy::Studio::Editor
 			Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 			Gui::SetActiveID(Gui::GetID(&isMouseScrollGrabbing), Gui::GetCurrentWindow());
 			scroll.x = scrollTarget.x = (scrollTarget.x - io.MouseDelta.x);
+			InvalidateAutoScrollLock();
 		}
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && Gui::IsMouseClicked(scrollGrabMouseButton))
@@ -283,7 +308,7 @@ namespace Comfy::Studio::Editor
 		auto screenToTimelinePosition = [this](f32 screenPosition) { return (screenPosition - regions.Content.Min.x + scrollTarget.x); };
 #endif
 
-		const f32 cursorX = (GetCursorTimelinePosition());
+		const f32 cursorX = GetCursorTimelinePosition();
 		const f32 endX = (screenToTimelinePosition(regions.Content.GetBR().x));
 
 		const f32 smoothScrollSpeedOffset = ((smoothScrollSpeedSec.x > 0.0f) ? GetTimelinePosition(TimeSpan::FromSeconds(smoothScrollSpeedSec.x)) : 0.0f);
@@ -292,7 +317,7 @@ namespace Comfy::Studio::Editor
 		if (cursorX >= (endX - autoScrollTargetX))
 			scrollTarget.x += (cursorX - endX + autoScrollTargetX);
 
-		const f32 cursorScreenX = GetCursorTimelinePosition() - scroll.x;
+		const f32 cursorScreenX = cursorX - scroll.x;
 		const f32 autoScrollCursorScreenX = regions.Content.GetWidth() - (regions.Content.GetWidth() * (1.0f - playbackAutoScrollCursorPositionFactor));
 		const f32 outCursorAutoScrollDifference = (cursorScreenX - autoScrollCursorScreenX) / zoomLevel;
 		return outCursorAutoScrollDifference;
@@ -320,6 +345,7 @@ namespace Comfy::Studio::Editor
 		const f32 scrollStep = glm::floor(Min(2.0f * baseWindow->CalcFontSize(), maxStep)) * speed;
 
 		scrollTarget.x = (scrollTarget.x + io.MouseWheel * scrollStep);
+		InvalidateAutoScrollLock();
 	}
 
 	void TimelineBase::DrawTimelineGui()
@@ -408,7 +434,10 @@ namespace Comfy::Studio::Editor
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size);
 
 			if (f32 tempScrollX = scrollTarget.x; horizontalScrollbar.Gui(tempScrollX, regions.Content.GetWidth(), GetMaxScrollX() + 1.0f, scrollbarRegion))
+			{
 				scrollTarget.x = tempScrollX;
+				InvalidateAutoScrollLock();
+			}
 		}
 		Gui::EndChild();
 
@@ -426,16 +455,40 @@ namespace Comfy::Studio::Editor
 
 		UpdateAllInput();
 
-		drawCursorAtAutoScrollPosition = false;
+#if COMFY_DEBUG && 0
+		debugVisualizeLockedAutoScrollCursorStateByUsingDifferentColors = true;
+		debugVisualizeAutoScrollCursorPositionByDrawingAdditionalCursorLine = true;
+#endif
+
+		const f32 thisFramePlaybackSpeed = GetDerivedClassPlaybackSpeedOverride();
+		if (regions.Content != lastFrameContentRectForAutoScrollInvalidation || !ApproxmiatelySame(thisFramePlaybackSpeed, lastFramePlaybackSpeedForAutoScrollInvalidation))
+			InvalidateAutoScrollLock();
+		lastFrameContentRectForAutoScrollInvalidation = regions.Content;
+		lastFramePlaybackSpeedForAutoScrollInvalidation = thisFramePlaybackSpeed;
+
 		if (GetIsPlayback())
 		{
 			const f32 autoScrollDifference = UpdateCursorAutoScrollX();
 
-			// NOTE: Scale with framerate as longer frame times means more distance traversed per frame
-			const f32 snapThreshold = Max(1.5f, (3.0f * (Gui::GetIO().DeltaTime / (1.0f / 60.0f))));
+			if (enablePlaybackAutoScrollLocking && !lockCursorToAutoScrollPosition && (thisFramePlaybackSpeed > 0.0f))
+			{
+				// BUG: This currently doesn't correctly account for smooth scroll speed which means at slow playback + smooth-scroll speeds it won't auto scroll lock
+				//		 because slower smooth scrolling results in the screen space cursor X being further behind the auto scroll target.
+				//		 ~~Though this might actually be the desired behavior..?~~
+				// TODO: Try to fix the root of the problem inside UpdateCursorAutoScrollX() directly... (?)
+				//		 Maybe shift auto scroll x position to the left depending on smooth scroll speed and expose this adjusted position via funcion (?)
+				const f32 snapThresholdAtReferenceFPS = 3.0f;
 
-			// NOTE: Snap to the auto scroll position to ensure the cursor always stays at the *exact* same screen position without ever "jiggling around"
-			drawCursorAtAutoScrollPosition = (autoScrollDifference < +snapThreshold && autoScrollDifference >= -snapThreshold);
+				const f32 playbackSpeedSnapThresholdFactor = ApproxmiatelySame(thisFramePlaybackSpeed, 0.0f) ? 1.0f : (1.0f / Clamp(thisFramePlaybackSpeed, 0.5f, 2.0f));
+				const f32 frameRateAdjustedSnapThreshold = snapThresholdAtReferenceFPS * (Gui::GetIO().DeltaTime / (1.0f / 60.0f)) * playbackSpeedSnapThresholdFactor;
+
+				const f32 snapThreshold = Clamp(frameRateAdjustedSnapThreshold, 2.0f, 10.0f);
+				if (autoScrollDifference < +snapThreshold && autoScrollDifference >= -snapThreshold)
+				{
+					lockCursorToAutoScrollPosition = true;
+					lastAutoScrollLockStopwatch.Restart();
+				}
+			}
 		}
 
 		// NOTE: Make sure to always update this *after* user input (?)

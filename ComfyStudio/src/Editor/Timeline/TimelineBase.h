@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 #include "Time/TimeSpan.h"
+#include "Time/Stopwatch.h"
 #include "TimelineScrollbar.h"
 #include "ImGui/Gui.h"
 #include <optional>
@@ -73,8 +74,12 @@ namespace Comfy::Studio::Editor
 		inline f32 GetScrollTargetY() const { return scrollTarget.y; }
 		inline f32 GetMaxScrollY() const { return scrollMax.y; }
 
-		inline void SetScrollTargetX(f32 value) { scrollTarget.x = value; }
+		inline void SetScrollTargetX(f32 value) { scrollTarget.x = value; InvalidateAutoScrollLock(); }
 		inline void SetScrollTargetY(f32 value) { scrollTarget.y = value; }
+
+		// NOTE: Should be called every time the cursor screen position might have been changed
+		void InvalidateAutoScrollLock();
+		bool IsCursorAutoScrollLocked() const;
 
 		void SetZoomCenteredAroundCursor(f32 newZoom);
 		void SetZoomCenteredAroundTime(f32 newZoom, TimeSpan timeToCenter);
@@ -123,6 +128,8 @@ namespace Comfy::Studio::Editor
 		virtual f32 GetTimelineSize() const = 0;
 		virtual f32 GetTimelineHeight() const { return 0.0f; }
 
+		// HACK: Too much inheritance and it's starting to get out of hand... but the speed is needed for auto scroll locking
+		virtual f32 GetDerivedClassPlaybackSpeedOverride() const { return 1.0f; }
 		virtual std::optional<vec2> GetSmoothScrollSpeedSecOverride() const { return {}; }
 
 	private:
@@ -173,12 +180,20 @@ namespace Comfy::Studio::Editor
 		{
 			// NOTE: Percentage of the timeline width at which the timeline starts scrolling to keep the cursor at the same screen position
 			f32 playbackAutoScrollCursorPositionFactor = TimelineDefaultPlaybackAutoScrollCursorPositionFactor;
-			bool drawCursorAtAutoScrollPosition = false;
+
+			// NOTE: To ensure the cursor stays on the exact same pixel position during auto scrolling without "jiggling" around
+			bool enablePlaybackAutoScrollLocking = false;
+			bool lockCursorToAutoScrollPosition = false;
+			ImRect lastFrameContentRectForAutoScrollInvalidation = {};
+			f32 lastFramePlaybackSpeedForAutoScrollInvalidation = {};
+			// NOTE: To avoid any sudden cursor "skips" when locking onto the auto scroll position
+			Stopwatch lastAutoScrollLockStopwatch = {};
+			TimeSpan realAndAutoScrollLockedCursorPositionTransitionTime = TimeSpan::FromMilliseconds(90.0/*60.0*/);
 
 			// DEBUG: To confirm that auto scroll (together with smooth scroll) is working as intended
-			bool debugVisualizeAutoScrollCursorPosition = false;
+			bool debugVisualizeAutoScrollCursorPositionByDrawingAdditionalCursorLine = false;
 			// DEBUG: To confirm that auto scroll cursor snapping is working as intended
-			bool debugVisualizeDrawCursorAtAutoScrollPosition = false;
+			bool debugVisualizeLockedAutoScrollCursorStateByUsingDifferentColors = false;
 
 			bool isMouseScrollGrabbing = false;
 

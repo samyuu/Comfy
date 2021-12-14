@@ -219,6 +219,7 @@ namespace Comfy::Studio::Editor
 		f32 GetTimelineSize() const override;
 		void OnTimelineBaseScroll() override;
 
+		f32 GetDerivedClassPlaybackSpeedOverride() const override;
 		std::optional<vec2> GetSmoothScrollSpeedSecOverride() const override;
 
 		f32 GetButtonEdgeFadeOpacity(f32 screenX) const;

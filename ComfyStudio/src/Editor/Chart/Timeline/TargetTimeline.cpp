@@ -70,6 +70,7 @@ namespace Comfy::Studio::Editor
 		mouseScrollSpeedShift = TargetTimelineDefaultMouseWheelScrollSpeedShift;
 		playbackAutoScrollCursorPositionFactor = TargetTimelineDefaultPlaybackAutoScrollCursorPositionFactor;
 		infoColumnWidth = 180.0f;
+		enablePlaybackAutoScrollLocking = true;
 	}
 
 	BeatTick TargetTimeline::GridDivisionTick() const
@@ -2391,6 +2392,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::SetCursorTime(const TimeSpan newTime)
 	{
+		InvalidateAutoScrollLock();
+
 		pausedCursorTick = TimeToTick(newTime);
 		chartEditor.SetPlaybackTime(newTime);
 
@@ -2407,6 +2410,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::SetCursorTick(const BeatTick newTick)
 	{
+		InvalidateAutoScrollLock();
+
 		const auto newTime = TickToTime(newTick);
 
 		pausedCursorTick = newTick;
@@ -2422,6 +2427,8 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::PausePlayback()
 	{
+		InvalidateAutoScrollLock();
+
 		chartEditor.PausePlayback();
 
 		const auto playbackTime = chartEditor.GetPlaybackTimeAsync();
@@ -2606,6 +2613,11 @@ namespace Comfy::Studio::Editor
 		{
 			TimelineBase::OnTimelineBaseScroll();
 		}
+	}
+
+	f32 TargetTimeline::GetDerivedClassPlaybackSpeedOverride() const
+	{
+		return chartEditor.GetSongVoice().GetPlaybackSpeed();
 	}
 
 	std::optional<vec2> TargetTimeline::GetSmoothScrollSpeedSecOverride() const
