@@ -155,6 +155,11 @@ namespace Comfy::Studio::Editor
 		return lockCursorToAutoScrollPosition;
 	}
 
+	bool TimelineBase::WasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart() const
+	{
+		return wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart;
+	}
+
 	void TimelineBase::SetZoomCenteredAroundCursor(f32 newZoom)
 	{
 		const auto cursorTime = GetCursorTime();
@@ -246,8 +251,13 @@ namespace Comfy::Studio::Editor
 		{
 			Gui::SetMouseCursor(ImGuiMouseCursor_Hand);
 			Gui::SetActiveID(Gui::GetID(&isMouseScrollGrabbing), Gui::GetCurrentWindow());
-			scroll.x = scrollTarget.x = (scrollTarget.x - io.MouseDelta.x);
-			InvalidateAutoScrollLock();
+
+			// NOTE: To prevent ugly snapping when it's not needed
+			if (io.MouseDelta.x != 0.0f)
+			{
+				scroll.x = scrollTarget.x = (scrollTarget.x - io.MouseDelta.x);
+				InvalidateAutoScrollLock();
+			}
 		}
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && Gui::IsMouseClicked(scrollGrabMouseButton))
@@ -486,9 +496,14 @@ namespace Comfy::Studio::Editor
 				if (autoScrollDifference < +snapThreshold && autoScrollDifference >= -snapThreshold)
 				{
 					lockCursorToAutoScrollPosition = true;
+					wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart = true;
 					lastAutoScrollLockStopwatch.Restart();
 				}
 			}
+		}
+		else
+		{
+			wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart = false;
 		}
 
 		// NOTE: Make sure to always update this *after* user input (?)

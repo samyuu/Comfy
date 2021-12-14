@@ -80,6 +80,7 @@ namespace Comfy::Studio::Editor
 		// NOTE: Should be called every time the cursor screen position might have been changed
 		void InvalidateAutoScrollLock();
 		bool IsCursorAutoScrollLocked() const;
+		bool WasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart() const;
 
 		void SetZoomCenteredAroundCursor(f32 newZoom);
 		void SetZoomCenteredAroundTime(f32 newZoom, TimeSpan timeToCenter);
@@ -184,6 +185,7 @@ namespace Comfy::Studio::Editor
 			// NOTE: To ensure the cursor stays on the exact same pixel position during auto scrolling without "jiggling" around
 			bool enablePlaybackAutoScrollLocking = false;
 			bool lockCursorToAutoScrollPosition = false;
+			bool wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart = false;
 			ImRect lastFrameContentRectForAutoScrollInvalidation = {};
 			f32 lastFramePlaybackSpeedForAutoScrollInvalidation = {};
 			// NOTE: To avoid any sudden cursor "skips" when locking onto the auto scroll position

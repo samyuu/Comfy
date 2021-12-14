@@ -183,6 +183,7 @@ namespace Comfy::Audio
 		u32 GetBufferFrameSize() const;
 		void SetBufferFrameSize(u32 bufferFrameSize);
 
+		TimeSpan GetBufferDuration() const;
 		TimeSpan GetCallbackFrequency() const;
 
 		ChannelMixer& GetChannelMixer();

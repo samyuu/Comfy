@@ -2427,11 +2427,17 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::PausePlayback()
 	{
+		const bool isAlreadyPaused = !GetIsPlayback();
 		InvalidateAutoScrollLock();
+
+		// NOTE: Not sure if this actually matters since the buffer size is so small that it's hardly noticable
+		//		 but the idea is to adjust for one buffer worth of delay as the song voice isn't updated directly
+		const TimeSpan onPausePlaybackTimeOffset =
+			(!isAlreadyPaused && GlobalUserData.TargetTimeline.AdjustPauseTimeByAudioBufferDuration) ? -Audio::AudioEngine::GetInstance().GetBufferDuration() : TimeSpan::Zero();
 
 		chartEditor.PausePlayback();
 
-		const auto playbackTime = chartEditor.GetPlaybackTimeAsync();
+		const TimeSpan playbackTime = (chartEditor.GetPlaybackTimeAsync() + onPausePlaybackTimeOffset);
 		pausedCursorTick = TimeToTick(playbackTime);
 
 		PlaybackStateChangeSyncButtonSoundCursorTime(playbackTime);
@@ -2439,6 +2445,16 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::ResumePlayback()
 	{
+		if (GlobalUserData.TargetTimeline.FocusOffscreenCursorOnResume)
+		{
+			const f32 cursorX = GetCursorTimelinePosition();
+			const f32 cursorScreenX = cursorX - GetScrollX();
+
+			// NOTE: The further the cursor is offscreen the further the adjustment will be, clamped to the edge pixel offset, so that the scroll jumps aren't too sudden
+			if (const bool cursorIsOffscreenLeft = (cursorScreenX < 0.0f); cursorIsOffscreenLeft)
+				SetScrollTargetX(cursorX - Min(-cursorScreenX, GlobalUserData.TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset));
+		}
+
 		const auto playbackTime = TickToTime(pausedCursorTick);
 		chartEditor.SetPlaybackTime(playbackTime);
 		chartEditor.ResumePlayback();
@@ -2606,8 +2622,11 @@ namespace Comfy::Studio::Editor
 			}
 			chartEditor.ResumePlayback();
 
-			// NOTE: Keep the cursor at the same relative screen position to prevent potential disorientation
-			SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
+			// TODO: Checking the OnceAutoScrollLock flag doesn't work too well when mouse click moving the cursor mid-playback so maybe this should be a separate flag instead
+			const bool scrollingLeft = (scrollIncrementF32 < 0.0f);
+			const bool keepCursorScreenPosition = WasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart() || (scrollingLeft && IsCursorOnScreen());
+			if (keepCursorScreenPosition)
+				SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
 		}
 		else
 		{

@@ -464,6 +464,9 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollThresholdProportional_Factor = "factor";
 		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = "cursor_scrubbing_edge_auto_scroll_smooth_scroll_speed_sec";
 		constexpr std::string_view TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift = "cursor_scrubbing_edge_auto_scroll_smooth_scroll_speed_sec_shift";
+		constexpr std::string_view TargetTimeline_AdjustPauseTimeByAudioBufferDuration = "adjust_pause_time_by_audio_buffer_duration";
+		constexpr std::string_view TargetTimeline_FocusOffscreenCursorOnResume = "focus_offscreen_cursor_on_resume";
+		constexpr std::string_view TargetTimeline_FocusOffscreenCursorOnResumeEdgePixelOffset = "focus_offscreen_cursor_on_resume_edge_pixel_offset";
 
 		constexpr std::string_view TargetPreview = "target_preview";
 		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
@@ -982,6 +985,10 @@ namespace Comfy::Studio
 
 			TryAssign(TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec)));
 			TryAssign(TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift)));
+
+			TryAssign(TargetTimeline.AdjustPauseTimeByAudioBufferDuration, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_AdjustPauseTimeByAudioBufferDuration)));
+			TryAssign(TargetTimeline.FocusOffscreenCursorOnResume, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_FocusOffscreenCursorOnResume)));
+			TryAssign(TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_FocusOffscreenCursorOnResumeEdgePixelOffset)));
 		}
 
 		if (const Value* targetPreviewJson = Find(rootJson, UserIDs::TargetPreview))
@@ -1405,6 +1412,10 @@ namespace Comfy::Studio
 
 				writer.MemberF32(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec, TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec);
 				writer.MemberF32(UserIDs::TargetTimeline_CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift, TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift);
+
+				writer.MemberBool(UserIDs::TargetTimeline_AdjustPauseTimeByAudioBufferDuration, TargetTimeline.AdjustPauseTimeByAudioBufferDuration);
+				writer.MemberBool(UserIDs::TargetTimeline_FocusOffscreenCursorOnResume, TargetTimeline.FocusOffscreenCursorOnResume);
+				writer.MemberF32(UserIDs::TargetTimeline_FocusOffscreenCursorOnResumeEdgePixelOffset, TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset);
 			}
 			writer.MemberObjectEnd();
 
@@ -1838,6 +1849,9 @@ namespace Comfy::Studio
 		TargetTimeline.CursorScrubbingEdgeAutoScrollThresholdProportional.Factor = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollProportionalFactor;
 		TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSec;
 		TargetTimeline.CursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift = TargetTimelineDefaultCursorScrubbingEdgeAutoScrollSmoothScrollSpeedSecShift;
+		TargetTimeline.AdjustPauseTimeByAudioBufferDuration = true;
+		TargetTimeline.FocusOffscreenCursorOnResume = true;
+		TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset = 96.0f;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowHoldInfo = true;

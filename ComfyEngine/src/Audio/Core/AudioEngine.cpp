@@ -859,6 +859,11 @@ namespace Comfy::Audio
 		}
 	}
 
+	TimeSpan AudioEngine::GetBufferDuration() const
+	{
+		return FramesToTimeSpan(impl->CurrentBufferFrameSize, OutputSampleRate);
+	}
+
 	TimeSpan AudioEngine::GetCallbackFrequency() const
 	{
 		return impl->CallbackFrequency;
