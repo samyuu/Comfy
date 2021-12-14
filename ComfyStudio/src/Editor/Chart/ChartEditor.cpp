@@ -323,7 +323,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::BeginMenu("Auto Save"))
 		{
 			const bool isAutoSaveEnabled = GlobalUserData.SaveAndLoad.AutoSaveEnabled;
-			const bool hasAutoSaveDirectory = !GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory.empty();
+			const bool hasAutoSaveDirectory = !GlobalUserData.SaveAndLoad.AutoSaveDirectory.empty();
 
 			const TimeSpan timeUntilNextAutoSave = (GlobalUserData.SaveAndLoad.AutoSaveInterval - lastAutoSaveStowpatch.GetElapsed());
 			const bool autoSaveDueNow = (timeUntilNextAutoSave < TimeSpan::FromSeconds(1.0));
@@ -655,10 +655,10 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::OpenAutoSaveDirectoryInExplorer() const
 	{
-		if (GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory.empty())
+		if (GlobalUserData.SaveAndLoad.AutoSaveDirectory.empty())
 			return;
 
-		const auto autoSaveDirectory = MakeRelativeAutoSaveDirectoryAbsolute(GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory);
+		const auto autoSaveDirectory = MakeRelativeAutoSaveDirectoryAbsolute(GlobalUserData.SaveAndLoad.AutoSaveDirectory);
 		if (autoSaveDirectory.empty())
 			return;
 
@@ -1170,7 +1170,7 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::AutoSaveCurrentChartIfEnabledThenRestartStopwatch()
 	{
-		if (GlobalUserData.SaveAndLoad.AutoSaveEnabled && !GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory.empty() && chart != nullptr)
+		if (GlobalUserData.SaveAndLoad.AutoSaveEnabled && !GlobalUserData.SaveAndLoad.AutoSaveDirectory.empty() && chart != nullptr)
 			StartAsyncAutoSaveFutureForChart(*chart);
 
 		lastAutoSaveStowpatch.Restart();
@@ -1188,8 +1188,8 @@ namespace Comfy::Studio::Editor
 		// NOTE: Create sync copies first to avoid any kind of multi threading problems
 		FutureOwnedAsyncAutoSaveContext syncPreparedAutoSaveContext = {};
 		syncPreparedAutoSaveContext.ChartFile = std::make_unique<ComfyStudioChartFile>(chartToSave);
-		syncPreparedAutoSaveContext.MaxAutoSaveFilesToKeep = GlobalUserData.SaveAndLoad.MaxAutoSaveFiles;
-		syncPreparedAutoSaveContext.RelativeOutputDirectory = GlobalUserData.SaveAndLoad.RelativeAutoSaveDirectory;
+		syncPreparedAutoSaveContext.MaxAutoSaveFilesToKeep = GlobalUserData.SaveAndLoad.AutoSaveMaxFiles;
+		syncPreparedAutoSaveContext.RelativeOutputDirectory = GlobalUserData.SaveAndLoad.AutoSaveDirectory;
 
 		if (chartAutoSaveFuture.valid())
 			chartAutoSaveFuture.get();

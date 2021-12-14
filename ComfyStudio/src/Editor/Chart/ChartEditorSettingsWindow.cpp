@@ -1343,10 +1343,10 @@ namespace Comfy::Studio::Editor
 			}
 			GuiSettingsRighSideHelpMarker("The time interval between which to create auto saves");
 
-			if (auto v = userData.SaveAndLoad.MaxAutoSaveFiles;
+			if (auto v = userData.SaveAndLoad.AutoSaveMaxFiles;
 				GuiSettingsInputI32("Max Auto Saves", v, 1, 10, ImGuiInputTextFlags_None, (v <= 0) ? "%d files (Unlimited)" : (v == 1) ? "%d file" : "%d files"))
 			{
-				userData.SaveAndLoad.MaxAutoSaveFiles = Clamp(v, 0, 999);
+				userData.SaveAndLoad.AutoSaveMaxFiles = Clamp(v, 0, 999);
 				pendingChanges = true;
 			}
 			GuiSettingsRighSideHelpMarker("The maximum number of auto save files to keep at once before deleting older saves in order to free up drive space. Set to 0 to never delete old saves");
@@ -1358,10 +1358,10 @@ namespace Comfy::Studio::Editor
 
 			{
 				autoSaveDirectoryBuffer.clear();
-				if (!userData.SaveAndLoad.RelativeAutoSaveDirectory.empty())
+				if (!userData.SaveAndLoad.AutoSaveDirectory.empty())
 				{
 					autoSaveDirectoryBuffer += "${ComfyStudio}/";
-					autoSaveDirectoryBuffer += userData.SaveAndLoad.RelativeAutoSaveDirectory;
+					autoSaveDirectoryBuffer += userData.SaveAndLoad.AutoSaveDirectory;
 					autoSaveDirectoryBuffer += "/";
 				}
 				else
@@ -1369,6 +1369,7 @@ namespace Comfy::Studio::Editor
 					autoSaveDirectoryBuffer += "(None)";
 				}
 
+				// TODO: Handle absolute directories, make editable and use GuiSettingsInputPathWithBrowseButton (?)
 				GuiSettingsInputText("Auto Save Directory", autoSaveDirectoryBuffer, nullptr, ImGuiInputTextFlags_ReadOnly);
 				GuiSettingsRighSideHelpMarker("The directory relative to the application executable in which to store auto save files. Currently cannot be edited");
 			}
