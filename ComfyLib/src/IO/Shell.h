@@ -16,6 +16,46 @@ namespace Comfy::IO
 
 		void OpenWithDefaultProgram(std::string_view filePath);
 
+		enum class MessageBoxResult : u8
+		{
+			Abort,
+			Cancel,
+			Continue,
+			Ignore,
+			No,
+			None,
+			OK,
+			Retry,
+			TryAgain,
+			Yes,
+		};
+
+		enum class MessageBoxButtons : u8
+		{
+			AbortRetryIgnore,
+			CancelTryContinue,
+			OK,
+			OKCancel,
+			RetryCancel,
+			YesNo,
+			YesNoCancel,
+		};
+
+		enum class MessageBoxIcon : u8
+		{
+			Asterisk,
+			Error,
+			Exclamation,
+			Hand,
+			Information,
+			None,
+			Question,
+			Stop,
+			Warning,
+		};
+
+		COMFY_NODISCARD MessageBoxResult ShowMessageBox(std::string_view message, std::string_view title, MessageBoxButtons buttons, MessageBoxIcon icon, void* parentWindowHandle);
+
 		namespace Custom
 		{
 			constexpr uint32_t ItemBaseID = 0x666;

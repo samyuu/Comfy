@@ -179,6 +179,54 @@ namespace Comfy::IO
 #endif
 		}
 
+		MessageBoxResult ShowMessageBox(std::string_view message, std::string_view title, MessageBoxButtons buttons, MessageBoxIcon icon, void* parentWindowHandle)
+		{
+			UINT flags = 0;
+
+			switch (buttons)
+			{
+			case MessageBoxButtons::AbortRetryIgnore: flags |= MB_ABORTRETRYIGNORE; break;
+			case MessageBoxButtons::CancelTryContinue: flags |= MB_CANCELTRYCONTINUE; break;
+			case MessageBoxButtons::OK: flags |= MB_OK; break;
+			case MessageBoxButtons::OKCancel: flags |= MB_OKCANCEL; break;
+			case MessageBoxButtons::RetryCancel: flags |= MB_RETRYCANCEL; break;
+			case MessageBoxButtons::YesNo: flags |= MB_YESNO; break;
+			case MessageBoxButtons::YesNoCancel: flags |= MB_YESNOCANCEL; break;
+			default: break;
+			}
+
+			switch (icon)
+			{
+			case MessageBoxIcon::Asterisk: flags |= MB_ICONASTERISK; break;
+			case MessageBoxIcon::Error: flags |= MB_ICONERROR; break;
+			case MessageBoxIcon::Exclamation: flags |= MB_ICONEXCLAMATION; break;
+			case MessageBoxIcon::Hand: flags |= MB_ICONHAND; break;
+			case MessageBoxIcon::Information: flags |= MB_ICONINFORMATION; break;
+			case MessageBoxIcon::None: break;
+			case MessageBoxIcon::Question: flags |= MB_ICONQUESTION; break;
+			case MessageBoxIcon::Stop: flags |= MB_ICONSTOP; break;
+			case MessageBoxIcon::Warning: flags |= MB_ICONWARNING; break;
+			default: break;
+			}
+
+			const WORD languageID = 0;
+			const int result = ::MessageBoxExW(reinterpret_cast<HWND>(parentWindowHandle), UTF8::WideArg(message).c_str(), title.empty() ? nullptr : UTF8::WideArg(title).c_str(), flags, languageID);
+
+			switch (result)
+			{
+			case IDABORT: return MessageBoxResult::Abort;
+			case IDCANCEL: return MessageBoxResult::Cancel;
+			case IDCONTINUE: return MessageBoxResult::Continue;
+			case IDIGNORE: return MessageBoxResult::Ignore;
+			case IDNO: return MessageBoxResult::No;
+			case IDOK: return MessageBoxResult::OK;
+			case IDRETRY: return MessageBoxResult::Retry;
+			case IDTRYAGAIN: return MessageBoxResult::TryAgain;
+			case IDYES: return MessageBoxResult::Yes;
+			default: return MessageBoxResult::None;
+			}
+		}
+
 		namespace
 		{
 			class DialogEventHandler : public IFileDialogEvents, public IFileDialogControlEvents
