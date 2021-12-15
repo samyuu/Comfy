@@ -40,6 +40,7 @@ namespace Comfy
 		};
 	}
 
+	// TODO: Replace with something like TextureViewAndSampler2D / Comfy::Render::TexSamplerView (?)
 
 	// NOTE: Value struct wrapper around a resource view with some additional data to avoid stale references
 	struct ComfyTextureID

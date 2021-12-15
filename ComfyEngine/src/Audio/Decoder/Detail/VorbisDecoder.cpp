@@ -8,6 +8,7 @@ namespace Comfy::Audio
 		return ".ogg";
 	}
 
+	// TODO: Performance comparison with libvorbis. Although switching to libvorbis might mean slightly different output the same way it does for mp3..?
 	DecoderResult VorbisDecoder::DecodeParseAudio(const void* fileData, size_t fileSize, DecoderOutputData& outputData)
 	{
 		i32 channels = {}, sampleRate = {};
