@@ -1,7 +1,10 @@
 #include "ComfyStudioSettings.h"
+#include "ComfyStudioApplication.h"
 #include "Editor/Chart/ChartEditor.h"
 #include "IO/JSON.h"
 #include "IO/File.h"
+#include "IO/Path.h"
+#include "IO/Shell.h"
 #include "Core/Logger.h"
 
 namespace Comfy::Studio
@@ -60,13 +63,137 @@ namespace Comfy::Studio
 			else
 				return std::nullopt;
 		}
+
+		struct LineAndColumnIndex
+		{
+			size_t LineIndex;
+			size_t ColumnIndex;
+		};
+
+		constexpr LineAndColumnIndex TextFileBytePositionToLineAndColumn(std::string_view textFileContent, size_t bytePositionToConvert, size_t tabWidth = 4)
+		{
+			// BUG: The column index doesn't correctly handle UTF-8 but realistically that shouldn't be much of a problem 
+			//		since even the line index alone should be enough to easily find the error
+
+			LineAndColumnIndex result = {};
+			for (size_t i = 0; i < Min(textFileContent.size(), bytePositionToConvert); i++)
+			{
+				const char c = textFileContent[i];
+				if (c == '\n')
+					result.LineIndex += 1;
+
+				if (c == '\n' || c == '\r')
+					result.ColumnIndex = 0;
+				else if (c == '\t')
+					result.ColumnIndex += tabWidth;
+				else
+					result.ColumnIndex += 1;
+			}
+			return result;
+		}
+
+		constexpr std::string_view JsonErrorCodeToDisplayName(rapidjson::ParseErrorCode errorCode)
+		{
+			using namespace rapidjson;
+			switch (errorCode)
+			{
+			case kParseErrorNone: return "None";
+			case kParseErrorDocumentEmpty: return "Empty Document";
+			case kParseErrorDocumentRootNotSingular: return "Document Root not Singular";
+			case kParseErrorValueInvalid: return "Invalid Value";
+			case kParseErrorObjectMissName: return "Object Missing Name";
+			case kParseErrorObjectMissColon: return "Object Missing Colon";
+			case kParseErrorObjectMissCommaOrCurlyBracket: return "Object Missing Comma or Curly Bracket";
+			case kParseErrorArrayMissCommaOrSquareBracket: return "Array Missing Comma or Square Bracket";
+			case kParseErrorStringUnicodeEscapeInvalidHex: return "Invalid Hex Escape Unicode String";
+			case kParseErrorStringUnicodeSurrogateInvalid: return "Invalid Unicode String Surrogate";
+			case kParseErrorStringEscapeInvalid: return "Invalid String Escape";
+			case kParseErrorStringMissQuotationMark: return "Missing String Quotation Mark";
+			case kParseErrorStringInvalidEncoding: return "Invalid String Encoding";
+			case kParseErrorNumberTooBig: return "Number Too Big";
+			case kParseErrorNumberMissFraction: return "Number Missing Fraction";
+			case kParseErrorNumberMissExponent: return "Number Missing Exponent";
+			case kParseErrorTermination: return "Termination";
+			case kParseErrorUnspecificSyntaxError: return "Unspecific Syntax Error";
+			default: return "Unknown";
+			}
+		}
+
+		struct ComfyStudioJsonSettingsErrorHandler
+		{
+			enum class UserResponse : u8
+			{
+				AbortAndCloseApplication,
+				RetyAndReloadJson,
+				IgnoreAndLoadDefault,
+			};
+
+			std::string FileContentCopyForLineConversions;
+
+			void OnFileReadSuccess(std::string_view fileContent)
+			{
+				// NOTE: Important to create a copy first before any of the insitu file content is modified after having been parsed. At this point it might be better 
+				//		 to not use insitu parsing at all but doing it this way might still be advantages due to better cache coherency
+				FileContentCopyForLineConversions = fileContent;
+			}
+
+			void OnFileReadError()
+			{
+				// TODO: Just a warning message maybe..?
+			}
+
+			UserResponse OnParseError(std::string_view jsonFilePath, Json::Document& rootJson)
+			{
+				assert(rootJson.HasParseError());
+				const LineAndColumnIndex lineAndColumn = TextFileBytePositionToLineAndColumn(FileContentCopyForLineConversions, rootJson.GetErrorOffset());
+				const std::string_view errorDisplayName = JsonErrorCodeToDisplayName(rootJson.GetParseError());
+				const std::string_view jsonFileName = IO::Path::GetFileName(jsonFilePath, true);
+
+				char messageBuffer[2048] = {}, titleBuffer[512] = {};
+
+				const std::string_view messageView = std::string_view(messageBuffer, sprintf_s(messageBuffer,
+					"Syntax Error '%.*s' on Line %zu, Column %zu.\n"
+					"Click Abort to close the application, Retry to reload the file or\n"
+					"Ignore to *LOSE ALL SETTINGS* and restore the defaults.",
+					static_cast<i32>(errorDisplayName.size()), errorDisplayName.data(),
+					lineAndColumn.LineIndex + 1,
+					lineAndColumn.ColumnIndex + 1));
+
+				const std::string_view titleView = std::string_view(titleBuffer, sprintf_s(titleBuffer,
+					"Comfy Studio - Syntax Error in '%.*s'", static_cast<i32>(jsonFileName.size()), jsonFileName.data()));
+
+				const auto messageBoxResult = IO::Shell::ShowMessageBox(
+					messageView,
+					titleView,
+					IO::Shell::MessageBoxButtons::AbortRetryIgnore,
+					IO::Shell::MessageBoxIcon::Warning,
+					ComfyStudioApplication::GetGlobalWindowFocusHandle());
+
+				switch (messageBoxResult)
+				{
+				case IO::Shell::MessageBoxResult::Abort: return UserResponse::AbortAndCloseApplication;
+				case IO::Shell::MessageBoxResult::Retry: return UserResponse::RetyAndReloadJson;
+				case IO::Shell::MessageBoxResult::Ignore: return UserResponse::IgnoreAndLoadDefault;
+				default: assert(false); return UserResponse::AbortAndCloseApplication;
+				}
+			}
+		};
 	}
 
 	bool ComfyStudioAppSettings::LoadFromFile(std::string_view filePath)
 	{
+		ComfyStudioJsonSettingsErrorHandler errorHandler = {};
 		std::string insituFileContent = IO::File::ReadAllText(filePath);
+
 		if (insituFileContent.empty())
+		{
+			errorHandler.OnFileReadError();
 			return false;
+		}
+		else
+		{
+			errorHandler.OnFileReadSuccess(insituFileContent);
+		}
 
 		using namespace Json;
 		Document rootJson;
@@ -74,8 +201,14 @@ namespace Comfy::Studio
 
 		if (rootJson.HasParseError())
 		{
-			// TODO: Proper error handling
-			const auto parseError = rootJson.GetParseError();
+			const auto userResponse = errorHandler.OnParseError(filePath, rootJson);
+			if (userResponse == ComfyStudioJsonSettingsErrorHandler::UserResponse::AbortAndCloseApplication)
+				::abort();
+			else if (userResponse == ComfyStudioJsonSettingsErrorHandler::UserResponse::RetyAndReloadJson)
+				return LoadFromFile(filePath);
+			else if (userResponse == ComfyStudioJsonSettingsErrorHandler::UserResponse::IgnoreAndLoadDefault)
+				return false;
+
 			assert(false);
 			return false;
 		}
@@ -791,9 +924,18 @@ namespace Comfy::Studio
 
 	bool ComfyStudioUserSettings::LoadFromFile(std::string_view filePath)
 	{
+		ComfyStudioJsonSettingsErrorHandler errorHandler = {};
 		std::string insituFileContent = IO::File::ReadAllText(filePath);
+
 		if (insituFileContent.empty())
+		{
+			errorHandler.OnFileReadError();
 			return false;
+		}
+		else
+		{
+			errorHandler.OnFileReadSuccess(insituFileContent);
+		}
 
 		using namespace Json;
 		Document rootJson;
@@ -801,8 +943,14 @@ namespace Comfy::Studio
 
 		if (rootJson.HasParseError())
 		{
-			// TODO: Proper error handling
-			const auto parseError = rootJson.GetParseError();
+			const auto userResponse = errorHandler.OnParseError(filePath, rootJson);
+			if (userResponse == ComfyStudioJsonSettingsErrorHandler::UserResponse::AbortAndCloseApplication)
+				::abort();
+			else if (userResponse == ComfyStudioJsonSettingsErrorHandler::UserResponse::RetyAndReloadJson)
+				return LoadFromFile(filePath);
+			else if (userResponse == ComfyStudioJsonSettingsErrorHandler::UserResponse::IgnoreAndLoadDefault)
+				return false;
+
 			assert(false);
 			return false;
 		}
