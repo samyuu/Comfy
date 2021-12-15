@@ -44,7 +44,7 @@ namespace Comfy
 
 			bool SizeMoveActive = false;
 			bool RedrawTimerActive = false;
-			UINT RedrawTimerID = 0;
+			UINT_PTR RedrawTimerID = 0;
 
 			// NOTE: All positions and sizes are always stored in client space
 			ivec2 Position = DefaultStartupWindowPosition;
@@ -638,7 +638,13 @@ namespace Comfy
 			{
 			case WM_CREATE:
 			{
-				::SetTimer(Window.Handle, Window.RedrawTimerID, USER_TIMER_MINIMUM, nullptr);
+				// NOTE: "It's hardly a coincidence that the timer ID space is the same size as the address space" - Raymond Chen
+				static_assert(sizeof(Window.RedrawTimerID) == sizeof(void*));
+				const auto newRedrawTimerID = reinterpret_cast<UINT_PTR>(&Window.RedrawTimerID);
+
+				Window.RedrawTimerID = ::SetTimer(Window.Handle, newRedrawTimerID, USER_TIMER_MINIMUM, nullptr);
+				assert(Window.RedrawTimerID == newRedrawTimerID);
+
 				return 0;
 			}
 
@@ -760,7 +766,10 @@ namespace Comfy
 			case WM_DESTROY:
 			{
 				if (Window.RedrawTimerID != 0)
+				{
 					::KillTimer(Window.Handle, Window.RedrawTimerID);
+					Window.RedrawTimerID = 0;
+				}
 
 				InternalWindowDestroyCallback();
 				return 0;
