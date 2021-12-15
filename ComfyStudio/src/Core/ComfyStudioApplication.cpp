@@ -114,7 +114,8 @@ namespace Comfy::Studio
 
 	void* ComfyStudioApplication::GetGlobalWindowFocusHandle()
 	{
-		return (GlobalLastCreatedApplication != nullptr) ? GlobalLastCreatedApplication->GetHost().GetWindowHandle() : nullptr;
+		const ApplicationHost* applicationHost = (GlobalLastCreatedApplication != nullptr) ? &GlobalLastCreatedApplication->GetHost() : nullptr;
+		return (applicationHost != nullptr) ? applicationHost->GetWindowHandle() : nullptr;
 	}
 
 	bool ComfyStudioApplication::BaseInitialize()
