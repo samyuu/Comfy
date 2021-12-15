@@ -32,7 +32,7 @@
                 <img class="MainHeaderIcon" src="image/comfy_icon.ico">
                 <h1>Comfy Studio Chart Editor</h1>
                 <!-- TODO: Keep this updated :Sadge: -->
-                <h4>User Manual - <time>(2021/12/02)</time></h4>
+                <h4>User Manual - <time>(2021/12/15)</time></h4>
             </div>
             <div>
                 <img class="MainHeaderImage" src="image/other/editor_example_chart.png">
@@ -1247,9 +1247,8 @@
                         <strong>Note:</strong> User settings are stored inside <code>settings_user.json</code>
                         and can be copied over from a previous version when updating Comfy Studio.
                         <br>
-                        External editing via a text editor might result in settings being overwritten
-                        in case of a syntax error by the user.
-                        Manual creation of a backup in this case is therefore encouraged.
+                        If a JSON syntax error is detected, a warning message box will prompt
+                        the user to either close the application, reload the file or load the default settings.
                         <br>
                         The <Code>settings_app.json</Code> file stores general persistent program state across runs
                         and <code>settings_imgui.ini</code> stores the window docking layout, positions and sizes
