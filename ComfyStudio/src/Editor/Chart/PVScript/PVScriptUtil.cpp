@@ -29,7 +29,7 @@ namespace Comfy::Studio::Editor
 		out.ScriptFileName = IO::Path::GetFileName(scriptFilePath, false);
 		out.DecomposedScriptName = DecompsePVScriptFileName(out.ScriptFileName);
 
-		auto isFlyingTimeSame = [](auto& a, auto& b) { return (a.FlyingTempo.BeatsPerMinute == b.FlyingTempo.BeatsPerMinute) && (a.Signature == b.Signature); };
+		auto isFlyingTimeSame = [](auto& a, auto& b) { return (a.FlyingTimeTempo.BeatsPerMinute == b.FlyingTimeTempo.BeatsPerMinute) && (a.Signature == b.Signature); };
 
 		TimeSpan currentCmdTime = {};
 		TimeSpan currentFlyingTime = TimeSpan::FromSeconds(1.0);
@@ -45,7 +45,8 @@ namespace Comfy::Studio::Editor
 				currentFlyingTime = static_cast<TimeSpan>(*targetFlyingTimeCmd);
 				DecomposedPVScriptChartData::FlyingTimeCommandData newFlyingTime;
 				newFlyingTime.CommandTime = currentCmdTime;
-				newFlyingTime.FlyingTempo = glm::round((60.0f * 4.0f) / (static_cast<f32>(targetFlyingTimeCmd->DurationMS) / 1000.0f));
+				newFlyingTime.FlyingTimeTempo = glm::round((60.0f * 4.0f) / (static_cast<f32>(targetFlyingTimeCmd->DurationMS) / 1000.0f));
+				newFlyingTime.RealTempo = newFlyingTime.FlyingTimeTempo;
 				newFlyingTime.Signature = TimeSignature(4, 4);
 
 				if (out.FlyingTimeCommands.empty() || !isFlyingTimeSame(newFlyingTime, out.FlyingTimeCommands.back()))
@@ -56,7 +57,8 @@ namespace Comfy::Studio::Editor
 				currentFlyingTime = static_cast<TimeSpan>(*barTimeSetCmd);
 				DecomposedPVScriptChartData::FlyingTimeCommandData newFlyingTime;
 				newFlyingTime.CommandTime = currentCmdTime;
-				newFlyingTime.FlyingTempo = static_cast<f32>(barTimeSetCmd->BeatsPerMinute);
+				newFlyingTime.FlyingTimeTempo = static_cast<f32>(barTimeSetCmd->BeatsPerMinute);
+				newFlyingTime.RealTempo = newFlyingTime.FlyingTimeTempo;
 				newFlyingTime.Signature = TimeSignature(barTimeSetCmd->TimeSignature + 1, 4);
 
 				if (out.FlyingTimeCommands.empty() || !isFlyingTimeSame(newFlyingTime, out.FlyingTimeCommands.back()))
@@ -71,11 +73,14 @@ namespace Comfy::Studio::Editor
 			}
 			else if (const auto* musicPlayCmd = cmd.TryView<PVCommandLayout::MusicPlay>())
 			{
-				out.MusicPlayCommandTime = currentCmdTime;
+				// NOTE: Only account for the first play command
+				if (!out.MusicPlayCommandTime.has_value())
+					out.MusicPlayCommandTime = currentCmdTime;
 			}
 			else if (const auto* moviePlayCmd = cmd.TryView<PVCommandLayout::MoviePlay>())
 			{
-				out.MoviePlayCommandTime = currentCmdTime;
+				if (!out.MoviePlayCommandTime.has_value())
+					out.MoviePlayCommandTime = currentCmdTime;
 			}
 			else if (const auto* pvEndCmd = cmd.TryView<PVCommandLayout::PVEnd>())
 			{
@@ -86,23 +91,56 @@ namespace Comfy::Studio::Editor
 		return out;
 	}
 
-	std::string GetDefaultSongPathFromPVScriptPath(std::string_view scriptPath)
+	SongAndMovieFilePathLists GetPotentialSongAndMovieFilePathsFromPVScriptPath(std::string_view scriptPath)
 	{
+		SongAndMovieFilePathLists out = {};
 		if (scriptPath.empty())
-			return "";
+			return out;
 
-		const std::string_view fileNameNoExtension = IO::Path::GetFileName(scriptPath, false);
-		const std::string_view scriptDirectory = IO::Path::GetDirectoryName(scriptPath);
-		const std::string_view romDirectory = IO::Path::GetDirectoryName(scriptDirectory);
+		const std::string normalizedScriptPath { IO::Path::Normalize(scriptPath) };
+		const std::string scriptNameNoExtension { IO::Path::GetFileName(normalizedScriptPath, false) };
+		const std::string scriptDirectory { IO::Path::GetDirectoryName(normalizedScriptPath) };
+		const std::string romDirectory { IO::Path::GetDirectoryName(scriptDirectory) };
+		const std::string maybeMDataIDDirectory { IO::Path::GetDirectoryName(romDirectory) };
+		const std::string maybeMDataDirectory { IO::Path::GetDirectoryName(maybeMDataIDDirectory) };
+		const std::string maybeRootDirectory { IO::Path::GetDirectoryName(maybeMDataDirectory) };
+		const std::string maybeRootRomDirectory { maybeRootDirectory + "/rom" };
+		const std::string pvIDFileNameNoExtension { scriptNameNoExtension.substr(0, Min(scriptNameNoExtension.size(), std::string_view("pv_xxx").size())) };
 
-		if (fileNameNoExtension.empty() || scriptDirectory.empty() || romDirectory.empty())
-			return "";
+		out.SongPaths =
+		{
+			romDirectory + "/sound/song/" + pvIDFileNameNoExtension + ".ogg",
+			romDirectory + "/sound/song/" + scriptNameNoExtension + ".ogg",
+			romDirectory + "/" + pvIDFileNameNoExtension + ".ogg",
+			romDirectory + "/" + scriptNameNoExtension + ".ogg",
+			maybeRootRomDirectory + "/sound/song/" + pvIDFileNameNoExtension + ".ogg",
+			maybeRootRomDirectory + "/sound/song/" + scriptNameNoExtension + ".ogg",
+			maybeRootRomDirectory + "/" + pvIDFileNameNoExtension + ".ogg",
+			maybeRootRomDirectory + "/" + scriptNameNoExtension + ".ogg",
+		};
+		out.MoviePaths =
+		{
+			romDirectory + "/movie/" + pvIDFileNameNoExtension + ".mp4",
+			romDirectory + "/movie/" + scriptNameNoExtension + ".mp4",
+			romDirectory + "/" + pvIDFileNameNoExtension + ".mp4",
+			romDirectory + "/" + scriptNameNoExtension + ".mp4",
+			romDirectory + "/movie/" + pvIDFileNameNoExtension + ".wmv",
+			romDirectory + "/movie/" + scriptNameNoExtension + ".wmv",
+			romDirectory + "/" + pvIDFileNameNoExtension + ".wmv",
+			romDirectory + "/" + scriptNameNoExtension + ".wmv",
+			maybeRootRomDirectory + "/movie/" + pvIDFileNameNoExtension + ".mp4",
+			maybeRootRomDirectory + "/movie/" + scriptNameNoExtension + ".mp4",
+			maybeRootRomDirectory + "/" + pvIDFileNameNoExtension + ".mp4",
+			maybeRootRomDirectory + "/" + scriptNameNoExtension + ".mp4",
+			maybeRootRomDirectory + "/movie/" + pvIDFileNameNoExtension + ".wmv",
+			maybeRootRomDirectory + "/movie/" + scriptNameNoExtension + ".wmv",
+			maybeRootRomDirectory + "/" + pvIDFileNameNoExtension + ".wmv",
+			maybeRootRomDirectory + "/" + scriptNameNoExtension + ".wmv",
+		};
 
-		std::string songPath = IO::Path::Normalize(romDirectory);
-		songPath += "/sound/song/";
-		songPath += fileNameNoExtension.substr(0, Min(fileNameNoExtension.size(), std::string_view("pv_xxx").size()));
-		songPath += ".ogg";
-		return songPath;
+		assert(out.SongPaths.capacity() == out.SongPaths.size());
+		assert(out.MoviePaths.capacity() == out.MoviePaths.size());
+		return out;
 	}
 
 	void SyntaxHighlightedPVCommandListViewGui(const std::vector<PVCommand>& commands)

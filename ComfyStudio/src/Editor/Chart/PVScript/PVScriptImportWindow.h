@@ -13,7 +13,6 @@ namespace Comfy::Studio::Editor
 		struct ImportSettings
 		{
 			TimeSpan TargetOffset;
-			f32 FlyingTimeFactor;
 		};
 
 		struct ImportStatistics
@@ -37,13 +36,24 @@ namespace Comfy::Studio::Editor
 	public:
 		void Gui();
 
-		void SetScriptFilePath(std::string_view path);
+		void SetScriptFilePathAndStartAsyncLoading(std::string_view scriptPath);
 
 		bool GetAndClearCloseRequestThisFrame();
 		std::unique_ptr<Chart> TryMoveImportedChartBeforeClosing();
 
+		// NOTE: Only access inScript.Async data if !IsAsyncLoading
+		bool IsAsyncLoading() const;
+		void WaitForAsyncLoadCompletion();
+
 	private:
-		void UpdateImportedChartAndStatistics(bool updateStatistics = true);
+		void StartOfFrameCheckForAndHandleAsyncLoadCompletion();
+
+		void CreateChartFromDecomposedScriptAssignToImportedChart();
+		void RecalculateFirstTargetBeatAlignmentOffset();
+		void RecalculateImportStatistics();
+
+		void OnGuiImportSettingsValueChanged();
+		void OnGuiTempoMapValueChanged();
 
 		void RequestExitAndImport();
 		void RequestExitWithoutImport();
@@ -51,10 +61,24 @@ namespace Comfy::Studio::Editor
 	private:
 		struct InputScriptData
 		{
-			std::string ScriptPath, SongPath;
-			std::unique_ptr<PVScript> LoadedScript;
-			DecomposedPVScriptChartData DecomposedScipt;
-			TimeSpan FirstTargetBeatAlignmentOffset;
+			// NOTE: Set inside main thread, safe to read from but shouldn't be modified while IsAsyncLoading()
+			struct SyncData
+			{
+				std::string ScriptPath;
+			} Sync;
+
+			// NOTE: Set inside async worker thread, only safe to read from if !IsAsyncLoading()
+			struct AsyncData
+			{
+				std::string SongPath;
+				std::string MoviePath;
+				std::unique_ptr<PVScript> LoadedScriptFile;
+				DecomposedPVScriptChartData DecomposedScipt;
+				DecomposedPVScriptChartData DecomposedSciptUneditedCopy;
+				TimeSpan FirstTargetBeatAlignmentOffset;
+			} Async;
+
+			std::future<void> LoadAndDecomposeChartFileFuture;
 		} inScript = {};
 
 		struct OutputChartData
@@ -62,9 +86,13 @@ namespace Comfy::Studio::Editor
 			std::unique_ptr<Chart> ImportedChart;
 		} outChart = {};
 
+		std::string emptyDummyStringToReferenceWhileAsyncLoading;
+
+		// NOTE: Potentially read from / written to on async worker thread but shouldn't really matter for POD data
 		ImportSettings importSettings = {};
 		ImportStatistics importStatistics = {};
 
+		bool isFirstFrameAfterStartingAsyncLoad = false;
 		bool closeWindowThisFrame = false;
 		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
 	};

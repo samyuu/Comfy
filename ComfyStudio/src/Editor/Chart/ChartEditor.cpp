@@ -1360,8 +1360,8 @@ namespace Comfy::Studio::Editor
 					chart = std::move(importedChart);
 					chart->TempoMap.RebuildAccelerationStructure();
 
-					if (!chart->SongFileName.empty())
-						LoadSongAsync(chart->SongFileName);
+					if (!chart->SongFileName.empty()) LoadSongAsync(chart->SongFileName);
+					if (!chart->MovieFileName.empty()) LoadMovieAsync(chart->MovieFileName);
 
 					SyncWorkingChartPointers();
 					undoManager.SetChangesWereMade();

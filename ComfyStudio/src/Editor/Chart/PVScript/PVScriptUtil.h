@@ -39,15 +39,17 @@ namespace Comfy::Studio::Editor
 		struct FlyingTimeCommandData
 		{
 			TimeSpan CommandTime;
-			Tempo FlyingTempo;
+			// NOTE: Flying time commands don't actually store data about the real tempo so this only exists here to allow easy editing in post
+			Tempo RealTempo;
+			Tempo FlyingTimeTempo;
 			TimeSignature Signature;
 		};
 
 		std::string ScriptFileName;
 		DecompsedPVScriptFileName DecomposedScriptName;
 
-		TimeSpan MusicPlayCommandTime;
-		TimeSpan MoviePlayCommandTime;
+		std::optional<TimeSpan> MusicPlayCommandTime;
+		std::optional<TimeSpan> MoviePlayCommandTime;
 		TimeSpan PVEndCommandTime;
 		std::vector<TargetCommandData> TargetCommands;
 		std::vector<FlyingTimeCommandData> FlyingTimeCommands;
@@ -55,7 +57,13 @@ namespace Comfy::Studio::Editor
 
 	DecomposedPVScriptChartData DecomposePVScriptChartData(const PVScript& script, std::string_view scriptFilePath);
 
-	std::string GetDefaultSongPathFromPVScriptPath(std::string_view scriptPath);
+	struct SongAndMovieFilePathLists
+	{
+		std::vector<std::string> SongPaths;
+		std::vector<std::string> MoviePaths;
+	};
+
+	SongAndMovieFilePathLists GetPotentialSongAndMovieFilePathsFromPVScriptPath(std::string_view scriptPath);
 
 	constexpr bool IsChartRelatedPVCommand(PVCommandType commandType)
 	{
