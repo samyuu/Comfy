@@ -122,6 +122,7 @@ namespace Comfy::Studio::Editor
 		bool OpenSaveExportPJEChartFileDialog();
 
 		void OpenPVScriptImportWindow(std::string_view filePath);
+		void OpenPVScriptImportWindowOrSetNewChartIfAlreadyOpen(std::string_view filePath);
 		bool OpenReadImportPVScriptFileDialogThenOpenImportWindow();
 
 		void OpenPVScriptExportWindow();
@@ -222,6 +223,7 @@ namespace Comfy::Studio::Editor
 		struct PVScriptImportPopupData
 		{
 			bool OpenOnNextFrame;
+			bool WasGuiWindowOpenLastFrame;
 			PVScriptImportWindow Window;
 		} pvScriptImportPopup = {};
 

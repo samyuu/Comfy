@@ -437,7 +437,7 @@ namespace Comfy::Studio::Editor
 
 		if (IO::Path::DoesAnyPackedExtensionMatch(extension, PVScript::Extension))
 		{
-			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)]() { OpenPVScriptImportWindow(path); });
+			CheckOpenSaveConfirmationPopupThenCall([this, path = std::string(filePath)] { OpenPVScriptImportWindowOrSetNewChartIfAlreadyOpen(path); });
 			return true;
 		}
 
@@ -819,8 +819,16 @@ namespace Comfy::Studio::Editor
 		// HACK: Might wanna think about a better solution for avoiding immediately closing the popup
 		constexpr bool focusTimelineAndCloseActivePopup = false;
 		CreateNewChart(focusTimelineAndCloseActivePopup);
-		pvScriptImportPopup.Window.SetScriptFilePath(filePath);
+		pvScriptImportPopup.Window.SetScriptFilePathAndStartAsyncLoading(filePath);
 		pvScriptImportPopup.OpenOnNextFrame = true;
+	}
+
+	void ChartEditor::OpenPVScriptImportWindowOrSetNewChartIfAlreadyOpen(std::string_view filePath)
+	{
+		if (pvScriptImportPopup.WasGuiWindowOpenLastFrame)
+			pvScriptImportPopup.Window.SetScriptFilePathAndStartAsyncLoading(filePath);
+		else
+			OpenPVScriptImportWindow(filePath);
 	}
 
 	void ChartEditor::OpenPVScriptExportWindow()
@@ -1324,6 +1332,8 @@ namespace Comfy::Studio::Editor
 
 	void ChartEditor::GuiPVScriptImportPopup()
 	{
+		pvScriptImportPopup.WasGuiWindowOpenLastFrame = false;
+
 		constexpr const char* pvScriptImportWindowID = "Import PV Script Chart";
 		if (pvScriptImportPopup.OpenOnNextFrame)
 		{
@@ -1338,10 +1348,12 @@ namespace Comfy::Studio::Editor
 		if (Gui::WideBeginPopupModal(pvScriptImportWindowID, &isOpen, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			pvScriptImportPopup.Window.Gui();
+			pvScriptImportPopup.WasGuiWindowOpenLastFrame = true;
 
 			if (pvScriptImportPopup.Window.GetAndClearCloseRequestThisFrame())
 			{
 				Gui::CloseCurrentPopup();
+				pvScriptImportPopup.WasGuiWindowOpenLastFrame = false;
 
 				if (auto importedChart = pvScriptImportPopup.Window.TryMoveImportedChartBeforeClosing(); importedChart != nullptr)
 				{
