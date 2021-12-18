@@ -91,9 +91,9 @@ namespace Comfy::Studio::Editor
 		return out;
 	}
 
-	SongAndMovieFilePathLists GetPotentialSongAndMovieFilePathsFromPVScriptPath(std::string_view scriptPath)
+	SongAndMovieFilePaths GetPotentialSongAndMovieFilePathsFromPVScriptPath(std::string_view scriptPath)
 	{
-		SongAndMovieFilePathLists out = {};
+		SongAndMovieFilePaths out = {};
 		if (scriptPath.empty())
 			return out;
 
@@ -109,6 +109,8 @@ namespace Comfy::Studio::Editor
 
 		out.SongPaths =
 		{
+			scriptDirectory + "/" + scriptNameNoExtension + ".ogg",
+			scriptDirectory + "/" + pvIDFileNameNoExtension + ".ogg",
 			romDirectory + "/sound/song/" + pvIDFileNameNoExtension + ".ogg",
 			romDirectory + "/sound/song/" + scriptNameNoExtension + ".ogg",
 			romDirectory + "/" + pvIDFileNameNoExtension + ".ogg",
@@ -120,6 +122,10 @@ namespace Comfy::Studio::Editor
 		};
 		out.MoviePaths =
 		{
+			scriptDirectory + "/" + scriptNameNoExtension + ".mp4",
+			scriptDirectory + "/" + pvIDFileNameNoExtension + ".mp4",
+			scriptDirectory + "/" + scriptNameNoExtension + ".wmv",
+			scriptDirectory + "/" + pvIDFileNameNoExtension + ".wmv",
 			romDirectory + "/movie/" + pvIDFileNameNoExtension + ".mp4",
 			romDirectory + "/movie/" + scriptNameNoExtension + ".mp4",
 			romDirectory + "/" + pvIDFileNameNoExtension + ".mp4",
@@ -138,8 +144,6 @@ namespace Comfy::Studio::Editor
 			maybeRootRomDirectory + "/" + scriptNameNoExtension + ".wmv",
 		};
 
-		assert(out.SongPaths.capacity() == out.SongPaths.size());
-		assert(out.MoviePaths.capacity() == out.MoviePaths.size());
 		return out;
 	}
 

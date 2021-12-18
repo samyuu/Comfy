@@ -4,6 +4,7 @@
 #include "Editor/Chart/TargetPropertyRules.h"
 #include "Script/PVScript.h"
 #include "ImGui/Gui.h"
+#include <set>
 
 namespace Comfy::Studio::Editor
 {
@@ -57,13 +58,13 @@ namespace Comfy::Studio::Editor
 
 	DecomposedPVScriptChartData DecomposePVScriptChartData(const PVScript& script, std::string_view scriptFilePath);
 
-	struct SongAndMovieFilePathLists
+	struct SongAndMovieFilePaths
 	{
-		std::vector<std::string> SongPaths;
-		std::vector<std::string> MoviePaths;
+		std::set<std::string> SongPaths;
+		std::set<std::string> MoviePaths;
 	};
 
-	SongAndMovieFilePathLists GetPotentialSongAndMovieFilePathsFromPVScriptPath(std::string_view scriptPath);
+	SongAndMovieFilePaths GetPotentialSongAndMovieFilePathsFromPVScriptPath(std::string_view scriptPath);
 
 	constexpr bool IsChartRelatedPVCommand(PVCommandType commandType)
 	{
