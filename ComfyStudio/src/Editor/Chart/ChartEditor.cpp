@@ -977,6 +977,7 @@ namespace Comfy::Studio::Editor
 				}
 			};
 
+			// TODO: Implement async image cache to avoid reloading the same files when they are set as the defaults (?)
 			const auto& defaultSettings = GlobalUserData.ChartProperties.Default;
 			tryAssignOptionalEmptyString(newChart->Properties.Creator.Name, defaultSettings.CreatorName);
 			tryAssignOptionalEmptyString(newChart->Properties.Creator.Comment, defaultSettings.CreatorComment);

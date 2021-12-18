@@ -101,6 +101,16 @@ namespace Comfy::Studio::Editor
 		if (Gui::MenuItem("Apply Angle Increment Negative (Back)", Input::ToString(GlobalUserData.Input.TargetPreview_PathTool_ApplyAngleIncrementsNegativeBack).data(), false, (selectionCount > 0)))
 			ApplySelectedTargetAngleIncrements(undoManager, chart, -1.0f, true);
 
+#if COMFY_DEBUG && 0 // TODO: (?)
+		Gui::Separator();
+		if (Gui::MenuItem("Set Normal Vector Angles", "?", false, (selectionCount > 1)))
+		{
+		}
+		if (Gui::MenuItem("Set Normal Vector Angles (Flip)", "Alt + ?", false, (selectionCount > 1)))
+		{
+		}
+#endif
+
 		Gui::Separator();
 	}
 

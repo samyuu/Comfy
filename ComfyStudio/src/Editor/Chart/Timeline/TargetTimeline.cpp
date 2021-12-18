@@ -626,10 +626,6 @@ namespace Comfy::Studio::Editor
 		if (songWaveform.GetPixelCount() < 1)
 			return;
 
-#if COMFY_DEBUG && 0 // DEBUG: Quick validation test that the texture cached waveform is implemented correctly
-		waveformDrawIndividualLines = Gui::IsKeyDown(Input::KeyCode_F1);
-#endif
-
 		if (GlobalUserData.TargetTimeline.WaveformDisableTextureCache)
 			DrawWaveformIndividualVertexLines();
 		else
