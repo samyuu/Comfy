@@ -612,7 +612,7 @@ namespace Comfy::Studio
 		constexpr std::string_view PositionTool = "position_tool";
 		constexpr std::string_view PositionTool_ShowDistanceGuides = "show_distance_guides";
 		constexpr std::string_view PositionTool_ShowTargetGrabTooltip = "show_target_grab_tooltip";
-		constexpr std::string_view PositionTool_UseAxisSnapGuides = "use_axis_snap_guides";
+		constexpr std::string_view PositionTool_AxisSnapGuidesEnabled = "axis_snap_guides_enabled";
 		constexpr std::string_view PositionTool_AxisSnapGuideDistanceThreshold = "axis_snap_guide_distance_threshold";
 		constexpr std::string_view PositionTool_PositionMouseSnap = "position_mouse_snap";
 		constexpr std::string_view PositionTool_PositionMouseSnapRough = "position_mouse_snap_rough";
@@ -1159,7 +1159,7 @@ namespace Comfy::Studio
 		{
 			TryAssign(PositionTool.ShowDistanceGuides, TryGetBool(Find(*positionToolJson, UserIDs::PositionTool_ShowDistanceGuides)));
 			TryAssign(PositionTool.ShowTargetGrabTooltip, TryGetBool(Find(*positionToolJson, UserIDs::PositionTool_ShowTargetGrabTooltip)));
-			TryAssign(PositionTool.UseAxisSnapGuides, TryGetBool(Find(*positionToolJson, UserIDs::PositionTool_UseAxisSnapGuides)));
+			TryAssign(PositionTool.AxisSnapGuidesEnabled, TryGetBool(Find(*positionToolJson, UserIDs::PositionTool_AxisSnapGuidesEnabled)));
 			TryAssign(PositionTool.AxisSnapGuideDistanceThreshold, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_AxisSnapGuideDistanceThreshold)));
 			TryAssign(PositionTool.PositionMouseSnap, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionMouseSnap)));
 			TryAssign(PositionTool.PositionMouseSnapRough, TryGetF32(Find(*positionToolJson, UserIDs::PositionTool_PositionMouseSnapRough)));
@@ -1592,7 +1592,7 @@ namespace Comfy::Studio
 			{
 				writer.MemberBool(UserIDs::PositionTool_ShowDistanceGuides, PositionTool.ShowDistanceGuides);
 				writer.MemberBool(UserIDs::PositionTool_ShowTargetGrabTooltip, PositionTool.ShowTargetGrabTooltip);
-				writer.MemberBool(UserIDs::PositionTool_UseAxisSnapGuides, PositionTool.UseAxisSnapGuides);
+				writer.MemberBool(UserIDs::PositionTool_AxisSnapGuidesEnabled, PositionTool.AxisSnapGuidesEnabled);
 				writer.MemberF32(UserIDs::PositionTool_AxisSnapGuideDistanceThreshold, PositionTool.AxisSnapGuideDistanceThreshold);
 				writer.MemberF32(UserIDs::PositionTool_PositionMouseSnap, PositionTool.PositionMouseSnap);
 				writer.MemberF32(UserIDs::PositionTool_PositionMouseSnapRough, PositionTool.PositionMouseSnapRough);
@@ -2024,7 +2024,7 @@ namespace Comfy::Studio
 
 		PositionTool.ShowDistanceGuides = true;
 		PositionTool.ShowTargetGrabTooltip = true;
-		PositionTool.UseAxisSnapGuides = true;
+		PositionTool.AxisSnapGuidesEnabled = true;
 		PositionTool.AxisSnapGuideDistanceThreshold = Rules::GridStepDistance / 2.0f;
 		PositionTool.PositionMouseSnap = Rules::NormalStepDistance;
 		PositionTool.PositionMouseSnapRough = Rules::GridStepDistance;

@@ -1169,14 +1169,14 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
-			pendingChanges |= GuiSettingsCheckbox("Use Axis Snap Guides", userData.PositionTool.UseAxisSnapGuides);
+			pendingChanges |= GuiSettingsCheckbox("Enable Axis Snap Guides", userData.PositionTool.AxisSnapGuidesEnabled);
 			// TODO: Better wording (?)
 			GuiSettingsRighSideHelpMarker("Snaps targets to their straight same-axis line positions while mouse grabbing a target relative to its pre-grab starting position");
 
-			Gui::PushItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
+			Gui::PushItemDisabledAndTextColorIf(!userData.PositionTool.AxisSnapGuidesEnabled);
 			pendingChanges |= GuiSettingsInputF32("Axis Snap Guide Threshold", userData.PositionTool.AxisSnapGuideDistanceThreshold, 0.0f, 0.0f, ImGuiInputTextFlags_None, "%.0f px");
 			GuiSettingsRighSideHelpMarker("The threshold before which to snap a grabbed target to its same-axis line position");
-			Gui::PopItemDisabledAndTextColorIf(!userData.PositionTool.UseAxisSnapGuides);
+			Gui::PopItemDisabledAndTextColorIf(!userData.PositionTool.AxisSnapGuidesEnabled);
 
 			GuiEndSettingsColumns();
 		}

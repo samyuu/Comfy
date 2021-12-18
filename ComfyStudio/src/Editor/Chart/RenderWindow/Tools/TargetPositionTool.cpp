@@ -208,7 +208,7 @@ namespace Comfy::Studio::Editor
 		if (thisFrameGuides.empty())
 			return;
 
-		if (GlobalUserData.PositionTool.UseAxisSnapGuides)
+		if (GlobalUserData.PositionTool.AxisSnapGuidesEnabled)
 		{
 			for (const auto& guide : thisFrameGuides)
 				drawList.AddLine(glm::round(renderWindow.TargetAreaToScreenSpace(guide.Start)), glm::round(renderWindow.TargetAreaToScreenSpace(guide.End)), guide.Color, 1.0f);
@@ -429,7 +429,7 @@ namespace Comfy::Studio::Editor
 			undoManager.ResetMergeTimeThresholdStopwatch();
 
 			const auto& grabbedTarget = chart.Targets[chart.Targets.FindIndex(grab.GrabbedTargetID)];
-			if (GlobalUserData.PositionTool.UseAxisSnapGuides)
+			if (GlobalUserData.PositionTool.AxisSnapGuidesEnabled)
 				SetupAxisGrabGuides(grabbedTarget);
 
 			if ((grab.ThisPos != grab.LastPos) || (grab.ThisGridSnap != grab.LastGridSnap))
@@ -441,7 +441,7 @@ namespace Comfy::Studio::Editor
 					io.KeyAlt ? GlobalUserData.PositionTool.PositionMouseSnapPrecise : GlobalUserData.PositionTool.PositionMouseSnap;
 
 				vec2 grabMovedPosition = grab.TargetPositionOnGrab + ((grab.ThisPos - grab.MouseOnGrab) / renderWindow.GetCamera().Zoom);
-				if (GlobalUserData.PositionTool.UseAxisSnapGuides)
+				if (GlobalUserData.PositionTool.AxisSnapGuidesEnabled)
 					grabMovedPosition = TrySnapGrabPositionToGuides(grabMovedPosition);
 				grabMovedPosition = Rules::SnapPositionTo(grabMovedPosition, positionSnap);
 
