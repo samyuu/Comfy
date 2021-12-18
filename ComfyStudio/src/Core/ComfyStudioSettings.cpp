@@ -706,6 +706,7 @@ namespace Comfy::Studio
 		constexpr std::string_view Interface_PracticeBackground_HideCoverImage = "hide_cover_image";
 		constexpr std::string_view Interface_PracticeBackground_HideLogoImage = "hide_logo_image";
 		constexpr std::string_view Interface_ImageMovieBackground = "image_movie_background";
+		constexpr std::string_view Interface_ImageMovieBackground_ShowCheckerboardWhileAsyncLoadingBackgroundImage = "show_checkerboard_while_async_loading_background_image";
 		constexpr std::string_view Interface_ImageMovieBackground_OverlayColor = "overlay_color";
 		constexpr std::string_view Interface_ImageMovieBackground_OverlayColorGrid = "overlay_color_grid";
 		constexpr std::string_view Interface_ImageMovieBackground_PreStartPostEndMovieColor = "pre_start_post_end_movie_color";
@@ -1365,6 +1366,7 @@ namespace Comfy::Studio
 
 			if (const Value* movieJson = Find(*interfaceJson, UserIDs::Interface_ImageMovieBackground))
 			{
+				TryAssign(Interface.ImageMovieBackground.ShowCheckerboardWhileAsyncLoadingBackgroundImage, TryGetBool(Find(*movieJson, UserIDs::Interface_ImageMovieBackground_ShowCheckerboardWhileAsyncLoadingBackgroundImage)));
 				TryAssign(Interface.ImageMovieBackground.OverlayColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_ImageMovieBackground_OverlayColor)));
 				TryAssign(Interface.ImageMovieBackground.OverlayColorGrid, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_ImageMovieBackground_OverlayColorGrid)));
 				TryAssign(Interface.ImageMovieBackground.PreStartPostEndMovieColor, TryGetVec4HexRGBAStr(Find(*movieJson, UserIDs::Interface_ImageMovieBackground_PreStartPostEndMovieColor)));
@@ -1773,6 +1775,7 @@ namespace Comfy::Studio
 
 				writer.MemberObjectBegin(UserIDs::Interface_ImageMovieBackground);
 				{
+					writer.MemberBool(UserIDs::Interface_ImageMovieBackground_ShowCheckerboardWhileAsyncLoadingBackgroundImage, Interface.ImageMovieBackground.ShowCheckerboardWhileAsyncLoadingBackgroundImage);
 					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_OverlayColor, Interface.ImageMovieBackground.OverlayColor);
 					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_OverlayColorGrid, Interface.ImageMovieBackground.OverlayColorGrid);
 					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_PreStartPostEndMovieColor, Interface.ImageMovieBackground.PreStartPostEndMovieColor);
@@ -2064,6 +2067,7 @@ namespace Comfy::Studio
 		Interface.PracticeBackground.HideNowPrintingPlaceholderImages = false;
 		Interface.PracticeBackground.HideCoverImage = false;
 		Interface.PracticeBackground.HideLogoImage = false;
+		Interface.ImageMovieBackground.ShowCheckerboardWhileAsyncLoadingBackgroundImage = true;
 		Interface.ImageMovieBackground.OverlayColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 		Interface.ImageMovieBackground.OverlayColorGrid = { 0.0f, 0.0f, 0.0f, 0.6f };
 		Interface.ImageMovieBackground.PreStartPostEndMovieColor = { 0.13f, 0.13f, 0.13f, 1.00f };

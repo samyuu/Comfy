@@ -19,11 +19,20 @@ namespace Comfy::Studio::Editor
 		const auto& userData = GlobalUserData.Interface;
 		const bool chartHasMovie = !chart.MovieFileName.empty();
 
-		const ChartBackgroundDisplayType backgroundType = isEditor ?
+		ChartBackgroundDisplayType backgroundType = isEditor ?
 			(chartHasMovie ? userData.BackgroundDisplayType.EditorWithMovie : userData.BackgroundDisplayType.Editor) :
 			(chartHasMovie ? userData.BackgroundDisplayType.PlaytestWithMovie : userData.BackgroundDisplayType.Playtest);
 
-		// NOTE: Always draw underneath *everything* in case things haven't loaded in yet or the movie isn't drawn
+		// NOTE: Copy into variables first to ensure GetMoveFuture() is called before checking for IsAsyncLoading() and avoid a potential race condition
+		const Render::TexSprView asyncChartCoverSprite = chart.Properties.Image.Cover.GetTexSprView();
+		const Render::TexSprView asyncChartLogoSprite = chart.Properties.Image.Logo.GetTexSprView();
+		const Render::TexSprView asyncChartBackgroundSprite = chart.Properties.Image.Background.GetTexSprView();
+
+		// NOTE: Specifically here to prevent briefly flashing the bright default background while async loading an image
+		if (HasChartBackgroundDisplayTypeImage(backgroundType) && GlobalUserData.Interface.ImageMovieBackground.ShowCheckerboardWhileAsyncLoadingBackgroundImage && chart.Properties.Image.Background.IsAsyncLoading())
+			backgroundType = HasChartBackgroundDisplayTypeGrid(backgroundType) ? ChartBackgroundDisplayType::Checkerboard_Grid : ChartBackgroundDisplayType::Checkerboard;
+
+		// NOTE: Always draw underneath *everything* in case something hasn't loaded in yet or the movie can't be drawn
 		// if (HasChartBackgroundDisplayTypeCheckerboard(backgroundType))
 		{
 			CheckerboardGrid backgroundCheckerboard = {};
@@ -44,9 +53,9 @@ namespace Comfy::Studio::Editor
 			backgroundData.DrawLogo = !userData.PracticeBackground.HideLogoImage;
 			backgroundData.DrawBackground = true;
 			backgroundData.PlaybackTime = cursorTime;
-			backgroundData.CoverSprite = chart.Properties.Image.Cover.GetTexSprView();
-			backgroundData.LogoSprite = chart.Properties.Image.Logo.GetTexSprView();
-			backgroundData.BackgroundSprite = chart.Properties.Image.Background.GetTexSprView();
+			backgroundData.CoverSprite = asyncChartCoverSprite;
+			backgroundData.LogoSprite = asyncChartLogoSprite;
+			backgroundData.BackgroundSprite = asyncChartBackgroundSprite;
 
 			if (userData.PracticeBackground.HideNowPrintingPlaceholderImages)
 			{
@@ -92,7 +101,7 @@ namespace Comfy::Studio::Editor
 			backgroundData.DrawLogo = false;
 			backgroundData.DrawBackground = true;
 			backgroundData.PlaybackTime = cursorTime;
-			backgroundData.BackgroundSprite = chart.Properties.Image.Background.GetTexSprView();
+			backgroundData.BackgroundSprite = asyncChartBackgroundSprite;
 			renderHelper.DrawBackground(renderer, backgroundData);
 			drawFullscreenQuad(renderer, imageOrMovieOverlayColor);
 		}
