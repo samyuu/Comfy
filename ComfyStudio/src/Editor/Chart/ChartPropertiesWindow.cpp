@@ -24,6 +24,12 @@ namespace Comfy::Studio::Editor
 			return tooltipHelper;
 		}();
 
+		// NOTE: To reference while async loading
+		static std::string GlobalTempReadOnlyPathString;
+
+		// NOTE: To make sure paths are really only being modified when Enter is pressed and ImGuiInputTextFlags_EnterReturnsTrue is set
+		static std::string GlobalTempFilePathString;
+
 		bool GuiPropertyButtonSoundCombo(std::string_view label, u32& inOutID, Database::GmBtnSfxType btnSfxDBType, SoundEffectManager& soundEffectManager, Stopwatch& lastChainSlidePreviewStopwatch)
 		{
 			auto entryToCStr = [&](const Database::GmBtnSfxEntry* entry)
@@ -191,17 +197,18 @@ namespace Comfy::Studio::Editor
 
 				Gui::PushItemWidth(Max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
+				GlobalTempFilePathString = inOutPath;
 				if (isLoading)
 				{
-					static const std::string readOnlyPath;
-					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readOnlyPath), ImGuiInputTextFlags_ReadOnly);
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", &GlobalTempReadOnlyPathString, ImGuiInputTextFlags_ReadOnly);
 				}
-				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, helpText, &inOutPath, ImGuiInputTextFlags_EnterReturnsTrue))
+				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, helpText, &GlobalTempFilePathString, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					inOutPath = IO::Path::TryMakeRelative(inOutPath, basePath);
+					inOutPath = IO::Path::TryMakeRelative(GlobalTempFilePathString, basePath);
 					asyncImage.TryLoad(inOutPath, basePath);
 					changesMade = true;
 				}
+				GlobalTempFilePathString.clear();
 
 				Gui::PopItemWidth();
 
@@ -258,7 +265,6 @@ namespace Comfy::Studio::Editor
 
 	void ChartPropertiesWindow::Gui(Chart& chart)
 	{
-		static const std::string readOnlyPath;
 		constexpr const char* defaultHint = "n/a";
 
 		GuiPropertyRAII::PropertyValueColumns columns;
@@ -279,15 +285,18 @@ namespace Comfy::Studio::Editor
 
 				Gui::PushItemWidth(Max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
+				GlobalTempFilePathString = chart.SongFileName;
 				if (songIsLoading)
 				{
-					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readOnlyPath), ImGuiInputTextFlags_ReadOnly);
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", &GlobalTempReadOnlyPathString, ImGuiInputTextFlags_ReadOnly);
 				}
-				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "song.ogg", &chart.SongFileName, ImGuiInputTextFlags_EnterReturnsTrue))
+				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "song.ogg", &GlobalTempFilePathString, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					chartEditor.LoadSongAsync(chart.SongFileName);
+					chart.SongFileName = GlobalTempFilePathString;
+					chartEditor.LoadSongAsync(GlobalTempFilePathString);
 					changesMade = true;
 				}
+				GlobalTempFilePathString.clear();
 
 				Gui::PopItemWidth();
 
@@ -314,15 +323,18 @@ namespace Comfy::Studio::Editor
 
 				Gui::PushItemWidth(Max(1.0f, (Gui::GetContentRegionAvail().x - 1.0f) - (buttonSize + style.ItemInnerSpacing.x)));
 
+				GlobalTempFilePathString = chart.MovieFileName;
 				if (movieIsLoading)
 				{
-					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", const_cast<std::string*>(&readOnlyPath), ImGuiInputTextFlags_ReadOnly);
+					Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "Loading...", &GlobalTempReadOnlyPathString, ImGuiInputTextFlags_ReadOnly);
 				}
-				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "movie.mp4", &chart.MovieFileName, ImGuiInputTextFlags_EnterReturnsTrue))
+				else if (Gui::PathInputTextWithHint(GuiProperty::Detail::DummyLabel, "movie.mp4", &GlobalTempFilePathString, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					chartEditor.LoadMovieAsync(chart.MovieFileName);
+					chart.MovieFileName = GlobalTempFilePathString;
+					chartEditor.LoadMovieAsync(GlobalTempFilePathString);
 					changesMade = true;
 				}
+				GlobalTempFilePathString.clear();
 
 				Gui::PopItemWidth();
 
