@@ -56,7 +56,6 @@ namespace Comfy::Studio::Editor
 		bool thisFrameAnyItemActive = false, lastFrameAnyItemActive = false;
 
 		bool alwaysShowVerticalScrollBar = false;
-		bool showRarelyUsedSettings = false;
 		bool pendingChanges = false;
 
 		i32 selectedTabIndex = {};

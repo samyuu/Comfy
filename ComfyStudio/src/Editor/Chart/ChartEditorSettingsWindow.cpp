@@ -1159,9 +1159,6 @@ namespace Comfy::Studio::Editor
 			}
 			GuiSettingsRighSideHelpMarker("The distance target positions will be moved by when pressing a directional move key" CHART_EDITOR_SETTINGS_WINDOW_NEW_LINE_SHIFT_ALT_ROUGH_PRECISE_HELP_MARKER_DESC);
 
-			if (showRarelyUsedSettings)
-				pendingChanges |= GuiSettingsInputF32("Mouse Row Center Distance Threshold", userData.PositionTool.MouseRowCenterDistanceThreshold, 0.0f, 0.0f, ImGuiTextFlags_None, "%.2f px");
-
 			Gui::Separator();
 
 			pendingChanges |= GuiSettingsCheckbox("Show Distance Guide Circles", userData.PositionTool.ShowDistanceGuides);
@@ -1218,9 +1215,6 @@ namespace Comfy::Studio::Editor
 
 			pendingChanges |= GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold, 0.0f, 0.0f, ImGuiTextFlags_None, "%.0f px");
 			GuiSettingsRighSideHelpMarker("The distance threshold from the initial left-click mouse position after which when moved past angles can be edited via the mouse");
-
-			if (showRarelyUsedSettings)
-				pendingChanges |= GuiSettingsInputF32("Angle Mouse Target Center Threshold", userData.PathTool.AngleMouseTargetCenterDistanceThreshold, 0.0f, 0.0f, ImGuiTextFlags_None, "%.2f px");
 
 			GuiEndSettingsColumns();
 		}
