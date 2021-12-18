@@ -600,6 +600,9 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetTimeline_AdjustPauseTimeByAudioBufferDuration = "adjust_pause_time_by_audio_buffer_duration";
 		constexpr std::string_view TargetTimeline_FocusOffscreenCursorOnResume = "focus_offscreen_cursor_on_resume";
 		constexpr std::string_view TargetTimeline_FocusOffscreenCursorOnResumeEdgePixelOffset = "focus_offscreen_cursor_on_resume_edge_pixel_offset";
+		constexpr std::string_view TargetTimeline_EnableExperimentalPlaybackAutoScrollCursorLocking = "enable_experimental_playback_auto_scroll_cursor_locking";
+		constexpr std::string_view TargetTimeline_WaveformDisabled = "waveform_disabled";
+		constexpr std::string_view TargetTimeline_WaveformDisableTextureCache = "waveform_disable_texture_cache";
 
 		constexpr std::string_view TargetPreview = "target_preview";
 		constexpr std::string_view TargetPreview_ShowButtons = "show_buttons";
@@ -1138,6 +1141,10 @@ namespace Comfy::Studio
 			TryAssign(TargetTimeline.AdjustPauseTimeByAudioBufferDuration, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_AdjustPauseTimeByAudioBufferDuration)));
 			TryAssign(TargetTimeline.FocusOffscreenCursorOnResume, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_FocusOffscreenCursorOnResume)));
 			TryAssign(TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_FocusOffscreenCursorOnResumeEdgePixelOffset)));
+
+			TryAssign(TargetTimeline.EnableExperimentalPlaybackAutoScrollCursorLocking, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_EnableExperimentalPlaybackAutoScrollCursorLocking)));
+			TryAssign(TargetTimeline.WaveformDisabled, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_WaveformDisabled)));
+			TryAssign(TargetTimeline.WaveformDisableTextureCache, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_WaveformDisableTextureCache)));
 		}
 
 		if (const Value* targetPreviewJson = Find(rootJson, UserIDs::TargetPreview))
@@ -1566,6 +1573,10 @@ namespace Comfy::Studio
 				writer.MemberBool(UserIDs::TargetTimeline_AdjustPauseTimeByAudioBufferDuration, TargetTimeline.AdjustPauseTimeByAudioBufferDuration);
 				writer.MemberBool(UserIDs::TargetTimeline_FocusOffscreenCursorOnResume, TargetTimeline.FocusOffscreenCursorOnResume);
 				writer.MemberF32(UserIDs::TargetTimeline_FocusOffscreenCursorOnResumeEdgePixelOffset, TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset);
+
+				writer.MemberBool(UserIDs::TargetTimeline_EnableExperimentalPlaybackAutoScrollCursorLocking, TargetTimeline.EnableExperimentalPlaybackAutoScrollCursorLocking);
+				writer.MemberBool(UserIDs::TargetTimeline_WaveformDisabled, TargetTimeline.WaveformDisabled);
+				writer.MemberBool(UserIDs::TargetTimeline_WaveformDisableTextureCache, TargetTimeline.WaveformDisableTextureCache);
 			}
 			writer.MemberObjectEnd();
 
@@ -2003,6 +2014,9 @@ namespace Comfy::Studio
 		TargetTimeline.AdjustPauseTimeByAudioBufferDuration = true;
 		TargetTimeline.FocusOffscreenCursorOnResume = true;
 		TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset = 96.0f;
+		TargetTimeline.EnableExperimentalPlaybackAutoScrollCursorLocking = true;
+		TargetTimeline.WaveformDisabled = false;
+		TargetTimeline.WaveformDisableTextureCache = false;
 
 		TargetPreview.ShowButtons = true;
 		TargetPreview.ShowHoldInfo = true;

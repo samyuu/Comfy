@@ -157,7 +157,7 @@ namespace Comfy::Studio::Editor
 
 		void DrawTimelineTempoMap();
 		void DrawStartEndMarkers();
-		
+
 		void DrawRangeSelection();
 
 		void DrawTimelineTargets();
@@ -264,7 +264,6 @@ namespace Comfy::Studio::Editor
 		TimelineMetronome metronome = {};
 
 		bool waveformUpdatePending = true;
-		bool waveformDrawIndividualLines = false;
 
 		Audio::Waveform songWaveform;
 		Audio::TextureCachedWaveform songTextureCachedWaveform =

@@ -170,6 +170,7 @@ namespace Comfy::Studio::Editor
 			guiFrameCountAfterWhichToFocusWindow = {};
 		}
 
+		enablePlaybackAutoScrollLocking = GlobalUserData.TargetTimeline.EnableExperimentalPlaybackAutoScrollCursorLocking;
 		mouseScrollSpeed = GlobalUserData.TargetTimeline.MouseWheelScrollSpeed * GlobalUserData.TargetTimeline.MouseWheelScrollDirection;
 		mouseScrollSpeedShift = GlobalUserData.TargetTimeline.MouseWheelScrollSpeedShift * GlobalUserData.TargetTimeline.MouseWheelScrollDirection;
 		smoothScrollSpeedSec.x = GlobalUserData.TargetTimeline.SmoothScrollSpeedSec;
@@ -602,6 +603,9 @@ namespace Comfy::Studio::Editor
 		if (zoomLevelChangedThisFrame)
 			waveformUpdatePending = true;
 
+		if (GlobalUserData.TargetTimeline.WaveformDisabled)
+			return;
+
 		if (waveformUpdatePending && waveformUpdateStopwatch.GetElapsed() >= waveformUpdateInterval)
 		{
 			if (const bool waveformLoadedForNewSong = (songWaveform.GetPixelCount() <= 0); waveformLoadedForNewSong)
@@ -626,7 +630,7 @@ namespace Comfy::Studio::Editor
 		waveformDrawIndividualLines = Gui::IsKeyDown(Input::KeyCode_F1);
 #endif
 
-		if (waveformDrawIndividualLines)
+		if (GlobalUserData.TargetTimeline.WaveformDisableTextureCache)
 			DrawWaveformIndividualVertexLines();
 		else
 			DrawTextureCachedWaveform();
