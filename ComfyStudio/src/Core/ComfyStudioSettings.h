@@ -60,7 +60,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 39, 1 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 40, 1 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -349,6 +349,8 @@ namespace Comfy::Studio
 			f32 AngleMouseScrollPrecise;
 			f32 AngleMouseMovementDistanceThreshold;
 			f32 AngleMouseTargetCenterDistanceThreshold;
+			bool ShowButtonPathCurvesWhileEditing;
+			bool ShowPrimaryTargetButtonPath;
 		} PathTool;
 
 		struct

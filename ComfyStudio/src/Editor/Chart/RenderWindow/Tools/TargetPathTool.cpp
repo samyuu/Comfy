@@ -132,19 +132,29 @@ namespace Comfy::Studio::Editor
 
 	void TargetPathTool::DrawTargetAngleGuides(Chart& chart, ImDrawList& drawList)
 	{
-		const i32 maxPathsToDraw = GlobalUserData.System.Gui.TargetButtonPathMaxCount;
-		i32 pathDrawCount = 0;
+		constexpr u8 buttonPathAlphaActive = 0x76, buttonPathAlphaInactive = 0xD6;
+		constexpr u32 problematicButtonSpawnArrowColor = 0xD6808080;
+		constexpr f32 pathThickness = 2.0f;
 
+		const i32 settingMaxPathsToDraw = GlobalUserData.System.Gui.TargetButtonPathMaxCount;
+		const bool settingShowStraightPaths = !GlobalUserData.PathTool.ShowButtonPathCurvesWhileEditing;
+		const bool settingAlsoShowDragTargetPath = (GlobalUserData.PathTool.ShowPrimaryTargetButtonPath && !settingShowStraightPaths);
+
+		i32 pathsDrawnSoFar = 0;
 		if (angleDrag.Active || angleScroll.Active)
 		{
 			const auto* dragTarget = IndexOrNull(angleDrag.Active ? angleDrag.TargetIndex : angleScroll.TargetIndex, chart.Targets);
 
 			for (auto& target : chart.Targets)
 			{
-				if (target.IsSelected && &target != dragTarget)
+				if (target.IsSelected && (settingAlsoShowDragTargetPath || &target != dragTarget))
 				{
-					DrawStraightButtonAngleLine(renderWindow, drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0x76), 2.0f);
-					if (pathDrawCount++ >= maxPathsToDraw)
+					if (settingShowStraightPaths)
+						DrawStraightButtonAngleLine(renderWindow, drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, buttonPathAlphaActive), pathThickness);
+					else
+						DrawCurvedButtonPathLine(renderWindow, drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, buttonPathAlphaActive), pathThickness);
+
+					if (pathsDrawnSoFar++ >= settingMaxPathsToDraw)
 						break;
 				}
 			}
@@ -152,10 +162,10 @@ namespace Comfy::Studio::Editor
 			// NOTE: For readibility sake always draw the main drag arrow on top
 			if (dragTarget != nullptr)
 			{
-				u32 problematicButtonSpawnArrowColor = 0xD6808080;
 				const auto dragTargetProperties = Rules::TryGetProperties(*dragTarget);
-				const u32 arrowColor = Rules::ButtonSpawnsOffScreen(dragTargetProperties) ? GetButtonTypeColorU32(dragTarget->Type, 0xD6) : problematicButtonSpawnArrowColor;
-				DrawCurvedButtonPathLineArrowHeads(renderWindow, drawList, dragTargetProperties, arrowColor, 2.0f);
+				const u32 arrowColor = Rules::ButtonSpawnsOffScreen(dragTargetProperties) ? GetButtonTypeColorU32(dragTarget->Type, buttonPathAlphaInactive) : problematicButtonSpawnArrowColor;
+
+				DrawCurvedButtonPathLineArrowHeads(renderWindow, drawList, dragTargetProperties, arrowColor, pathThickness);
 			}
 		}
 		else
@@ -164,8 +174,9 @@ namespace Comfy::Studio::Editor
 			{
 				if (target.IsSelected)
 				{
-					DrawCurvedButtonPathLine(renderWindow, drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, 0xD6), 2.0f);
-					if (pathDrawCount++ >= maxPathsToDraw)
+					DrawCurvedButtonPathLine(renderWindow, drawList, Rules::TryGetProperties(target), GetButtonTypeColorU32(target.Type, buttonPathAlphaInactive), pathThickness);
+
+					if (pathsDrawnSoFar++ >= settingMaxPathsToDraw)
 						break;
 				}
 			}

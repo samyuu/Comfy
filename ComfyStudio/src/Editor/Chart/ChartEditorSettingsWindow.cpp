@@ -1216,6 +1216,18 @@ namespace Comfy::Studio::Editor
 			pendingChanges |= GuiSettingsInputF32("Angle Mouse Movement Threshold", userData.PathTool.AngleMouseMovementDistanceThreshold, 0.0f, 0.0f, ImGuiTextFlags_None, "%.0f px");
 			GuiSettingsRighSideHelpMarker("The distance threshold from the initial left-click mouse position after which when moved past angles can be edited via the mouse");
 
+			Gui::Separator();
+
+			pendingChanges |= GuiSettingsCheckbox("Show Button Path Curves while Editing", userData.PathTool.ShowButtonPathCurvesWhileEditing);
+			GuiSettingsRighSideHelpMarker("Visualizes the button paths of targets that are being edited as a curve matching the frequency and amplitude instead of a straight line only matching the angle");
+
+			// NOTE: Because drawing a straight line path underneath the primary target angle arrow doesn't make too much sense
+			const bool showingStraightLinePathForPrimaryIsRedundant = !userData.PathTool.ShowButtonPathCurvesWhileEditing;
+			Gui::PushItemDisabledAndTextColorIf(showingStraightLinePathForPrimaryIsRedundant);
+			pendingChanges |= GuiSettingsCheckbox("Show Primary Target Button Path", userData.PathTool.ShowPrimaryTargetButtonPath);
+			GuiSettingsRighSideHelpMarker("Also visualizes the button path underneath the currently being edited primary target instead of only an angle arrow");
+			Gui::PopItemDisabledAndTextColorIf(showingStraightLinePathForPrimaryIsRedundant);
+
 			GuiEndSettingsColumns();
 		}
 	}

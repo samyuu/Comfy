@@ -637,6 +637,8 @@ namespace Comfy::Studio
 		constexpr std::string_view PathTool_AngleMouseScrollPrecise = "angle_mouse_scroll_step_precise";
 		constexpr std::string_view PathTool_AngleMouseMovementDistanceThreshold = "angle_mouse_movement_distance_threshold";
 		constexpr std::string_view PathTool_AngleMouseTargetCenterDistanceThreshold = "angle_mouse_target_center_distance_threshold";
+		constexpr std::string_view PathTool_ShowButtonPathCurvesWhileEditing = "show_button_path_curves_while_editing";
+		constexpr std::string_view PathTool_ShowPrimaryTargetButtonPath = "show_primary_target_button_path";
 
 		constexpr std::string_view TargetPreset = "target_preset";
 		constexpr std::string_view TargetPreset_StaticSyncPresets = "static_sync_presets";
@@ -1194,6 +1196,8 @@ namespace Comfy::Studio
 			TryAssign(PathTool.AngleMouseScrollPrecise, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseScrollPrecise)));
 			TryAssign(PathTool.AngleMouseMovementDistanceThreshold, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseMovementDistanceThreshold)));
 			TryAssign(PathTool.AngleMouseTargetCenterDistanceThreshold, TryGetF32(Find(*pathToolJson, UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold)));
+			TryAssign(PathTool.ShowButtonPathCurvesWhileEditing, TryGetBool(Find(*pathToolJson, UserIDs::PathTool_ShowButtonPathCurvesWhileEditing)));
+			TryAssign(PathTool.ShowPrimaryTargetButtonPath, TryGetBool(Find(*pathToolJson, UserIDs::PathTool_ShowPrimaryTargetButtonPath)));
 		}
 
 		if (const Value* targetPresetJson = Find(rootJson, UserIDs::TargetPreset))
@@ -1629,6 +1633,8 @@ namespace Comfy::Studio
 				writer.MemberF32(UserIDs::PathTool_AngleMouseScrollPrecise, PathTool.AngleMouseScrollPrecise);
 				writer.MemberF32(UserIDs::PathTool_AngleMouseMovementDistanceThreshold, PathTool.AngleMouseMovementDistanceThreshold);
 				writer.MemberF32(UserIDs::PathTool_AngleMouseTargetCenterDistanceThreshold, PathTool.AngleMouseTargetCenterDistanceThreshold);
+				writer.MemberBool(UserIDs::PathTool_ShowButtonPathCurvesWhileEditing, PathTool.ShowButtonPathCurvesWhileEditing);
+				writer.MemberBool(UserIDs::PathTool_ShowPrimaryTargetButtonPath, PathTool.ShowPrimaryTargetButtonPath);
 			}
 			writer.MemberObjectEnd();
 
@@ -2048,6 +2054,8 @@ namespace Comfy::Studio
 		PathTool.AngleMouseScrollPrecise = 0.1f;
 		PathTool.AngleMouseMovementDistanceThreshold = 3.0f;
 		PathTool.AngleMouseTargetCenterDistanceThreshold = 4.0f;
+		PathTool.ShowButtonPathCurvesWhileEditing = true;
+		PathTool.ShowPrimaryTargetButtonPath = true;
 
 		TargetPreset.StaticSyncPresets = GetDefaultStaticSyncPresets();
 		TargetPreset.SequencePresets = GetDefaultSequencePresets();
