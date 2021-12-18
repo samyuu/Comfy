@@ -1483,40 +1483,6 @@ namespace Comfy::Studio
 			}
 			writer.MemberObjectEnd();
 
-			writer.MemberObjectBegin(UserIDs::Input);
-			{
-				writer.MemberArrayBegin(UserIDs::Input_ControllerLayoutMappings);
-				{
-					for (const auto& layoutMapping : Input.ControllerLayoutMappings)
-						writer.Str(Input::ControllerLayoutMappingToStorageString(layoutMapping));
-				}
-				writer.MemberArrayEnd();
-
-				writer.MemberObjectBegin(UserIDs::Input_Bindings);
-				{
-					UserIDs::ForEachMultiBindingWithID(*const_cast<ComfyStudioUserSettings*>(this), [&](const Input::MultiBinding& multiBinding, std::string_view multiBindingID)
-					{
-						writer.MemberArrayBegin(multiBindingID);
-						{
-							for (const auto& binding : multiBinding)
-								writer.Str(Input::BindingToStorageString(binding).data());
-						}
-						writer.MemberArrayEnd();
-					});
-				}
-				writer.MemberObjectEnd();
-
-				writer.MemberArrayBegin(UserIDs::Input_PlaytestBindings);
-				{
-					for (const auto& playtestBinding : Input.PlaytestBindings)
-						writer.Str(PlayTestBindingToStorageString(playtestBinding).data());
-				}
-				writer.MemberArrayEnd();
-
-
-			}
-			writer.MemberObjectEnd();
-
 			writer.MemberObjectBegin(UserIDs::TargetTimeline);
 			{
 				writer.MemberF32(UserIDs::TargetTimeline_MouseWheelScrollDirection, TargetTimeline.MouseWheelScrollDirection);
@@ -1638,84 +1604,6 @@ namespace Comfy::Studio
 			}
 			writer.MemberObjectEnd();
 
-			writer.MemberObjectBegin(UserIDs::TargetPreset);
-			{
-				writer.MemberArrayBegin(UserIDs::TargetPreset_StaticSyncPresets);
-				{
-					for (const auto& syncPreset : TargetPreset.StaticSyncPresets)
-					{
-						writer.ObjectBegin();
-						writer.MemberStr(UserIDs::TargetPreset_StaticSyncPresets_Name, syncPreset.Name);
-						writer.MemberArrayBegin(UserIDs::TargetPreset_StaticSyncPresets_Targets);
-						{
-							for (size_t i = 0; i < syncPreset.TargetCount; i++)
-							{
-								const auto& targetData = syncPreset.Targets[i];
-
-								writer.ObjectBegin();
-								writer.MemberEnumStr(UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType, targetData.Type, UserIDs::ButtonTypeEnumNames);
-
-								writer.MemberObjectBegin(UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties);
-								writer.MemberF32(IDs::TargetProperties_PositionX, targetData.Properties.Position.x);
-								writer.MemberF32(IDs::TargetProperties_PositionY, targetData.Properties.Position.y);
-								writer.MemberF32(IDs::TargetProperties_Angle, targetData.Properties.Angle);
-								writer.MemberF32(IDs::TargetProperties_Frequency, targetData.Properties.Frequency);
-								writer.MemberF32(IDs::TargetProperties_Amplitude, targetData.Properties.Amplitude);
-								writer.MemberF32(IDs::TargetProperties_Distance, targetData.Properties.Distance);
-								writer.MemberObjectEnd();
-
-								writer.ObjectEnd();
-							}
-						}
-						writer.MemberArrayEnd();
-						writer.ObjectEnd();
-					}
-				}
-				writer.MemberArrayEnd();
-
-				writer.MemberArrayBegin(UserIDs::TargetPreset_SequencePresets);
-				{
-					for (const auto& sequencePreset : TargetPreset.SequencePresets)
-					{
-						writer.ObjectBegin();
-
-						writer.MemberEnumStr(UserIDs::TargetPreset_SequencePresets_GuiButtonType, sequencePreset.ButtonType, UserIDs::SequencePresetButtonTypeEnumNames);
-						writer.MemberStr(UserIDs::TargetPreset_SequencePresets_Name, sequencePreset.Name);
-
-						if (sequencePreset.Type == SequencePresetType::Circle)
-						{
-							writer.MemberObjectBegin(UserIDs::TargetPreset_SequencePresets_Circle);
-							writer.MemberI32(UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks, sequencePreset.Circle.Duration.Ticks());
-							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_Radius, sequencePreset.Circle.Radius);
-							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_Direction, sequencePreset.Circle.Direction);
-							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_CenterX, sequencePreset.Circle.Center.x);
-							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_CenterY, sequencePreset.Circle.Center.y);
-							writer.MemberObjectEnd();
-						}
-						else if (sequencePreset.Type == SequencePresetType::BezierPath)
-						{
-							writer.MemberObjectBegin(UserIDs::TargetPreset_SequencePresets_BezierPath);
-							// TODO: ...
-							writer.MemberObjectEnd();
-						}
-						writer.ObjectEnd();
-					}
-				}
-				writer.MemberArrayEnd();
-
-				writer.MemberObjectBegin(UserIDs::TargetPreset_InspectorDropdown);
-				{
-					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_PositionsX, TargetPreset.InspectorDropdown.PositionsX);
-					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_PositionsY, TargetPreset.InspectorDropdown.PositionsY);
-					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Angles, TargetPreset.InspectorDropdown.Angles);
-					memberI32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Frequencies, TargetPreset.InspectorDropdown.Frequencies);
-					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Amplitudes, TargetPreset.InspectorDropdown.Amplitudes);
-					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Distances, TargetPreset.InspectorDropdown.Distances);
-				}
-				writer.MemberObjectEnd();
-			}
-			writer.MemberObjectEnd();
-
 			writer.MemberObjectBegin(UserIDs::ChartProperties);
 			{
 				writer.MemberObjectBegin(UserIDs::ChartProperties_Default);
@@ -1796,6 +1684,120 @@ namespace Comfy::Studio
 					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_OverlayColor, Interface.ImageMovieBackground.OverlayColor);
 					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_OverlayColorGrid, Interface.ImageMovieBackground.OverlayColorGrid);
 					writer.MemberHexRGBAStr(UserIDs::Interface_ImageMovieBackground_PreStartPostEndMovieColor, Interface.ImageMovieBackground.PreStartPostEndMovieColor);
+				}
+				writer.MemberObjectEnd();
+			}
+			writer.MemberObjectEnd();
+
+			// NOTE: Write variable length and large json objects last to make external editing by the user easier
+
+			writer.MemberObjectBegin(UserIDs::Input);
+			{
+				writer.MemberArrayBegin(UserIDs::Input_ControllerLayoutMappings);
+				{
+					for (const auto& layoutMapping : Input.ControllerLayoutMappings)
+						writer.Str(Input::ControllerLayoutMappingToStorageString(layoutMapping));
+				}
+				writer.MemberArrayEnd();
+
+				writer.MemberObjectBegin(UserIDs::Input_Bindings);
+				{
+					UserIDs::ForEachMultiBindingWithID(*const_cast<ComfyStudioUserSettings*>(this), [&](const Input::MultiBinding& multiBinding, std::string_view multiBindingID)
+					{
+						writer.MemberArrayBegin(multiBindingID);
+						{
+							for (const auto& binding : multiBinding)
+								writer.Str(Input::BindingToStorageString(binding).data());
+						}
+						writer.MemberArrayEnd();
+					});
+				}
+				writer.MemberObjectEnd();
+
+				writer.MemberArrayBegin(UserIDs::Input_PlaytestBindings);
+				{
+					for (const auto& playtestBinding : Input.PlaytestBindings)
+						writer.Str(PlayTestBindingToStorageString(playtestBinding).data());
+				}
+				writer.MemberArrayEnd();
+
+
+			}
+			writer.MemberObjectEnd();
+
+			writer.MemberObjectBegin(UserIDs::TargetPreset);
+			{
+				writer.MemberArrayBegin(UserIDs::TargetPreset_StaticSyncPresets);
+				{
+					for (const auto& syncPreset : TargetPreset.StaticSyncPresets)
+					{
+						writer.ObjectBegin();
+						writer.MemberStr(UserIDs::TargetPreset_StaticSyncPresets_Name, syncPreset.Name);
+						writer.MemberArrayBegin(UserIDs::TargetPreset_StaticSyncPresets_Targets);
+						{
+							for (size_t i = 0; i < syncPreset.TargetCount; i++)
+							{
+								const auto& targetData = syncPreset.Targets[i];
+
+								writer.ObjectBegin();
+								writer.MemberEnumStr(UserIDs::TargetPreset_StaticSyncPresets_Targets_ButtonType, targetData.Type, UserIDs::ButtonTypeEnumNames);
+
+								writer.MemberObjectBegin(UserIDs::TargetPreset_StaticSyncPresets_Targets_Properties);
+								writer.MemberF32(IDs::TargetProperties_PositionX, targetData.Properties.Position.x);
+								writer.MemberF32(IDs::TargetProperties_PositionY, targetData.Properties.Position.y);
+								writer.MemberF32(IDs::TargetProperties_Angle, targetData.Properties.Angle);
+								writer.MemberF32(IDs::TargetProperties_Frequency, targetData.Properties.Frequency);
+								writer.MemberF32(IDs::TargetProperties_Amplitude, targetData.Properties.Amplitude);
+								writer.MemberF32(IDs::TargetProperties_Distance, targetData.Properties.Distance);
+								writer.MemberObjectEnd();
+
+								writer.ObjectEnd();
+							}
+						}
+						writer.MemberArrayEnd();
+						writer.ObjectEnd();
+					}
+				}
+				writer.MemberArrayEnd();
+
+				writer.MemberArrayBegin(UserIDs::TargetPreset_SequencePresets);
+				{
+					for (const auto& sequencePreset : TargetPreset.SequencePresets)
+					{
+						writer.ObjectBegin();
+
+						writer.MemberEnumStr(UserIDs::TargetPreset_SequencePresets_GuiButtonType, sequencePreset.ButtonType, UserIDs::SequencePresetButtonTypeEnumNames);
+						writer.MemberStr(UserIDs::TargetPreset_SequencePresets_Name, sequencePreset.Name);
+
+						if (sequencePreset.Type == SequencePresetType::Circle)
+						{
+							writer.MemberObjectBegin(UserIDs::TargetPreset_SequencePresets_Circle);
+							writer.MemberI32(UserIDs::TargetPreset_SequencePresets_Circle_DurationTicks, sequencePreset.Circle.Duration.Ticks());
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_Radius, sequencePreset.Circle.Radius);
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_Direction, sequencePreset.Circle.Direction);
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_CenterX, sequencePreset.Circle.Center.x);
+							writer.MemberF32(UserIDs::TargetPreset_SequencePresets_Circle_CenterY, sequencePreset.Circle.Center.y);
+							writer.MemberObjectEnd();
+						}
+						else if (sequencePreset.Type == SequencePresetType::BezierPath)
+						{
+							writer.MemberObjectBegin(UserIDs::TargetPreset_SequencePresets_BezierPath);
+							// TODO: ...
+							writer.MemberObjectEnd();
+						}
+						writer.ObjectEnd();
+					}
+				}
+				writer.MemberArrayEnd();
+
+				writer.MemberObjectBegin(UserIDs::TargetPreset_InspectorDropdown);
+				{
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_PositionsX, TargetPreset.InspectorDropdown.PositionsX);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_PositionsY, TargetPreset.InspectorDropdown.PositionsY);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Angles, TargetPreset.InspectorDropdown.Angles);
+					memberI32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Frequencies, TargetPreset.InspectorDropdown.Frequencies);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Amplitudes, TargetPreset.InspectorDropdown.Amplitudes);
+					memberF32Vector(writer, UserIDs::TargetPreset_InspectorDropdown_Distances, TargetPreset.InspectorDropdown.Distances);
 				}
 				writer.MemberObjectEnd();
 			}
