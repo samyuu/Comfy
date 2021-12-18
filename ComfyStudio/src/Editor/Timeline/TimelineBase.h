@@ -123,6 +123,7 @@ namespace Comfy::Studio::Editor
 
 		virtual void OnInfoColumnScroll();
 		virtual void OnTimelineBaseScroll();
+		virtual void OnTimelineBaseMouseWheelZoom();
 
 		f32 UpdateCursorAutoScrollX();
 

@@ -2634,6 +2634,22 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	void TargetTimeline::OnTimelineBaseMouseWheelZoom()
+	{
+		const f32 newZoomFactor = (Gui::GetIO().MouseWheel > 0.0f) ? 1.1f : 0.9f;
+		const f32 newZoom = (zoomLevel * newZoomFactor);
+
+		if (GlobalUserData.TargetTimeline.MouseWheelZoomAroundTimelineCursorDuringPlayback && GetIsPlayback() && IsCursorOnScreen())
+		{
+			SetZoomCenteredAroundCursor(newZoom);
+		}
+		else
+		{
+			const TimeSpan timeToCenterAround = GetTimelineTime(ScreenToTimelinePosition(Gui::GetMousePos().x));
+			SetZoomCenteredAroundTime(newZoom, timeToCenterAround);
+		}
+	}
+
 	f32 TargetTimeline::GetDerivedClassPlaybackSpeedOverride() const
 	{
 		return chartEditor.GetSongVoice().GetPlaybackSpeed();

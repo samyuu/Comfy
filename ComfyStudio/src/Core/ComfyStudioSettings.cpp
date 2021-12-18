@@ -583,6 +583,7 @@ namespace Comfy::Studio
 		constexpr std::string_view TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiShared = "playback_cursor_placement_offset_sec_wasapi_shared";
 		constexpr std::string_view TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiExclusive = "playback_cursor_placement_offset_sec_wasapi_exclusive";
 		constexpr std::string_view TargetTimeline_SmoothScrollSpeedSec = "smooth_scroll_speed_sec";
+		constexpr std::string_view TargetTimeline_MouseWheelZoomAroundTimelineCursorDuringPlayback = "mouse_wheel_zoom_around_timeline_cursor_during_playback";
 		constexpr std::string_view TargetTimeline_ShowStartEndMarkersSong = "show_start_end_markers_song";
 		constexpr std::string_view TargetTimeline_ShowStartEndMarkersMovie = "show_start_end_markers_movie";
 		constexpr std::string_view TargetTimeline_ScalingBehaviorAutoFit = "scaling_behavior_auto_fit";
@@ -1109,6 +1110,7 @@ namespace Comfy::Studio
 				TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive = TimeSpan::FromSeconds(v.value());
 
 			TryAssign(TargetTimeline.SmoothScrollSpeedSec, TryGetF32(Find(*targetTimelineJson, UserIDs::TargetTimeline_SmoothScrollSpeedSec)));
+			TryAssign(TargetTimeline.MouseWheelZoomAroundTimelineCursorDuringPlayback, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_MouseWheelZoomAroundTimelineCursorDuringPlayback)));
 
 			TryAssign(TargetTimeline.ShowStartEndMarkersSong, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_ShowStartEndMarkersSong)));
 			TryAssign(TargetTimeline.ShowStartEndMarkersMovie, TryGetBool(Find(*targetTimelineJson, UserIDs::TargetTimeline_ShowStartEndMarkersMovie)));
@@ -1497,6 +1499,7 @@ namespace Comfy::Studio
 				writer.MemberF64(UserIDs::TargetTimeline_PlaybackCursorPlacementOffsetSecWasapiExclusive, TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive.TotalSeconds());
 
 				writer.MemberF32(UserIDs::TargetTimeline_SmoothScrollSpeedSec, TargetTimeline.SmoothScrollSpeedSec);
+				writer.MemberBool(UserIDs::TargetTimeline_MouseWheelZoomAroundTimelineCursorDuringPlayback, TargetTimeline.MouseWheelZoomAroundTimelineCursorDuringPlayback);
 
 				writer.MemberBool(UserIDs::TargetTimeline_ShowStartEndMarkersSong, TargetTimeline.ShowStartEndMarkersSong);
 				writer.MemberBool(UserIDs::TargetTimeline_ShowStartEndMarkersMovie, TargetTimeline.ShowStartEndMarkersMovie);
@@ -2007,6 +2010,7 @@ namespace Comfy::Studio
 		TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared = TimeSpan::Zero();
 		TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive = TimeSpan::Zero();
 		TargetTimeline.SmoothScrollSpeedSec = TimelineDefaultSmoothScrollSpeedSec.x;
+		TargetTimeline.MouseWheelZoomAroundTimelineCursorDuringPlayback = false;
 		TargetTimeline.ShowStartEndMarkersSong = true;
 		TargetTimeline.ShowStartEndMarkersMovie = true;
 		TargetTimeline.ScalingBehavior = TargetTimelineScalingBehavior::AutoFit;

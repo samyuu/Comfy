@@ -1043,6 +1043,9 @@ namespace Comfy::Studio::Editor
 
 			Gui::Separator();
 
+			pendingChanges |= GuiSettingsCheckbox("Mouse Zoom around Playback Cursor", userData.TargetTimeline.MouseWheelZoomAroundTimelineCursorDuringPlayback);
+			GuiSettingsRighSideHelpMarker("Mouse wheel zooms around the timeline cursor position during playback instead of the mouse position");
+
 			if (auto v = userData.TargetTimeline.ShowStartEndMarkersSong && userData.TargetTimeline.ShowStartEndMarkersMovie;
 				GuiSettingsCheckbox("Show Start / End Markers", v))
 			{

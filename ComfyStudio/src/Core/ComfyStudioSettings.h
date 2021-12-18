@@ -60,7 +60,7 @@ namespace Comfy::Studio
 	// NOTE: Loaded at startup but only saved when manually edited by the user via a settings window
 	struct ComfyStudioUserSettings
 	{
-		static constexpr SemanticVersion CurrentVersion = { 1, 41, 1 };
+		static constexpr SemanticVersion CurrentVersion = { 1, 42, 1 };
 
 		bool LoadFromFile(std::string_view filePath = ComfyStudioUserSettingsFilePath);
 		void SaveToFile(std::string_view filePath = ComfyStudioUserSettingsFilePath) const;
@@ -277,6 +277,7 @@ namespace Comfy::Studio
 			TimeSpan PlaybackCursorPlacementOffsetWasapiExclusive;
 
 			f32 SmoothScrollSpeedSec;
+			bool MouseWheelZoomAroundTimelineCursorDuringPlayback;
 
 			bool ShowStartEndMarkersSong;
 			bool ShowStartEndMarkersMovie;

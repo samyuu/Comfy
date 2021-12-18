@@ -273,15 +273,7 @@ namespace Comfy::Studio::Editor
 		{
 			if (io.KeyAlt) // NOTE: Zoom timeline
 			{
-				const f32 factor = (io.MouseWheel > 0.0f) ? 1.1f : 0.9f;
-				const f32 newZoom = (zoomLevel * factor);
-
-#if 0
-				SetZoomCenteredAroundCursor(newZoom);
-#else
-				const auto timeToCenterAround = GetTimelineTime(ScreenToTimelinePosition(Gui::GetMousePos().x));
-				SetZoomCenteredAroundTime(newZoom, timeToCenterAround);
-#endif
+				OnTimelineBaseMouseWheelZoom();
 			}
 			else if (!io.KeyCtrl) // NOTE: Scroll timeline
 			{
@@ -356,6 +348,15 @@ namespace Comfy::Studio::Editor
 
 		scrollTarget.x = (scrollTarget.x + io.MouseWheel * scrollStep);
 		InvalidateAutoScrollLock();
+	}
+
+	void TimelineBase::OnTimelineBaseMouseWheelZoom()
+	{
+		const f32 newZoomFactor = (Gui::GetIO().MouseWheel > 0.0f) ? 1.1f : 0.9f;
+		const f32 newZoom = (zoomLevel * newZoomFactor);
+
+		const TimeSpan timeToCenterAround = GetTimelineTime(ScreenToTimelinePosition(Gui::GetMousePos().x));
+		SetZoomCenteredAroundTime(newZoom, timeToCenterAround);
 	}
 
 	void TimelineBase::DrawTimelineGui()
