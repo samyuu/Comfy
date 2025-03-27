@@ -7,6 +7,379 @@
 #include "ImGui/Extensions/ImGuiExtensions.h"
 #include <FontIcons.h>
 
+// TODO: Implement a "Curve Placement Tool" instead (?) similar to how bezier curves can be edited in blender
+#define COMFY_BEZIER_TEST 0
+
+#if COMFY_BEZIER_TEST
+#include "Misc/BezierCurve.h"
+
+// TODO: Try to accurately recreate patterns in official charts, test what distance factors they use
+/*
+- seperate "fullscreen" popup window for editing the bezier paths to reduce dependencies to and from other systems
+- list of selecable paths, just like for sync presets with button hover preview
+- helper menu options for forming circle paths etc.
+- zoom in
+- multi keypoint selection like blender
+- preset independent beat offset to be applied to all selected targets before calculating properties
+curve path distance *should* be based on the curve distance not of the finite sampled points targets from one to another (?)
+- different placement options, either position targets based on their correct beat distance *or* space all selected targets evenly along curve path (?)
+- preset option to round position to nearest pixel and angle to nearest whole (?)
+
+... maybe special case small/large circles, as they require perfect precision (?)
+*/
+
+/*
+#Comfy::Studio::ChartEditor Clipboard 9f88783c
+Target { 192 3 1 0 0 0 1440.00 504.00 175.00 -2.00 500.00 1440.00 };
+Target { 240 2 1 0 0 0 1248.00 504.00 173.00 -2.00 500.00 1440.00 };
+Target { 276 1 1 0 0 0 1104.00 504.00 171.50 -2.00 500.00 1440.00 };
+Target { 288 1 1 0 0 0 1056.00 504.00 171.00 -2.00 500.00 1440.00 };
+Target { 312 1 1 0 0 0 960.00 504.00 170.00 -2.00 500.00 1440.00 };
+Target { 336 1 1 0 0 0 868.00 532.00 60.00 2.00 500.00 1440.00 };
+Target { 360 1 1 0 0 0 808.00 604.00 30.00 2.00 500.00 1440.00 };
+Target { 384 0 1 0 0 0 792.00 696.00 0.00 2.00 500.00 1440.00 };
+Target { 408 0 1 0 0 0 832.00 784.00 -30.00 2.00 500.00 1440.00 };
+Target { 432 1 1 0 0 0 912.00 832.00 -60.00 2.00 500.00 1440.00 };
+Target { 456 1 1 0 0 0 1008.00 832.00 -90.00 2.00 500.00 1440.00 };
+Target { 480 2 1 0 0 0 1088.00 784.00 -120.00 2.00 500.00 1440.00 };
+Target { 504 2 1 0 0 0 1128.00 696.00 -150.00 2.00 500.00 1440.00 };
+Target { 528 3 1 0 0 0 1112.00 604.00 -180.00 2.00 500.00 1440.00 };
+Target { 552 3 1 0 0 0 1052.00 532.00 -210.00 2.00 500.00 1440.00 };
+Target { 576 0 1 1 0 0 960.00 216.00 -35.00 0.00 500.00 1152.00 };
+Target { 576 3 1 1 0 0 960.00 504.00 -145.00 0.00 500.00 1152.00 };
+*/
+
+/*
+pv_250 curve patterns:
+
+#Comfy::Studio::ChartEditor Clipboard 9f88783c
+Target { 10273 0 1 0 0 0 668.24 332.72 165.00 2.00 500.00 1212.00 };
+Target { 10297 0 1 0 0 0 736.12 264.84 170.00 2.00 500.00 1212.00 };
+Target { 10321 0 1 0 0 0 819.28 216.84 175.00 2.00 500.00 1212.00 };
+Target { 10345 0 1 0 0 0 912.00 192.00 180.00 2.00 500.00 1212.00 };
+Target { 10369 0 1 0 0 0 1008.00 192.00 185.00 2.00 500.00 1212.00 };
+Target { 10393 0 1 0 0 0 1100.72 216.84 190.00 2.00 500.00 1212.00 };
+Target { 10417 0 1 0 0 0 1183.88 264.84 195.00 2.00 500.00 1212.00 };
+Target { 10441 0 1 0 0 0 1251.76 332.72 200.00 2.00 500.00 1212.00 };
+
+#Comfy::Studio::ChartEditor Clipboard 9f88783c
+Target { 20833 0 1 0 0 0 668.24 723.28 15.00 -2.00 500.00 1212.00 };
+Target { 20857 0 1 0 0 0 736.12 791.16 10.00 -2.00 500.00 1212.00 };
+Target { 20881 0 1 0 0 0 819.28 839.16 5.00 -2.00 500.00 1212.00 };
+Target { 20905 0 1 0 0 0 912.00 864.00 0.00 -2.00 500.00 1212.00 };
+Target { 20929 0 1 0 0 0 1008.00 864.00 -5.00 -2.00 500.00 1212.00 };
+Target { 20953 0 1 0 0 0 1100.72 839.16 -10.00 -2.00 500.00 1212.00 };
+Target { 20977 0 1 0 0 0 1183.88 791.16 -15.00 -2.00 500.00 1212.00 };
+Target { 21001 0 1 0 0 0 1251.76 723.28 -20.00 -2.00 500.00 1212.00 };
+
+
+pv_817_hard small circle:
+
+#Comfy::Studio::ChartEditor Clipboard 9f88783c
+Target { 14054 3 1 0 0 0 960.00 390.49 0.00 -2.00 500.00 1400.00 };
+Target { 14078 3 1 0 0 0 1048.39 422.66 40.00 -2.00 500.00 1400.00 };
+Target { 14102 3 1 0 0 0 1095.42 504.12 80.00 -2.00 500.00 1400.00 };
+Target { 14126 3 1 0 0 0 1079.08 596.75 120.00 -2.00 500.00 1400.00 };
+Target { 14150 2 1 0 0 0 1007.03 657.22 160.00 -2.00 500.00 1400.00 };
+Target { 14174 2 1 0 0 0 912.97 657.22 200.00 -2.00 500.00 1400.00 };
+Target { 14198 2 1 0 0 0 840.91 596.75 240.00 -2.00 500.00 1400.00 };
+Target { 14222 2 1 0 0 0 824.58 504.12 280.00 -2.00 500.00 1400.00 };
+Target { 14246 1 1 0 0 0 871.61 422.66 320.00 -2.00 500.00 1400.00 };
+*/
+
+namespace Comfy::Studio::Editor
+{
+	namespace BezierTestNew
+	{
+		static ImRect DEBUG_RENDER_REGION;
+
+		static f32 TestSequenceOverlayDimmness = 0.15f; // 0.75;
+		static std::vector<vec2> CirclePositionsToPreview;
+
+		struct BezierKey
+		{
+			vec2 Point, ControlStart, ControlEnd;
+			// f32 DistanceScale;
+
+			vec2& operator[](size_t index) { assert(index < (sizeof(BezierKey) / sizeof(vec2))); return (&Point)[index]; }
+			vec2 operator[](size_t index) const { assert(index < (sizeof(BezierKey) / sizeof(vec2))); return (&Point)[index]; }
+		};
+
+		struct BezierPath
+		{
+			BeatTick LoopDuration;
+			// NOTE: Closed curve "Cyclic", as blender calls it
+			bool Cyclic;
+			std::vector<BezierKey> Keys;
+
+			// TODO: Precalc distance -> t map (?)
+		};
+
+		void DebugDrawBezierPath(const BezierPath& bezierPath, ImDrawList* drawList, ImRect windowRect)
+		{
+			constexpr f32 lineFillStep = 0.001f;
+			auto toScreenSpace = [windowRect](vec2 point) { return windowRect.GetTL() + ((point / Rules::PlacementAreaSize) * windowRect.GetSize()); };
+
+			const auto& keys = bezierPath.Keys;
+
+			if (keys.size() > 1)
+			{
+				for (size_t i = 1; i < keys.size(); i++)
+				{
+					const auto& lastKey = keys[i - 1];
+					const auto& thisKey = keys[i - 0];
+
+					for (f32 t = 0.0f; t <= 1.0f; t += lineFillStep)
+						drawList->PathLineTo(toScreenSpace(CubicBezier::GetPoint(lastKey.Point, thisKey.Point, lastKey.ControlEnd, thisKey.ControlStart, t)));
+				}
+
+				if (bezierPath.Cyclic)
+				{
+					const auto& lastKey = keys.back();
+					const auto& thisKey = keys.front();
+
+					for (f32 t = 0.0f; t <= 1.0f; t += lineFillStep)
+						drawList->PathLineTo(toScreenSpace(CubicBezier::GetPoint(lastKey.Point, thisKey.Point, lastKey.ControlEnd, thisKey.ControlStart, t)));
+				}
+
+				drawList->PathStroke(ImColor(0.0f, 1.0f, 0.0f, 0.85f), false, 2.0f);
+			}
+
+			for (const auto& key : keys)
+			{
+				drawList->AddLine(toScreenSpace(key.Point), toScreenSpace(key.ControlStart), ImColor(0x6968DFFE), 1.0f);
+				drawList->AddLine(toScreenSpace(key.Point), toScreenSpace(key.ControlEnd), ImColor(0x6968DFFE), 1.0f);
+
+				drawList->AddCircleFilled(toScreenSpace(key.Point), 6.0f, ImColor(1.0f, 0.0f, 0.0f));
+				drawList->AddCircleFilled(toScreenSpace(key.ControlStart), 4.0f, ImColor(0.5f, 0.0f, 0.0f));
+				drawList->AddCircleFilled(toScreenSpace(key.ControlEnd), 4.0f, ImColor(0.5f, 0.0f, 0.0f));
+			}
+
+
+#if 1
+			if (keys.size() > 1)
+			{
+				constexpr f32 distCalcStep = 0.0001f;
+				CirclePositionsToPreview.clear();
+
+				f32 distanceTraversed = 0.0f;
+
+				vec2 lastP = CubicBezier::GetPoint(keys[0].Point, keys[1].Point, keys[0].ControlEnd, keys[1].ControlStart, 0.0f);
+				CirclePositionsToPreview.push_back(/*toScreenSpace*/(lastP));
+
+				auto processKeyPair = [&](const BezierKey& lastKey, const BezierKey& thisKey)
+				{
+					for (f32 t = distCalcStep; t <= 1.0f; t += distCalcStep)
+					{
+						const vec2 p = CubicBezier::GetPoint(lastKey.Point, thisKey.Point, lastKey.ControlEnd, thisKey.ControlStart, t);
+						const f32 dist = glm::distance(p, lastP);
+
+						lastP = p;
+
+						constexpr f32 targetDist = Rules::TickToDistance(BeatTick::FromBars(1) / 8);
+						if (distanceTraversed >= targetDist)
+						{
+							distanceTraversed -= targetDist;
+							CirclePositionsToPreview.push_back(/*toScreenSpace*/(p));
+						}
+
+						distanceTraversed += dist;
+					}
+				};
+
+				for (size_t i = 1; i < keys.size(); i++)
+				{
+					const auto& lastKey = keys[i - 1];
+					const auto& thisKey = keys[i - 0];
+
+					processKeyPair(lastKey, thisKey);
+				}
+
+				if (bezierPath.Cyclic)
+				{
+					const auto& lastKey = keys.back();
+					const auto& thisKey = keys.front();
+
+					processKeyPair(lastKey, thisKey);
+				}
+			}
+#endif
+		}
+
+		void DoGuiTest()
+		{
+			const auto windowRect = BezierTestNew::DEBUG_RENDER_REGION;
+			auto toScreenSpace = [windowRect](vec2 worldSpace) { return windowRect.GetTL() + (worldSpace * windowRect.GetSize()); };
+			auto toWorldSpace = [windowRect](vec2 screenSpace) { return (screenSpace - windowRect.GetTL()) * (Rules::PlacementAreaSize / windowRect.GetSize()); };
+
+			static BezierTestNew::BezierPath testBezierPath = []()
+			{
+				BezierTestNew::BezierPath path = {};
+				path.Keys =
+				{
+					BezierTestNew::BezierKey { vec2(336.0f, 432.0f), vec2(336.0f, 432.0f), vec2(480.0f, 768.0f) },
+					BezierTestNew::BezierKey { vec2(1584.0f, 432.0f), vec2(1440.0f, 768.0f), vec2(1440.0f, 968.0f) },
+					BezierTestNew::BezierKey { vec2(1284.0f, 232.0f), vec2(1440.0f, 768.0f), vec2(1440.0f, 768.0f) },
+				};
+				return path;
+			}();
+
+			static f32 testCircleRadius = (576.0f / 2.0f);
+
+			if (Gui::DragFloat("Circle Radius", &testCircleRadius) | Gui::Button("Circle"))
+			{
+				constexpr vec2 DynamicSequencePresetLargeCircleCenter = Rules::PlacementAreaCenter;
+
+				/*constexpr*/ f32 radiusHorizontal = testCircleRadius; // (Rules::TickToDistance((BeatTick::FromBars(1) / 16) * 2) * glm::pi<f32>() / 2.0f); // 
+				/*constexpr*/ f32 radiusVertical = radiusHorizontal;
+				constexpr f32 n = 4.0f;
+				// https://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves
+				const f32 optimalLengthUnit = (4.0f / 3.0f) * glm::tan(glm::pi<f32>() / (2.0f * n));
+				const f32 optimalLengthHorizontal = optimalLengthUnit * radiusHorizontal;
+				const f32 optimalLengthVertical = optimalLengthUnit * radiusVertical;
+
+				testBezierPath.Cyclic = true;
+				testBezierPath.Keys.clear();
+				testBezierPath.Keys.push_back({ vec2(0.0f, -radiusVertical), vec2(), vec2() });
+				testBezierPath.Keys.push_back({ vec2(+radiusHorizontal, 0.0f), vec2(), vec2() });
+				testBezierPath.Keys.push_back({ vec2(0.0f, +radiusVertical), vec2(), vec2() });
+				testBezierPath.Keys.push_back({ vec2(-radiusHorizontal, 0.0f), vec2(), vec2() });
+
+				testBezierPath.Keys[0].ControlStart = testBezierPath.Keys[0].Point + vec2(-optimalLengthVertical, 0.0f);
+				testBezierPath.Keys[0].ControlEnd = testBezierPath.Keys[0].Point + vec2(+optimalLengthVertical, 0.0f);
+
+				testBezierPath.Keys[1].ControlStart = testBezierPath.Keys[1].Point + vec2(0.0f, -optimalLengthHorizontal);
+				testBezierPath.Keys[1].ControlEnd = testBezierPath.Keys[1].Point + vec2(0.0f, +optimalLengthHorizontal);
+
+				testBezierPath.Keys[2].ControlStart = testBezierPath.Keys[2].Point + vec2(+optimalLengthVertical, 0.0f);
+				testBezierPath.Keys[2].ControlEnd = testBezierPath.Keys[2].Point + vec2(-optimalLengthVertical, 0.0f);
+
+				testBezierPath.Keys[3].ControlStart = testBezierPath.Keys[3].Point + vec2(0.0f, +optimalLengthHorizontal);
+				testBezierPath.Keys[3].ControlEnd = testBezierPath.Keys[3].Point + vec2(0.0f, -optimalLengthHorizontal);
+
+				//testBezierPath.Keys.push_back(testBezierPath.Keys[0]);
+
+				for (auto& key : testBezierPath.Keys)
+				{
+					for (i32 i = 0; i < 3; i++)
+						key[i] += DynamicSequencePresetLargeCircleCenter;
+				}
+			}
+
+			if (Gui::Button("Pop Key"))
+			{
+				if (!testBezierPath.Keys.empty())
+					testBezierPath.Keys.pop_back();
+			}
+			Gui::SameLine();
+			if (Gui::Button("Clear Keys"))
+			{
+				testBezierPath.Keys.clear();
+			}
+
+			Gui::Checkbox("Cyclic", &testBezierPath.Cyclic);
+
+			static struct GrabData
+			{
+				i32 KeyIndex = -1;
+				i32 PropertyIndex = -1;
+				bool SplitAnchor = false;
+			} testGrab;
+
+			static vec2 worldMousePos, worldMousePosLast;
+			worldMousePosLast = worldMousePos;
+			worldMousePos = toWorldSpace(Gui::GetMousePos());
+			const vec2 worldMouseDelta = (worldMousePos - worldMousePosLast);
+
+			//if (windowRect.Contains(Gui::GetMousePos()) && Gui::IsMouseClicked(ImGuiMouseButton_Left))
+			if (Gui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) && Gui::IsMouseClicked(ImGuiMouseButton_Left))
+			{
+				testGrab = {};
+				for (i32 k = 0; k < static_cast<i32>(testBezierPath.Keys.size()); k++)
+				{
+					const auto& key = testBezierPath.Keys[k];
+					for (i32 p = 0; p < 3; p++)
+					{
+						if (glm::distance(worldMousePos, key[p]) < 8.0f)
+						{
+							testGrab = { k, p };
+							testGrab.SplitAnchor = Gui::GetIO().KeyAlt;
+						}
+					}
+				}
+			}
+
+			if (Gui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) && Gui::IsMouseClicked(ImGuiMouseButton_Middle))
+			{
+				testGrab = {};
+				const vec2 snappedMouse = Rules::SnapPositionToGrid(worldMousePos);
+				const vec2 newKeyPos = snappedMouse;
+
+				if (/*testBezierPath.Keys.empty()*/testBezierPath.Keys.size() < 2)
+				{
+					testBezierPath.Keys.push_back({ newKeyPos, newKeyPos, newKeyPos });
+				}
+				else
+				{
+					auto& lastKey = testBezierPath.Keys.back();
+					auto& secondToLastKey = testBezierPath.Keys[testBezierPath.Keys.size() - 2];
+
+					const f32 distanceToLastKey = glm::distance(lastKey.Point, newKeyPos);
+
+					// TODO: Find mid point, move into line normal direction, control end & stat pointing towards extruded midpoint scaled by size
+					//const vec2 directionFromLastKey = glm::normalize(lastKey.Point - newKeyPos);
+					//const vec2 directionToLastKey = glm::normalize(newKeyPos - lastKey.Point);
+					const vec2 directionFromLastKey = glm::normalize(lastKey.Point - newKeyPos);
+					const vec2 directionToLastKey = glm::normalize(newKeyPos - secondToLastKey.Point);
+
+					constexpr f32 n = 4.0f;
+					const f32 radius = distanceToLastKey * 0.5f;
+					const f32 optimalLength = (4.0f / 3.0f) * glm::tan(glm::pi<f32>() / (2.0f * n)) * radius;
+
+					lastKey.ControlEnd = lastKey.Point + (directionToLastKey * optimalLength);
+
+					testBezierPath.Keys.push_back({ newKeyPos, newKeyPos + (directionFromLastKey * optimalLength), newKeyPos });
+				}
+			}
+
+			if (Gui::IsMouseReleased(ImGuiMouseButton_Left))
+			{
+				testGrab = {};
+			}
+
+			if (InBounds(testGrab.KeyIndex, testBezierPath.Keys))
+			{
+				Gui::SetActiveID(Gui::GetID(&testGrab), Gui::GetCurrentWindow());
+
+				auto& grabbedKey = testBezierPath.Keys[testGrab.KeyIndex];
+				if (testGrab.PropertyIndex == 0)
+				{
+					for (i32 i = 0; i < 3; i++)
+						grabbedKey[i] += worldMouseDelta;
+				}
+				else
+				{
+					if (testGrab.SplitAnchor)
+					{
+						grabbedKey[testGrab.PropertyIndex] = worldMousePos;
+					}
+					else
+					{
+						auto& mainKeyControl = grabbedKey[testGrab.PropertyIndex];
+						auto& secondaryKeyControl = grabbedKey[testGrab.PropertyIndex == 1 ? 2 : 1];
+
+						mainKeyControl = worldMousePos;
+						secondaryKeyControl = -(mainKeyControl - grabbedKey.Point) + grabbedKey.Point;
+					}
+				}
+			}
+
+			BezierTestNew::DebugDrawBezierPath(testBezierPath, Gui::GetForegroundDrawList(), windowRect);
+		}
+	}
+}
+#endif
+
 namespace Comfy::Studio::Editor
 {
 	namespace
@@ -221,6 +594,9 @@ namespace Comfy::Studio::Editor
 
 	void PresetWindow::SequenceGui(Chart& chart)
 	{
+#if COMFY_BEZIER_TEST
+		BezierTestNew::DoGuiTest();
+#endif
 
 		hovered.Sequence.Preset = {};
 		hovered.Sequence.AnyChildWindow = Gui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
@@ -321,6 +697,21 @@ namespace Comfy::Studio::Editor
 	void PresetWindow::OnRenderWindowRender(Chart& chart, TargetRenderWindow& renderWindow, Render::Renderer2D& renderer)
 	{
 		auto& renderHelper = renderWindow.GetRenderHelper();
+
+#if COMFY_BEZIER_TEST
+		BezierTestNew::DEBUG_RENDER_REGION = renderWindow.GetRenderRegion();
+
+		for (const auto& position : BezierTestNew::CirclePositionsToPreview)
+		{
+			TargetRenderHelper::TargetData targetData = {};
+			targetData.Type = ButtonType::Circle;
+			targetData.Position = position;
+			targetData.Scale = 1.0f;
+			targetData.NoScale = true;
+			targetData.Transparent = true;
+			renderHelper.DrawTarget(renderer, targetData);
+		}
+#endif
 
 		if (const auto dimness = GetPresetPreviewDimness(false); dimness > 0.0f)
 			renderer.Draw(Render::RenderCommand2D(vec2(0.0f, 0.0f), Rules::PlacementAreaSize, vec4(0.0f, 0.0f, 0.0f, dimness)));

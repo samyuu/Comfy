@@ -284,7 +284,6 @@ namespace ImGui
 			return 0;
 		}
 
-
 		int ValidPathCharTextCallbackFilter(ImGuiInputTextCallbackData* data)
 		{
 			if (data->EventFlag == ImGuiInputTextFlags_CallbackCharFilter)

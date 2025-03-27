@@ -671,6 +671,7 @@ namespace Comfy::Studio
 
 	void ComfyStudioApplication::DisposeSaveSettings()
 	{
+		// BUG: Closing while window minimized (TODO: store last pre-minimized properties)
 		GlobalAppData.LastSessionWindowState.RestoreRegion = host->GetWindowRestoreRegion();
 		GlobalAppData.LastSessionWindowState.Position = host->GetWindowPosition();
 		GlobalAppData.LastSessionWindowState.Size = host->GetWindowSize();

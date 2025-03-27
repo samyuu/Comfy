@@ -257,11 +257,18 @@ namespace Comfy::Studio::Editor
 				if (Gui::MenuItem("Export UPDC Chart...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportUPDCChart).data(), false, true))
 					OpenSaveExportPJEChartFileDialog();
 
-				if (Gui::MenuItem("Expot PV Script MData...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportPVScriptMData).data(), false, true))
+				if (Gui::MenuItem("Export PV Script MData...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportPVScriptMData).data(), false, true))
 					OpenPVScriptExportWindow();
 
-				if (Gui::MenuItem("Expot PV Script Chart...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportPVScriptChart).data(), false, true))
+				if (Gui::MenuItem("Export PV Script Chart...", Input::ToString(GlobalUserData.Input.ChartEditor_ExportPVScriptChart).data(), false, true))
 					OpenSaveExportSimplePVScriptChartFileDialog();
+
+#if COMFY_DEBUG && 0
+				// TODO: JSON format designed for easy convertion into other formats with a lot of redudancy like multiple time format representations and both relative and absoulte paths to images, song etc.
+				//		 the same json could then be passed into 3rd party export "plugins" (?)
+				if (Gui::MenuItem("Export Comfy Studio JSON...", nullptr, false, false))
+					assert(false);
+#endif
 
 				Gui::EndMenu();
 			}

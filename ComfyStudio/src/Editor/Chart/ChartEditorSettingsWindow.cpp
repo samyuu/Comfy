@@ -1501,7 +1501,7 @@ namespace Comfy::Studio::Editor
 				"This option is disabled by default to not needlessly request exclusive device access when it's not needed");
 
 			pendingChanges |= GuiSettingsCheckbox("Close Device on Idle Focus Loss", userData.System.Audio.CloseDeviceOnIdleFocusLoss);
-			GuiSettingsRighSideHelpMarker("Automatically closes the audio session if the program window loses focus and no sounds is currently playing.\n"
+			GuiSettingsRighSideHelpMarker("Automatically closes the audio session if the program window loses focus and no sounds are currently playing.\n"
 				"This option is enabled by default to not needlessly keep exclusive device access when it's not needed");
 
 			pendingChanges |= GuiSettingsCheckbox("Request Exclusive Device Access", userData.System.Audio.RequestExclusiveDeviceAccess);

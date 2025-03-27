@@ -968,7 +968,7 @@ namespace Comfy::Studio::Editor
 					fadeInOut.OutExitStopwatch.Stop();
 				}
 			}
-					}
+		}
 
 	private:
 		void PlayOneShotSoundEffect(std::string_view name, f32 volume = 1.0f)
@@ -1623,4 +1623,4 @@ namespace Comfy::Studio::Editor
 	{
 		return impl->GetIsPlayback();
 	}
-			}
+}

@@ -197,6 +197,8 @@ namespace Comfy::Studio::Editor
 		void ClipboardCopySelection(Undo::UndoManager& undoManager, Chart& chart);
 		void ClipboardPasteSelection(Undo::UndoManager& undoManager, Chart& chart);
 
+		BeatTick GetTargetPlacementCursorTickWithAdjustedOffsetSetting() const;
+
 		void FillInRangeSelectionTargets(Undo::UndoManager& undoManager, Chart& chart, ButtonType type);
 		void PlaceOrRemoveTarget(Undo::UndoManager& undoManager, Chart& chart, BeatTick tick, ButtonType type);
 

@@ -65,6 +65,8 @@ namespace Comfy::Studio::Editor
 
 		void DrawTimelineGui();
 
+		bool IsGuiWindowOrChildrenFocused() const;
+
 	public:
 		inline f32 GetScrollX() const { return scroll.x; }
 		inline f32 GetScrollTargetX() const { return scrollTarget.x; }
@@ -80,7 +82,6 @@ namespace Comfy::Studio::Editor
 		// NOTE: Should be called every time the cursor screen position might have been changed
 		void InvalidateAutoScrollLock();
 		bool IsCursorAutoScrollLocked() const;
-		bool WasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart() const;
 
 		void SetZoomCenteredAroundCursor(f32 newZoom);
 		void SetZoomCenteredAroundTime(f32 newZoom, TimeSpan timeToCenter);
@@ -160,6 +161,10 @@ namespace Comfy::Studio::Editor
 
 		ImGuiWindow* baseWindow = nullptr;
 		ImDrawList* baseWindowDrawList = nullptr;
+		ImGuiWindow* infoColumnWindow = nullptr;
+		ImGuiWindow* verticalScrollBarWindow = nullptr;
+		ImGuiWindow* horizontalScrollBarWindow = nullptr;
+		bool isAnyGuiChildWindowFocused = false;
 
 		struct
 		{
@@ -186,7 +191,6 @@ namespace Comfy::Studio::Editor
 			// NOTE: To ensure the cursor stays on the exact same pixel position during auto scrolling without "jiggling" around
 			bool enablePlaybackAutoScrollLocking = false;
 			bool lockCursorToAutoScrollPosition = false;
-			bool wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart = false;
 			ImRect lastFrameContentRectForAutoScrollInvalidation = {};
 			f32 lastFramePlaybackSpeedForAutoScrollInvalidation = {};
 			// NOTE: To avoid any sudden cursor "skips" when locking onto the auto scroll position

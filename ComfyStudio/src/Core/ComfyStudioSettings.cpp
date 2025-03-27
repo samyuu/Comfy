@@ -2026,6 +2026,7 @@ namespace Comfy::Studio
 		TargetTimeline.AdjustPauseTimeByAudioBufferDuration = true;
 		TargetTimeline.FocusOffscreenCursorOnResume = true;
 		TargetTimeline.FocusOffscreenCursorOnResumeEdgePixelOffset = 96.0f;
+		// TODO: Rename or remove (to make sure configs from older versions will have their default reset)
 		TargetTimeline.EnableExperimentalPlaybackAutoScrollCursorLocking = true;
 		TargetTimeline.WaveformDisabled = false;
 		TargetTimeline.WaveformDisableTextureCache = false;
@@ -2049,6 +2050,13 @@ namespace Comfy::Studio
 		PositionTool.DiagonalMouseRowLayouts =
 		{
 			{ Rules::DefaultPerBeatDiagonalSpacing, "Default" },
+#if COMFY_DEBUG && 1
+			{ vec2(192.0f, 128.0f), "Wider Different Type 1/16th" },
+			{ vec2(192.0f, 192.0f), "Ugly Diagonal" },
+			{ vec2(192.0f, 96.0f), "Wider Different Type 1/16th but Shorter" },
+			{ vec2(192.0f, 84.0f), "Kinda Weird" },
+			{ vec2(224.0f, 128.0f), "Even Wider 1/16th Slide" },
+#endif
 		};
 
 		PathTool.AngleMouseSnap = 1.0f;

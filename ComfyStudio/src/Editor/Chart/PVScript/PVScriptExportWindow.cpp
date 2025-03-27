@@ -602,6 +602,7 @@ namespace Comfy::Studio::Editor
 		public:
 			MDataResolver(std::string_view rootDirectory, std::string_view mDataRootDirectory, std::array<char, 5> mdataIDToExclude)
 			{
+				// BUG: Crash when exporting into an empty directory
 				IO::Directory::IterateDirectories(mDataRootDirectory, [&](const auto& mdataDirectory)
 				{
 					MDataInfo mData;

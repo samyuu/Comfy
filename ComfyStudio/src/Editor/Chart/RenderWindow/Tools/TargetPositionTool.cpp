@@ -35,6 +35,66 @@ namespace Comfy::Studio::Editor
 
 	void TargetPositionTool::OnContextMenuGUI(Chart& chart)
 	{
+#if COMFY_DEBUG || 0 // TODO: Move a distance info display like this into the tooltip (?)
+		if (Gui::IsWindowFocused() && Gui::IsKeyDown(Input::KeyCode_Tab))
+		{
+			Gui::Text("Debug Distance Test:");
+			if (lastFrameSelectionCount < 2)
+			{
+				Gui::Text("[Selection too small]");
+			}
+			else
+			{
+				struct LocalFunc
+				{
+					static constexpr i32 FindGCD(i32 a, i32 b)
+					{
+						if (a == 0 || b == 0)
+							return 0;
+						else if (a == b)
+							return a;
+						else if (a > b)
+							return FindGCD(a - b, b);
+						else
+							return FindGCD(a, b - a);
+					}
+				};
+
+				const auto firstSelectedIt = std::find_if(chart.Targets.begin(), chart.Targets.end(), [&](auto& t) { return t.IsSelected; });
+				const auto lastSelectedIt = std::find_if(chart.Targets.rbegin(), chart.Targets.rend(), [&](auto& t) { return t.IsSelected; });
+
+				if (firstSelectedIt != chart.Targets.end() && lastSelectedIt != chart.Targets.rend())
+				{
+					const auto& first = *firstSelectedIt;
+					const auto& last = *lastSelectedIt;
+
+					const auto firstProperties = Rules::TryGetProperties(first);
+					const auto lastProperties = Rules::TryGetProperties(last);
+
+					const f32 distance = glm::distance(firstProperties.Position, lastProperties.Position);
+					const auto beatDistance = (last.Tick - first.Tick);
+
+					const f32 expectedDistance = Rules::TickToDistance(beatDistance);
+					const auto beatFromDistance = Rules::DistanceToTick(distance);
+					Gui::Text("[Distance: %g, Expected: %g]", distance, expectedDistance);
+
+					const f32 beatsFraction = beatDistance.BeatsFraction();
+
+					const ivec2 absPosDiff = glm::abs(ivec2(firstProperties.Position - lastProperties.Position));
+					i32 posDiffGCD = LocalFunc::FindGCD(absPosDiff.x, absPosDiff.y);
+
+					if (posDiffGCD == 0) posDiffGCD = 1;
+
+					Gui::Text("[BeatsFraction: %g]", beatsFraction);
+					Gui::Text("[PosDiff: (%d, %d)]", absPosDiff.x, absPosDiff.y);
+					Gui::Text("[PosDiff / BeatsFraction: (%g, %g)]", absPosDiff.x / beatsFraction, absPosDiff.y / beatsFraction);
+					Gui::Text("[GCD: %d]", posDiffGCD);
+					Gui::Text("[PosDiff / GCD: (%d, %d)]", absPosDiff.x / posDiffGCD, absPosDiff.y / posDiffGCD);
+				}
+			}
+			Gui::Separator();
+		}
+#endif
 
 		if (Gui::MenuItem("Flip Targets Horizontally", Input::ToString(GlobalUserData.Input.TargetPreview_PositionTool_FlipHorizontal).data(), false, (lastFrameSelectionCount > 0)))
 			FlipSelectedTargets(undoManager, chart, FlipMode::Horizontal);

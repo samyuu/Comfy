@@ -155,11 +155,6 @@ namespace Comfy::Studio::Editor
 		return lockCursorToAutoScrollPosition;
 	}
 
-	bool TimelineBase::WasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart() const
-	{
-		return wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart;
-	}
-
 	void TimelineBase::SetZoomCenteredAroundCursor(f32 newZoom)
 	{
 		const auto cursorTime = GetCursorTime();
@@ -244,7 +239,7 @@ namespace Comfy::Studio::Editor
 		const auto& io = Gui::GetIO();
 		constexpr ImGuiMouseButton scrollGrabMouseButton = ImGuiMouseButton_Middle;
 
-		if (Gui::IsMouseReleased(scrollGrabMouseButton) || !Gui::IsWindowFocused())
+		if (Gui::IsMouseReleased(scrollGrabMouseButton) || !IsGuiWindowOrChildrenFocused())
 			isMouseScrollGrabbing = false;
 
 		if (isMouseScrollGrabbing)
@@ -266,7 +261,7 @@ namespace Comfy::Studio::Editor
 			Gui::SetWindowFocus();
 		}
 
-		if (Gui::IsWindowFocused() && Input::IsAnyPressed(GlobalUserData.Input.Timeline_CenterCursor, false))
+		if (IsGuiWindowOrChildrenFocused() && Input::IsAnyPressed(GlobalUserData.Input.Timeline_CenterCursor, false))
 			CenterCursor();
 
 		if (Gui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && io.MouseWheel != 0.0f && !isMouseScrollGrabbing)
@@ -284,7 +279,7 @@ namespace Comfy::Studio::Editor
 
 	void TimelineBase::UpdateInputPlaybackToggle()
 	{
-		if (!Gui::IsWindowFocused())
+		if (!IsGuiWindowOrChildrenFocused())
 			return;
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.Timeline_TogglePlayback, false, Input::ModifierBehavior_Relaxed))
@@ -390,8 +385,13 @@ namespace Comfy::Studio::Editor
 
 		UpdateTimelineRegions();
 
+		isAnyGuiChildWindowFocused = false;
+
 		Gui::BeginChild("##InfoColumnChild::TimelineBase", vec2(0.0f, -scrollbarSize.y));
 		{
+			infoColumnWindow = Gui::GetCurrentWindow();
+			isAnyGuiChildWindowFocused |= Gui::IsWindowFocused();
+
 			OnDrawTimelineInfoColumnHeader();
 			OnDrawTimelineInfoColumn();
 			UpdateInfoColumnInput();
@@ -403,6 +403,8 @@ namespace Comfy::Studio::Editor
 		{
 			baseWindow = Gui::GetCurrentWindow();
 			baseWindowDrawList = baseWindow->DrawList;
+			isAnyGuiChildWindowFocused |= Gui::IsWindowFocused();
+
 			DrawTimelineBase();
 		}
 		Gui::EndChild();
@@ -412,6 +414,9 @@ namespace Comfy::Studio::Editor
 		Gui::SameLine();
 		Gui::BeginChild("VerticalScrollChild::TimelineBase", vec2(0.0f, 0.0f), false, ImGuiWindowFlags_NoScrollbar);
 		{
+			verticalScrollBarWindow = Gui::GetCurrentWindow();
+			isAnyGuiChildWindowFocused |= Gui::IsWindowFocused();
+
 			Gui::GetWindowDrawList()->AddRectFilled(
 				GImGui->CurrentWindow->Pos,
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size - vec2(0.0f, scrollbarSize.y),
@@ -431,6 +436,9 @@ namespace Comfy::Studio::Editor
 		Gui::SetCursorScreenPos(regions.InfoColumnContent.GetBL());
 		Gui::BeginChild("HorizontalScrollChild::TimelineBase", vec2(-scrollbarSize.x, scrollbarSize.y), false, ImGuiWindowFlags_NoScrollbar);
 		{
+			horizontalScrollBarWindow = Gui::GetCurrentWindow();
+			isAnyGuiChildWindowFocused |= Gui::IsWindowFocused();
+
 			Gui::GetWindowDrawList()->AddRectFilled(
 				GImGui->CurrentWindow->Pos,
 				GImGui->CurrentWindow->Pos + GImGui->CurrentWindow->Size,
@@ -453,6 +461,12 @@ namespace Comfy::Studio::Editor
 		Gui::EndChild();
 
 		Gui::PopStyleVar();
+	}
+
+	bool TimelineBase::IsGuiWindowOrChildrenFocused() const
+	{
+		// BUG: scrollbar children
+		return Gui::IsWindowFocused() || isAnyGuiChildWindowFocused;
 	}
 
 	void TimelineBase::DrawTimelineBase()
@@ -497,14 +511,9 @@ namespace Comfy::Studio::Editor
 				if (autoScrollDifference < +snapThreshold && autoScrollDifference >= -snapThreshold)
 				{
 					lockCursorToAutoScrollPosition = true;
-					wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart = true;
 					lastAutoScrollLockStopwatch.Restart();
 				}
 			}
-		}
-		else
-		{
-			wasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart = false;
 		}
 
 		// NOTE: Make sure to always update this *after* user input (?)

@@ -6,6 +6,9 @@
 #include "ImGui/Extensions/PropertyEditor.h"
 #include <FontIcons.h>
 
+// BUG: SELECTING MOVING AND OR MODIFTING CHAIN SLIDES CAN SPAM COMMANDS AND FUCK FRAMETIMES, IS SOMETHING WRONG WITH TimelineTargetID??
+// BUG: "Dagorth Ur" incorrect silent single pixel height waveform part visible right at the start when timeline is scrolled just slightly to the right --> TargetTimeline::DrawCheckUpdateWaveform()
+
 namespace Comfy::Studio::Editor
 {
 	namespace
@@ -164,6 +167,10 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::OnUpdate()
 	{
+#if 0
+		TEMP_TEST::SomeUpdateFunction();
+#endif
+
 		if (guiFrameCountAfterWhichToFocusWindow.has_value() && (Gui::GetFrameCount() >= guiFrameCountAfterWhichToFocusWindow.value()))
 		{
 			Gui::SetWindowFocus();
@@ -432,6 +439,41 @@ namespace Comfy::Studio::Editor
 			const auto tempTarget = TimelineTarget(BeatTick::Zero(), static_cast<ButtonType>(row));
 			renderHelper.DrawButtonIcon(drawList, tempTarget, iconCenters[row], iconScale);
 		}
+
+#if COMFY_DEBUG || 1 // TODO: Decide on how exactly to handle this
+		enum class TargetTimelineInfoColumnClickBehavior : u8
+		{
+			None,
+			InsertCircle,
+			InsertHovered,
+			Count
+		};
+
+		static constexpr auto settingsClickBehavior = TargetTimelineInfoColumnClickBehavior::InsertHovered;
+
+		if (settingsClickBehavior != TargetTimelineInfoColumnClickBehavior::None)
+		{
+			if (Gui::IsWindowHovered() && regions.InfoColumnContent.Contains(Gui::GetMousePos()))
+			{
+				if (Gui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					if (settingsClickBehavior == TargetTimelineInfoColumnClickBehavior::InsertCircle)
+					{
+						PlaceOrRemoveTarget(undoManager, *workingChart, GetTargetPlacementCursorTickWithAdjustedOffsetSetting(), ButtonType::Circle);
+					}
+					else if (settingsClickBehavior == TargetTimelineInfoColumnClickBehavior::InsertHovered)
+					{
+						const vec2 mouseRelativeToInfoColumn = Gui::GetMousePos() - regions.InfoColumnContent.GetTL();
+						const i32 mouseRowIndex = static_cast<i32>(mouseRelativeToInfoColumn.y / rowHeight);
+						const ButtonType mouseButtonType = static_cast<ButtonType>(mouseRowIndex);
+
+						if (mouseRowIndex >= 0 && mouseRowIndex < static_cast<i32>(EnumCount<ButtonType>()))
+							PlaceOrRemoveTarget(undoManager, *workingChart, GetTargetPlacementCursorTickWithAdjustedOffsetSetting(), mouseButtonType);
+					}
+				}
+			}
+		}
+#endif
 	}
 
 	void TargetTimeline::OnDrawTimlineRows()
@@ -1243,7 +1285,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateKeyboardCtrlInput()
 	{
-		if (!Gui::IsWindowFocused())
+		if (!IsGuiWindowOrChildrenFocused())
 			return;
 
 		if (Gui::GetIO().KeyCtrl && Gui::GetActiveID() == 0)
@@ -1302,7 +1344,7 @@ namespace Comfy::Studio::Editor
 		if (Gui::IsWindowHovered() && Gui::IsMouseClicked(ImGuiMouseButton_Right))
 			rangeSelection = {};
 
-		if (!Gui::IsWindowFocused())
+		if (!IsGuiWindowOrChildrenFocused())
 			return;
 
 		const bool isPlayback = GetIsPlayback();
@@ -1628,7 +1670,7 @@ namespace Comfy::Studio::Editor
 	void TargetTimeline::UpdateInputCursorScrubbing()
 	{
 		isCursorScrubbingAndPastEdgeAutoScrollThreshold = false;
-		if (Gui::IsMouseReleased(ImGuiMouseButton_Left) || !Gui::IsWindowFocused())
+		if (Gui::IsMouseReleased(ImGuiMouseButton_Left) || !IsGuiWindowOrChildrenFocused())
 			isCursorScrubbing = false;
 
 		if (isCursorScrubbing)
@@ -1686,7 +1728,7 @@ namespace Comfy::Studio::Editor
 
 	void TargetTimeline::UpdateInputTargetPlacement()
 	{
-		if (!Gui::IsWindowFocused())
+		if (!IsGuiWindowOrChildrenFocused())
 			return;
 
 		if (Gui::GetIO().KeyCtrl)
@@ -1695,19 +1737,9 @@ namespace Comfy::Studio::Editor
 		auto onButtonTypePressed = [&](ButtonType buttonType)
 		{
 			if (Gui::GetIO().KeyShift && rangeSelection.IsActive && rangeSelection.HasEnd)
-			{
 				FillInRangeSelectionTargets(undoManager, *workingChart, buttonType);
-			}
 			else
-			{
-				const auto currentAudioBackend = Audio::AudioEngine::GetInstance().GetAudioBackend();
-				const TimeSpan userPlacementOffset =
-					(currentAudioBackend == Audio::AudioBackend::WASAPIShared) ? GlobalUserData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared :
-					(currentAudioBackend == Audio::AudioBackend::WASAPIExclusive) ? GlobalUserData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive : TimeSpan::Zero();
-
-				const BeatTick cursorTick = GetIsPlayback() ? TimeToTick(chartEditor.GetPlaybackTimeAsync() + userPlacementOffset) : GetCursorTick();
-				PlaceOrRemoveTarget(undoManager, *workingChart, RoundTickToGrid(cursorTick), buttonType);
-			}
+				PlaceOrRemoveTarget(undoManager, *workingChart, GetTargetPlacementCursorTickWithAdjustedOffsetSetting(), buttonType);
 		};
 
 		if (Input::IsAnyPressed(GlobalUserData.Input.TargetTimeline_PlaceTriangle, false, Input::ModifierBehavior_Relaxed))
@@ -2174,6 +2206,23 @@ namespace Comfy::Studio::Editor
 		}
 	}
 
+	BeatTick TargetTimeline::GetTargetPlacementCursorTickWithAdjustedOffsetSetting() const
+	{
+		if (GetIsPlayback())
+		{
+			const auto currentAudioBackend = Audio::AudioEngine::GetInstance().GetAudioBackend();
+			const TimeSpan userPlacementOffset =
+				(currentAudioBackend == Audio::AudioBackend::WASAPIShared) ? GlobalUserData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiShared :
+				(currentAudioBackend == Audio::AudioBackend::WASAPIExclusive) ? GlobalUserData.TargetTimeline.PlaybackCursorPlacementOffsetWasapiExclusive : TimeSpan::Zero();
+
+			return RoundTickToGrid(TimeToTick(chartEditor.GetPlaybackTimeAsync() + userPlacementOffset));
+		}
+		else
+		{
+			return RoundTickToGrid(GetCursorTick());
+		}
+	}
+
 	void TargetTimeline::FillInRangeSelectionTargets(Undo::UndoManager& undoManager, Chart& chart, ButtonType type)
 	{
 		const auto startTick = RoundTickToGrid(Min(rangeSelection.StartTick, rangeSelection.EndTick));
@@ -2622,10 +2671,7 @@ namespace Comfy::Studio::Editor
 			}
 			chartEditor.ResumePlayback();
 
-			// TODO: Checking the OnceAutoScrollLock flag doesn't work too well when mouse click moving the cursor mid-playback so maybe this should be a separate flag instead
-			const bool scrollingLeft = (scrollIncrementF32 < 0.0f);
-			const bool keepCursorScreenPosition = WasCursorAutoScrollLockedAtLeastOnceSincePlaybackStart() || (scrollingLeft && IsCursorOnScreen());
-			if (keepCursorScreenPosition)
+			if (const bool keepCursorScreenPosition = true; keepCursorScreenPosition)
 				SetScrollTargetX(GetScrollTargetX() + (GetCursorTimelinePosition() - preCursorX));
 		}
 		else
